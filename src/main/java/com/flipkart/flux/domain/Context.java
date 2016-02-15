@@ -19,7 +19,7 @@ import java.util.Map;
 /**
  * @understands : Carries execution context that can be used during a state's execution
  * This is created and maintained by the execution engine.
- * This is not passed around to workers. Workers interact with the context via APIs.
+ * This is not passed around to workers. Workers interact with the context via APIs (see  event posting API, for instance).
  *
  */
 public class Context {

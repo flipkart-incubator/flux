@@ -25,10 +25,11 @@ import javax.ws.rs.PathParam;
  * @understands Exposes APIs for end users
  */
 public class StateMachineResource {
-/*
-Cancel Execution : PUT /machines/{machineName}/{version}/{machineId}/cancel
-
- */
+    /**
+     * Will instantiate a state machine in the flux execution engine
+     * @param stateMachineDefinition User input for state machine
+     * @return unique machineId of the instantiated state machine
+     */
     @POST
     @Path("/machines")
     public Long createStateMachine(StateMachineDefinition stateMachineDefinition) {
@@ -38,6 +39,13 @@ Cancel Execution : PUT /machines/{machineName}/{version}/{machineId}/cancel
         return null;
     }
 
+    /**
+     * Used to post Data corresponding to an event.
+     * This data may be a result of a task getting completed or independently posted (manually, for example)
+     * @param machineId machineId the event is to be submitted against
+     * @param eventFqn fully qualified name of the event. Like java.lang.String_foo
+     * @param eventDataJson Json representation of data
+     */
     @POST
     @Path("/machines/{machineId}/context/events/{eventFqn}")
     public void submitEvent(@PathParam("machineId") Long machineId,
@@ -48,6 +56,12 @@ Cancel Execution : PUT /machines/{machineName}/{version}/{machineId}/cancel
         // 1. Retrieve StateMachine's execution context
         // 2. Submit event to it - workFlowExecutionController.postEvent(context, eventFqn,eventDataJson)
     }
+
+    /**
+     * Cancel a machine being executed.*
+     * @param machineId The machineId to be cancelled
+     */
+
     @PUT
     @Path("/machines/{machineId}/cancel")
     public void cancelExecution(@PathParam("machineId") Long machineId) {

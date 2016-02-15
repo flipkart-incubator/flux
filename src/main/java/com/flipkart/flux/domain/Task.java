@@ -21,6 +21,11 @@ import javafx.util.Pair;
  * Assume the methods are RPCs being performed on a client's compute instance
  * */
 public interface Task {
+    /**
+     * Unpacks the data from events and proceeds with an execution call to the actual URI that represents a remote worker
+     * @param events Dependencies that need to be satisfied for this task to be executed
+     * @return The event produced by a worker on successful execution OR an error object representing the error.
+     */
     Pair<Event,FluxError> execute(Event... events);
 	void rollback();
 }

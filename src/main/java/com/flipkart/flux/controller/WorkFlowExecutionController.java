@@ -14,7 +14,6 @@
 package com.flipkart.flux.controller;
 
 import com.flipkart.flux.domain.Context;
-import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 
@@ -24,6 +23,22 @@ import java.util.List;
  * @understands Controls the execution flow of a given state machine
  */
 public interface WorkFlowExecutionController {
-    List<State> init(StateMachine stateMachine); // List of initial states
+    /**
+     * Perform init operations on a state machine.
+     * This can include creating the Context for the first time and storing it.
+     * Figuring out and returning the list of task that are independent and can begin execution
+     * @param stateMachine
+     * @return List of states that do not have any event dependencies on them
+     */
+    List<State> init(StateMachine stateMachine);
+
+    /**
+     * Attaches the event to the stateMachineContext.
+     * The stateMachineContext can then be used to retrieve the states that have now been enabled and ready for execution
+     * @param stateMachineContext
+     * @param eventFqn
+     * @param eventData
+     * @return List of states unblocked by the given event
+     */
     List<State> postEvent(Context stateMachineContext, String eventFqn,String eventData); // Accepts an event against a given instance of a state machine and returns list of states that can now be active
 }
