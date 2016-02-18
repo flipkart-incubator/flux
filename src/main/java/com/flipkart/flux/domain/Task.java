@@ -27,5 +27,5 @@ public interface Task {
      * @return The event produced by a worker on successful execution OR an error object representing the error.
      */
     Pair<Event,FluxError> execute(Event... events);
-	void rollback();
+    void rollback();
 }

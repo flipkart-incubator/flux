@@ -24,25 +24,25 @@ public class State {
 
     Long version;
 
-	/* Defined by the User */
-   	String name;
+    /* Defined by the User */
+    String name;
     String description;
     OnEntryHook entryHook;
-   	Task task;
+    Task task;
     OnExitHook exitHook;
-	Long retryCount;
-	Long timeout;
+    Long retryCount;
+    Long timeout;
 
-	/* Maintained by the execution engine */
-   	List<FluxError> errors;
-   	Status status;
-   	Status rollbackStatus;
-	Long numRetries;
+    /* Maintained by the execution engine */
+    List<FluxError> errors;
+    Status status;
+    Status rollbackStatus;
+    Long numRetries;
 
-	public void enter(Context context) {
-		// 1. Begin execution of the task
+    public void enter(Context context) {
+        // 1. Begin execution of the task
         // 2. Set next state
-		// The return value of the task can either be returned from here, or if we go truly async then
-		// the worker executing the task can "Post" it back to the WF engine.
-	}
+        // The return value of the task can either be returned from here, or if we go truly async then
+        // the worker executing the task can "Post" it back to the WF engine.
+    }
 }

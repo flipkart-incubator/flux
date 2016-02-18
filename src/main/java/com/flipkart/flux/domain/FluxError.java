@@ -15,9 +15,9 @@ package com.flipkart.flux.domain;
 
 public class FluxError {
     String errorJson;
-   	ErrorType type;
+    ErrorType type;
 
     public enum ErrorType {
-    	runtime,timeout
+        runtime,timeout
     }
 }

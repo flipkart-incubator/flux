@@ -21,9 +21,9 @@ import java.util.Set;
  */
 public class StateDefinition {
     Long version;
-   	String name;
-   	String task; // Assume, for now, that this is the URI that would be called in order to execute a task.
-	Long retryCount;
-	Long timeout;
+    String name;
+    String task; // Assume, for now, that this is the URI that would be called in order to execute a task.
+    Long retryCount;
+    Long timeout;
     Set<EventDefinition> dependencies;
 }

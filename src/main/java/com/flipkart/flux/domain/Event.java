@@ -19,13 +19,13 @@ package com.flipkart.flux.domain;
  */
 public class Event {
     String name;
-   	String type;
-   	EventStatus status;
+    String type;
+    EventStatus status;
     String dataJson;
     String toState;
 
     enum EventStatus {
-    	pending,triggered;
+        pending,triggered;
     }
     public void addEventData(String dataJson) {
         this.dataJson = dataJson;

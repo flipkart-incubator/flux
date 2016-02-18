@@ -23,15 +23,15 @@ public class StateMachine {
 
     Long version;
 
-	/* provided */
-   	String name;
+    /* provided */
+    String name;
     String description;
-   	List<State> states;
+    List<State> states;
     State startState;
 
-	/* maintained */
+    /* maintained */
     Status status;
-   	Status rollbackStatus;
-   	Context context;
+    Status rollbackStatus;
+    Context context;
 
 }
