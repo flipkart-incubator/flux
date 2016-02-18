@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015, the original author or authors.
+ * Copyright 2012-2016, the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,13 +20,17 @@ import java.util.List;
  * This class maintains the meta data that can be used to store & show information about the current state of execution of a state machine
  */
 public class StateMachine {
-	/* provided */
+
     Long version;
+
+	/* provided */
    	String name;
+    String description;
    	List<State> states;
+    State startState;
 
 	/* maintained */
-	Status status;
+    Status status;
    	Status rollbackStatus;
    	Context context;
 

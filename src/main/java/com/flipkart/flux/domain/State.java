@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015, the original author or authors.
+ * Copyright 2012-2016, the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,13 +21,17 @@ import java.util.List;
  * This class manages the metadata around the status of execution of that task.
  */
 public class State {
-	/* Defined by the User */
+
     Long version;
+
+	/* Defined by the User */
    	String name;
+    String description;
+    OnEntryHook entryHook;
    	Task task;
+    OnExitHook exitHook;
 	Long retryCount;
 	Long timeout;
-
 
 	/* Maintained by the execution engine */
    	List<FluxError> errors;
@@ -36,8 +40,8 @@ public class State {
 	Long numRetries;
 
 	public void enter(Context context) {
-		// 1. Mark itself with the right status
-		// 2. Begin execution of the task
+		// 1. Begin execution of the task
+        // 2. Set next state
 		// The return value of the task can either be returned from here, or if we go truly async then
 		// the worker executing the task can "Post" it back to the WF engine.
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015, the original author or authors.
+ * Copyright 2012-2016, the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Response;
 
 /**
  * @understands Exposes APIs for end users
@@ -39,6 +40,18 @@ public class StateMachineResource {
         return null;
     }
 
+
+    /**
+     * Begins the execution of a state machine
+     * @return
+     */
+    @POST
+    @Path("/machines/{machineId}/start")
+    public Response startExecution(@PathParam("machineId") Long machineId, Object incomingParams) {
+
+        return null;
+    }
+
     /**
      * Used to post Data corresponding to an event.
      * This data may be a result of a task getting completed or independently posted (manually, for example)
@@ -46,6 +59,7 @@ public class StateMachineResource {
      * @param eventFqn fully qualified name of the event. Like java.lang.String_foo
      * @param eventDataJson Json representation of data
      */
+
     @POST
     @Path("/machines/{machineId}/context/events/{eventFqn}")
     public void submitEvent(@PathParam("machineId") Long machineId,
@@ -56,6 +70,7 @@ public class StateMachineResource {
         // 1. Retrieve StateMachine's execution context
         // 2. Submit event to it - workFlowExecutionController.postEvent(context, eventFqn,eventDataJson)
     }
+
 
     /**
      * Cancel a machine being executed.*
