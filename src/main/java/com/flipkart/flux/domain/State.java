@@ -22,22 +22,22 @@ import java.util.List;
  */
 public class State {
 
-    Long version;
+    private Long version;
 
     /* Defined by the User */
-    String name;
-    String description;
-    OnEntryHook entryHook;
-    Task task;
-    OnExitHook exitHook;
-    Long retryCount;
-    Long timeout;
+    private String name;
+    private String description;
+    private OnEntryHook entryHook;
+    private Task task;
+    private OnExitHook exitHook;
+    private Long retryCount;
+    private Long timeout;
 
     /* Maintained by the execution engine */
-    List<FluxError> errors;
-    Status status;
-    Status rollbackStatus;
-    Long numRetries;
+    private List<FluxError> errors;
+    private Status status;
+    private Status rollbackStatus;
+    private Long numRetries;
 
     public void enter(Context context) {
         // 1. Begin execution of the task

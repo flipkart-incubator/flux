@@ -18,13 +18,13 @@ package com.flipkart.flux.domain;
  * It is to be posted back to the Flux execution engine once a worker has executed the task
  */
 public class Event {
-    String name;
-    String type;
-    EventStatus status;
-    String dataJson;
-    String toState;
+    private String name;
+    private String type;
+    private EventStatus status;
+    private String dataJson;
+    private String toState;
 
-    enum EventStatus {
+    public enum EventStatus {
         pending,triggered;
     }
     public void addEventData(String dataJson) {

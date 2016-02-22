@@ -23,9 +23,9 @@ import java.util.Map;
  *
  */
 public class Context {
-    Long startTime;
-    String contextId;
-    Map<String,Object> data; //Convenience given to workers to store any transient information at a central store
+    private Long startTime;
+    private String contextId;
+    private Map<String,Object> data; //Convenience given to workers to store any transient information at a central store
     private Map<String,Event> events;
     private Map<State,List<String>> stateToEventDependencyGraph;
 
