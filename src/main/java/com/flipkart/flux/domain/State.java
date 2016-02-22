@@ -27,9 +27,9 @@ public class State {
     /* Defined by the User */
     String name;
     String description;
-    OnEntryHook entryHook;
+    Hook onEntryHook;
     Task task;
-    OnExitHook exitHook;
+    Hook onExitHook;
     Long retryCount;
     Long timeout;
 
