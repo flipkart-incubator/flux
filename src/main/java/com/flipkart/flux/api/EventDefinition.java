@@ -19,5 +19,5 @@ package com.flipkart.flux.api;
  *
  */
 public class EventDefinition {
-    String eventFqn; // java.lang.String_foo
+    private String eventFqn; // java.lang.String_foo
 }

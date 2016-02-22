@@ -21,17 +21,17 @@ import java.util.List;
  */
 public class StateMachine {
 
-    Long version;
+    private Long version;
 
     /* provided */
-    String name;
-    String description;
-    List<State> states;
-    State startState;
+    private String name;
+    private String description;
+    private List<State> states;
+    private State startState;
 
     /* maintained */
-    Status status;
-    Status rollbackStatus;
-    Context context;
+    private Status status;
+    private Status rollbackStatus;
+    private Context context;
 
 }

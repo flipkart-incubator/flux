@@ -21,8 +21,8 @@ import java.util.List;
  * @understands API model that a user can use to create state machine Instances on flux
  */
 public class StateMachineDefinition {
-    String name;
-    String description;
-    List<StateDefinition> states;
-    String stateState;
+    private String name;
+    private String description;
+    private List<StateDefinition> states;
+    private String stateState;
 }
