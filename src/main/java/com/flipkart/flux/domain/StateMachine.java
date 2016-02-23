@@ -21,9 +21,8 @@ import java.util.List;
  */
 public class StateMachine {
 
-    private Long version;
-
     /* provided */
+    private Long version;
     private String name;
     private String description;
     private List<State> states;
