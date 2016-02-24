@@ -25,4 +25,11 @@ public class StateMachineDefinition {
     private String description;
     private List<StateDefinition> states;
     private String stateState;
+
+    public StateMachineDefinition(String description, String name, List<StateDefinition> states, String stateState) {
+        this.description = description;
+        this.name = name;
+        this.states = states;
+        this.stateState = stateState;
+    }
 }
