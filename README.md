@@ -3,6 +3,6 @@ Flux is a asynchronous, scalable, multi-tenant, distributed and reliable state m
 
 Flux provides capabilities like state management, audit, tracing through configurable constructs.
 
-Please go through the wiki pages to find out more about flux.
+Please go through the [wiki](https://github.com/flipkart-incubator/flux/wiki) pages to find out more about flux.
 
 ![Layers](https://github.com/flipkart-incubator/flux/raw/master/docs/flux-high-level.png)
