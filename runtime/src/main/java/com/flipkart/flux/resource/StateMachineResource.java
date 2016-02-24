@@ -40,18 +40,7 @@ public class StateMachineResource {
         return null;
     }
 
-
-    /**
-     * Begins the execution of a state machine
-     * @return
-     */
-    @POST
-    @Path("/machines/{machineId}/start")
-    public Response startExecution(@PathParam("machineId") Long machineId, Object incomingParams) {
-
-        return null;
-    }
-
+    
     /**
      * Used to post Data corresponding to an event.
      * This data may be a result of a task getting completed or independently posted (manually, for example)

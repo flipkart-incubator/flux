@@ -22,16 +22,15 @@ import java.util.List;
  */
 public class State {
 
-    private Long version;
-
     /* Defined by the User */
-    String name;
-    String description;
-    Hook onEntryHook;
-    Task task;
-    Hook onExitHook;
-    Long retryCount;
-    Long timeout;
+    private Long version;
+    private String name;
+    private String description;
+    private Hook onEntryHook;
+    private Task task;
+    private Hook onExitHook;
+    private Long retryCount;
+    private Long timeout;
 
     /* Maintained by the execution engine */
     private List<FluxError> errors;

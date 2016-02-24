@@ -26,7 +26,7 @@ public interface WorkFlowExecutionController {
     /**
      * Perform init operations on a state machine.
      * This can include creating the Context for the first time and storing it.
-     * Figuring out and returning the list of task that are independent and can begin execution
+     * Trigger state machine execution.
      * @param stateMachine
      * @return List of states that do not have any event dependencies on them
      */
