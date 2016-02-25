@@ -4,6 +4,7 @@ Flux is a asynchronous, scalable, multi-tenant, distributed and reliable state m
 Flux provides capabilities like state management, audit, tracing through configurable constructs.
 
 The Flux system design is organized into multiple layers in an attempt to be holistic about building, testing, deploying and operating workflows in a shared environment:
+
 ![Layers](https://github.com/flipkart-incubator/flux/raw/master/docs/flux-high-level.png)
 
 * UI - Provides for inspecting workflow execution and administration tasks on deployed instances/templates
