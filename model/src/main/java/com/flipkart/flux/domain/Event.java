@@ -26,8 +26,17 @@ public class Event {
 
     public enum EventStatus {
         pending,triggered;
+
     }
+
     public void addEventData(String dataJson) {
         this.dataJson = dataJson;
+    }
+    public String getName() {
+        return name;
+    }
+
+    public String getEventData() {
+        return dataJson;
     }
 }
