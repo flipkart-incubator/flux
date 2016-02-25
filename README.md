@@ -16,8 +16,8 @@ The Flux system design is organized into multiple layers in an attempt to be hol
 Please go through the [wiki](https://github.com/flipkart-incubator/flux/wiki) pages to find out more about flux.
 
 ## Getting help
-For help regarding usage, or receiving important announcements, subscribe to the Flux users mailing list: http://groups.google.com/group/flipkart-flux-users
-To get involved in the evolution of Flux, subscribe to the Flux interest mailing list: http://groups.google.com/group/flipkart-flux-interest
+For help regarding usage, or receiving important announcements, subscribe to the Flux users mailing list: http://groups.google.com/group/flux-users
+To get involved in the evolution of Flux, subscribe to the Flux interest mailing list: http://groups.google.com/group/flux-interest
 
 ## Releases
 | Release | Date | Description |
