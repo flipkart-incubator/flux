@@ -15,3 +15,18 @@ The Flux system design is organized into multiple layers in an attempt to be hol
 
 Please go through the [wiki](https://github.com/flipkart-incubator/flux/wiki) pages to find out more about flux.
 
+## Getting help
+For help regarding usage, or receiving important announcements, subscribe to the Flux users mailing list: http://groups.google.com/group/flipkart-flux-users
+To get involved in the evolution of Flux, subscribe to the Flux interest mailing list: http://groups.google.com/group/flipkart-flux-interest
+
+## Releases
+| Release | Date | Description |
+| --- | --- | --- |
+| 1.0-beta | March 2016 | Beta release for first customers |
+
+
+## Changelog
+Changelog can be viewed in CHANGELOG.md file
+
+## License
+Phantom is licensed under : The Apache Software License, Version 2.0. Here is a copy of the license (http://www.apache.org/licenses/LICENSE-2.0.txt)
