@@ -13,18 +13,9 @@
 
 package com.flipkart.flux.domain;
 
-import javafx.util.Pair;
-
-/**
- * @understands The code to be executed in the current state.
- * The task is eligible for execution once all the dependent Triggers are received
- * Assume the methods are RPCs being performed on a client's compute instance
- * */
-public interface Task {
+public interface RollbackableTask extends Task {
     /**
-     * Unpacks the data from events and proceeds with an execution call to the actual URI that represents a remote worker
-     * @param events Dependencies that need to be satisfied for this task to be executed
-     * @return The event produced by a worker on successful execution OR an error object representing the error.
+     * The rollback method will be called when the current or one of the future states has failed
      */
-    Pair<Event,FluxError> execute(Event... events);
+    void rollback();
 }
