@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2016, the original author or authors.
+ * Copyright 2012-2015, the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.api;
 
+import com.flipkart.flux.domain.Task;
+
 import java.util.Set;
 
 /**
@@ -22,7 +24,7 @@ import java.util.Set;
 public class StateDefinition {
     private Long version;
     private String name;
-    private String task; // Assume, for now, that this is the URI that would be called in order to execute a task.
+    private Task task;
     private Long retryCount;
     private Long timeout;
     private Set<EventDefinition> dependencies;
