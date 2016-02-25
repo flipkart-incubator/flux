@@ -18,6 +18,5 @@
   <modules>
     <module>model</module>
     <module>runtime</module>
-    <module>samples</module>
   </modules>
 </project>
