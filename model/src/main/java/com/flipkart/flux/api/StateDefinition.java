@@ -18,14 +18,81 @@ import com.flipkart.flux.domain.Task;
 import java.util.Set;
 
 /**
- * @understands API model that a user can use to define an action and its list of dependencies.
- * For flux, this is equivalent to a "State" in the state machine
+ * <Code>StateDefinition</Code> models a State, an action associated with the state and the list of dependencies for the state transition to occur.
+ * For flux, this is equivalent to a "State" in the state machine runtime.
+ * 
+ *  @author Yogesh
+ *  @author regunath.balasubramanian
  */
+
 public class StateDefinition {
+	
+	/** The version of this state definition*/
     private Long version;
+    
+    /** Name of this state definition*/
     private String name;
+    
+    /** Task that will be executed when the state machine transitions to the state*/
     private Task task;
+    
+    /** Retry count for task execution*/    
     private Long retryCount;
+    
+    /** The timeout in millis for each attempt to execute the Task*/
     private Long timeout;
+    
+    /** The list of EventDefinitionS that this state definition is dependent on for a transition into*/
     private Set<EventDefinition> dependencies;
+
+    /** Constructor*/
+	public StateDefinition(Long version, String name, Task task, Long retryCount, Long timeout,
+			Set<EventDefinition> dependencies) {
+		super();
+		this.version = version;
+		this.name = name;
+		this.task = task;
+		this.retryCount = retryCount;
+		this.timeout = timeout;
+		this.dependencies = dependencies;
+	}
+
+    /** Accessors/Mutators for member variables*/
+	public Long getVersion() {
+		return version;
+	}
+	public void setVersion(Long version) {
+		this.version = version;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public Task getTask() {
+		return task;
+	}
+	public void setTask(Task task) {
+		this.task = task;
+	}
+	public Long getRetryCount() {
+		return retryCount;
+	}
+	public void setRetryCount(Long retryCount) {
+		this.retryCount = retryCount;
+	}
+	public Long getTimeout() {
+		return timeout;
+	}
+	public void setTimeout(Long timeout) {
+		this.timeout = timeout;
+	}
+	public Set<EventDefinition> getDependencies() {
+		return dependencies;
+	}
+	public void setDependencies(Set<EventDefinition> dependencies) {
+		this.dependencies = dependencies;
+	}
+        
 }
