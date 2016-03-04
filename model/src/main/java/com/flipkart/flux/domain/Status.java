@@ -13,8 +13,11 @@
 
 package com.flipkart.flux.domain;
 /**
- * @understands Describes the current state of execution
+ * <code></code> Describes the current status of execution {@link Task} within a {@link State}
+ * 
+ * @author Yogesh
+ * @author regunath.balasubramanian
  */
 public enum  Status {
-    initialized, running, completed, cancelled;
+    initialized, running, completed, cancelled; //possible statuses of execution
 }

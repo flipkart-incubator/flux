@@ -14,10 +14,20 @@
 package com.flipkart.flux.domain;
 
 /**
- * @describes Hook can be executed asynchronously on entry or exit of a state
+ * <code>Hook</code> is user defined code that is executed asynchronously on entry or exit of a {@link State}
+ * The outcome of Hook execution does not impact state transition. Hooks are executed every time a state transition happens, including when retries happen and
+ * this implies that Hook executions are better off being idempotent.
+ * 
+ *  @author Yogesh
+ *  @author regunath.balasubramanian
+ * 
  */
 public interface Hook {
 
-    public void execute();
+	/**
+	 * Executes this Hook asynchronous to State transition
+	 * @param events the EventS available on entry or while exiting a State
+	 */
+    public void execute(Event... events);
 
 }
