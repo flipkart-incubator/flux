@@ -13,7 +13,7 @@
 
 package com.flipkart.flux.domain;
 /**
- * <code></code> Describes the current status of execution {@link Task} within a {@link State}
+ * <code>Status</code> Describes the current status of execution {@link Task} within a {@link State}
  * 
  * @author Yogesh
  * @author regunath.balasubramanian
