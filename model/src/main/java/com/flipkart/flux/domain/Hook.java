@@ -18,7 +18,7 @@ package com.flipkart.flux.domain;
  * The outcome of Hook execution does not impact state transition. Hooks are executed every time a state transition happens, including when retries happen and
  * this implies that Hook executions are better off being idempotent.
  * 
- *  @author Yogesh
+ *  @author shyam.akirala
  *  @author regunath.balasubramanian
  * 
  */

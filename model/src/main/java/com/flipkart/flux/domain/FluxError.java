@@ -18,6 +18,7 @@ package com.flipkart.flux.domain;
  * 
  * @author Yogesh
  * @author regunath.balasubramanian
+ * @author shyam.akirala
  * 
  */
 public class FluxError extends RuntimeException {

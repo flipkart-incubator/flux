@@ -19,7 +19,7 @@ package com.flipkart.flux.api;
  * 
  * @author Yogesh
  * @author regunath.balasubramanian
- *
+ * @author shyam.akirala
  */
 public class EventDefinition {
 	
