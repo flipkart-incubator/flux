@@ -13,9 +13,20 @@
 
 package com.flipkart.flux.domain;
 
-public interface RollbackableTask extends Task {
+import javafx.util.Pair;
+
+/**
+ * <code>RollbackTask</code> is a {@link Task} that supports compensating execution in case of state transition failures - either in the current {@link State} or a later one.
+ * 
+ * @author Yogesh
+ * @author regunath.balasubramanian
+ *
+ */
+public interface RollbackTask extends Task {
+	
     /**
-     * The rollback method will be called when the current or one of the future states has failed
+     * Callback method to effect a rollback when state transition fails in the current State or a later one
+     * @param rollbackTrigger the Pair of Event and/or FluxError that triggered the rollback
      */
-    void rollback();
+    public void rollback(Pair<Event,FluxError> rollbackTrigger);
 }
