@@ -16,21 +16,69 @@ package com.flipkart.flux.domain;
 import java.util.List;
 
 /**
- * @understands Represents a state machine submitted for execution
- * This class maintains the meta data that can be used to store & show information about the current state of execution of a state machine
+ * <code>StateMachine</code> represents a state machine submitted for execution in Flux.
+ * Maintains meta data about the current state of execution of a state machine
+ * 
+ * @author Yogesh
+ * @author regunath.balasubramanian
  */
 public class StateMachine {
 
     /* provided */
+	/** The version identifier*/
     private Long version;
+    /** Name for this state machine*/
     private String name;
+    /** Description of the state machine*/
     private String description;
+    /** List of states that this machine has*/
     private List<State> states;
+    /** The start state for this machine */
     private State startState;
 
     /* maintained */
-    private Status status;
-    private Status rollbackStatus;
+    /** Current state of this state machine*/
+    private State currentState;
+    /** The Context for interacting with the Flux runtime*/
     private Context context;
+    
+    /** Constructor*/
+	public StateMachine(Long version, String name, String description, List<State> states, State startState) {
+		super();
+		this.version = version;
+		this.name = name;
+		this.description = description;
+		this.states = states;
+		this.startState = startState;
+	}
+
+	/** Accessor/Mutator methods */
+	public Context getContext() {
+		return context;
+	}
+	public void setContext(Context context) {
+		this.context = context;
+	}
+	public State getCurrentState() {
+		return currentState;
+	}
+	public void setCurrentState(State currentState) {
+		this.currentState = currentState;
+	}
+	public Long getVersion() {
+		return version;
+	}
+	public String getName() {
+		return name;
+	}
+	public String getDescription() {
+		return description;
+	}
+	public List<State> getStates() {
+		return states;
+	}
+	public State getStartState() {
+		return startState;
+	}
 
 }
