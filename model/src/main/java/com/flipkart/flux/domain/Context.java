@@ -24,23 +24,29 @@ import java.util.Map;
  * @author Yogesh
  * @author regunath.balasubramanian
  */
-public class Context {
+public abstract class Context {
 
 	/** The start time when this Context was created*/
     private Long startTime;
     /** Identifier for the Context*/
     private String contextId;
-    /** Data bag for information stored in this Context*/
-    private Map<String,Object> data; //Convenience given to workers to store transient information at a central store, implementations will define size limits of this data
     /** A dependency graph created across States - holds information on possible next state transitions for a State*/
     private Map<Event,List<State>> stateToEventDependencyGraph;
 
-    /** Constructor */
-    public Context(Long startTime, String contextId) {
-		super();
-		this.startTime = startTime;
-		this.contextId = contextId;
-	}
+    /**
+     * Stores the specified data against the key for this Context. Implementations may bound the type and size of data stored into this Context.
+     * @param key the data identifier key
+     * @param data the opaque data stored against the specified key
+     */
+    public abstract void storeData(String key, Object data);
+    
+    /** 
+     * Retrieves the data stored against the specified key 
+     * @param key the identifier key for data stored in this Context
+     * @return data stored in this Context, keyed by the specified identifier 
+     */
+	public abstract Object retrieve(String key);
+    
     public List<State> getExecutableStates(State currentState, Event event) {
         // Go through the dependency graph to figure the states that can now be executed
         return null;
@@ -57,10 +63,4 @@ public class Context {
 	public String getContextId() {
 		return contextId;
 	}
-	public Object retrieve(String key) {
-        return data.get(key);
-    }
-    public void storeData(String key, Object data) {
-        this.data.put(key, data);
-    }
 }
