@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.domain;
 
+import java.io.Serializable;
+
 /**
  * <code>Event</code> is the result of a {@link Task} execution.
  * It is to be posted back to the Flux execution engine once a worker has executed the task
@@ -20,7 +22,7 @@ package com.flipkart.flux.domain;
  * @author Yogesh
  * @author regunath.balasubramanian
  */
-public class Event {
+public class Event implements Serializable {
 	
 	/** The name for this Event*/
     private String name;
