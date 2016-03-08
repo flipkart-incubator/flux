@@ -14,29 +14,53 @@
 package com.flipkart.flux.domain;
 
 /**
- * @understands An Event is the result of a com.flipkart.flux.api.Task's execution.
+ * <code>Event</code> is the result of a {@link Task} execution.
  * It is to be posted back to the Flux execution engine once a worker has executed the task
+ * 
+ * @author Yogesh
+ * @author regunath.balasubramanian
  */
 public class Event {
+	
+	/** The name for this Event*/
     private String name;
+    /** The type of this Event*/
     private String type;
+    /** Staus for this Event*/
     private EventStatus status;
-    private String dataJson;
-    private String toState;
+    /** Data associated with this Event*/
+    private Object eventData;
 
+    /** Constructor*/
+    public Event(String name, String type) {
+		super();
+		this.name = name;
+		this.type = type;
+	}
+
+	/** Enum of Event statuses*/
     public enum EventStatus {
         pending,triggered;
-
     }
 
-    public void addEventData(String dataJson) {
-        this.dataJson = dataJson;
-    }
-    public String getName() {
-        return name;
-    }
-
-    public String getEventData() {
-        return dataJson;
-    }
+    /** Accessor/Mutator methods*/
+	public EventStatus getStatus() {
+		return status;
+	}
+	public void setStatus(EventStatus status) {
+		this.status = status;
+	}
+	public Object getEventData() {
+		return eventData;
+	}
+	public void setEventData(Object eventData) {
+		this.eventData = eventData;
+	}
+	public String getName() {
+		return name;
+	}
+	public String getType() {
+		return type;
+	}
+    
 }

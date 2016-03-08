@@ -16,15 +16,20 @@ package com.flipkart.flux.domain;
 import javafx.util.Pair;
 
 /**
- * @understands The code to be executed in the current state.
- * The task is eligible for execution once all the dependent Triggers are received
- * Assume the methods are RPCs being performed on a client's compute instance
- * */
+ * <code>Task</code> defines the user code that is executed when a {@link State} transition happens.
+ * The task is eligible for execution once all the dependent Triggers are received.
+ * Tasks may include RPCs being performed on a client's compute instance, for isolation purposes.
+ * 
+ * @author Yogesh
+ * @author regunath.balasubramanian
+ * 
+ */
+
 public interface Task {
     /**
-     * Unpacks the data from events and proceeds with an execution call to the actual URI that represents a remote worker
+     * Unpacks the data from events and proceeds with execution that might include calling a remote worker
      * @param events Dependencies that need to be satisfied for this task to be executed
      * @return The event produced by a worker on successful execution OR an error object representing the error.
      */
-    Pair<Event,FluxError> execute(Event... events);
+    public Pair<Event,FluxError> execute(Event... events);
 }

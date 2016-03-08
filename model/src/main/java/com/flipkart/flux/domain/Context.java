@@ -17,31 +17,50 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @understands : Carries execution context that can be used during a state's execution
+ * <code>Context</code> carries execution context for use during a State's execution.
  * This is created and maintained by the execution engine.
- * This is not passed around to workers. Workers interact with the context via APIs (see  event posting API, for instance).
+ * The Context is not passed around to workers. Workers interact with the context via APIs (see  event posting API, for instance).
  *
+ * @author Yogesh
+ * @author regunath.balasubramanian
  */
 public class Context {
-    private Long startTime;
-    private String contextId;
-    private Map<String,Object> data; //Convenience given to workers to store any transient information at a central store
-    private Map<String,Event> events;
-    private Map<State,List<String>> stateToEventDependencyGraph;
 
-    public Object retrieve(String key) {
-        return data.get(key);
-    }
-    public void postEvent(Event event) {
-        // Record event
-    }
-    public List<State> getExecutableStates() {
+	/** The start time when this Context was created*/
+    private Long startTime;
+    /** Identifier for the Context*/
+    private String contextId;
+    /** Data bag for information stored in this Context*/
+    private Map<String,Object> data; //Convenience given to workers to store transient information at a central store, implementations will define size limits of this data
+    /** A dependency graph created across States - holds information on possible next state transitions for a State*/
+    private Map<Event,List<State>> stateToEventDependencyGraph;
+
+    /** Constructor */
+    public Context(Long startTime, String contextId) {
+		super();
+		this.startTime = startTime;
+		this.contextId = contextId;
+	}
+    public List<State> getExecutableStates(State currentState, Event event) {
         // Go through the dependency graph to figure the states that can now be executed
         return null;
     }
-
     public boolean isExecutionCancelled() {
         //check for cancelledException in data, and return whether state machine execution is cancelled or not
         return false;
+    }
+
+    /** Accessor/Mutator methods*/
+	public Long getStartTime() {
+		return startTime;
+	}
+	public String getContextId() {
+		return contextId;
+	}
+	public Object retrieve(String key) {
+        return data.get(key);
+    }
+    public void storeData(String key, Object data) {
+        this.data.put(key, data);
     }
 }
