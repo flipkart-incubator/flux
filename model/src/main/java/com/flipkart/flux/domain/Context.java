@@ -27,11 +27,11 @@ import java.util.Map;
 public abstract class Context {
 
 	/** The start time when this Context was created*/
-    private Long startTime;
+    protected Long startTime;
     /** Identifier for the Context*/
-    private String contextId;
+    protected String contextId;
     /** A dependency graph created across States - holds information on possible next state transitions for a State*/
-    private Map<Event,List<State>> stateToEventDependencyGraph;
+    protected Map<Event,List<State>> stateToEventDependencyGraph;
 
     /**
      * Stores the specified data against the key for this Context. Implementations may bound the type and size of data stored into this Context.
