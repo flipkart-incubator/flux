@@ -19,6 +19,7 @@ import java.util.List;
  * <Code>StateMachineDefinition</Code> defines a template for State machine instances on Flux. Defines the states that the state machine can transition through 
  * @author Yogesh
  * @author regunath.balasubramanian
+ * @author shyam.akirala
  */
 public class StateMachineDefinition {
 	

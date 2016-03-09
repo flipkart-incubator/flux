@@ -21,6 +21,7 @@ import java.io.Serializable;
  * 
  * @author Yogesh
  * @author regunath.balasubramanian
+ * @author shyam.akirala
  */
 public class Event implements Serializable {
 	
