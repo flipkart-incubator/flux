@@ -55,8 +55,8 @@ Flux has the following persistence needs:
 
 **Tech Choices:**
 The following technologies will be used by the Flux Persistence layer:
-* MySQL - for State machine/Workflow meta data, Audit data and Event data (in Local runtime)
-* HBase - for Event data (in Managed and Isolated runtimes)
+* [MySQL](https://www.mysql.com/) - for State machine/Workflow meta data, Audit data and Event data (in Local runtime). Use a solution like [Polyglot](https://github.com/flipkart-incubator/polyglot) for scaling MySQL.
+* [HBase](https://hbase.apache.org/) - for Event data (in Managed and Isolated runtimes)
 
 ## Isolation
 
