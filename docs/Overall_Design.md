@@ -15,7 +15,7 @@ split - statemachine/workflow execution is managed by hosted service while Tasks
 
 The runtime can be further split into:
 
-## Flux Runtime
+### Flux Runtime
 
 The Flux Runtime should support the following:
 
@@ -27,8 +27,14 @@ The Flux Runtime should support the following:
 * Support for checkpointing execution, resume when needed.
 * Audit trail of state transitions
 * Dynamic state machine definitions
+* Fair job scheduling
+    * Wall-clock time based - for State transitions that have timeouts defined
+    * Event based triggering of State transitions, Task execution
+* Re-driver - needed for triggering, executing tasks that have timed out, support back-off strategies and eventually putting on hold
 
-## Task Runtime
+
+
+### Task Runtime
 
 The Task Runtime needs to support:
 
