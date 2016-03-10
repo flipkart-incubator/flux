@@ -37,7 +37,6 @@ The following technologies will be used by the Flux Runtime:
 * [Spring](https://spring.io/) - DI framework for wiring the runtime components together to create a container and also swapping implementations suitable for the deployment : Local vs Managed.
 [Trooper](https://github.com/regunathb/Trooper) or an alternate Spring startup environment.
 * [Akka](http://akka.io/) actors and Cluster - for implementing the State machine primitives
-* [Hystrix](https://github.com/Netflix/Hystrix) (or) a Hystrix wrapper like [Phantom](https://github.com/Flipkart/phantom) - for isolation of Runtime code from User code (Task, Hook, Event) 
 
 ### Task Runtime
 
@@ -46,3 +45,45 @@ The Task Runtime needs to support:
 * Pull model (for isolated Runtime deployment model)
 * Push/Direct invocation when tasks execute in Local or Managed Runtime
 * Provide for persisting Event data - raised as outcome of Task execution, and used to drive further state transitions
+
+## Persistence
+
+Flux has the following persistence needs:
+* State machine/Workflow meta data - Highly structured, Long-lived
+* Event data - User defined structure, TTL is in order of hours or a few days
+* Audit data - Structured, Long lived
+
+**Tech Choices:**
+The following technologies will be used by the Flux Persistence layer:
+* MySQL - for State machine/Workflow meta data, Audit data and Event data (in Local runtime)
+* HBase - for Event data (in Managed and Isolated runtimes)
+
+## Isolation
+
+Flux runtime should be suitably shielded from User code (Task, Hook, Event) as these can adversely impact resource availability(CPU, Persistence store IOPS) of Flux runtime and other tenants on the hosted service.
+In addition, for clients that require isolation from other tenants in a hosted service, Flux should also support committed capacities for resource intensive workloads. 
+User code like Task execution is usually CPU intensive and the throughput of execution can be controlled if clients deployed their own compute that can then participate in Flux.
+
+The Isolated runtime supports pull based Task execution where Workers running on client compute can pull work (Task) from Flux managed service. In this mode of operation, the SLA is split between
+Flux (for State machine/Workflow orchestration) and clients (For Task, Hook executions). Event data may still be managed centrally by the hosted Flux managed service.
+
+**Tech Choices:**
+The following technologies will be used for isolating runtimes:
+* [Hystrix](https://github.com/Netflix/Hystrix) (or) a Hystrix wrapper like [Phantom](https://github.com/Flipkart/phantom) - for isolation of Runtime code from User code (Task, Hook, Event) 
+* Http based endpoints on Flux Managed service for clients to pull Tasks for execution
+
+## Monitoring
+
+The Flux runtime would support monitoring of:
+
+* Task execution - time, timeouts, failures
+* Event payload sizes
+* No. of executing State machines/Workflows per tenant
+* StateMachine/Workflow visualization
+
+## Productivity Features
+
+The Flux primitives may be used as-is, in code form, and also made available for definition declaratively:
+
+* DSL - for definition State Machine, State and Event definitions, Workflow DAG modelling.
+
