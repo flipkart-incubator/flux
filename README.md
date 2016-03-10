@@ -1,5 +1,5 @@
 # flux
-Flux is a asynchronous, scalable, multi-tenant, distributed and reliable state machine based orchestrator. Flux intends to cater the needs of both a traditional state machine and also an advanced workflow orchestrator.
+Flux is an asynchronous, scalable, multi-tenant, distributed and reliable state machine based orchestrator. Flux intends to cater the needs of both a traditional state machine and also an advanced workflow orchestrator.
 
 Flux provides capabilities like state management, audit, tracing through configurable constructs.
 
@@ -26,7 +26,7 @@ To get involved in the evolution of Flux, subscribe to the Flux interest mailing
 
 
 ## Changelog
-Changelog can be viewed in CHANGELOG.md file
+Changelog can be viewed in [CHANGELOG.md](https://github.com/flipkart-incubator/flux/blob/master/CHANGELOG.md) file
 
 ## License
 Flux is licensed under : The Apache Software License, Version 2.0. Here is a copy of the license (http://www.apache.org/licenses/LICENSE-2.0.txt)
