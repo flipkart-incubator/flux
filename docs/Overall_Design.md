@@ -23,7 +23,7 @@ The Flux Runtime should support the following:
 * High throughput of state transition processing
 * Highly available, Distributed in order to support volume and throughput as described above
 * Event driven execution model (for satisfying State machine use cases)
-* Suitably shielded from user code (Task, Hook, Event). Each of these can adversely impact resource availability(CPU, Persistence store IOPS) of Flux runtime and other tenants on the hosted service.
+* Suitably shielded from User code (Task, Hook, Event). Each of these can adversely impact resource availability(CPU, Persistence store IOPS) of Flux runtime and other tenants on the hosted service.
 * Support for checkpointing execution, resume when needed.
 * Audit trail of state transitions
 * Dynamic state machine definitions
@@ -32,7 +32,12 @@ The Flux Runtime should support the following:
     * Event based triggering of State transitions, Task execution
 * Re-driver - needed for triggering, executing tasks that have timed out, support back-off strategies and eventually putting on hold
 
-
+**Tech Choices:**
+The following technologies will be used by the Flux Runtime:
+* [Spring](https://spring.io/) - DI framework for wiring the runtime components together to create a container and also swapping implementations suitable for the deployment : Local vs Managed.
+[Trooper](https://github.com/regunathb/Trooper) or an alternate Spring startup environment.
+* [Akka](http://akka.io/) actors and Cluster - for implementing the State machine primitives
+* [Hystrix](https://github.com/Netflix/Hystrix) (or) a Hystrix wrapper like [Phantom](https://github.com/Flipkart/phantom) - for isolation of Runtime code from User code (Task, Hook, Event) 
 
 ### Task Runtime
 
