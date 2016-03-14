@@ -31,8 +31,8 @@ public abstract class Context {
     protected Long startTime;
     /** Identifier for the Context*/
     protected String contextId;
-    /** A dependency graph created across States - holds information on possible next state transitions for a State*/
-    protected Map<Event,List<State>> stateToEventDependencyGraph;
+    /** A dependency graph created across States - holds information on possible next state transitions for a State, keyed by the Event FQN*/
+    protected Map<String,List<State>> stateToEventDependencyGraph;
 
     /**
      * Stores the specified data against the key for this Context. Implementations may bound the type and size of data stored into this Context.
