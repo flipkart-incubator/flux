@@ -18,5 +18,7 @@
   <modules>
     <module>model</module>
     <module>runtime</module>
+    <module>client</module>
+    <module>examples</module>
   </modules>
 </project>
