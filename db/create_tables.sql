@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS `checkpoints` (
   `created_at` DATETIME(3) DEFAULT NULL,
   `updated_at` DATETIME(3) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `index_audit_on_SM_instance_id` (`state_machine_instance_id`,`state_id`)
+  KEY `index_checkpoints_on_SM_instance_id_and_state_id` (`state_machine_instance_id`,`state_id`)
 )
 ENGINE=InnoDB
 ROW_FORMAT=DEFAULT
@@ -78,7 +78,6 @@ CREATE TABLE IF NOT EXISTS `states` (
   `created_at` DATETIME(3) DEFAULT NULL,
   `updated_at` DATETIME(3) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `state_machine_id` (`state_machine_id`),
   CONSTRAINT `FK_sm_states` FOREIGN KEY (`state_machine_id`) REFERENCES `state_machines` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 )
 ENGINE=InnoDB
