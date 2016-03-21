@@ -17,9 +17,10 @@ import com.flipkart.flux.client.model.Promise;
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.model.Workflow;
 
-public class SimpleOrderFulfilmentWorkflow {
+public class SimpleOrderFulfilmentWorkflow<V extends PackedOrder> {
+	
     OrderManager orderManager = new OrderManager();
-    WarehouseService warehouseService = new WarehouseService();
+    WarehouseService<V> warehouseService = new WarehouseService<V>();
     ShipmentService shipmentService = new ShipmentService();
 
     @Workflow(version = 1)

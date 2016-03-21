@@ -23,6 +23,9 @@ package com.flipkart.flux.domain;
  */
 public class FluxError extends RuntimeException {
 	
+	/** Default serial version UID */
+	private static final long serialVersionUID = 1L;
+	
 	/** The type of error*/
     private ErrorType type;
     /** The error message*/

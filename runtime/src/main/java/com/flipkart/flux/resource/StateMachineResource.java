@@ -13,19 +13,18 @@
 
 package com.flipkart.flux.resource;
 
-import com.flipkart.flux.api.StateMachineDefinition;
-import com.flipkart.flux.controller.WorkFlowExecutionController;
-
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Response;
+
+import com.flipkart.flux.api.StateMachineDefinition;
 
 /**
  * @understands Exposes APIs for end users
  */
-public class StateMachineResource {
+public class StateMachineResource<T> {
+	
     /**
      * Will instantiate a state machine in the flux execution engine
      * @param stateMachineDefinition User input for state machine
@@ -33,7 +32,7 @@ public class StateMachineResource {
      */
     @POST
     @Path("/machines")
-    public Long createStateMachine(StateMachineDefinition stateMachineDefinition) {
+    public Long createStateMachine(StateMachineDefinition<T> stateMachineDefinition) {
         // 1. Convert to StateMachine (domain object) and save in DB
         // 2. workFlowExecutionController.init(stateMachine_domainObject)
         // 3. Return machineId
@@ -72,5 +71,4 @@ public class StateMachineResource {
         // Trigger cancellation on all currently executing states
     }
 
-    private WorkFlowExecutionController workFlowExecutionController;
 }

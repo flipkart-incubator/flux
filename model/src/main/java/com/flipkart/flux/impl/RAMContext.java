@@ -27,7 +27,7 @@ import com.flipkart.flux.domain.Context;
  *
  */
 
-public class RAMContext extends Context {
+public class RAMContext<T> extends Context<T> {
 
 	/** Map for storing the context data in memory*/
 	private Map<String,Object> contextDataMap = new HashMap<String, Object>();

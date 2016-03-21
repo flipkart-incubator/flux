@@ -24,7 +24,7 @@ import java.util.List;
  * @author regunath.balasubramanian
  * @author shyam.akirala
  */
-public class State {
+public class State<T> {
 
     /* Defined by the User */
 	/** Version for this State*/
@@ -34,11 +34,11 @@ public class State {
     /** Description for this State*/
     private String description;
     /** Hook that is executed on entry of this State*/
-    private Hook onEntryHook;
+    private Hook<T> onEntryHook;
     /** Task that is executed when the transition happens to this State*/
-    private Task task;
+    private Task<T> task;
     /** Hook that is executed on exit of this State*/
-    private Hook onExitHook;
+    private Hook<T> onExitHook;
     /** The max retry count for a successful transition*/
     private Long retryCount;
     /** Timeout for state transition*/
@@ -55,7 +55,7 @@ public class State {
     private Long numRetries;
 
     /** Constructor */
-    public State(Long version, String name, String description, Hook onEntryHook, Task task, Hook onExitHook,
+    public State(Long version, String name, String description, Hook<T> onEntryHook, Task<T> task, Hook<T> onExitHook,
 			Long retryCount, Long timeout) {
 		super();
 		this.version = version;
@@ -72,7 +72,7 @@ public class State {
      * The entry method to state transition. Executes the {@link Task} associated with this State and signals a transition to the next state on successful execution.
      * @param context the Task execution context
      */
-    public void enter(Context context) {
+    public void enter(Context<T> context) {
         // 1. Begin execution of the task
         // 2. Set next state
         // The return value of the task can either be returned from here, or if we go truly async then
@@ -98,22 +98,22 @@ public class State {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	public Hook getOnEntryHook() {
+	public Hook<T> getOnEntryHook() {
 		return onEntryHook;
 	}
-	public void setOnEntryHook(Hook onEntryHook) {
+	public void setOnEntryHook(Hook<T> onEntryHook) {
 		this.onEntryHook = onEntryHook;
 	}
-	public Task getTask() {
+	public Task<T> getTask() {
 		return task;
 	}
-	public void setTask(Task task) {
+	public void setTask(Task<T> task) {
 		this.task = task;
 	}
-	public Hook getOnExitHook() {
+	public Hook<T> getOnExitHook() {
 		return onExitHook;
 	}
-	public void setOnExitHook(Hook onExitHook) {
+	public void setOnExitHook(Hook<T> onExitHook) {
 		this.onExitHook = onExitHook;
 	}
 	public Long getRetryCount() {

@@ -13,8 +13,6 @@
 
 package com.flipkart.flux.client.model;
 
-import com.flipkart.flux.examples.orderfulfilment.PackedOrder;
-
 /**
  * Used to wrap the result of a com.flipkart.flux.client.model.Task.
  * This is used by Flux runtime to enable tasks that can now be executed

@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * @understands Controls the execution flow of a given state machine
  */
-public interface WorkFlowExecutionController {
+public interface WorkFlowExecutionController<T> {
     /**
      * Perform init operations on a state machine.
      * This can include creating the Context for the first time and storing it.
@@ -30,7 +30,7 @@ public interface WorkFlowExecutionController {
      * @param stateMachine
      * @return List of states that do not have any event dependencies on them
      */
-    List<State> init(StateMachine stateMachine);
+    List<State<T>> init(StateMachine<T> stateMachine);
 
     /**
      * Attaches the event to the stateMachineContext.
@@ -40,5 +40,5 @@ public interface WorkFlowExecutionController {
      * @param eventData
      * @return List of states unblocked by the given event
      */
-    List<State> postEvent(Context stateMachineContext, String eventFqn,String eventData); // Accepts an event against a given instance of a state machine and returns list of states that can now be active
+    List<State<T>> postEvent(Context<T> stateMachineContext, String eventFqn,String eventData); // Accepts an event against a given instance of a state machine and returns list of states that can now be active
 }

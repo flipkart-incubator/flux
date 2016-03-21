@@ -25,11 +25,12 @@ import javafx.util.Pair;
  * 
  */
 
-public interface Task {
+public interface Task<T> {
     /**
      * Unpacks the data from events and proceeds with execution that might include calling a remote worker
      * @param events Dependencies that need to be satisfied for this task to be executed
      * @return The event produced by a worker on successful execution OR an error object representing the error.
      */
-    public Pair<Event,FluxError> execute(Event... events);
+    @SuppressWarnings("unchecked")
+	public Pair<Event<T>,FluxError> execute(Event<T>... events);
 }

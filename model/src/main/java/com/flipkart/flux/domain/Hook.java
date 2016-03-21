@@ -22,12 +22,13 @@ package com.flipkart.flux.domain;
  *  @author regunath.balasubramanian
  * 
  */
-public interface Hook {
+public interface Hook<T> {
 
 	/**
 	 * Executes this Hook asynchronous to State transition
 	 * @param events the EventS available on entry or while exiting a State
 	 */
-    public void execute(Event... events);
+    @SuppressWarnings("unchecked")
+	public void execute(Event<T>... events);
 
 }

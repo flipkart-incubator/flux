@@ -14,7 +14,6 @@
 package com.flipkart.flux.examples.orderfulfilment;
 
 import com.flipkart.flux.client.model.FluxContext;
-import com.flipkart.flux.client.model.Hook;
 import com.flipkart.flux.client.model.HookAdapter;
 
 import java.time.Instant;

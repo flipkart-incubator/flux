@@ -23,7 +23,7 @@ import java.util.List;
  * @author regunath.balasubramanian
  * @author shyam.akirala
  */
-public class StateMachine {
+public class StateMachine<T> {
 
     /* provided */
 	/** The version identifier*/
@@ -33,18 +33,18 @@ public class StateMachine {
     /** Description of the state machine*/
     private String description;
     /** List of states that this machine has*/
-    private List<State> states;
+    private List<State<T>> states;
     /** The start state for this machine */
-    private State startState;
+    private State<T> startState;
 
     /* maintained */
     /** Current state of this state machine*/
-    private State currentState;
+    private State<T> currentState;
     /** The Context for interacting with the Flux runtime*/
-    private Context context;
+    private Context<T> context;
     
     /** Constructor*/
-	public StateMachine(Long version, String name, String description, List<State> states, State startState) {
+	public StateMachine(Long version, String name, String description, List<State<T>> states, State<T> startState) {
 		super();
 		this.version = version;
 		this.name = name;
@@ -54,16 +54,16 @@ public class StateMachine {
 	}
 
 	/** Accessor/Mutator methods */
-	public Context getContext() {
+	public Context<T> getContext() {
 		return context;
 	}
-	public void setContext(Context context) {
+	public void setContext(Context<T> context) {
 		this.context = context;
 	}
-	public State getCurrentState() {
+	public State<T> getCurrentState() {
 		return currentState;
 	}
-	public void setCurrentState(State currentState) {
+	public void setCurrentState(State<T> currentState) {
 		this.currentState = currentState;
 	}
 	public Long getVersion() {
@@ -75,10 +75,10 @@ public class StateMachine {
 	public String getDescription() {
 		return description;
 	}
-	public List<State> getStates() {
+	public List<State<T>> getStates() {
 		return states;
 	}
-	public State getStartState() {
+	public State<T> getStartState() {
 		return startState;
 	}
 

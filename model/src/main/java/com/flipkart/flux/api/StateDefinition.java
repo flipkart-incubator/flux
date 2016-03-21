@@ -27,7 +27,7 @@ import java.util.Set;
  *  @author shyam.akirala
  */
 
-public class StateDefinition {
+public class StateDefinition<T> {
 	
 	/** The version of this state definition*/
     private Long version;
@@ -39,13 +39,13 @@ public class StateDefinition {
     private String description;
 
     /** Hook that will be executed on entry of this state*/
-    private Hook onEntryHook;
+    private Hook<T> onEntryHook;
 
     /** Task that will be executed when the state machine transitions to the state*/
-    private Task task;
+    private Task<T> task;
 
     /** Hook that will be executed on exit of this state*/
-    private Hook onExitHook;
+    private Hook<T> onExitHook;
 
     /** Retry count for task execution*/    
     private Long retryCount;
@@ -57,7 +57,7 @@ public class StateDefinition {
     private Set<EventDefinition> dependencies;
 
     /** Constructor*/
-	public StateDefinition(Long version, String name, String description, Hook onEntryHook, Task task, Hook onExitHook,
+	public StateDefinition(Long version, String name, String description, Hook<T> onEntryHook, Task<T> task, Hook<T> onExitHook,
                            Long retryCount, Long timeout, Set<EventDefinition> dependencies) {
 		super();
 		this.version = version;
@@ -90,22 +90,22 @@ public class StateDefinition {
     public void setDescription(String description) {
         this.description = description;
     }
-	public Task getTask() {
+	public Task<T> getTask() {
 		return task;
 	}
-	public void setTask(Task task) {
+	public void setTask(Task<T> task) {
 		this.task = task;
 	}
-    public Hook getOnEntryHook() {
+    public Hook<T> getOnEntryHook() {
         return onEntryHook;
     }
-    public void setOnEntryHook(Hook onEntryHook) {
+    public void setOnEntryHook(Hook<T> onEntryHook) {
         this.onEntryHook = onEntryHook;
     }
-    public Hook getOnExitHook() {
+    public Hook<T> getOnExitHook() {
         return onExitHook;
     }
-    public void setOnExitHook(Hook onExitHook) {
+    public void setOnExitHook(Hook<T> onExitHook) {
         this.onExitHook = onExitHook;
     }
 	public Long getRetryCount() {

@@ -21,7 +21,7 @@ import java.util.List;
  * @author regunath.balasubramanian
  * @author shyam.akirala
  */
-public class StateMachineDefinition {
+public class StateMachineDefinition<T> {
 	
 	/** Name for this state machine definition*/
     private String name;
@@ -30,10 +30,10 @@ public class StateMachineDefinition {
     private String description;
     
     /** Possible states that this state machine can transition to*/
-    private List<StateDefinition> states;
+    private List<StateDefinition<T>> states;
     
     /** Constructor */
-    public StateMachineDefinition(String description, String name, List<StateDefinition> states, String stateState) {
+    public StateMachineDefinition(String description, String name, List<StateDefinition<T>> states, String stateState) {
         this.description = description;
         this.name = name;
         this.states = states;
@@ -52,10 +52,10 @@ public class StateMachineDefinition {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	public List<StateDefinition> getStates() {
+	public List<StateDefinition<T>> getStates() {
 		return states;
 	}
-	public void setStates(List<StateDefinition> states) {
+	public void setStates(List<StateDefinition<T>> states) {
 		this.states = states;
 	}
     

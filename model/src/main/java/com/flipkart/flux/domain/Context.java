@@ -25,14 +25,14 @@ import java.util.Map;
  * @author regunath.balasubramanian
  * @author shyam.akirala
  */
-public abstract class Context {
+public abstract class Context<T> {
 
 	/** The start time when this Context was created*/
     protected Long startTime;
     /** Identifier for the Context*/
     protected String contextId;
     /** A dependency graph created across States - holds information on possible next state transitions for a State, keyed by the Event FQN*/
-    protected Map<String,List<State>> stateToEventDependencyGraph;
+    protected Map<String,List<State<T>>> stateToEventDependencyGraph;
 
     /**
      * Stores the specified data against the key for this Context. Implementations may bound the type and size of data stored into this Context.
@@ -48,7 +48,7 @@ public abstract class Context {
      */
 	public abstract Object retrieve(String key);
     
-    public List<State> getExecutableStates(State currentState, Event event) {
+    public List<State<T>> getExecutableStates(State<T> currentState, Event<T> event) {
         // Go through the dependency graph to figure the states that can now be executed
         return null;
     }
