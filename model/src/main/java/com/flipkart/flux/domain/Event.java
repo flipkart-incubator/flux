@@ -23,16 +23,22 @@ import java.io.Serializable;
  * @author regunath.balasubramanian
  * @author shyam.akirala
  */
-public class Event implements Serializable {
+public class Event<T> implements Serializable {
+	
+	/** Default serial version UID*/
+	private static final long serialVersionUID = 1L;
 	
 	/** The name for this Event*/
     private String name;
+    
     /** The type of this Event*/
     private String type;
+    
     /** Staus for this Event*/
     private EventStatus status;
+    
     /** Data associated with this Event*/
-    private Object eventData;
+    private T eventData;
 
     /** Constructor*/
     public Event(String name, String type) {
@@ -53,10 +59,10 @@ public class Event implements Serializable {
 	public void setStatus(EventStatus status) {
 		this.status = status;
 	}
-	public Object getEventData() {
+	public T getEventData() {
 		return eventData;
 	}
-	public void setEventData(Object eventData) {
+	public void setEventData(T eventData) {
 		this.eventData = eventData;
 	}
 	public String getName() {
