@@ -13,6 +13,11 @@
 
 package com.flipkart.flux.domain;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.util.List;
 
 /**
@@ -24,7 +29,13 @@ import java.util.List;
  * @author regunath.balasubramanian
  * @author shyam.akirala
  */
+@Entity
+@Table(name="states")
 public class State<T> {
+
+    /** Auto generated Id*/
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     /* Defined by the User */
 	/** Version for this State*/
@@ -33,6 +44,8 @@ public class State<T> {
     private String name;
     /** Description for this State*/
     private String description;
+    /** Id of the State Machine to which this State belongs*/
+    private Long stateMachineId;
     /** Hook that is executed on entry of this State*/
     private Hook<T> onEntryHook;
     /** Task that is executed when the transition happens to this State*/
@@ -55,12 +68,13 @@ public class State<T> {
     private Long numRetries;
 
     /** Constructor */
-    public State(Long version, String name, String description, Hook<T> onEntryHook, Task<T> task, Hook<T> onExitHook,
+    public State(Long version, String name, String description, Long stateMachineId, Hook<T> onEntryHook, Task<T> task, Hook<T> onExitHook,
 			Long retryCount, Long timeout) {
 		super();
 		this.version = version;
 		this.name = name;
 		this.description = description;
+        this.stateMachineId = stateMachineId;
 		this.onEntryHook = onEntryHook;
 		this.task = task;
 		this.onExitHook = onExitHook;
@@ -80,6 +94,9 @@ public class State<T> {
     }
     
 	/** Accessor/Mutator methods*/
+    public Long getId() {
+        return id;
+    }
 	public Long getVersion() {
 		return version;
 	}
@@ -98,7 +115,13 @@ public class State<T> {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	public Hook<T> getOnEntryHook() {
+    public Long getStateMachineId() {
+        return stateMachineId;
+    }
+    public void setStateMachineId(Long stateMachineId) {
+        this.stateMachineId = stateMachineId;
+    }
+    public Hook<T> getOnEntryHook() {
 		return onEntryHook;
 	}
 	public void setOnEntryHook(Hook<T> onEntryHook) {

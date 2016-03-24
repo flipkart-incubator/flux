@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.domain;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +26,7 @@ import java.util.Map;
  * @author regunath.balasubramanian
  * @author shyam.akirala
  */
-public abstract class Context<T> {
+public abstract class Context<T> implements Serializable {
 
 	/** The start time when this Context was created*/
     protected Long startTime;

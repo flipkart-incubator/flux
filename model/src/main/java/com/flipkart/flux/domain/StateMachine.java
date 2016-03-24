@@ -13,6 +13,10 @@
 
 package com.flipkart.flux.domain;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
+import javax.persistence.*;
 import java.util.List;
 
 /**
@@ -23,7 +27,13 @@ import java.util.List;
  * @author regunath.balasubramanian
  * @author shyam.akirala
  */
+@Entity
+@Table(name="state_machines")
 public class StateMachine<T> {
+
+    /** Auto generated Id*/
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     /* provided */
 	/** The version identifier*/
@@ -32,15 +42,25 @@ public class StateMachine<T> {
     private String name;
     /** Description of the state machine*/
     private String description;
+
     /** List of states that this machine has*/
+    @OneToMany(fetch = FetchType.LAZY,cascade=CascadeType.ALL)
+    @JoinColumn(name = "stateMachineId")
+    @Fetch(value = FetchMode.SELECT)
     private List<State<T>> states;
+
     /** The start state for this machine */
+    @OneToOne(cascade=CascadeType.ALL)
+    @JoinColumn(name = "start_workflow_node_id")
     private State<T> startState;
 
     /* maintained */
     /** Current state of this state machine*/
+    @Transient
     private State<T> currentState;
+
     /** The Context for interacting with the Flux runtime*/
+    @Transient
     private Context<T> context;
     
     /** Constructor*/

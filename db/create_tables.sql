@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `events` (
   `type` VARCHAR(100) NOT NULL,
   `status` VARCHAR(100) DEFAULT NULL,
   `state_machine_instance_id` VARCHAR(255) NOT NULL,
-  `data` LONGTEXT,
+  `event_data` BLOB,
   `event_source` VARCHAR(100) DEFAULT NULL,
   `created_at` DATETIME(3) DEFAULT NULL,
   `updated_at` DATETIME(3) DEFAULT NULL,
@@ -55,6 +55,8 @@ CREATE TABLE IF NOT EXISTS `state_machines` (
   `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
   `version` TINYINT UNSIGNED NOT NULL,
+  `start_state_id` BIGINT(20) NOT NULL,
+  `description` VARCHAR(300) DEFAULT NULL,
   `created_at` DATETIME(3) DEFAULT NULL,
   `updated_at` DATETIME(3) DEFAULT NULL,
   PRIMARY KEY (`id`)

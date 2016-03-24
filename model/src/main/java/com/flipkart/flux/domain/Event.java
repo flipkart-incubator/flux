@@ -13,6 +13,11 @@
 
 package com.flipkart.flux.domain;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.io.Serializable;
 
 /**
@@ -23,22 +28,35 @@ import java.io.Serializable;
  * @author regunath.balasubramanian
  * @author shyam.akirala
  */
+
+@Entity
+@Table(name="events")
 public class Event<T> implements Serializable {
-	
-	/** Default serial version UID*/
-	private static final long serialVersionUID = 1L;
-	
+
+    /** Default serial version UID*/
+    private static final long serialVersionUID = 1L;
+
+    /** Auto generated Id*/
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
 	/** The name for this Event*/
     private String name;
     
     /** The type of this Event*/
     private String type;
     
-    /** Staus for this Event*/
+    /** Status for this Event*/
     private EventStatus status;
+
+    /** Instance Id of state machine with which this event is associated */
+    private String stateMachineInstanceId;
     
-    /** Data associated with this Event*/
+    /** Data associated with this Event, must be serializable*/
     private T eventData;
+
+    /** The source who generated this Event */
+    private String eventSource;
 
     /** Constructor*/
     public Event(String name, String type) {
@@ -59,13 +77,25 @@ public class Event<T> implements Serializable {
 	public void setStatus(EventStatus status) {
 		this.status = status;
 	}
-	public T getEventData() {
+    public String getStateMachineInstanceId() {
+        return stateMachineInstanceId;
+    }
+    public void setStateMachineInstanceId(String stateMachineInstanceId) {
+        this.stateMachineInstanceId = stateMachineInstanceId;
+    }
+    public T getEventData() {
 		return eventData;
 	}
 	public void setEventData(T eventData) {
 		this.eventData = eventData;
 	}
-	public String getName() {
+    public String getEventSource() {
+        return eventSource;
+    }
+    public void setEventSource(String eventSource) {
+        this.eventSource = eventSource;
+    }
+    public String getName() {
 		return name;
 	}
 	public String getType() {
