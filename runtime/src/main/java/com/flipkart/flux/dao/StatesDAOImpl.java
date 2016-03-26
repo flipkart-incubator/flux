@@ -14,9 +14,35 @@
 package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.StatesDAO;
+import com.flipkart.flux.domain.State;
+import com.flipkart.flux.util.HibernateUtil;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.criterion.Restrictions;
 
 /**
  * @author shyam.akirala
  */
-public class StatesDAOImpl implements StatesDAO {
+public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
+
+    @Override
+    public State create(State state) {
+        return super.persist(state);
+    }
+
+    @Override
+    public State findById(Long id) {
+        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+        Transaction tx = session.beginTransaction();
+
+        Criteria criteria = session.createCriteria(State.class).add(Restrictions.eq("id", id));
+        Object object = criteria.uniqueResult();
+        State state = null;
+        if(object != null)
+            state = (State) object;
+
+        tx.commit();
+        return state;
+    }
 }

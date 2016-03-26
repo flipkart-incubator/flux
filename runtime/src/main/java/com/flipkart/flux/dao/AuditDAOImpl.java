@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * @author shyam.akirala
  */
-public class AuditDAOImpl implements AuditDAO {
+public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
 
     @Override
     public List<AuditRecord> find(String stateMachineInstanceId) {
@@ -62,23 +62,12 @@ public class AuditDAOImpl implements AuditDAO {
 
 
     @Override
-    public void create(AuditRecord auditRecord) {
-
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
-
-        session.save(auditRecord);
-
-        tx.commit();
+    public AuditRecord create(AuditRecord auditRecord) {
+        return super.save(auditRecord);
     }
 
     @Override
     public void update(AuditRecord auditRecord) {
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
-
-        session.update(auditRecord);
-
-        tx.commit();
+        super.update(auditRecord);
     }
 }

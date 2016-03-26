@@ -51,7 +51,7 @@ public class StateMachine<T> {
 
     /** The start state for this machine */
     @OneToOne(cascade=CascadeType.ALL)
-    @JoinColumn(name = "start_workflow_node_id")
+    @JoinColumn(name = "start_state_id")
     private State<T> startState;
 
     /* maintained */
@@ -62,8 +62,9 @@ public class StateMachine<T> {
     /** The Context for interacting with the Flux runtime*/
     @Transient
     private Context<T> context;
-    
-    /** Constructor*/
+
+    /** Constructors*/
+    public StateMachine() {}
 	public StateMachine(Long version, String name, String description, List<State<T>> states, State<T> startState) {
 		super();
 		this.version = version;

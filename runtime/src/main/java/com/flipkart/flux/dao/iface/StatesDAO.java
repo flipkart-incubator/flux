@@ -13,8 +13,14 @@
 
 package com.flipkart.flux.dao.iface;
 
+import com.flipkart.flux.domain.State;
+
 /**
  * @author shyam.akirala
  */
 public interface StatesDAO {
+
+    State create(State state);
+
+    State findById(Long id);
 }

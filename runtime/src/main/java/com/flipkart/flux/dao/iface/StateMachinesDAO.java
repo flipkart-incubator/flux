@@ -24,7 +24,7 @@ public interface StateMachinesDAO {
 
     StateMachine create(StateMachine stateMachine);
 
-    StateMachine update(StateMachine stateMachine);
+    void update(StateMachine stateMachine);
 
     List<StateMachine> getAllStateMachines();
 

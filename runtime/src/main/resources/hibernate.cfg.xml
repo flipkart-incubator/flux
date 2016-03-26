@@ -9,5 +9,6 @@
         <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/flux</property>
         <property name="hibernate.connection.username">root</property>
         <property name="hibernate.current_session_context_class">thread</property>
+        <mapping package="com.flipkart.flux"/>
     </session-factory>
 </hibernate-configuration>

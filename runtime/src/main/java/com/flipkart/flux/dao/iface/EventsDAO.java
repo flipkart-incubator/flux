@@ -13,8 +13,18 @@
 
 package com.flipkart.flux.dao.iface;
 
+import com.flipkart.flux.domain.Event;
+
+import java.util.List;
+
 /**
  * @author shyam.akirala
  */
 public interface EventsDAO {
+
+    Event create(Event event);
+
+    List<Event> findBySMInstanceId(String stateMachineInstanceId);
+
+    Event findById(Long id);
 }

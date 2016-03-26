@@ -25,7 +25,7 @@ public interface AuditDAO {
 
     AuditRecord find(String stateMachineInstanceId, Long stateId, int retryAttempt);
 
-    void create(AuditRecord auditRecord);
+    AuditRecord create(AuditRecord auditRecord);
 
     void update(AuditRecord auditRecord);
 

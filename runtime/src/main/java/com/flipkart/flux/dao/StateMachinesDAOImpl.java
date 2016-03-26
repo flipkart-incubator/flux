@@ -14,9 +14,44 @@
 package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.util.HibernateUtil;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.criterion.Restrictions;
+
+import java.util.List;
 
 /**
  * @author shyam.akirala
  */
-public class StateMachinesDAOImpl implements StateMachinesDAO {
+public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements StateMachinesDAO {
+
+    @Override
+    public StateMachine create(StateMachine stateMachine) {
+        return super.persist(stateMachine);
+    }
+
+    @Override
+    public void update(StateMachine stateMachine) {
+        super.update(stateMachine);
+    }
+
+    @Override
+    public List<StateMachine> getAllStateMachines() {
+        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+        Transaction tx = session.beginTransaction();
+
+        Criteria criteria = session.createCriteria(StateMachine.class);
+        List<StateMachine> stateMachines = criteria.list();
+
+        tx.commit();
+        return stateMachines;
+    }
+
+    @Override
+    public StateMachine findByNameAndVersion(String stateMachineName, Long Version) {
+        return null;
+    }
 }

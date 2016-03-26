@@ -13,35 +13,50 @@
 
 package com.flipkart.flux.domain;
 
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.util.Date;
 import java.util.Map;
 
 /**
+ * <code>Checkpoint</code> represents saved state of a State Machines execution.
+ * Used when the user wants to replay the execution of a state machine from a particular state.
  * @author shyam.akirala
  */
 
 @Entity
-@Table(name="checkpoints")
 public class Checkpoint {
 
+    /** Auto generated id */
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="state_machine_name")
+    /** Name of the state machine to which this checkpoint belongs */
     private String stateMachineName;
 
-    @Column(name="state_machine_instance_id")
+    /** Instance id of the state machine to which this checkpoint belongs */
     private String stateMachineInstanceId;
 
-    @Column(name="state_id")
+    /** The State identifier to which this checkpoint belongs */
     private Long stateId;
 
+    /** Date associated with the state machines execution*/
+    @Type(type = "MapJSONType")
     private Map<String, Object> data;
 
-    public Checkpoint() {}
+    /** Checkpoint creation time */
+    @CreationTimestamp
+    private Date createdAt;
 
+    /** Time at which this checkpoint is last updated */
+    @UpdateTimestamp
+    private Date updatedAt;
+
+    /** Constructors */
+    public Checkpoint() {}
     public Checkpoint(String stateMachineName, String stateMachineInstanceId, Long stateId, Map<String, Object> data) {
         this.stateMachineName = stateMachineName;
         this.stateMachineInstanceId = stateMachineInstanceId;
@@ -49,6 +64,7 @@ public class Checkpoint {
         this.data = data;
     }
 
+    /** Accessor/Mutator methods*/
     public Long getId() {
         return id;
     }
@@ -75,5 +91,11 @@ public class Checkpoint {
     }
     public void setData(Map<String, Object> data) {
         this.data = data;
+    }
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+    public Date getUpdatedAt() {
+        return updatedAt;
     }
 }

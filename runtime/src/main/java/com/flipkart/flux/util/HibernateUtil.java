@@ -27,6 +27,7 @@ public class HibernateUtil {
         try {
             Configuration  configuration = new Configuration().configure("hibernate.cfg.xml");
             addAnnotatedClasses(configuration);
+            configuration.setPhysicalNamingStrategy(PhysicalNamingStrategyImpl.INSTANCE);
             sessionFactory = configuration.buildSessionFactory();
         } catch (Throwable ex) {
             System.out.println("Error occurred during session factory init");
@@ -37,7 +38,7 @@ public class HibernateUtil {
     private static void addAnnotatedClasses(Configuration configuration) {
         configuration.addAnnotatedClass(AuditRecord.class);
         configuration.addAnnotatedClass(Checkpoint.class);
-//        configuration.addAnnotatedClass(Event.class);
+        configuration.addAnnotatedClass(Event.class);
 //        configuration.addAnnotatedClass(State.class);
 //        configuration.addAnnotatedClass(StateMachine.class);
     }

@@ -26,18 +26,11 @@ import java.util.List;
 /**
  * @author shyam.akirala
  */
-public class CheckpointsDAOImpl implements CheckpointsDAO {
-
-    //TO DO: convert data map
+public class CheckpointsDAOImpl extends AbstractDAO<Checkpoint> implements CheckpointsDAO {
 
     @Override
-    public void persist(Checkpoint checkpoint) {
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
-
-        session.saveOrUpdate(checkpoint);
-
-        tx.commit();
+    public Checkpoint create(Checkpoint checkpoint) {
+        return super.persist(checkpoint);
     }
 
     @Override

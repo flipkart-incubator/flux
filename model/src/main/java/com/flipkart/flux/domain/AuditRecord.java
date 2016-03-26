@@ -17,40 +17,42 @@ import javax.persistence.*;
 import java.util.Date;
 
 /**
+ * <code>AuditRecord</code> represents a audit log of state machine execution.
  * @author shyam.akirala
  */
 
 @Entity
-@Table(name="AUDIT")
 public class AuditRecord {
 
+    /** Auto generated id */
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="state_machine_name")
+    /** Name of the state machine to which this audit belongs */
     private String stateMachineName;
 
-    @Column(name="state_machine_instance_id")
+    /** Instance id of the state machine to which this audit belongs */
     private String stateMachineInstanceId;
 
-    @Column(name="state_id")
+    /** The State identifier to which this audit belongs */
     private Long stateId;
 
-    @Column(name="retry_attempt")
+    /** The State execution retry count */
     private int retryAttempt;
 
-    @Column(name="state_status")
-    private String stateStatus;
+    /** The State execution status */
+    @Enumerated(EnumType.STRING)
+    private Status stateStatus;
 
-    @Column(name="state_start_time")
+    /** Time when the State has started */
     private Date stateStartTime;
 
-    @Column(name="state_end_time")
+    /** Time when the State has ended */
     private Date stateEndTime;
 
+    /** Constructors */
     public AuditRecord(){}
-
-    public AuditRecord(String stateMachineName, String stateMachineInstanceId, Long stateId, int retryAttempt, String stateStatus, Date stateStartTime, Date stateEndTime) {
+    public AuditRecord(String stateMachineName, String stateMachineInstanceId, Long stateId, int retryAttempt, Status stateStatus, Date stateStartTime, Date stateEndTime) {
         this.stateMachineName = stateMachineName;
         this.stateMachineInstanceId = stateMachineInstanceId;
         this.stateId = stateId;
@@ -60,6 +62,7 @@ public class AuditRecord {
         this.stateEndTime = stateEndTime;
     }
 
+    /** Accessor/Mutator methods*/
     public Long getId() {
         return id;
     }
@@ -87,10 +90,10 @@ public class AuditRecord {
     public void setRetryAttempt(int retryAttempt) {
         this.retryAttempt = retryAttempt;
     }
-    public String getStateStatus() {
+    public Status getStateStatus() {
         return stateStatus;
     }
-    public void setStateStatus(String stateStatus) {
+    public void setStateStatus(Status stateStatus) {
         this.stateStatus = stateStatus;
     }
     public Date getStateStartTime() {

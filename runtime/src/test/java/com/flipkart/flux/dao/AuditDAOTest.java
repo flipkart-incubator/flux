@@ -15,6 +15,7 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
+import com.flipkart.flux.domain.Status;
 import org.junit.Test;
 
 import java.util.Date;
@@ -28,7 +29,7 @@ public class AuditDAOTest {
     @Test
     public void createAuditRecordTest() {
         AuditDAO auditDAO = new AuditDAOImpl();
-        AuditRecord auditRecord = new AuditRecord("test_state_machine_name", "test_state_machine_instance_id", 10L, 0, "test_status", new Date(), null);
+        AuditRecord auditRecord = new AuditRecord("test_state_machine_name", "test_state_machine_instance_id", 10L, 0, Status.initialized, new Date(), null);
         auditDAO.create(auditRecord);
     }
 

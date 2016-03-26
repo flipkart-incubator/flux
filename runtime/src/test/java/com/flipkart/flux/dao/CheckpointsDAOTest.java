@@ -18,6 +18,7 @@ import com.flipkart.flux.domain.Checkpoint;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author shyam.akirala
@@ -27,8 +28,10 @@ public class CheckpointsDAOTest {
     @Test
     public void createCheckpointTest() {
         CheckpointsDAO checkpointsDAO = new CheckpointsDAOImpl();
-        Checkpoint checkpoint = new Checkpoint("test_state_machine_name", "test_state_machine_instance_id", 10L, new HashMap<String, Object>());
-        checkpointsDAO.persist(checkpoint);
+        Map<String, Object> testMap = new HashMap<String, Object>();
+        testMap.put("testKey", "testValue");
+        Checkpoint checkpoint = new Checkpoint("test_state_machine_name", "test_state_machine_instance_id", 10L, testMap);
+        checkpointsDAO.create(checkpoint);
     }
 
     @Test

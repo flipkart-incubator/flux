@@ -13,12 +13,13 @@
 
 package com.flipkart.flux.domain;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * <code>Event</code> is the result of a {@link Task} execution.
@@ -30,7 +31,6 @@ import java.io.Serializable;
  */
 
 @Entity
-@Table(name="events")
 public class Event<T> implements Serializable {
 
     /** Default serial version UID*/
@@ -47,16 +47,26 @@ public class Event<T> implements Serializable {
     private String type;
     
     /** Status for this Event*/
+    @Enumerated(EnumType.STRING)
     private EventStatus status;
 
     /** Instance Id of state machine with which this event is associated */
     private String stateMachineInstanceId;
     
-    /** Data associated with this Event, must be serializable*/
+    /** Data associated with this Event, must have public getters and setters and be serializable */
+    @Type(type = "MapJSONType")
     private T eventData;
 
     /** The source who generated this Event */
     private String eventSource;
+
+    /** Event creation time */
+    @CreationTimestamp
+    private Date createdAt;
+
+    /** Time at which this event is last updated */
+    @UpdateTimestamp
+    private Date updatedAt;
 
     /** Constructor*/
     public Event(String name, String type) {
@@ -70,8 +80,22 @@ public class Event<T> implements Serializable {
         pending,triggered;
     }
 
+    public Event() {}
+
+    public Event(String name, String type, EventStatus status, String stateMachineInstanceId, T eventData, String eventSource) {
+        this.name = name;
+        this.type = type;
+        this.status = status;
+        this.stateMachineInstanceId = stateMachineInstanceId;
+        this.eventData = eventData;
+        this.eventSource = eventSource;
+    }
+
     /** Accessor/Mutator methods*/
-	public EventStatus getStatus() {
+    public Long getId() {
+        return id;
+    }
+    public EventStatus getStatus() {
 		return status;
 	}
 	public void setStatus(EventStatus status) {
@@ -101,5 +125,11 @@ public class Event<T> implements Serializable {
 	public String getType() {
 		return type;
 	}
-    
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
 }

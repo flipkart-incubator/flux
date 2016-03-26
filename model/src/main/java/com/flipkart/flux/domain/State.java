@@ -13,11 +13,7 @@
 
 package com.flipkart.flux.domain;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.List;
 
 /**
@@ -45,36 +41,45 @@ public class State<T> {
     /** Description for this State*/
     private String description;
     /** Id of the State Machine to which this State belongs*/
+    @Column(name="state_machine_id")
     private Long stateMachineId;
     /** Hook that is executed on entry of this State*/
+    @Transient //REMOVE IT
     private Hook<T> onEntryHook;
     /** Task that is executed when the transition happens to this State*/
+    @Transient //REMOVE IT
     private Task<T> task;
     /** Hook that is executed on exit of this State*/
+    @Transient //REMOVE IT
     private Hook<T> onExitHook;
     /** The max retry count for a successful transition*/
+    @Column(name = "retry_count")
     private Long retryCount;
     /** Timeout for state transition*/
     private Long timeout;
 
     /* Maintained by the execution engine */
     /** List of errors during state transition*/
+    @Transient
     private List<FluxError> errors;
     /** The Status of state transition execution*/
+    @Transient
     private Status status;
     /** The rollback status*/
+    @Transient
     private Status rollbackStatus;
     /** The number of retries attempted*/
+    @Transient
     private Long numRetries;
 
-    /** Constructor */
-    public State(Long version, String name, String description, Long stateMachineId, Hook<T> onEntryHook, Task<T> task, Hook<T> onExitHook,
+    /** Constructors */
+    public State() {}
+    public State(Long version, String name, String description, Hook<T> onEntryHook, Task<T> task, Hook<T> onExitHook,
 			Long retryCount, Long timeout) {
 		super();
 		this.version = version;
 		this.name = name;
 		this.description = description;
-        this.stateMachineId = stateMachineId;
 		this.onEntryHook = onEntryHook;
 		this.task = task;
 		this.onExitHook = onExitHook;

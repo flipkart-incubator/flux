@@ -11,15 +11,14 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.client.model;
-
-import java.io.Serializable;
-
 /**
- * <Code>FluxContext</Code> can be used to provide a Task's context as maintained by Flux
- * This is currently limited to providing the taskId and its start time, but will be enhanced for other functionality
+ * @author shyam.akirala
  */
-public interface FluxContext extends Serializable{
-    public String retrieveTaskToken();
-    public Long getStartTime();
-}
+@TypeDefs({
+        @TypeDef(name = "MapJSONType", typeClass = MapJsonType.class)
+})
+package com.flipkart.flux;
+
+import com.flipkart.flux.type.MapJsonType;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
