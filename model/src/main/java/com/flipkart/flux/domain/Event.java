@@ -24,7 +24,7 @@ import java.util.Date;
 /**
  * <code>Event</code> is the result of a {@link Task} execution.
  * It is to be posted back to the Flux execution engine once a worker has executed the task
- * 
+ *
  * @author Yogesh
  * @author regunath.balasubramanian
  * @author shyam.akirala
@@ -40,19 +40,19 @@ public class Event<T> implements Serializable {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-	/** The name for this Event*/
+    /** The name for this Event*/
     private String name;
-    
+
     /** The type of this Event*/
     private String type;
-    
+
     /** Status for this Event*/
     @Enumerated(EnumType.STRING)
     private EventStatus status;
 
     /** Instance Id of state machine with which this event is associated */
     private String stateMachineInstanceId;
-    
+
     /** Data associated with this Event, must have public getters and setters and be serializable */
     @Type(type = "MapJSONType")
     private T eventData;
@@ -70,18 +70,18 @@ public class Event<T> implements Serializable {
 
     /** Constructor*/
     public Event(String name, String type) {
-		super();
-		this.name = name;
-		this.type = type;
-	}
+        super();
+        this.name = name;
+        this.type = type;
+    }
 
-	/** Enum of Event statuses*/
+    /** Enum of Event statuses*/
     public enum EventStatus {
         pending,triggered;
     }
 
+    /** Constructors */
     public Event() {}
-
     public Event(String name, String type, EventStatus status, String stateMachineInstanceId, T eventData, String eventSource) {
         this.name = name;
         this.type = type;
@@ -96,11 +96,11 @@ public class Event<T> implements Serializable {
         return id;
     }
     public EventStatus getStatus() {
-		return status;
-	}
-	public void setStatus(EventStatus status) {
-		this.status = status;
-	}
+        return status;
+    }
+    public void setStatus(EventStatus status) {
+        this.status = status;
+    }
     public String getStateMachineInstanceId() {
         return stateMachineInstanceId;
     }
@@ -108,11 +108,11 @@ public class Event<T> implements Serializable {
         this.stateMachineInstanceId = stateMachineInstanceId;
     }
     public T getEventData() {
-		return eventData;
-	}
-	public void setEventData(T eventData) {
-		this.eventData = eventData;
-	}
+        return eventData;
+    }
+    public void setEventData(T eventData) {
+        this.eventData = eventData;
+    }
     public String getEventSource() {
         return eventSource;
     }
@@ -120,11 +120,11 @@ public class Event<T> implements Serializable {
         this.eventSource = eventSource;
     }
     public String getName() {
-		return name;
-	}
-	public String getType() {
-		return type;
-	}
+        return name;
+    }
+    public String getType() {
+        return type;
+    }
     public Date getCreatedAt() {
         return createdAt;
     }

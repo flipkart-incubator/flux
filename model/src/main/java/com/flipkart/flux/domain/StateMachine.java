@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * <code>StateMachine</code> represents a state machine submitted for execution in Flux.
  * Maintains meta data about the current state of execution of a state machine
- * 
+ *
  * @author Yogesh
  * @author regunath.balasubramanian
  * @author shyam.akirala
@@ -38,7 +38,7 @@ public class StateMachine<T> {
     private Long id;
 
     /* provided */
-	/** The version identifier*/
+    /** The version identifier*/
     private Long version;
     /** Name for this state machine*/
     private String name;
@@ -46,13 +46,13 @@ public class StateMachine<T> {
     private String description;
 
     /** List of states that this machine has*/
-    @OneToMany(fetch = FetchType.EAGER,cascade=CascadeType.ALL)  //CHANGE IT TO LAZY
+    @OneToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL, targetEntity = Object.class)  //CHANGE IT TO LAZY
     @JoinColumn(name = "stateMachineId")
     @Fetch(value = FetchMode.SELECT)
     private List<State<T>> states;
 
     /** The start state for this machine */
-    @OneToOne(cascade=CascadeType.ALL)
+    @OneToOne(cascade=CascadeType.ALL, targetEntity = Object.class)
     @JoinColumn(name = "start_state_id")
     private State<T> startState;
 
@@ -76,42 +76,42 @@ public class StateMachine<T> {
 
     /** Constructors*/
     public StateMachine() {}
-	public StateMachine(Long version, String name, String description, List<State<T>> states, State<T> startState) {
-		super();
-		this.version = version;
-		this.name = name;
-		this.description = description;
-		this.states = states;
-		this.startState = startState;
-	}
+    public StateMachine(Long version, String name, String description, List<State<T>> states, State<T> startState) {
+        super();
+        this.version = version;
+        this.name = name;
+        this.description = description;
+        this.states = states;
+        this.startState = startState;
+    }
 
-	/** Accessor/Mutator methods */
-	public Context<T> getContext() {
-		return context;
-	}
-	public void setContext(Context<T> context) {
-		this.context = context;
-	}
-	public State<T> getCurrentState() {
-		return currentState;
-	}
-	public void setCurrentState(State<T> currentState) {
-		this.currentState = currentState;
-	}
-	public Long getVersion() {
-		return version;
-	}
-	public String getName() {
-		return name;
-	}
-	public String getDescription() {
-		return description;
-	}
-	public List<State<T>> getStates() {
-		return states;
-	}
-	public State<T> getStartState() {
-		return startState;
-	}
+    /** Accessor/Mutator methods */
+    public Context<T> getContext() {
+        return context;
+    }
+    public void setContext(Context<T> context) {
+        this.context = context;
+    }
+    public State<T> getCurrentState() {
+        return currentState;
+    }
+    public void setCurrentState(State<T> currentState) {
+        this.currentState = currentState;
+    }
+    public Long getVersion() {
+        return version;
+    }
+    public String getName() {
+        return name;
+    }
+    public String getDescription() {
+        return description;
+    }
+    public List<State<T>> getStates() {
+        return states;
+    }
+    public State<T> getStartState() {
+        return startState;
+    }
 
 }
