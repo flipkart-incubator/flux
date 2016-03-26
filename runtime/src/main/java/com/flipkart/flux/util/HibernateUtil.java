@@ -39,8 +39,8 @@ public class HibernateUtil {
         configuration.addAnnotatedClass(AuditRecord.class);
         configuration.addAnnotatedClass(Checkpoint.class);
         configuration.addAnnotatedClass(Event.class);
-//        configuration.addAnnotatedClass(State.class);
-//        configuration.addAnnotatedClass(StateMachine.class);
+        configuration.addAnnotatedClass(State.class);
+        configuration.addAnnotatedClass(StateMachine.class);
     }
 
     public static SessionFactory getSessionFactory() {

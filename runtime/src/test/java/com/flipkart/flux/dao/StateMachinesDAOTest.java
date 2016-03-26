@@ -29,12 +29,12 @@ public class StateMachinesDAOTest {
     @Test
     public void createSMTest() {
         StateMachinesDAO stateMachinesDAO = new StateMachinesDAOImpl();
-        State<String> state1 = new State<String>(1L, "state1", "desc1", null, null, null, 3L, 60L);
-        State<String> state2 = new State<String>(1L, "state2", "desc2", null, null, null, 2L, 50L);
-        List<State<String>> states = new ArrayList<State<String>>();
+        State state1 = new State(1L, "state1", "desc1", null, null, null, 3L, 60L);
+        State state2 = new State(1L, "state2", "desc2", null, null, null, 2L, 50L);
+        List<State> states = new ArrayList<State>();
         states.add(state1);
         states.add(state2);
-        StateMachine<String> stateMachine = new StateMachine<String>(1L, "test_name", "test_desc", states, state1);
+        StateMachine stateMachine = new StateMachine(1L, "test_name", "test_desc", states, state1);
         stateMachinesDAO.create(stateMachine);
 
         List<StateMachine> stateMachines = stateMachinesDAO.getAllStateMachines();

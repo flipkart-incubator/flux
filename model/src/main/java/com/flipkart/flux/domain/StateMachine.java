@@ -13,10 +13,13 @@
 
 package com.flipkart.flux.domain;
 
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -28,7 +31,6 @@ import java.util.List;
  * @author shyam.akirala
  */
 @Entity
-@Table(name="state_machines")
 public class StateMachine<T> {
 
     /** Auto generated Id*/
@@ -44,7 +46,7 @@ public class StateMachine<T> {
     private String description;
 
     /** List of states that this machine has*/
-    @OneToMany(fetch = FetchType.LAZY,cascade=CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER,cascade=CascadeType.ALL)  //CHANGE IT TO LAZY
     @JoinColumn(name = "stateMachineId")
     @Fetch(value = FetchMode.SELECT)
     private List<State<T>> states;
@@ -62,6 +64,15 @@ public class StateMachine<T> {
     /** The Context for interacting with the Flux runtime*/
     @Transient
     private Context<T> context;
+
+    /** Time at which this State Machine has been created */
+    @CreationTimestamp
+    private Date createdAt;
+
+    /** Time at which this State Machine has been last updated */
+    @UpdateTimestamp
+    private Date updatedAt;
+
 
     /** Constructors*/
     public StateMachine() {}

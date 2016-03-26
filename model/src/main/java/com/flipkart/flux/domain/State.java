@@ -13,7 +13,11 @@
 
 package com.flipkart.flux.domain;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import javax.persistence.*;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -41,7 +45,6 @@ public class State<T> {
     /** Description for this State*/
     private String description;
     /** Id of the State Machine to which this State belongs*/
-    @Column(name="state_machine_id")
     private Long stateMachineId;
     /** Hook that is executed on entry of this State*/
     @Transient //REMOVE IT
@@ -53,7 +56,6 @@ public class State<T> {
     @Transient //REMOVE IT
     private Hook<T> onExitHook;
     /** The max retry count for a successful transition*/
-    @Column(name = "retry_count")
     private Long retryCount;
     /** Timeout for state transition*/
     private Long timeout;
@@ -71,6 +73,15 @@ public class State<T> {
     /** The number of retries attempted*/
     @Transient
     private Long numRetries;
+
+    /** Time at which this State has been created */
+    @CreationTimestamp
+    private Date createdAt;
+
+    /** Time at which this State has been last updated */
+    @UpdateTimestamp
+    private Date updatedAt;
+
 
     /** Constructors */
     public State() {}

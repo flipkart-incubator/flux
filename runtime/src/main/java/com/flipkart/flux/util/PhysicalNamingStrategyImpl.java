@@ -29,7 +29,7 @@ public class PhysicalNamingStrategyImpl extends PhysicalNamingStrategyStandardIm
 
     @Override
     public Identifier toPhysicalTableName(Identifier name, JdbcEnvironment context) {
-        return new Identifier(addUnderscores(name.getText()+"s"), name.isQuoted());
+        return new Identifier(addUnderscores(name.getText())+"s", name.isQuoted());
     }
 
     @Override
