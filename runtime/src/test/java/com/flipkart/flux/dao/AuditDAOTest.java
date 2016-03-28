@@ -16,6 +16,7 @@ package com.flipkart.flux.dao;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Status;
+import junit.framework.Assert;
 import org.junit.Test;
 
 import java.util.Date;
@@ -31,21 +32,21 @@ public class AuditDAOTest {
         AuditDAO auditDAO = new AuditDAOImpl();
         AuditRecord auditRecord = new AuditRecord("test_state_machine_name", "test_state_machine_instance_id", 10L, 0, Status.initialized, new Date(), null);
         auditDAO.create(auditRecord);
-    }
 
-    @Test
-    public void getAuditRecordTest() {
-        AuditDAO auditDAO = new AuditDAOImpl();
         List<AuditRecord> records = auditDAO.find("test_state_machine_instance_id");
-        System.out.println(records);
+        Assert.assertNotNull(records);
     }
 
     @Test
     public void setStateEndTimeTest() {
         AuditDAO auditDAO = new AuditDAOImpl();
         AuditRecord auditRecord = auditDAO.find("test_state_machine_instance_id", 10L, 0);
-        auditRecord.setStateEndTime(new Date());
+        Date date = new Date();
+        auditRecord.setStateEndTime(date);
         auditDAO.update(auditRecord);
+
+        AuditRecord savedRecord = auditDAO.find("test_state_machine_instance_id", 10L, 0);
+        Assert.assertEquals(date, savedRecord.getStateEndTime());
     }
 
 }

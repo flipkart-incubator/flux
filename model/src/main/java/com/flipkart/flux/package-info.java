@@ -16,8 +16,8 @@
  */
 
 @TypeDefs({
-        @TypeDef(name = "BlobType", typeClass = BlobType.class),
-        @TypeDef(name = "StoreFQNOnly", typeClass = StoreFQNType.class)
+        @TypeDef(name = "BlobType", typeClass = BlobType.class), //Stores object as byte array in DB
+        @TypeDef(name = "StoreFQNOnly", typeClass = StoreFQNType.class) //Stores FQN of class in DB
 })
 package com.flipkart.flux;
 

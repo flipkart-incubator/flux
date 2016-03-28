@@ -15,6 +15,7 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
+import junit.framework.Assert;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -30,16 +31,12 @@ public class EventsDAOTest {
         EventsDAO eventsDAO = new EventsDAOImpl();
         EventData data = new EventData("external_event", "test_event_info");
         Event<EventData> event = new Event("test_name","test_type", Event.EventStatus.pending,"test_state_machine_instance_id", data,"internal_event");
-        Event e = eventsDAO.create(event);
-        System.out.println(e.getId());
+        eventsDAO.create(event);
+
+        List<Event> events = eventsDAO.findBySMInstanceId("test_state_machine_instance_id");
+        Assert.assertNotNull(events);
     }
 
-    @Test
-    public void getEventTest() {
-        EventsDAO eventsDAO = new EventsDAOImpl();
-        List<Event> events = eventsDAO.findBySMInstanceId("test_state_machine_instance_id");
-        System.out.println(events);
-    }
 }
 
 class EventData implements Serializable{

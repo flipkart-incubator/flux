@@ -23,7 +23,7 @@ public class DummyOnEntryHook implements Hook {
 
     @Override
     public void execute(Event[] events) {
-
+        //DO SOMETHING
     }
 }
 

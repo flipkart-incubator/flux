@@ -15,6 +15,7 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.CheckpointsDAO;
 import com.flipkart.flux.domain.Checkpoint;
+import junit.framework.Assert;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -32,12 +33,9 @@ public class CheckpointsDAOTest {
         testMap.put("testKey", "testValue");
         Checkpoint checkpoint = new Checkpoint("test_state_machine_name", "test_state_machine_instance_id", 10L, testMap);
         checkpointsDAO.create(checkpoint);
+
+        Checkpoint savedCheckpoint = checkpointsDAO.find("test_state_machine_instance_id", 10L);
+        Assert.assertNotNull(savedCheckpoint);
     }
 
-    @Test
-    public void findCheckpointTest() {
-        CheckpointsDAO checkpointsDAO = new CheckpointsDAOImpl();
-        Checkpoint checkpoint = checkpointsDAO.find("test_state_machine_instance_id", 10L);
-        System.out.println(checkpoint);
-    }
 }

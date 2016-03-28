@@ -20,7 +20,9 @@ import com.flipkart.flux.domain.Checkpoint;
  */
 public interface CheckpointsDAO {
 
-    Checkpoint create(Checkpoint checkpoint);
+    Long create(Checkpoint checkpoint);
+
+    Checkpoint find(Long id);
 
     Checkpoint find(String stateMachineInstanceId, Long stateId);
 

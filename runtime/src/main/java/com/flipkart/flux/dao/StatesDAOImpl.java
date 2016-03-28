@@ -27,8 +27,8 @@ import org.hibernate.criterion.Restrictions;
 public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
-    public State create(State state) {
-        return super.persist(state);
+    public Long create(State state) {
+        return super.persist(state).getId();
     }
 
     @Override

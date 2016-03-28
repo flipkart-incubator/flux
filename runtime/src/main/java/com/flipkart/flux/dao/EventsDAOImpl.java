@@ -29,8 +29,8 @@ import java.util.List;
 public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
-    public Event create(Event event) {
-        return super.persist(event);
+    public Long create(Event event) {
+        return super.persist(event).getId();
     }
 
     @Override

@@ -28,8 +28,24 @@ import java.util.List;
  */
 public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
 
+
     @Override
-    public List<AuditRecord> find(String stateMachineInstanceId) {
+    public AuditRecord findById(Long id) {
+        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+        Transaction tx = session.beginTransaction();
+
+        Criteria criteria = session.createCriteria(AuditRecord.class).add(Restrictions.eq("id", id));
+        Object object = criteria.uniqueResult();
+        AuditRecord auditRecord = null;
+        if(object != null)
+            auditRecord = (AuditRecord) object;
+
+        tx.commit();
+        return auditRecord;
+    }
+
+    @Override
+    public List<AuditRecord> findBySMInstanceId(String stateMachineInstanceId) {
         Session session = HibernateUtil.getSessionFactory().getCurrentSession();
         Transaction tx = session.beginTransaction();
 
@@ -49,21 +65,22 @@ public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
                 .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("stateId", stateId))
                 .add(Restrictions.eq("retryAttempt", retryAttempt));
-        //assuming only one record matches the above criteria
-        Object record = criteria.uniqueResult();
+        List<AuditRecord> records = criteria.list();
         tx.commit();
 
+        //The above criteria should return only one record ideally
         AuditRecord auditRecord = null;
-        if(record !=null) {
-            auditRecord = (AuditRecord) record;
+        if(records != null && records.size() > 0) {
+            auditRecord = records.get(0);
         }
         return auditRecord;
+
     }
 
 
     @Override
-    public AuditRecord create(AuditRecord auditRecord) {
-        return super.save(auditRecord);
+    public Long create(AuditRecord auditRecord) {
+        return super.save(auditRecord).getId();
     }
 
     @Override

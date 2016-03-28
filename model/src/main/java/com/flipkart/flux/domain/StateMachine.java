@@ -85,7 +85,14 @@ public class StateMachine<T> {
         this.startState = startState;
     }
 
+    //REMOVE IT================================================
+    public void setId(Long id) {
+        this.id = id;
+    }
     /** Accessor/Mutator methods */
+    public Long getId() {
+        return id;
+    }
     public Context<T> getContext() {
         return context;
     }
@@ -113,5 +120,10 @@ public class StateMachine<T> {
     public State<T> getStartState() {
         return startState;
     }
-
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
 }

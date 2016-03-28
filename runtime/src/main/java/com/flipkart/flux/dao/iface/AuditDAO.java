@@ -21,13 +21,14 @@ import java.util.List;
  */
 public interface AuditDAO {
 
-    List<AuditRecord> find(String stateMachineInstanceId);
+    AuditRecord findById(Long id);
+
+    List<AuditRecord> findBySMInstanceId(String stateMachineInstanceId);
 
     AuditRecord find(String stateMachineInstanceId, Long stateId, int retryAttempt);
 
-    AuditRecord create(AuditRecord auditRecord);
+    Long create(AuditRecord auditRecord);
 
     void update(AuditRecord auditRecord);
 
-    //Delete not required
 }

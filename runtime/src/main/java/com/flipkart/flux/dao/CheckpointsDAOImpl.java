@@ -29,9 +29,25 @@ import java.util.List;
 public class CheckpointsDAOImpl extends AbstractDAO<Checkpoint> implements CheckpointsDAO {
 
     @Override
-    public Checkpoint create(Checkpoint checkpoint) {
-        return super.persist(checkpoint);
+    public Long create(Checkpoint checkpoint) {
+        return super.save(checkpoint).getId();
     }
+
+    @Override
+    public Checkpoint find(Long id) {
+        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+        Transaction tx = session.beginTransaction();
+
+        Criteria criteria = session.createCriteria(Checkpoint.class).add(Restrictions.eq("id", id));
+        Object object = criteria.uniqueResult();
+        Checkpoint checkpoint = null;
+        if(object != null)
+            checkpoint = (Checkpoint) object;
+
+        tx.commit();
+        return checkpoint;
+    }
+
 
     @Override
     public Checkpoint find(String stateMachineInstanceId, Long stateId) {
@@ -50,7 +66,5 @@ public class CheckpointsDAOImpl extends AbstractDAO<Checkpoint> implements Check
             checkpoint = checkpointList.get(0);
         }
         return checkpoint;
-
-
     }
 }

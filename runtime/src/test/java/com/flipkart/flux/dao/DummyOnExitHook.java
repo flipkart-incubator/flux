@@ -23,6 +23,6 @@ public class DummyOnExitHook implements Hook {
 
     @Override
     public void execute(Event[] events) {
-
+        //DO SOMETHING
     }
 }

@@ -29,21 +29,32 @@ import java.util.List;
 public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements StateMachinesDAO {
 
     @Override
-    public StateMachine create(StateMachine stateMachine) {
-        return super.persist(stateMachine);
+    public Long create(StateMachine stateMachine) {
+        return super.persist(stateMachine).getId();
     }
 
     @Override
-    public void update(StateMachine stateMachine) {
-        super.update(stateMachine);
-    }
-
-    @Override
-    public List<StateMachine> getAllStateMachines() {
+    public StateMachine findById(Long id) {
         Session session = HibernateUtil.getSessionFactory().getCurrentSession();
         Transaction tx = session.beginTransaction();
 
-        Criteria criteria = session.createCriteria(StateMachine.class);
+        Criteria criteria = session.createCriteria(StateMachine.class).add(Restrictions.eq("id", id));
+        Object object = criteria.uniqueResult();
+        StateMachine stateMachine = null;
+        if(object != null)
+            stateMachine = (StateMachine) object;
+
+        tx.commit();
+        return stateMachine;
+    }
+
+    @Override
+    public List<StateMachine> findByName(String stateMachineName) {
+        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+        Transaction tx = session.beginTransaction();
+
+        Criteria criteria = session.createCriteria(StateMachine.class)
+                .add(Restrictions.eq("name", stateMachineName));
         List<StateMachine> stateMachines = criteria.list();
 
         tx.commit();
@@ -51,8 +62,16 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     }
 
     @Override
-    public StateMachine findByNameAndVersion(String stateMachineName, Long Version) {
-        //TO DO: Implementation
-        return null;
+    public List<StateMachine> findByNameAndVersion(String stateMachineName, Long version) {
+        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+        Transaction tx = session.beginTransaction();
+
+        Criteria criteria = session.createCriteria(StateMachine.class)
+                .add(Restrictions.eq("name", stateMachineName))
+                .add(Restrictions.eq("version", version));
+        List<StateMachine> stateMachines = criteria.list();
+
+        tx.commit();
+        return stateMachines;
     }
 }

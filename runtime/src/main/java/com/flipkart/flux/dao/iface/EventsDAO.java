@@ -22,7 +22,7 @@ import java.util.List;
  */
 public interface EventsDAO {
 
-    Event create(Event event);
+    Long create(Event event);
 
     List<Event> findBySMInstanceId(String stateMachineInstanceId);
 

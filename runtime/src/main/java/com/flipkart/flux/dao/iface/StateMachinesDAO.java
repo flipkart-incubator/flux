@@ -22,12 +22,12 @@ import java.util.List;
  */
 public interface StateMachinesDAO {
 
-    StateMachine create(StateMachine stateMachine);
+    Long create(StateMachine stateMachine);
 
-    void update(StateMachine stateMachine);
+    StateMachine findById(Long id);
 
-    List<StateMachine> getAllStateMachines();
+    List<StateMachine> findByName(String stateMachineName);
 
-    StateMachine findByNameAndVersion(String stateMachineName, Long Version);
+    List<StateMachine> findByNameAndVersion(String stateMachineName, Long Version);
 
 }

@@ -15,6 +15,7 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.*;
+import junit.framework.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -31,25 +32,20 @@ public class StateMachinesDAOTest {
         DummyTask task = new DummyTask();
         DummyOnEntryHook onEntryHook = new DummyOnEntryHook();
         DummyOnExitHook onExitHook = new DummyOnExitHook();
-        State<Data> state1 = new State<Data>(1L, "state1", "desc1", onEntryHook, task, onExitHook, 3L, 60L);
-        State<Data> state2 = new State<Data>(1L, "state2", "desc2", null, null, null, 2L, 50L);
+        State<Data> state1 = new State<Data>(2L, "state1", "desc1", onEntryHook, task, onExitHook, 3L, 60L);
+        State<Data> state2 = new State<Data>(2L, "state2", "desc2", null, null, null, 2L, 50L);
         List<State<Data>> states = new ArrayList<State<Data>>();
         states.add(state1);
         states.add(state2);
-        StateMachine<Data> stateMachine = new StateMachine<Data>(1L, "test_name", "test_desc", states, state1);
-        stateMachinesDAO.create(stateMachine);
-    }
+        StateMachine<Data> stateMachine = new StateMachine<Data>(2L, "test_name", "test_desc", states, state1);
+        Long savedSMId = stateMachinesDAO.create(stateMachine);
 
-    @Test
-    public void getAllTest() {
-        StateMachinesDAO stateMachinesDAO = new StateMachinesDAOImpl();
-        List<StateMachine> stateMachines = stateMachinesDAO.getAllStateMachines();
-        System.out.println(stateMachines.get(0)+ " "+stateMachines.get(0).getName());
+        StateMachine stateMachine1 = stateMachinesDAO.findById(savedSMId);
+        Assert.assertNotNull(stateMachine1);
     }
-
 }
 
-/** Event data*/
+/** Event data class*/
 class Data {
     String data;
 

@@ -25,6 +25,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 /**
+ * Custom hibernate type to store FQN of a class in DB
  * @author shyam.akirala
  */
 public class StoreFQNType implements UserType, Serializable {

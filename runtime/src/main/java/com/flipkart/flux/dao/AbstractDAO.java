@@ -14,8 +14,10 @@
 package com.flipkart.flux.dao;
 
 import com.flipkart.flux.util.HibernateUtil;
+import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.criterion.Restrictions;
 
 /**
  * @author shyam.akirala
@@ -40,7 +42,6 @@ public class AbstractDAO<T> {
 
         tx.commit();
         return object;
-
     }
 
     public void update(T object) {
@@ -52,5 +53,22 @@ public class AbstractDAO<T> {
         tx.commit();
     }
 
+    public T saveOrUpdate(T object) {
+        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+        Transaction tx = session.beginTransaction();
 
+        session.saveOrUpdate(object);
+
+        tx.commit();
+        return object;
+    }
+
+    public void delete(T object) {
+        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+        Transaction tx = session.beginTransaction();
+
+        session.delete(object);
+
+        tx.commit();
+    }
 }
