@@ -54,7 +54,7 @@ public class Event<T> implements Serializable {
     private String stateMachineInstanceId;
 
     /** Data associated with this Event, must have public getters and setters and be serializable */
-    @Type(type = "MapJSONType")
+    @Type(type = "BlobType")
     private T eventData;
 
     /** The source who generated this Event */

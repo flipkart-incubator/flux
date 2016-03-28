@@ -44,7 +44,7 @@ public class Checkpoint {
     private Long stateId;
 
     /** Date associated with the state machines execution*/
-    @Type(type = "MapJSONType")
+    @Type(type = "BlobType")
     private Map<String, Object> data;
 
     /** Checkpoint creation time */

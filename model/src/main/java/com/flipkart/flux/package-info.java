@@ -15,10 +15,10 @@
  * @author shyam.akirala
  */
 @TypeDefs({
-        @TypeDef(name = "MapJSONType", typeClass = MapJsonType.class)
+        @TypeDef(name = "BlobType", typeClass = BlobType.class)
 })
 package com.flipkart.flux;
 
-import com.flipkart.flux.type.MapJsonType;
+import com.flipkart.flux.type.BlobType;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;

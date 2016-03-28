@@ -13,22 +13,21 @@
 
 package com.flipkart.flux.type;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.usertype.UserType;
 
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 
+
 /**
  * @author shyam.akirala
  */
-public abstract class BasicObjectType implements UserType, Serializable {
+public class BlobType implements UserType, Serializable {
     @Override
     public int[] sqlTypes() {
         return new int[] { Types.JAVA_OBJECT };
@@ -56,15 +55,15 @@ public abstract class BasicObjectType implements UserType, Serializable {
     @Override
     public void nullSafeSet(PreparedStatement st, Object value, int index, SessionImplementor session) throws HibernateException, SQLException {
         try {
-            st.setString(index, serialize(value));
-        } catch (JsonProcessingException e) {
-            throw new SQLException("Cannot serialize object to JSON. Exception " + e.getMessage());
+            st.setBytes(index, serialize(value));
+        } catch (IOException e) {
+            throw new SQLException("Cannot serialize object to byte array. Exception " + e.getMessage());
         }
     }
 
     @Override
     public Object nullSafeGet(ResultSet rs, String[] names, SessionImplementor session, Object owner) throws HibernateException, SQLException {
-        String value = rs.getString(names[0]);
+        byte[] value = rs.getBytes(names[0]);
 
         if(value == null)   {
             return null;
@@ -73,7 +72,9 @@ public abstract class BasicObjectType implements UserType, Serializable {
         try {
             return deSerialize(value);
         } catch (IOException e) {
-            throw new SQLException("Cannot deserialize json string " + value + ". Exception " + e.getMessage());
+            throw new SQLException("Cannot deserialize byte array. Exception " + e.getMessage());
+        } catch (ClassNotFoundException e) {
+            throw new SQLException("Cannot deserialize byte array. Exception " + e.getMessage());
         }
     }
 
@@ -102,7 +103,16 @@ public abstract class BasicObjectType implements UserType, Serializable {
         return original;
     }
 
-    protected abstract Object deSerialize(String value) throws IOException;
-    protected abstract String serialize(Object value) throws JsonProcessingException;
-}
+    public Object deSerialize(byte[] value) throws IOException, ClassNotFoundException {
+        ByteArrayInputStream baip = new ByteArrayInputStream(value);
+        ObjectInputStream ois = new ObjectInputStream(baip);
+        return ois.readObject();
+    }
 
+    public byte[] serialize(Object value) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(value);
+        return baos.toByteArray();
+    }
+}
