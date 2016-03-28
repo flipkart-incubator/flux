@@ -28,20 +28,9 @@ import java.util.List;
  */
 public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
 
-
     @Override
     public AuditRecord findById(Long id) {
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
-
-        Criteria criteria = session.createCriteria(AuditRecord.class).add(Restrictions.eq("id", id));
-        Object object = criteria.uniqueResult();
-        AuditRecord auditRecord = null;
-        if(object != null)
-            auditRecord = (AuditRecord) object;
-
-        tx.commit();
-        return auditRecord;
+        return super.findById(AuditRecord.class, id);
     }
 
     @Override

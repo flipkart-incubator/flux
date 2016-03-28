@@ -33,7 +33,7 @@ public class AuditDAOTest {
         AuditRecord auditRecord = new AuditRecord("test_state_machine_name", "test_state_machine_instance_id", 10L, 0, Status.initialized, new Date(), null);
         auditDAO.create(auditRecord);
 
-        List<AuditRecord> records = auditDAO.find("test_state_machine_instance_id");
+        List<AuditRecord> records = auditDAO.findBySMInstanceId("test_state_machine_instance_id");
         Assert.assertNotNull(records);
     }
 

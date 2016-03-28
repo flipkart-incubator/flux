@@ -35,17 +35,7 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
 
     @Override
     public StateMachine findById(Long id) {
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
-
-        Criteria criteria = session.createCriteria(StateMachine.class).add(Restrictions.eq("id", id));
-        Object object = criteria.uniqueResult();
-        StateMachine stateMachine = null;
-        if(object != null)
-            stateMachine = (StateMachine) object;
-
-        tx.commit();
-        return stateMachine;
+        return super.findById(StateMachine.class, id);
     }
 
     @Override

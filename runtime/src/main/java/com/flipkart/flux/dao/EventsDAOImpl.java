@@ -47,17 +47,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     public Event findById(Long id) {
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
-
-        Criteria criteria = session.createCriteria(Event.class).add(Restrictions.eq("id", id));
-        Object object = criteria.uniqueResult();
-        Event event = null;
-        if(object != null)
-            event = (Event) object;
-
-        tx.commit();
-        return event;
+        return super.findById(Event.class, id);
     }
 
 }

@@ -24,6 +24,21 @@ import org.hibernate.criterion.Restrictions;
  */
 public class AbstractDAO<T> {
 
+    public T findById(Class cls, Long id) {
+        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+        Transaction tx = session.beginTransaction();
+
+        Criteria criteria = session.createCriteria(cls).add(Restrictions.eq("id", id));
+        Object object = criteria.uniqueResult();
+        T castedObject = null;
+        if(object != null)
+            castedObject = (T) object;
+
+        tx.commit();
+        return castedObject;
+
+    }
+
     public T persist(T object) {
         Session session = HibernateUtil.getSessionFactory().getCurrentSession();
         Transaction tx = session.beginTransaction();

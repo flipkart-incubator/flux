@@ -35,19 +35,8 @@ public class CheckpointsDAOImpl extends AbstractDAO<Checkpoint> implements Check
 
     @Override
     public Checkpoint find(Long id) {
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
-
-        Criteria criteria = session.createCriteria(Checkpoint.class).add(Restrictions.eq("id", id));
-        Object object = criteria.uniqueResult();
-        Checkpoint checkpoint = null;
-        if(object != null)
-            checkpoint = (Checkpoint) object;
-
-        tx.commit();
-        return checkpoint;
+        return super.findById(Checkpoint.class, id);
     }
-
 
     @Override
     public Checkpoint find(String stateMachineInstanceId, Long stateId) {

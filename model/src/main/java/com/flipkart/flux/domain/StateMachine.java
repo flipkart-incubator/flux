@@ -46,7 +46,7 @@ public class StateMachine<T> {
     private String description;
 
     /** List of states that this machine has*/
-    @OneToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL, targetEntity = State.class)  //CHANGE IT TO LAZY
+    @OneToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL, targetEntity = State.class)
     @JoinColumn(name = "stateMachineId")
     @Fetch(value = FetchMode.SELECT)
     private List<State<T>> states;
