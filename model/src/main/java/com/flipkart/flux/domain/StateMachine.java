@@ -48,7 +48,6 @@ public class StateMachine<T> {
     /** List of states that this machine has*/
     @OneToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL, targetEntity = State.class)
     @JoinColumn(name = "stateMachineId")
-    @Fetch(value = FetchMode.SELECT)
     private List<State<T>> states;
 
     /** The start state for this machine */
@@ -85,10 +84,6 @@ public class StateMachine<T> {
         this.startState = startState;
     }
 
-    //REMOVE IT================================================
-    public void setId(Long id) {
-        this.id = id;
-    }
     /** Accessor/Mutator methods */
     public Long getId() {
         return id;
