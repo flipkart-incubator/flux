@@ -30,7 +30,6 @@ import java.util.List;
  * @author shyam.akirala
  */
 @Entity
-@Table(name="states")
 public class State<T> {
 
     /** Auto generated Id*/

@@ -29,16 +29,33 @@ public class StateMachinesDAOTest {
     @Test
     public void createSMTest() {
         StateMachinesDAO stateMachinesDAO = new StateMachinesDAOImpl();
-        State state1 = new State(1L, "state1", "desc1", null, null, null, 3L, 60L);
-        State state2 = new State(1L, "state2", "desc2", null, null, null, 2L, 50L);
-        List<State> states = new ArrayList<State>();
+        State<Data> state1 = new State<Data>(1L, "state1", "desc1", null, null, null, 3L, 60L);
+        State<Data> state2 = new State<Data>(1L, "state2", "desc2", null, null, null, 2L, 50L);
+        List<State<Data>> states = new ArrayList<State<Data>>();
         states.add(state1);
         states.add(state2);
-        StateMachine stateMachine = new StateMachine(1L, "test_name", "test_desc", states, state1);
+        StateMachine<Data> stateMachine = new StateMachine<Data>(1L, "test_name", "test_desc", states, state1);
         stateMachinesDAO.create(stateMachine);
 
         List<StateMachine> stateMachines = stateMachinesDAO.getAllStateMachines();
         System.out.println(stateMachines.get(0)+ " "+stateMachines.get(0).getName());
     }
 
+}
+
+/** Event data*/
+class Data {
+    String data;
+
+    public Data(String data) {
+        this.data = data;
+    }
+
+    public String getData() {
+        return data;
+    }
+
+    public void setData(String data) {
+        this.data = data;
+    }
 }
