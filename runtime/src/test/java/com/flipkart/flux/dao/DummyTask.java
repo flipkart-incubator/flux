@@ -11,17 +11,20 @@
  * limitations under the License.
  */
 
+package com.flipkart.flux.dao;
+
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.FluxError;
+import com.flipkart.flux.domain.Task;
+import javafx.util.Pair;
+
 /**
  * @author shyam.akirala
  */
+public class DummyTask implements Task {
 
-@TypeDefs({
-        @TypeDef(name = "BlobType", typeClass = BlobType.class),
-        @TypeDef(name = "StoreFQNOnly", typeClass = StoreFQNType.class)
-})
-package com.flipkart.flux;
-
-import com.flipkart.flux.type.BlobType;
-import com.flipkart.flux.type.StoreFQNType;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
+    @Override
+    public Pair<Event, FluxError> execute(Event[] events) {
+        return null;
+    }
+}

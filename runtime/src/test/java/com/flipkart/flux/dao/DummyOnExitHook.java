@@ -11,17 +11,18 @@
  * limitations under the License.
  */
 
+package com.flipkart.flux.dao;
+
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.Hook;
+
 /**
  * @author shyam.akirala
  */
+public class DummyOnExitHook implements Hook {
 
-@TypeDefs({
-        @TypeDef(name = "BlobType", typeClass = BlobType.class),
-        @TypeDef(name = "StoreFQNOnly", typeClass = StoreFQNType.class)
-})
-package com.flipkart.flux;
+    @Override
+    public void execute(Event[] events) {
 
-import com.flipkart.flux.type.BlobType;
-import com.flipkart.flux.type.StoreFQNType;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
+    }
+}

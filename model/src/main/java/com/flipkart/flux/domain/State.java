@@ -14,6 +14,7 @@
 package com.flipkart.flux.domain;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
@@ -45,14 +46,14 @@ public class State<T> {
     private String description;
     /** Id of the State Machine to which this State belongs*/
     private Long stateMachineId;
-    /** Hook that is executed on entry of this State*/
-    @Transient //REMOVE IT
+    /** Hook that is executed on entry of this State, must be a public class*/
+    @Type(type = "StoreFQNOnly")
     private Hook<T> onEntryHook;
-    /** Task that is executed when the transition happens to this State*/
-    @Transient //REMOVE IT
+    /** Task that is executed when the transition happens to this State, must be a public class*/
+    @Type(type = "StoreFQNOnly")
     private Task<T> task;
-    /** Hook that is executed on exit of this State*/
-    @Transient //REMOVE IT
+    /** Hook that is executed on exit of this State, must be a public class*/
+    @Type(type = "StoreFQNOnly")
     private Hook<T> onExitHook;
     /** The max retry count for a successful transition*/
     private Long retryCount;
