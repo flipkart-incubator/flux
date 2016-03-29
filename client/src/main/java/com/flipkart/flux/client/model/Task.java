@@ -13,7 +13,6 @@
 
 package com.flipkart.flux.client.model;
 
-import com.sun.istack.internal.Nullable;
 
 import java.lang.annotation.*;
 
@@ -49,5 +48,5 @@ public @interface Task {
      */
     long timeout();
 
-    @Nullable Class<? extends Hook>[] hooks() default {};
+    Class<? extends Hook>[] hooks() default {};
 }
