@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.domain;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -27,7 +28,7 @@ import java.util.Map;
  */
 public abstract class Context<T> {
 
-	/** The start time when this Context was created*/
+    /** The start time when this Context was created*/
     protected Long startTime;
     /** Identifier for the Context*/
     protected String contextId;
@@ -40,14 +41,14 @@ public abstract class Context<T> {
      * @param data the opaque data stored against the specified key
      */
     public abstract void storeData(String key, Object data);
-    
-    /** 
+
+    /**
      * Retrieves the data stored against the specified key 
      * @param key the identifier key for data stored in this Context
      * @return data stored in this Context, keyed by the specified identifier 
      */
-	public abstract Object retrieve(String key);
-    
+    public abstract Object retrieve(String key);
+
     public List<State<T>> getExecutableStates(State<T> currentState, Event<T> event) {
         // Go through the dependency graph to figure the states that can now be executed
         return null;
@@ -58,10 +59,10 @@ public abstract class Context<T> {
     }
 
     /** Accessor/Mutator methods*/
-	public Long getStartTime() {
-		return startTime;
-	}
-	public String getContextId() {
-		return contextId;
-	}
+    public Long getStartTime() {
+        return startTime;
+    }
+    public String getContextId() {
+        return contextId;
+    }
 }

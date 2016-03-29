@@ -13,63 +13,123 @@
 
 package com.flipkart.flux.domain;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * <code>Event</code> is the result of a {@link Task} execution.
  * It is to be posted back to the Flux execution engine once a worker has executed the task
- * 
+ *
  * @author Yogesh
  * @author regunath.balasubramanian
  * @author shyam.akirala
  */
+
+@Entity
 public class Event<T> implements Serializable {
-	
-	/** Default serial version UID*/
-	private static final long serialVersionUID = 1L;
-	
-	/** The name for this Event*/
+
+    /** Default serial version UID*/
+    private static final long serialVersionUID = 1L;
+
+    /** Auto generated Id*/
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    /** The name for this Event*/
     private String name;
-    
+
     /** The type of this Event*/
     private String type;
-    
-    /** Staus for this Event*/
+
+    /** Status for this Event*/
+    @Enumerated(EnumType.STRING)
     private EventStatus status;
-    
-    /** Data associated with this Event*/
+
+    /** Instance Id of state machine with which this event is associated */
+    private String stateMachineInstanceId;
+
+    /** Data associated with this Event, must have public getters and setters and be serializable */
+    @Type(type = "BlobType")
     private T eventData;
+
+    /** The source who generated this Event */
+    private String eventSource;
+
+    /** Event creation time */
+    @CreationTimestamp
+    private Date createdAt;
+
+    /** Time at which this event is last updated */
+    @UpdateTimestamp
+    private Date updatedAt;
 
     /** Constructor*/
     public Event(String name, String type) {
-		super();
-		this.name = name;
-		this.type = type;
-	}
+        super();
+        this.name = name;
+        this.type = type;
+    }
 
-	/** Enum of Event statuses*/
+    /** Enum of Event statuses*/
     public enum EventStatus {
         pending,triggered;
     }
 
+    /** Constructors */
+    public Event() {}
+    public Event(String name, String type, EventStatus status, String stateMachineInstanceId, T eventData, String eventSource) {
+        this.name = name;
+        this.type = type;
+        this.status = status;
+        this.stateMachineInstanceId = stateMachineInstanceId;
+        this.eventData = eventData;
+        this.eventSource = eventSource;
+    }
+
     /** Accessor/Mutator methods*/
-	public EventStatus getStatus() {
-		return status;
-	}
-	public void setStatus(EventStatus status) {
-		this.status = status;
-	}
-	public T getEventData() {
-		return eventData;
-	}
-	public void setEventData(T eventData) {
-		this.eventData = eventData;
-	}
-	public String getName() {
-		return name;
-	}
-	public String getType() {
-		return type;
-	}
-    
+    public Long getId() {
+        return id;
+    }
+    public EventStatus getStatus() {
+        return status;
+    }
+    public void setStatus(EventStatus status) {
+        this.status = status;
+    }
+    public String getStateMachineInstanceId() {
+        return stateMachineInstanceId;
+    }
+    public void setStateMachineInstanceId(String stateMachineInstanceId) {
+        this.stateMachineInstanceId = stateMachineInstanceId;
+    }
+    public T getEventData() {
+        return eventData;
+    }
+    public void setEventData(T eventData) {
+        this.eventData = eventData;
+    }
+    public String getEventSource() {
+        return eventSource;
+    }
+    public void setEventSource(String eventSource) {
+        this.eventSource = eventSource;
+    }
+    public String getName() {
+        return name;
+    }
+    public String getType() {
+        return type;
+    }
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
 }
