@@ -17,13 +17,16 @@ import com.flipkart.flux.client.model.Promise;
 import com.flipkart.flux.client.model.Task;
 
 /**
- * Dummy service to run warehouse operations
+ * Dummy Payment Service - can accept COD or online payment
  */
-public class WarehouseService<V extends PackedOrder> {
-    @Task(version = 1, timeout = 1000l)
-    public Promise<PackedOrder> packOrder(Promise<ConfirmedOrder> createdOrderPromise) {
-        // Sends out a notification (probably to a human console) to indicate that this order needs to be packed
-        createdOrderPromise.get().pack();
-        return new Promise<PackedOrder>(new PackedOrder());
+public class PaymentService {
+    @Task(version = 1, retries = 0, timeout = 500l)
+    public Promise<Boolean> processOnlinePayment(Promise<CreatedOrder> orderData) {
+        throw new RuntimeException("Not implemented yet");
+    }
+
+    @Task(version = 1, retries = 0, timeout = 500l)
+    public Promise<Boolean> processCod(Promise<PackedOrder> orderData) {
+        throw new RuntimeException("Not implemented yet");
     }
 }
