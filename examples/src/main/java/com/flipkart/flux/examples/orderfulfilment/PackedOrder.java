@@ -13,5 +13,10 @@
 
 package com.flipkart.flux.examples.orderfulfilment;
 
+import java.util.Random;
+
 public class PackedOrder {
+    public boolean isCod() {
+        return new Random().nextBoolean();
+    }
 }
