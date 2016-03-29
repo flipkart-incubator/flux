@@ -23,7 +23,7 @@ import com.flipkart.flux.client.model.Workflow;
  */
 public class SimpleOrderFulfilmentWorkflow {
     OrderManager orderManager = new OrderManager();
-    WarehouseService<V> warehouseService = new WarehouseService<V>();
+    WarehouseService warehouseService = new WarehouseService();
     ShipmentService shipmentService = new ShipmentService();
     PaymentService paymentService = new PaymentService();
 

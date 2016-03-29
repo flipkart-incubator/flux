@@ -19,7 +19,7 @@ import com.flipkart.flux.client.model.Task;
 /**
  * Dummy service to run warehouse operations
  */
-public class WarehouseService<V extends PackedOrder> {
+public class WarehouseService {
     @Task(version = 1, timeout = 1000l)
     public Promise<PackedOrder> packOrder(Promise<ConfirmedOrder> createdOrderPromise) {
         // Sends out a notification (probably to a human console) to indicate that this order needs to be packed
