@@ -14,6 +14,8 @@
 package com.flipkart.flux.util;
 
 import com.flipkart.flux.domain.*;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
@@ -22,6 +24,7 @@ import org.hibernate.cfg.Configuration;
  */
 public class HibernateUtil {
     private static final SessionFactory sessionFactory;
+    private static final Logger logger = LogManager.getLogger(HibernateUtil.class);
 
     static {
         try {
@@ -30,12 +33,13 @@ public class HibernateUtil {
             configuration.setPhysicalNamingStrategy(PhysicalNamingStrategyImpl.INSTANCE);
             sessionFactory = configuration.buildSessionFactory();
         } catch (Throwable ex) {
-            System.out.println("Error occurred during session factory init");
+            logger.error("Error occurred during session factory init");
             throw new ExceptionInInitializerError(ex);
         }
     }
 
     private static void addAnnotatedClasses(Configuration configuration) {
+        logger.debug("adding annotated classes to Hibernate configuration");
         configuration.addAnnotatedClass(AuditRecord.class);
         configuration.addAnnotatedClass(Checkpoint.class);
         configuration.addAnnotatedClass(Event.class);
