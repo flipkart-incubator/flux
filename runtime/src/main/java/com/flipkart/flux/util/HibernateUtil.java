@@ -16,15 +16,12 @@ package com.flipkart.flux.util;
 import com.flipkart.flux.domain.*;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author shyam.akirala
  */
 public class HibernateUtil {
     private static final SessionFactory sessionFactory;
-    private static final Logger logger = LoggerFactory.getLogger(HibernateUtil.class);
 
     static {
         try {
@@ -33,7 +30,7 @@ public class HibernateUtil {
             configuration.setPhysicalNamingStrategy(PhysicalNamingStrategyImpl.INSTANCE);
             sessionFactory = configuration.buildSessionFactory();
         } catch (Throwable ex) {
-            logger.error("Error occurred during session factory init");
+            System.out.println("Error occurred during session factory init");
             throw new ExceptionInInitializerError(ex);
         }
     }
