@@ -86,7 +86,7 @@ public class StoreFQNType implements UserType, Serializable {
 
     @Override
     public boolean isMutable() {
-        return true;
+        return false;
     }
 
     @Override

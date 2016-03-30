@@ -5,8 +5,9 @@ CREATE TABLE IF NOT EXISTS `audit_records` (
   `state_id` bigint(20) NOT NULL,
   `retry_attempt` TINYINT UNSIGNED DEFAULT NULL,
   `state_status` VARCHAR(100) DEFAULT NULL,
-  `state_start_time` DATETIME(3) DEFAULT NULL,
-  `state_end_time` DATETIME(3) DEFAULT NULL,
+  `state_start_time` TIMESTAMP(3) DEFAULT NULL,
+  `state_end_time` TIMESTAMP(3) DEFAULT NULL,
+  `created_at` TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`),
   KEY `index_audit_on_SM_instance_id` (`state_machine_instance_id`)
 )
@@ -22,8 +23,8 @@ CREATE TABLE IF NOT EXISTS `checkpoints` (
   `state_machine_instance_id` VARCHAR(255) NOT NULL,
   `state_id` BIGINT(20) NOT NULL,
   `data` BLOB,
-  `created_at` DATETIME(3) DEFAULT NULL,
-  `updated_at` DATETIME(3) DEFAULT NULL,
+  `created_at` TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_at` TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`),
   KEY `index_checkpoints_on_SM_instance_id_and_state_id` (`state_machine_instance_id`,`state_id`)
 )
@@ -41,8 +42,8 @@ CREATE TABLE IF NOT EXISTS `events` (
   `state_machine_instance_id` VARCHAR(255) NOT NULL,
   `event_data` BLOB,
   `event_source` VARCHAR(100) DEFAULT NULL,
-  `created_at` DATETIME(3) DEFAULT NULL,
-  `updated_at` DATETIME(3) DEFAULT NULL,
+  `created_at` TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_at` TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`)
 )
 ENGINE=InnoDB
@@ -54,11 +55,10 @@ AUTO_INCREMENT=1;
 CREATE TABLE IF NOT EXISTS `state_machines` (
   `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
-  `version` TINYINT UNSIGNED NOT NULL,
-  `start_state_id` BIGINT(20) NOT NULL,
+  `version` SMALLINT UNSIGNED NOT NULL,
   `description` VARCHAR(300) DEFAULT NULL,
-  `created_at` DATETIME(3) DEFAULT NULL,
-  `updated_at` DATETIME(3) DEFAULT NULL,
+  `created_at` TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_at` TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`)
 )
 ENGINE=InnoDB
@@ -70,17 +70,17 @@ AUTO_INCREMENT=1;
 CREATE TABLE IF NOT EXISTS `states` (
   `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
-  `version` TINYINT UNSIGNED NOT NULL,
+  `version` SMALLINT UNSIGNED NOT NULL,
   `description` VARCHAR(300) DEFAULT NULL,
-  `state_machine_id` BIGINT(20) NOT NULL,
+  `state_machine_id` BIGINT(20) DEFAULT NULL,
   `dependencies` VARCHAR(1000) DEFAULT NULL,
-  `on_exit_hook` varchar(500) DEFAULT NULL,
-  `task_class` VARCHAR(500) NOT NULL,
+  `on_entry_hook` varchar(500) DEFAULT NULL,
+  `task` VARCHAR(500) DEFAULT NULL,
   `on_exit_hook` varchar(500) DEFAULT NULL,
   `retry_count` TINYINT UNSIGNED DEFAULT NULL,
   `timeout` SMALLINT UNSIGNED DEFAULT NULL,
-  `created_at` DATETIME(3) DEFAULT NULL,
-  `updated_at` DATETIME(3) DEFAULT NULL,
+  `created_at` TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_at` TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`),
   CONSTRAINT `FK_sm_states` FOREIGN KEY (`state_machine_id`) REFERENCES `state_machines` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 )

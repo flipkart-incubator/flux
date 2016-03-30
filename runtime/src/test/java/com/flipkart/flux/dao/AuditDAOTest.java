@@ -30,23 +30,11 @@ public class AuditDAOTest {
     @Test
     public void createAuditRecordTest() {
         AuditDAO auditDAO = new AuditDAOImpl();
-        AuditRecord auditRecord = new AuditRecord("test_state_machine_name", "test_state_machine_instance_id", 10L, 0, Status.initialized, new Date(), null);
+        AuditRecord auditRecord = new AuditRecord("test_state_machine_instance_id", 10L, 0, Status.initialized, new Date(), null);
         auditDAO.create(auditRecord);
 
         List<AuditRecord> records = auditDAO.findBySMInstanceId("test_state_machine_instance_id");
         Assert.assertNotNull(records);
-    }
-
-    @Test
-    public void setStateEndTimeTest() {
-        AuditDAO auditDAO = new AuditDAOImpl();
-        AuditRecord auditRecord = auditDAO.find("test_state_machine_instance_id", 10L, 0);
-        Date date = new Date();
-        auditRecord.setStateEndTime(date);
-        auditDAO.update(auditRecord);
-
-        AuditRecord savedRecord = auditDAO.find("test_state_machine_instance_id", 10L, 0);
-        Assert.assertEquals(date, savedRecord.getStateEndTime());
     }
 
 }

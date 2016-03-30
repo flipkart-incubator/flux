@@ -28,9 +28,6 @@ public class AuditRecord {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Name of the state machine to which this audit belongs */
-    private String stateMachineName;
-
     /** Instance id of the state machine to which this audit belongs */
     private String stateMachineInstanceId;
 
@@ -50,10 +47,12 @@ public class AuditRecord {
     /** Time when the State has ended */
     private Date stateEndTime;
 
+    /** Audit log creation time */
+    private Date createdAt;
+
     /** Constructors */
-    public AuditRecord(){}
-    public AuditRecord(String stateMachineName, String stateMachineInstanceId, Long stateId, int retryAttempt, Status stateStatus, Date stateStartTime, Date stateEndTime) {
-        this.stateMachineName = stateMachineName;
+    protected AuditRecord(){}
+    public AuditRecord(String stateMachineInstanceId, Long stateId, int retryAttempt, Status stateStatus, Date stateStartTime, Date stateEndTime) {
         this.stateMachineInstanceId = stateMachineInstanceId;
         this.stateId = stateId;
         this.retryAttempt = retryAttempt;
@@ -65,12 +64,6 @@ public class AuditRecord {
     /** Accessor/Mutator methods*/
     public Long getId() {
         return id;
-    }
-    public String getStateMachineName() {
-        return stateMachineName;
-    }
-    public void setStateMachineName(String stateMachineName) {
-        this.stateMachineName = stateMachineName;
     }
     public String getStateMachineInstanceId() {
         return stateMachineInstanceId;
@@ -107,5 +100,8 @@ public class AuditRecord {
     }
     public void setStateEndTime(Date stateEndTime) {
         this.stateEndTime = stateEndTime;
+    }
+    public Date getCreatedAt() {
+        return createdAt;
     }
 }

@@ -31,10 +31,10 @@ public class EventsDAOTest {
         EventsDAO eventsDAO = new EventsDAOImpl();
         EventData data = new EventData("external_event", "test_event_info");
         Event<EventData> event = new Event("test_name","test_type", Event.EventStatus.pending,"test_state_machine_instance_id", data,"internal_event");
-        eventsDAO.create(event);
+        Long eventId = eventsDAO.create(event);
 
-        List<Event> events = eventsDAO.findBySMInstanceId("test_state_machine_instance_id");
-        Assert.assertNotNull(events);
+        Event event1 = eventsDAO.findById(eventId);
+        Assert.assertNotNull(event1);
     }
 
 }

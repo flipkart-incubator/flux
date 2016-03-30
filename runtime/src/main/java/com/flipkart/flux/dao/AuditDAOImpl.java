@@ -29,11 +29,6 @@ import java.util.List;
 public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
 
     @Override
-    public AuditRecord findById(Long id) {
-        return super.findById(AuditRecord.class, id);
-    }
-
-    @Override
     public List<AuditRecord> findBySMInstanceId(String stateMachineInstanceId) {
         Session session = HibernateUtil.getSessionFactory().getCurrentSession();
         Transaction tx = session.beginTransaction();
@@ -46,34 +41,8 @@ public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
     }
 
     @Override
-    public AuditRecord find(String stateMachineInstanceId, Long stateId, int retryAttempt) {
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
-
-        Criteria criteria = session.createCriteria(AuditRecord.class)
-                .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
-                .add(Restrictions.eq("stateId", stateId))
-                .add(Restrictions.eq("retryAttempt", retryAttempt));
-        List<AuditRecord> records = criteria.list();
-        tx.commit();
-
-        //The above criteria should return only one record ideally
-        AuditRecord auditRecord = null;
-        if(records != null && records.size() > 0) {
-            auditRecord = records.get(0);
-        }
-        return auditRecord;
-
-    }
-
-
-    @Override
     public Long create(AuditRecord auditRecord) {
         return super.save(auditRecord).getId();
     }
 
-    @Override
-    public void update(AuditRecord auditRecord) {
-        super.update(auditRecord);
-    }
 }

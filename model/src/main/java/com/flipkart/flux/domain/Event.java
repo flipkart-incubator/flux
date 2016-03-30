@@ -13,9 +13,7 @@
 
 package com.flipkart.flux.domain;
 
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -61,19 +59,10 @@ public class Event<T> implements Serializable {
     private String eventSource;
 
     /** Event creation time */
-    @CreationTimestamp
     private Date createdAt;
 
     /** Time at which this event is last updated */
-    @UpdateTimestamp
     private Date updatedAt;
-
-    /** Constructor*/
-    public Event(String name, String type) {
-        super();
-        this.name = name;
-        this.type = type;
-    }
 
     /** Enum of Event statuses*/
     public enum EventStatus {
@@ -81,7 +70,7 @@ public class Event<T> implements Serializable {
     }
 
     /** Constructors */
-    public Event() {}
+    protected Event() {}
     public Event(String name, String type, EventStatus status, String stateMachineInstanceId, T eventData, String eventSource) {
         this.name = name;
         this.type = type;

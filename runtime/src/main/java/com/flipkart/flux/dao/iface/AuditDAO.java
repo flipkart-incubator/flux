@@ -21,14 +21,8 @@ import java.util.List;
  */
 public interface AuditDAO {
 
-    AuditRecord findById(Long id);
-
     List<AuditRecord> findBySMInstanceId(String stateMachineInstanceId);
 
-    AuditRecord find(String stateMachineInstanceId, Long stateId, int retryAttempt);
-
     Long create(AuditRecord auditRecord);
-
-    void update(AuditRecord auditRecord);
 
 }

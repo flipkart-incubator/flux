@@ -13,9 +13,7 @@
 
 package com.flipkart.flux.domain;
 
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -78,16 +76,14 @@ public class State<T> {
     private Long numRetries;
 
     /** Time at which this State has been created */
-    @CreationTimestamp
     private Date createdAt;
 
     /** Time at which this State has been last updated */
-    @UpdateTimestamp
     private Date updatedAt;
 
 
     /** Constructors */
-    public State() {}
+    protected State() {}
     public State(Long version, String name, String description, Hook<T> onEntryHook, Task<T> task, Hook<T> onExitHook,
                  Long retryCount, Long timeout) {
         super();
