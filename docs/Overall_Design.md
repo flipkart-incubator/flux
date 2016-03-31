@@ -34,9 +34,10 @@ The Flux Runtime should support the following:
 
 **Tech Choices:**
 The following technologies will be used by the Flux Runtime:
-* [Spring](https://spring.io/) - DI framework for wiring the runtime components together to create a container and also swapping implementations suitable for the deployment : Local vs Managed.
-[Trooper](https://github.com/regunathb/Trooper) or an alternate Spring startup environment.
+* [Guice](https://github.com/google/guice) and [Polyguice](https://github.com/flipkart-incubator/polyguice) - DI framework for wiring the runtime components together to create a container and also swapping implementations suitable for the deployment : Local vs Managed.
 * [Akka](http://akka.io/) actors and Cluster - for implementing the State machine primitives
+* [Spring MVC](https://github.com/spring-projects/spring-framework/tree/master/spring-webmvc) - MVC framework for building Admin dashboards, Http endpoints to Flux runtime.
+* [Kamon](http://kamon.io/integrations/akka/overview/) - Monitoring the Akka components in the Flux runtime
 
 ### Task Runtime
 
