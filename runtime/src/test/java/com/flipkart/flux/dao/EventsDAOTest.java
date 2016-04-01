@@ -13,9 +13,13 @@
 
 package com.flipkart.flux.dao;
 
+import com.flipkart.flux.HibernateModule;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import junit.framework.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -26,9 +30,16 @@ import java.util.List;
  */
 public class EventsDAOTest {
 
+    private Injector injector;
+
+    @Before
+    public void setup() {
+        injector = Guice.createInjector(new HibernateModule());
+    }
+
     @Test
     public void createEventTest() {
-        EventsDAO eventsDAO = new EventsDAOImpl();
+        EventsDAO eventsDAO = injector.getInstance(EventsDAO.class);
         EventData data = new EventData("external_event", "test_event_info");
         Event<EventData> event = new Event("test_name","test_type", Event.EventStatus.pending,"test_state_machine_instance_id", data,"internal_event");
         Long eventId = eventsDAO.create(event);

@@ -13,9 +13,13 @@
 
 package com.flipkart.flux.dao;
 
+import com.flipkart.flux.HibernateModule;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.*;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import junit.framework.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashSet;
@@ -26,9 +30,16 @@ import java.util.Set;
  */
 public class StateMachinesDAOTest {
 
+    private Injector injector;
+
+    @Before
+    public void setup() {
+        injector = Guice.createInjector(new HibernateModule());
+    }
+
     @Test
     public void createSMTest() {
-        StateMachinesDAO stateMachinesDAO = new StateMachinesDAOImpl();
+        StateMachinesDAO stateMachinesDAO = injector.getInstance(StateMachinesDAO.class);
         DummyTask task = new DummyTask();
         DummyOnEntryHook onEntryHook = new DummyOnEntryHook();
         DummyOnExitHook onExitHook = new DummyOnExitHook();
@@ -38,7 +49,7 @@ public class StateMachinesDAOTest {
         states.add(state1);
         states.add(state2);
         StateMachine<Data> stateMachine = new StateMachine<Data>(2L, "test_name", "test_desc", states);
-        Long savedSMId = stateMachinesDAO.create(stateMachine);
+        String savedSMId = stateMachinesDAO.create(stateMachine);
 
         StateMachine stateMachine1 = stateMachinesDAO.findById(savedSMId);
         Assert.assertNotNull(stateMachine1);

@@ -17,6 +17,7 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.Date;
 
 /**
@@ -29,6 +30,7 @@ import java.util.Date;
  */
 
 @Entity
+@Table(name = "Events")
 public class Event<T> implements Serializable {
 
     /** Default serial version UID*/
@@ -59,10 +61,10 @@ public class Event<T> implements Serializable {
     private String eventSource;
 
     /** Event creation time */
-    private Date createdAt;
+    private Timestamp createdAt;
 
     /** Time at which this event is last updated */
-    private Date updatedAt;
+    private Timestamp updatedAt;
 
     /** Enum of Event statuses*/
     public enum EventStatus {
@@ -114,10 +116,10 @@ public class Event<T> implements Serializable {
     public String getType() {
         return type;
     }
-    public Date getCreatedAt() {
+    public Timestamp getCreatedAt() {
         return createdAt;
     }
-    public Date getUpdatedAt() {
+    public Timestamp getUpdatedAt() {
         return updatedAt;
     }
 

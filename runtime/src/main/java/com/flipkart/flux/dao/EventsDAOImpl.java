@@ -16,11 +16,14 @@ package com.flipkart.flux.dao;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.util.HibernateUtil;
+import com.flipkart.flux.util.Transactional;
+import com.google.inject.Inject;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
 
+import javax.persistence.EntityManager;
 import java.util.List;
 
 /**
@@ -29,23 +32,21 @@ import java.util.List;
 public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
+    @Transactional
     public Long create(Event event) {
         return super.persist(event).getId();
     }
 
     @Override
+    @Transactional
     public List<Event> findBySMInstanceId(String stateMachineInstanceId) {
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
-
-        Criteria criteria = session.createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId));
+        Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId));
         List<Event> events = criteria.list();
-
-        tx.commit();
         return events;
     }
 
     @Override
+    @Transactional
     public Event findById(Long id) {
         return super.findById(Event.class, id);
     }

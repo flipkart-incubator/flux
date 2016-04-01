@@ -16,6 +16,7 @@ package com.flipkart.flux.domain;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
@@ -29,6 +30,7 @@ import java.util.List;
  * @author shyam.akirala
  */
 @Entity
+@Table(name = "States")
 public class State<T> {
 
     /** Auto generated Id*/
@@ -43,7 +45,7 @@ public class State<T> {
     /** Description for this State*/
     private String description;
     /** Id of the State Machine to which this State belongs*/
-    private Long stateMachineId;
+    private String stateMachineId;
     /** Hook that is executed on entry of this State, must be a public class*/
     @Type(type = "StoreFQNOnly")
     private Hook<T> onEntryHook;
@@ -76,10 +78,10 @@ public class State<T> {
     private Long numRetries;
 
     /** Time at which this State has been created */
-    private Date createdAt;
+    private Timestamp createdAt;
 
     /** Time at which this State has been last updated */
-    private Date updatedAt;
+    private Timestamp updatedAt;
 
 
     /** Constructors */
@@ -130,10 +132,10 @@ public class State<T> {
     public void setDescription(String description) {
         this.description = description;
     }
-    public Long getStateMachineId() {
+    public String getStateMachineId() {
         return stateMachineId;
     }
-    public void setStateMachineId(Long stateMachineId) {
+    public void setStateMachineId(String stateMachineId) {
         this.stateMachineId = stateMachineId;
     }
     public Hook<T> getOnEntryHook() {

@@ -11,19 +11,17 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.dao.iface;
+package com.flipkart.flux.util;
 
-import com.flipkart.flux.domain.Checkpoint;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author shyam.akirala
  */
-public interface CheckpointsDAO {
-
-    Long create(Checkpoint checkpoint);
-
-    Checkpoint find(Long id);
-
-    Checkpoint find(String stateMachineInstanceId, Long stateId);
-
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Transactional {
 }

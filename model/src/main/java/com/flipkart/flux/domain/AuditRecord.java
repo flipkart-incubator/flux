@@ -14,6 +14,7 @@
 package com.flipkart.flux.domain;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.Date;
 
 /**
@@ -22,6 +23,7 @@ import java.util.Date;
  */
 
 @Entity
+@Table(name = "AuditRecords")
 public class AuditRecord {
 
     /** Auto generated id */
@@ -42,17 +44,17 @@ public class AuditRecord {
     private Status stateStatus;
 
     /** Time when the State has started */
-    private Date stateStartTime;
+    private Timestamp stateStartTime;
 
     /** Time when the State has ended */
-    private Date stateEndTime;
+    private Timestamp stateEndTime;
 
     /** Audit log creation time */
-    private Date createdAt;
+    private Timestamp createdAt;
 
     /** Constructors */
     protected AuditRecord(){}
-    public AuditRecord(String stateMachineInstanceId, Long stateId, int retryAttempt, Status stateStatus, Date stateStartTime, Date stateEndTime) {
+    public AuditRecord(String stateMachineInstanceId, Long stateId, int retryAttempt, Status stateStatus, Timestamp stateStartTime, Timestamp stateEndTime) {
         this.stateMachineInstanceId = stateMachineInstanceId;
         this.stateId = stateId;
         this.retryAttempt = retryAttempt;
@@ -89,19 +91,19 @@ public class AuditRecord {
     public void setStateStatus(Status stateStatus) {
         this.stateStatus = stateStatus;
     }
-    public Date getStateStartTime() {
+    public Timestamp getStateStartTime() {
         return stateStartTime;
     }
-    public void setStateStartTime(Date stateStartTime) {
+    public void setStateStartTime(Timestamp stateStartTime) {
         this.stateStartTime = stateStartTime;
     }
-    public Date getStateEndTime() {
+    public Timestamp getStateEndTime() {
         return stateEndTime;
     }
-    public void setStateEndTime(Date stateEndTime) {
+    public void setStateEndTime(Timestamp stateEndTime) {
         this.stateEndTime = stateEndTime;
     }
-    public Date getCreatedAt() {
+    public Timestamp getCreatedAt() {
         return createdAt;
     }
 }

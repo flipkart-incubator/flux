@@ -13,9 +13,10 @@
 
 package com.flipkart.flux.domain;
 
+import org.hibernate.annotations.GenericGenerator;
+
 import javax.persistence.*;
-import java.util.Date;
-import java.util.List;
+import java.sql.Timestamp;
 import java.util.Set;
 
 /**
@@ -27,11 +28,13 @@ import java.util.Set;
  * @author shyam.akirala
  */
 @Entity
+@Table(name = "StateMachines")
 public class StateMachine<T> {
 
-    /** Auto generated Id*/
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    /** UUID to identify the state machine*/
+    @Id @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    private String id;
 
     /* provided */
     /** The version identifier*/
@@ -56,10 +59,10 @@ public class StateMachine<T> {
     private Context<T> context;
 
     /** Time at which this State Machine has been created */
-    private Date createdAt;
+    private Timestamp createdAt;
 
     /** Time at which this State Machine has been last updated */
-    private Date updatedAt;
+    private Timestamp updatedAt;
 
 
     /** Constructors*/
@@ -73,7 +76,7 @@ public class StateMachine<T> {
     }
 
     /** Accessor/Mutator methods */
-    public Long getId() {
+    public String getId() {
         return id;
     }
     public Context<T> getContext() {
@@ -100,10 +103,10 @@ public class StateMachine<T> {
     public Set<State<T>> getStates() {
         return states;
     }
-    public Date getCreatedAt() {
+    public Timestamp getCreatedAt() {
         return createdAt;
     }
-    public Date getUpdatedAt() {
+    public Timestamp getUpdatedAt() {
         return updatedAt;
     }
 }

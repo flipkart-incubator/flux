@@ -16,6 +16,7 @@ package com.flipkart.flux.dao;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.util.HibernateUtil;
+import com.flipkart.flux.util.Transactional;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -29,39 +30,38 @@ import java.util.List;
 public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements StateMachinesDAO {
 
     @Override
-    public Long create(StateMachine stateMachine) {
+    @Transactional
+    public String create(StateMachine stateMachine) {
         return super.persist(stateMachine).getId();
     }
 
     @Override
-    public StateMachine findById(Long id) {
-        return super.findById(StateMachine.class, id);
+    @Transactional
+    public StateMachine findById(String id) {
+        Criteria criteria = currentSession().createCriteria(StateMachine.class).add(Restrictions.eq("id", id));
+        Object object = criteria.uniqueResult();
+        StateMachine castedObject = null;
+        if(object != null)
+            castedObject = (StateMachine) object;
+        return castedObject;
     }
 
     @Override
+    @Transactional
     public List<StateMachine> findByName(String stateMachineName) {
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
-
-        Criteria criteria = session.createCriteria(StateMachine.class)
+        Criteria criteria = currentSession().createCriteria(StateMachine.class)
                 .add(Restrictions.eq("name", stateMachineName));
         List<StateMachine> stateMachines = criteria.list();
-
-        tx.commit();
         return stateMachines;
     }
 
     @Override
+    @Transactional
     public List<StateMachine> findByNameAndVersion(String stateMachineName, Long version) {
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
-
-        Criteria criteria = session.createCriteria(StateMachine.class)
+        Criteria criteria = currentSession().createCriteria(StateMachine.class)
                 .add(Restrictions.eq("name", stateMachineName))
                 .add(Restrictions.eq("version", version));
         List<StateMachine> stateMachines = criteria.list();
-
-        tx.commit();
         return stateMachines;
     }
 }

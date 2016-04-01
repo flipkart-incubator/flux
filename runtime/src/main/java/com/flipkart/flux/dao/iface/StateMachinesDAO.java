@@ -22,9 +22,9 @@ import java.util.List;
  */
 public interface StateMachinesDAO {
 
-    Long create(StateMachine stateMachine);
+    String create(StateMachine stateMachine);
 
-    StateMachine findById(Long id);
+    StateMachine findById(String id);
 
     List<StateMachine> findByName(String stateMachineName);
 

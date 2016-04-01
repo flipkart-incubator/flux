@@ -86,7 +86,7 @@ public class BlobType implements UserType, Serializable {
 
     @Override
     public boolean isMutable() {
-        return true;
+        return false;
     }
 
     @Override

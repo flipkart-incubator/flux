@@ -15,12 +15,9 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
-import com.flipkart.flux.util.HibernateUtil;
+import com.flipkart.flux.util.Transactional;
 import org.hibernate.Criteria;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
-
 import java.util.List;
 
 /**
@@ -29,18 +26,15 @@ import java.util.List;
 public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
 
     @Override
+    @Transactional
     public List<AuditRecord> findBySMInstanceId(String stateMachineInstanceId) {
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
-
-        Criteria criteria = session.createCriteria(AuditRecord.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId));
+        Criteria criteria = currentSession().createCriteria(AuditRecord.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId));
         List<AuditRecord> records = criteria.list();
-
-        tx.commit();
         return records;
     }
 
     @Override
+    @Transactional
     public Long create(AuditRecord auditRecord) {
         return super.save(auditRecord).getId();
     }
