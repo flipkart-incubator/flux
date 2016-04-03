@@ -29,13 +29,13 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
-    public Long create(State state) {
+    public String create(State state) {
         return super.persist(state).getId();
     }
 
     @Override
     @Transactional
-    public State findById(Long id) {
+    public State findById(String id) {
         Criteria criteria = currentSession().createCriteria(State.class).add(Restrictions.eq("id", id));
         Object object = criteria.uniqueResult();
         State state = null;

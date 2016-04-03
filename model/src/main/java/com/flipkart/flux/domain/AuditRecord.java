@@ -34,7 +34,7 @@ public class AuditRecord {
     private String stateMachineInstanceId;
 
     /** The State identifier to which this audit belongs */
-    private Long stateId;
+    private String stateId;
 
     /** The State execution retry count */
     private int retryAttempt;
@@ -43,24 +43,34 @@ public class AuditRecord {
     @Enumerated(EnumType.STRING)
     private Status stateStatus;
 
+    /** The State rollback status */
+    @Enumerated(EnumType.STRING)
+    private Status stateRollbackStatus;
+
     /** Time when the State has started */
     private Timestamp stateStartTime;
 
     /** Time when the State has ended */
     private Timestamp stateEndTime;
 
+    /** Time when the State rollback has started */
+    private Timestamp rollbackStartTime;
+
     /** Audit log creation time */
     private Timestamp createdAt;
 
     /** Constructors */
     protected AuditRecord(){}
-    public AuditRecord(String stateMachineInstanceId, Long stateId, int retryAttempt, Status stateStatus, Timestamp stateStartTime, Timestamp stateEndTime) {
+    public AuditRecord(String stateMachineInstanceId, String stateId, int retryAttempt, Status stateStatus, Status stateRollbackStatus,
+                       Timestamp stateStartTime, Timestamp stateEndTime, Timestamp rollbackStartTime) {
         this.stateMachineInstanceId = stateMachineInstanceId;
         this.stateId = stateId;
         this.retryAttempt = retryAttempt;
         this.stateStatus = stateStatus;
+        this.stateRollbackStatus = stateRollbackStatus;
         this.stateStartTime = stateStartTime;
         this.stateEndTime = stateEndTime;
+        this.rollbackStartTime = rollbackStartTime;
     }
 
     /** Accessor/Mutator methods*/
@@ -73,10 +83,10 @@ public class AuditRecord {
     public void setStateMachineInstanceId(String stateMachineInstanceId) {
         this.stateMachineInstanceId = stateMachineInstanceId;
     }
-    public Long getStateId() {
+    public String getStateId() {
         return stateId;
     }
-    public void setStateId(Long stateId) {
+    public void setStateId(String stateId) {
         this.stateId = stateId;
     }
     public int getRetryAttempt() {
@@ -91,6 +101,12 @@ public class AuditRecord {
     public void setStateStatus(Status stateStatus) {
         this.stateStatus = stateStatus;
     }
+    public Status getStateRollbackStatus() {
+        return stateRollbackStatus;
+    }
+    public void setStateRollbackStatus(Status stateRollbackStatus) {
+        this.stateRollbackStatus = stateRollbackStatus;
+    }
     public Timestamp getStateStartTime() {
         return stateStartTime;
     }
@@ -102,6 +118,12 @@ public class AuditRecord {
     }
     public void setStateEndTime(Timestamp stateEndTime) {
         this.stateEndTime = stateEndTime;
+    }
+    public Timestamp getRollbackStartTime() {
+        return rollbackStartTime;
+    }
+    public void setRollbackStartTime(Timestamp rollbackStartTime) {
+        this.rollbackStartTime = rollbackStartTime;
     }
     public Timestamp getCreatedAt() {
         return createdAt;

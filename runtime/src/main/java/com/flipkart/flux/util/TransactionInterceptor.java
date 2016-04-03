@@ -60,7 +60,6 @@ public class TransactionInterceptor implements MethodInterceptor {
             return result;
 
         } catch (Exception e) {
-
             if (transaction != null) {
                 transaction.rollback();
                 threadLocalSession.remove();
