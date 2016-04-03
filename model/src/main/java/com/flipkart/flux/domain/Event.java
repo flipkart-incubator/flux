@@ -18,7 +18,6 @@ import org.hibernate.annotations.Type;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.Date;
 
 /**
  * <code>Event</code> is the result of a {@link Task} execution.

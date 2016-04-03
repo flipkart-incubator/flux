@@ -15,7 +15,6 @@ package com.flipkart.flux.domain;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
-import java.util.Date;
 
 /**
  * <code>AuditRecord</code> represents a audit log of state machine execution.

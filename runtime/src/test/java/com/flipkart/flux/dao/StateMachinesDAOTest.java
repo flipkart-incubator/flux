@@ -15,7 +15,8 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.HibernateModule;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.domain.*;
+import com.flipkart.flux.domain.State;
+import com.flipkart.flux.domain.StateMachine;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import junit.framework.Assert;
