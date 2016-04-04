@@ -18,6 +18,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jdk.version>1.8</jdk.version>
+        <maven-compiler-plugin.version>2.0.2</maven-compiler-plugin.version>
+        <maven-jar-plugin.version>2.2</maven-jar-plugin.version>
         <junit.version>4.7</junit.version>
         <hibernate.version>5.1.0.Final</hibernate.version>
     </properties>
