@@ -28,8 +28,8 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
 
     @Override
     @Transactional
-    public String create(StateMachine stateMachine) {
-        return super.persist(stateMachine).getId();
+    public StateMachine create(StateMachine stateMachine) {
+        return super.save(stateMachine);
     }
 
     @Override

@@ -26,8 +26,8 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
-    public String create(State state) {
-        return super.persist(state).getId();
+    public State create(State state) {
+        return super.save(state);
     }
 
     @Override

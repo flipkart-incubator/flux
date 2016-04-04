@@ -45,9 +45,12 @@ public class StateMachineResource<T> {
     @Path("/machines")
     public String createStateMachine(StateMachineDefinition<T> stateMachineDefinition) {
         // 1. Convert to StateMachine (domain object) and save in DB
+        StateMachine stateMachine = persistStateMachine(stateMachineDefinition);
+
         // 2. workFlowExecutionController.init(stateMachine_domainObject)
+
         // 3. Return machineId
-        return persistStateMachine(stateMachineDefinition);
+        return stateMachine.getId();
     }
 
     
@@ -85,7 +88,7 @@ public class StateMachineResource<T> {
     /**
      * converts state machine definition to state machine domain object and saves in db
      */
-    private String persistStateMachine(StateMachineDefinition<T> stateMachineDefinition) {
+    private StateMachine persistStateMachine(StateMachineDefinition<T> stateMachineDefinition) {
 
         Set<StateDefinition<T>> stateDefinitions = stateMachineDefinition.getStates();
         Set<State<T>> states = new HashSet<State<T>>();

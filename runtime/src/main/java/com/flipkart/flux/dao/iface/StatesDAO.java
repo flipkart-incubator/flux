@@ -20,7 +20,7 @@ import com.flipkart.flux.domain.State;
  */
 public interface StatesDAO {
 
-    String create(State state);
+    State create(State state);
 
     State findById(String id);
 }

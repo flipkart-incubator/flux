@@ -28,8 +28,8 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    public Long create(Event event) {
-        return super.persist(event).getId();
+    public Event create(Event event) {
+        return super.save(event);
     }
 
     @Override

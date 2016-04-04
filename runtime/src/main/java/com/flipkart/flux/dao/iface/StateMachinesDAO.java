@@ -22,7 +22,7 @@ import java.util.List;
  */
 public interface StateMachinesDAO {
 
-    String create(StateMachine stateMachine);
+    StateMachine create(StateMachine stateMachine);
 
     StateMachine findById(String id);
 

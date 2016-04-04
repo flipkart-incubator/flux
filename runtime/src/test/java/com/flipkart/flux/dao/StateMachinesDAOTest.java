@@ -50,7 +50,7 @@ public class StateMachinesDAOTest {
         states.add(state1);
         states.add(state2);
         StateMachine<Data> stateMachine = new StateMachine<Data>(2L, "test_name", "test_desc", states);
-        String savedSMId = stateMachinesDAO.create(stateMachine);
+        String savedSMId = stateMachinesDAO.create(stateMachine).getId();
 
         StateMachine stateMachine1 = stateMachinesDAO.findById(savedSMId);
         Assert.assertNotNull(stateMachine1);
