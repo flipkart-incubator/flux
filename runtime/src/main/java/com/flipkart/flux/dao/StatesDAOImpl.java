@@ -33,11 +33,6 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Override
     @Transactional
     public State findById(String id) {
-        Criteria criteria = currentSession().createCriteria(State.class).add(Restrictions.eq("id", id));
-        Object object = criteria.uniqueResult();
-        State state = null;
-        if(object != null)
-            state = (State) object;
-        return state;
+        return super.findById(State.class, id);
     }
 }

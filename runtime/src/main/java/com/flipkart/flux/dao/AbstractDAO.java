@@ -27,7 +27,7 @@ public class AbstractDAO<T> {
         return HibernateUtil.getSessionFactory().getCurrentSession();
     }
 
-    public T findById(Class cls, Long id) {
+    public T findById(Class cls, String id) {
         Criteria criteria = currentSession().createCriteria(cls).add(Restrictions.eq("id", id));
         Object object = criteria.uniqueResult();
         T castedObject = null;

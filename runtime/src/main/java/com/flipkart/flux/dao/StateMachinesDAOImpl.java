@@ -35,12 +35,7 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     @Override
     @Transactional
     public StateMachine findById(String id) {
-        Criteria criteria = currentSession().createCriteria(StateMachine.class).add(Restrictions.eq("id", id));
-        Object object = criteria.uniqueResult();
-        StateMachine castedObject = null;
-        if(object != null)
-            castedObject = (StateMachine) object;
-        return castedObject;
+        return super.findById(StateMachine.class, id);
     }
 
     @Override
