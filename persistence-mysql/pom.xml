@@ -10,7 +10,7 @@
     <groupId>com.flipkart.flux</groupId>
     <artifactId>persistence-mysql</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>runtime</name>
+    <name>persistence-mysql</name>
     <url>http://maven.apache.org</url>
 
     <dependencies>
