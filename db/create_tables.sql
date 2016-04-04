@@ -5,9 +5,7 @@ CREATE TABLE IF NOT EXISTS `AuditRecords` (
   `retryAttempt` TINYINT UNSIGNED DEFAULT NULL,
   `stateStatus` VARCHAR(100) DEFAULT NULL,
   `stateRollbackStatus` VARCHAR(100) DEFAULT NULL,
-  `stateStartTime` TIMESTAMP(3) NULL,
-  `stateEndTime` TIMESTAMP(3) NULL,
-  `rollbackStartTime` TIMESTAMP(3) NULL,
+  `errors` VARCHAR(1000) DEFAULT NULL,
   `createdAt` TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`),
   KEY `index_audit_on_SM_instance_id` (`stateMachineInstanceId`)

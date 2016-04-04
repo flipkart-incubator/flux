@@ -43,11 +43,10 @@ public class AuditDAOTest {
     public void createAuditRecordTest() {
         AuditDAO auditDAO = injector.getInstance(AuditDAO.class);
         Date date = new Date();
-        AuditRecord auditRecord = new AuditRecord("test_state_machine_instance_id", "abcd-xyz", 0, Status.running, Status.initialized, new Timestamp(date.getTime()), null, null);
+        AuditRecord auditRecord = new AuditRecord("test_state_machine_instance_id", "abcd-xyz", 0, Status.running, null, null);
         auditDAO.create(auditRecord);
 
         List<AuditRecord> records = auditDAO.findBySMInstanceId("test_state_machine_instance_id");
         Assert.assertNotNull(records);
     }
 }
-

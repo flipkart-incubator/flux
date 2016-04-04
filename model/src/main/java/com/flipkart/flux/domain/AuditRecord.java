@@ -46,14 +46,8 @@ public class AuditRecord {
     @Enumerated(EnumType.STRING)
     private Status stateRollbackStatus;
 
-    /** Time when the State has started */
-    private Timestamp stateStartTime;
-
-    /** Time when the State has ended */
-    private Timestamp stateEndTime;
-
-    /** Time when the State rollback has started */
-    private Timestamp rollbackStartTime;
+    /** Any errors occurred in the state execution*/
+    private String errors;
 
     /** Audit log creation time */
     private Timestamp createdAt;
@@ -61,15 +55,13 @@ public class AuditRecord {
     /** Constructors */
     protected AuditRecord(){}
     public AuditRecord(String stateMachineInstanceId, String stateId, int retryAttempt, Status stateStatus, Status stateRollbackStatus,
-                       Timestamp stateStartTime, Timestamp stateEndTime, Timestamp rollbackStartTime) {
+                       String errors) {
         this.stateMachineInstanceId = stateMachineInstanceId;
         this.stateId = stateId;
         this.retryAttempt = retryAttempt;
         this.stateStatus = stateStatus;
         this.stateRollbackStatus = stateRollbackStatus;
-        this.stateStartTime = stateStartTime;
-        this.stateEndTime = stateEndTime;
-        this.rollbackStartTime = rollbackStartTime;
+        this.errors = errors;
     }
 
     /** Accessor/Mutator methods*/
@@ -106,23 +98,11 @@ public class AuditRecord {
     public void setStateRollbackStatus(Status stateRollbackStatus) {
         this.stateRollbackStatus = stateRollbackStatus;
     }
-    public Timestamp getStateStartTime() {
-        return stateStartTime;
+    public String getErrors() {
+        return errors;
     }
-    public void setStateStartTime(Timestamp stateStartTime) {
-        this.stateStartTime = stateStartTime;
-    }
-    public Timestamp getStateEndTime() {
-        return stateEndTime;
-    }
-    public void setStateEndTime(Timestamp stateEndTime) {
-        this.stateEndTime = stateEndTime;
-    }
-    public Timestamp getRollbackStartTime() {
-        return rollbackStartTime;
-    }
-    public void setRollbackStartTime(Timestamp rollbackStartTime) {
-        this.rollbackStartTime = rollbackStartTime;
+    public void setErrors(String errors) {
+        this.errors = errors;
     }
     public Timestamp getCreatedAt() {
         return createdAt;
