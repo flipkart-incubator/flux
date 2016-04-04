@@ -27,6 +27,7 @@
         <module>runtime</module>
         <module>client</module>
         <module>examples</module>
+        <module>persistence-mysql</module>
     </modules>
 
 </project>
