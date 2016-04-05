@@ -79,6 +79,7 @@
                     </archive>
                     <includes>
                         <include>com/**/*</include>
+                        <include>packaged/**/*</include>
                     </includes>
                 </configuration>
             </plugin>
