@@ -15,9 +15,8 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.State;
-import com.flipkart.flux.util.Transactional;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
+
+import javax.transaction.Transactional;
 
 /**
  * @author shyam.akirala

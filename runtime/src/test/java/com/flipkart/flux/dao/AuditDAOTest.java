@@ -22,9 +22,6 @@ import com.google.inject.Injector;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -42,7 +39,6 @@ public class AuditDAOTest {
     @Test
     public void createAuditRecordTest() {
         AuditDAO auditDAO = injector.getInstance(AuditDAO.class);
-        Date date = new Date();
         AuditRecord auditRecord = new AuditRecord("test_state_machine_instance_id", "abcd-xyz", 0, Status.running, null, null);
         auditDAO.create(auditRecord);
 

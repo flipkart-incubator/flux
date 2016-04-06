@@ -11,17 +11,20 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.util;
+package com.flipkart.flux;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.google.inject.AbstractModule;
+
+import java.sql.Driver;
 
 /**
  * @author shyam.akirala
  */
-@Target({ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Transactional {
+public class PersistenceModule extends AbstractModule {
+
+    @Override
+    protected void configure() {
+        requestStaticInjection(Driver.class);
+        bind(Driver.class).to(com.mysql.jdbc.Driver.class);
+    }
 }

@@ -14,11 +14,14 @@
 package com.flipkart.flux.util;
 
 import com.flipkart.flux.domain.*;
+import com.google.inject.Inject;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl;
 import org.hibernate.cfg.Configuration;
+
+import java.sql.Driver;
 
 /**
  * @author shyam.akirala
@@ -26,6 +29,8 @@ import org.hibernate.cfg.Configuration;
 public class HibernateUtil {
     private static final SessionFactory sessionFactory;
     private static final Logger logger = LogManager.getLogger(HibernateUtil.class);
+    @Inject
+    private static Driver driver;
 
     static {
         try {

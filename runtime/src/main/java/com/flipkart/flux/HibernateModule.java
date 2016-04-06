@@ -16,10 +16,9 @@ package com.flipkart.flux;
 import com.flipkart.flux.dao.*;
 import com.flipkart.flux.dao.iface.*;
 import com.flipkart.flux.util.TransactionInterceptor;
-import com.flipkart.flux.util.Transactional;
 import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
 import com.google.inject.matcher.Matchers;
+import javax.transaction.Transactional;
 
 /**
  * @author shyam.akirala

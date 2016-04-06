@@ -38,7 +38,7 @@ public class TransactionInterceptor implements MethodInterceptor {
         boolean startNewTransaction = true;
 
         if (session == null) {
-            session = HibernateUtil.getSessionFactory().openSession();
+            session = HibernateUtil.getSessionFactory().getCurrentSession();
             threadLocalSession.set(session);
             ManagedSessionContext.bind(session);
             transaction = session.getTransaction();

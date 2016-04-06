@@ -15,10 +15,10 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.util.Transactional;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 /**
