@@ -19,8 +19,16 @@ import com.flipkart.flux.client.model.Promise;
  * Dummy service in charge of magically shipping the item to the customer
  */
 public class ShipmentService {
+    private FinalMileService finalMileService = new FinalMileService();
+    private PaymentService paymentService = new PaymentService();
+
     public Promise<OrderDeliveryInformation> ship(Promise<PackedOrder> packedOrderPromise) {
-        // move it out of the warehouse and send it through flying ducks
-        throw new UnsupportedOperationException("To be implemented");
+        // Routing it from warehouse to warehouse till it reaches the final delivery hub.
+        /* Before final delivery */
+        if(packedOrderPromise.get().isCod()) {
+            return finalMileService.deliver(packedOrderPromise,paymentService.processCod(packedOrderPromise));
+        } else {
+            return finalMileService.deliver(packedOrderPromise);
+        }
     }
 }

@@ -25,4 +25,14 @@ public class OrderManager {
     public Promise<CreatedOrder> create(OrderData orderData) {
         throw new UnsupportedOperationException("Not implemented yet");
     }
+
+    @Task(version = 1, retries = 1, timeout = 1000l)
+    public Promise<ConfirmedOrder> confirmOrder(Promise<CreatedOrder> createdOrderPromise, Promise<Boolean> booleanPromise) {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+
+    @Task(version = 1, retries = 1, timeout = 1000l)
+    public Promise<ConfirmedOrder> confirmOrder(CreatedOrder createdOrder) {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
 }

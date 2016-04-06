@@ -18,4 +18,8 @@ package com.flipkart.flux.examples.orderfulfilment;
  */
 public class OrderData {
     private String orderId;
+
+    public boolean isCod() {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
 }

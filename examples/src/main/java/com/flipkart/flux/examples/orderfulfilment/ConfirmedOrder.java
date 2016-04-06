@@ -13,17 +13,11 @@
 
 package com.flipkart.flux.examples.orderfulfilment;
 
-import com.flipkart.flux.client.model.Promise;
-import com.flipkart.flux.client.model.Task;
-
 /**
- * Dummy service to run warehouse operations
+ * Dummy class to denote a confirmed order
  */
-public class WarehouseService {
-    @Task(version = 1, timeout = 1000l)
-    public Promise<PackedOrder> packOrder(Promise<ConfirmedOrder> createdOrderPromise) {
-        // Sends out a notification (probably to a human console) to indicate that this order needs to be packed
-        createdOrderPromise.get().pack();
-        return new Promise<PackedOrder>(new PackedOrder());
+public class ConfirmedOrder {
+    public void pack() {
+        throw new UnsupportedOperationException("not implemented yet");
     }
 }

@@ -17,11 +17,15 @@ import com.flipkart.flux.client.model.Promise;
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.model.Workflow;
 
-public class SimpleOrderFulfilmentWorkflow<V extends PackedOrder> {
-	
+/**
+ * This is the coded example to model the state machine described at
+ * https://github.com/flipkart-incubator/flux/wiki/Traditional-State-Machine---Order-Fulfilment
+ */
+public class SimpleOrderFulfilmentWorkflow {
     OrderManager orderManager = new OrderManager();
-    WarehouseService<V> warehouseService = new WarehouseService<V>();
+    WarehouseService warehouseService = new WarehouseService();
     ShipmentService shipmentService = new ShipmentService();
+    PaymentService paymentService = new PaymentService();
 
     @Workflow(version = 1)
     public void start(OrderData orderData) {
@@ -30,26 +34,34 @@ public class SimpleOrderFulfilmentWorkflow<V extends PackedOrder> {
         * This means that it can be thought of as an RPC, without having to worry about
         * retries, failures and queueing
         * */
-        final Promise<CreatedOrder> createdOrderPromise = orderManager.create(orderData);
 
-        if (!isCod(createdOrderPromise)) {
-            // process payment first
-        }
-        final Promise<PackedOrder> packedOrderPromise;
+        final Promise<CreatedOrder> createdOrder = orderManager.create(orderData);
+        /* Now, we are in the Order Created state of the state machine */
+
+        Promise<ConfirmedOrder> confirmedOrder = processPaymentIfRequired(createdOrder);
+        /* With a confirmed order, we can proceed for packing */
 
         /**
          * The packOrder call is also annotated with a Task annotation.
-         * However, it is dependent on a promise that is delivered only once orderManager.create() call returns a value
+         * However, it is dependent on a promise that is available only once the orderManager.confirmOrder() call returns a value
          * This value is then passed on to the packOrder method.
-         * Essentially, we've created a State transition from create() -> packOrder()
          */
-        packedOrderPromise = warehouseService.packOrder(createdOrderPromise);
-        shipmentService.ship(packedOrderPromise);
+        /* Warehouse service can pack a confirmed order */
+        final Promise<PackedOrder> readyPackage = warehouseService.packOrder(confirmedOrder);
+        /* Shipment service can ship a ready Package */
+        final Promise<OrderDeliveryInformation> orderDeliveryInformation = shipmentService.ship(readyPackage);
+
     }
 
     @Task(version = 1, timeout = 1000l)
-    public boolean isCod(Promise<CreatedOrder> createdOrderPromise) {
-        // reade the createdOrder information and determine if it is COD or no
-        return createdOrderPromise.get().isCod();
+    public Promise<ConfirmedOrder> processPaymentIfRequired(Promise<CreatedOrder> createdOrderPromise) {
+        /* Given that we are in the "Order Created" state of the state machine, we decide on how to proceed */
+        final CreatedOrder createdOrder = createdOrderPromise.get();
+        if (createdOrder.isCod()){
+            /* The call to paymentService.processOnlinePayment() is equivalent to raising the "Payment Pending" event. */
+            return orderManager.confirmOrder(createdOrderPromise,paymentService.processOnlinePayment(createdOrderPromise));
+        } else {
+            return orderManager.confirmOrder(createdOrder);
+        }
     }
 }
