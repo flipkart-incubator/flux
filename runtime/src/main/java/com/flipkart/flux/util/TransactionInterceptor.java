@@ -20,33 +20,19 @@ import org.hibernate.Transaction;
 import org.hibernate.context.internal.ManagedSessionContext;
 
 /**
- * Provides transactional boundaries to methods which are annotated with {@link com.flipkart.flux.util.Transactional}.
+ * Provides transactional boundaries to methods which are annotated with {@link javax.transaction.Transactional}.
+ * Note: This doesn't support nested Transactions.
+ *
  * @author shyam.akirala
  */
 public class TransactionInterceptor implements MethodInterceptor {
 
-    private ThreadLocal<Session> threadLocalSession;
-
-    public TransactionInterceptor() {
-        threadLocalSession = new ThreadLocal<Session>();
-    }
-
     public Object invoke(MethodInvocation invocation) throws Throwable {
 
-        Transaction transaction = null;
-        Session session = threadLocalSession.get();
-        boolean startNewTransaction = true;
-
-        if (session == null) {
-            session = HibernateUtil.getSessionFactory().getCurrentSession();
-            threadLocalSession.set(session);
-            ManagedSessionContext.bind(session);
-            transaction = session.getTransaction();
-            transaction.begin();
-        } else {
-            //already in transaction
-            startNewTransaction = false;
-        }
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        ManagedSessionContext.bind(session);
+        Transaction transaction = session.getTransaction();
+        transaction.begin();
 
         try {
 
@@ -54,7 +40,6 @@ public class TransactionInterceptor implements MethodInterceptor {
 
             if (transaction != null) {
                 transaction.commit();
-                threadLocalSession.remove();
             }
 
             return result;
@@ -62,21 +47,14 @@ public class TransactionInterceptor implements MethodInterceptor {
         } catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();
-                threadLocalSession.remove();
             }
             throw e;
         } finally {
-            if (startNewTransaction && session != null) {
-                ManagedSessionContext.unbind(HibernateUtil.getSessionFactory());
+            if (session != null) {
                 session.close();
+                ManagedSessionContext.unbind(HibernateUtil.getSessionFactory());
             }
         }
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        threadLocalSession.remove();
-        super.finalize();
     }
 
 }
