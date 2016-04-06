@@ -81,12 +81,22 @@ public class BlobType implements UserType, Serializable {
 
     @Override
     public Object deepCopy(Object value) throws HibernateException {
-        return value;
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(value);
+            byte[] bytes = baos.toByteArray();
+            ByteArrayInputStream baip = new ByteArrayInputStream(bytes);
+            ObjectInputStream ois = new ObjectInputStream(baip);
+            return ois.readObject();
+        } catch (Exception e) {
+            throw new HibernateException("Unable to deep copy. Exception: "+e.getMessage());
+        }
     }
 
     @Override
     public boolean isMutable() {
-        return true;
+        return false;
     }
 
     @Override

@@ -13,14 +13,11 @@
 
 package com.flipkart.flux.domain;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import java.util.Date;
-import java.util.List;
+import java.sql.Timestamp;
+import java.util.Set;
 
 /**
  * <code>StateMachine</code> represents a state machine submitted for execution in Flux.
@@ -31,11 +28,13 @@ import java.util.List;
  * @author shyam.akirala
  */
 @Entity
+@Table(name = "StateMachines")
 public class StateMachine<T> {
 
-    /** Auto generated Id*/
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    /** UUID to identify the state machine*/
+    @Id @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    private String id;
 
     /* provided */
     /** The version identifier*/
@@ -48,12 +47,7 @@ public class StateMachine<T> {
     /** List of states that this machine has*/
     @OneToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL, targetEntity = State.class)
     @JoinColumn(name = "stateMachineId")
-    private List<State<T>> states;
-
-    /** The start state for this machine */
-    @OneToOne(cascade=CascadeType.ALL, targetEntity = State.class)
-    @JoinColumn(name = "start_state_id")
-    private State<T> startState;
+    private Set<State<T>> states;
 
     /* maintained */
     /** Current state of this state machine*/
@@ -65,27 +59,24 @@ public class StateMachine<T> {
     private Context<T> context;
 
     /** Time at which this State Machine has been created */
-    @CreationTimestamp
-    private Date createdAt;
+    private Timestamp createdAt;
 
     /** Time at which this State Machine has been last updated */
-    @UpdateTimestamp
-    private Date updatedAt;
+    private Timestamp updatedAt;
 
 
     /** Constructors*/
-    public StateMachine() {}
-    public StateMachine(Long version, String name, String description, List<State<T>> states, State<T> startState) {
+    protected StateMachine() {}
+    public StateMachine(Long version, String name, String description, Set<State<T>> states) {
         super();
         this.version = version;
         this.name = name;
         this.description = description;
         this.states = states;
-        this.startState = startState;
     }
 
     /** Accessor/Mutator methods */
-    public Long getId() {
+    public String getId() {
         return id;
     }
     public Context<T> getContext() {
@@ -109,16 +100,13 @@ public class StateMachine<T> {
     public String getDescription() {
         return description;
     }
-    public List<State<T>> getStates() {
+    public Set<State<T>> getStates() {
         return states;
     }
-    public State<T> getStartState() {
-        return startState;
-    }
-    public Date getCreatedAt() {
+    public Timestamp getCreatedAt() {
         return createdAt;
     }
-    public Date getUpdatedAt() {
+    public Timestamp getUpdatedAt() {
         return updatedAt;
     }
 }

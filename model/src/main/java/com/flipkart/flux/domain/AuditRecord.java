@@ -14,7 +14,7 @@
 package com.flipkart.flux.domain;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.sql.Timestamp;
 
 /**
  * <code>AuditRecord</code> represents a audit log of state machine execution.
@@ -22,20 +22,18 @@ import java.util.Date;
  */
 
 @Entity
+@Table(name = "AuditRecords")
 public class AuditRecord {
 
     /** Auto generated id */
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Name of the state machine to which this audit belongs */
-    private String stateMachineName;
-
     /** Instance id of the state machine to which this audit belongs */
     private String stateMachineInstanceId;
 
     /** The State identifier to which this audit belongs */
-    private Long stateId;
+    private String stateId;
 
     /** The State execution retry count */
     private int retryAttempt;
@@ -44,33 +42,31 @@ public class AuditRecord {
     @Enumerated(EnumType.STRING)
     private Status stateStatus;
 
-    /** Time when the State has started */
-    private Date stateStartTime;
+    /** The State rollback status */
+    @Enumerated(EnumType.STRING)
+    private Status stateRollbackStatus;
 
-    /** Time when the State has ended */
-    private Date stateEndTime;
+    /** Any errors occurred in the state execution*/
+    private String errors;
+
+    /** Audit log creation time */
+    private Timestamp createdAt;
 
     /** Constructors */
-    public AuditRecord(){}
-    public AuditRecord(String stateMachineName, String stateMachineInstanceId, Long stateId, int retryAttempt, Status stateStatus, Date stateStartTime, Date stateEndTime) {
-        this.stateMachineName = stateMachineName;
+    protected AuditRecord(){}
+    public AuditRecord(String stateMachineInstanceId, String stateId, int retryAttempt, Status stateStatus, Status stateRollbackStatus,
+                       String errors) {
         this.stateMachineInstanceId = stateMachineInstanceId;
         this.stateId = stateId;
         this.retryAttempt = retryAttempt;
         this.stateStatus = stateStatus;
-        this.stateStartTime = stateStartTime;
-        this.stateEndTime = stateEndTime;
+        this.stateRollbackStatus = stateRollbackStatus;
+        this.errors = errors;
     }
 
     /** Accessor/Mutator methods*/
     public Long getId() {
         return id;
-    }
-    public String getStateMachineName() {
-        return stateMachineName;
-    }
-    public void setStateMachineName(String stateMachineName) {
-        this.stateMachineName = stateMachineName;
     }
     public String getStateMachineInstanceId() {
         return stateMachineInstanceId;
@@ -78,10 +74,10 @@ public class AuditRecord {
     public void setStateMachineInstanceId(String stateMachineInstanceId) {
         this.stateMachineInstanceId = stateMachineInstanceId;
     }
-    public Long getStateId() {
+    public String getStateId() {
         return stateId;
     }
-    public void setStateId(Long stateId) {
+    public void setStateId(String stateId) {
         this.stateId = stateId;
     }
     public int getRetryAttempt() {
@@ -96,16 +92,19 @@ public class AuditRecord {
     public void setStateStatus(Status stateStatus) {
         this.stateStatus = stateStatus;
     }
-    public Date getStateStartTime() {
-        return stateStartTime;
+    public Status getStateRollbackStatus() {
+        return stateRollbackStatus;
     }
-    public void setStateStartTime(Date stateStartTime) {
-        this.stateStartTime = stateStartTime;
+    public void setStateRollbackStatus(Status stateRollbackStatus) {
+        this.stateRollbackStatus = stateRollbackStatus;
     }
-    public Date getStateEndTime() {
-        return stateEndTime;
+    public String getErrors() {
+        return errors;
     }
-    public void setStateEndTime(Date stateEndTime) {
-        this.stateEndTime = stateEndTime;
+    public void setErrors(String errors) {
+        this.errors = errors;
+    }
+    public Timestamp getCreatedAt() {
+        return createdAt;
     }
 }

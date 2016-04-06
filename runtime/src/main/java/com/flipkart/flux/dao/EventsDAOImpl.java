@@ -15,10 +15,8 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.util.HibernateUtil;
+import com.flipkart.flux.util.Transactional;
 import org.hibernate.Criteria;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
 
 import java.util.List;
@@ -29,25 +27,28 @@ import java.util.List;
 public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
-    public Long create(Event event) {
-        return super.persist(event).getId();
+    @Transactional
+    public Event create(Event event) {
+        return super.save(event);
     }
 
     @Override
+    @Transactional
     public List<Event> findBySMInstanceId(String stateMachineInstanceId) {
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
-
-        Criteria criteria = session.createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId));
+        Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId));
         List<Event> events = criteria.list();
-
-        tx.commit();
         return events;
     }
 
     @Override
+    @Transactional
     public Event findById(Long id) {
-        return super.findById(Event.class, id);
+        Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("id", id));
+        Object object = criteria.uniqueResult();
+        Event event = null;
+        if(object != null)
+            event = (Event) object;
+        return event;
     }
 
 }

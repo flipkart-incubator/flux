@@ -11,28 +11,28 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.dao;
+package com.flipkart.flux;
 
-import com.flipkart.flux.dao.iface.StatesDAO;
-import com.flipkart.flux.domain.State;
+import com.flipkart.flux.dao.*;
+import com.flipkart.flux.dao.iface.*;
+import com.flipkart.flux.util.TransactionInterceptor;
 import com.flipkart.flux.util.Transactional;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.matcher.Matchers;
 
 /**
  * @author shyam.akirala
  */
-public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
+public class HibernateModule extends AbstractModule {
 
     @Override
-    @Transactional
-    public State create(State state) {
-        return super.save(state);
+    protected void configure() {
+        bind(AuditDAO.class).to(AuditDAOImpl.class);
+        bind(EventsDAO.class).to(EventsDAOImpl.class);
+        bind(StateMachinesDAO.class).to(StateMachinesDAOImpl.class);
+        bind(StatesDAO.class).to(StatesDAOImpl.class);
+        bindInterceptor(Matchers.any(), Matchers.annotatedWith(Transactional.class), new TransactionInterceptor());
     }
 
-    @Override
-    @Transactional
-    public State findById(String id) {
-        return super.findById(State.class, id);
-    }
 }

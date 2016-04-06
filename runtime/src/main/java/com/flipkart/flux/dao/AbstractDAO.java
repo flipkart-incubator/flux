@@ -16,7 +16,6 @@ package com.flipkart.flux.dao;
 import com.flipkart.flux.util.HibernateUtil;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
 
 /**
@@ -24,66 +23,39 @@ import org.hibernate.criterion.Restrictions;
  */
 public class AbstractDAO<T> {
 
-    public T findById(Class cls, Long id) {
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
+    public Session currentSession() {
+        return HibernateUtil.getSessionFactory().getCurrentSession();
+    }
 
-        Criteria criteria = session.createCriteria(cls).add(Restrictions.eq("id", id));
+    public T findById(Class cls, String id) {
+        Criteria criteria = currentSession().createCriteria(cls).add(Restrictions.eq("id", id));
         Object object = criteria.uniqueResult();
         T castedObject = null;
         if(object != null)
             castedObject = (T) object;
-
-        tx.commit();
         return castedObject;
-
     }
 
     public T persist(T object) {
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
-
-        session.persist(object);
-
-        tx.commit();
+        currentSession().persist(object);
         return object;
     }
 
     public T save(T object) {
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
-
-        session.save(object);
-
-        tx.commit();
+        currentSession().save(object);
         return object;
     }
 
     public void update(T object) {
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
-
-        session.update(object);
-
-        tx.commit();
+        currentSession().update(object);
     }
 
     public T saveOrUpdate(T object) {
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
-
-        session.saveOrUpdate(object);
-
-        tx.commit();
+        currentSession().saveOrUpdate(object);
         return object;
     }
 
     public void delete(T object) {
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        Transaction tx = session.beginTransaction();
-
-        session.delete(object);
-
-        tx.commit();
+        currentSession().delete(object);
     }
 }

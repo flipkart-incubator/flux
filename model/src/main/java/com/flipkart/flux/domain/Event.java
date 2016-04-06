@@ -13,13 +13,11 @@
 
 package com.flipkart.flux.domain;
 
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Date;
+import java.sql.Timestamp;
 
 /**
  * <code>Event</code> is the result of a {@link Task} execution.
@@ -31,6 +29,7 @@ import java.util.Date;
  */
 
 @Entity
+@Table(name = "Events")
 public class Event<T> implements Serializable {
 
     /** Default serial version UID*/
@@ -61,19 +60,10 @@ public class Event<T> implements Serializable {
     private String eventSource;
 
     /** Event creation time */
-    @CreationTimestamp
-    private Date createdAt;
+    private Timestamp createdAt;
 
     /** Time at which this event is last updated */
-    @UpdateTimestamp
-    private Date updatedAt;
-
-    /** Constructor*/
-    public Event(String name, String type) {
-        super();
-        this.name = name;
-        this.type = type;
-    }
+    private Timestamp updatedAt;
 
     /** Enum of Event statuses*/
     public enum EventStatus {
@@ -81,7 +71,7 @@ public class Event<T> implements Serializable {
     }
 
     /** Constructors */
-    public Event() {}
+    protected Event() {}
     public Event(String name, String type, EventStatus status, String stateMachineInstanceId, T eventData, String eventSource) {
         this.name = name;
         this.type = type;
@@ -125,10 +115,10 @@ public class Event<T> implements Serializable {
     public String getType() {
         return type;
     }
-    public Date getCreatedAt() {
+    public Timestamp getCreatedAt() {
         return createdAt;
     }
-    public Date getUpdatedAt() {
+    public Timestamp getUpdatedAt() {
         return updatedAt;
     }
 

@@ -13,12 +13,11 @@
 
 package com.flipkart.flux.domain;
 
-import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -31,11 +30,13 @@ import java.util.List;
  * @author shyam.akirala
  */
 @Entity
+@Table(name = "States")
 public class State<T> {
 
-    /** Auto generated Id*/
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    /** UUID to identify this state*/
+    @Id @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    private String id;
 
     /* Defined by the User */
     /** Version for this State*/
@@ -45,7 +46,7 @@ public class State<T> {
     /** Description for this State*/
     private String description;
     /** Id of the State Machine to which this State belongs*/
-    private Long stateMachineId;
+    private String stateMachineId;
     /** Hook that is executed on entry of this State, must be a public class*/
     @Type(type = "StoreFQNOnly")
     private Hook<T> onEntryHook;
@@ -78,16 +79,14 @@ public class State<T> {
     private Long numRetries;
 
     /** Time at which this State has been created */
-    @CreationTimestamp
-    private Date createdAt;
+    private Timestamp createdAt;
 
     /** Time at which this State has been last updated */
-    @UpdateTimestamp
-    private Date updatedAt;
+    private Timestamp updatedAt;
 
 
     /** Constructors */
-    public State() {}
+    protected State() {}
     public State(Long version, String name, String description, Hook<T> onEntryHook, Task<T> task, Hook<T> onExitHook,
                  Long retryCount, Long timeout) {
         super();
@@ -113,7 +112,7 @@ public class State<T> {
     }
 
     /** Accessor/Mutator methods*/
-    public Long getId() {
+    public String getId() {
         return id;
     }
     public Long getVersion() {
@@ -134,10 +133,10 @@ public class State<T> {
     public void setDescription(String description) {
         this.description = description;
     }
-    public Long getStateMachineId() {
+    public String getStateMachineId() {
         return stateMachineId;
     }
-    public void setStateMachineId(Long stateMachineId) {
+    public void setStateMachineId(String stateMachineId) {
         this.stateMachineId = stateMachineId;
     }
     public Hook<T> getOnEntryHook() {

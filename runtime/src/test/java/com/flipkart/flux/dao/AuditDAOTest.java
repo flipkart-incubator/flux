@@ -13,12 +13,17 @@
 
 package com.flipkart.flux.dao;
 
+import com.flipkart.flux.HibernateModule;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Status;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import junit.framework.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
@@ -27,26 +32,21 @@ import java.util.List;
  */
 public class AuditDAOTest {
 
+    private Injector injector;
+
+    @Before
+    public void setup() {
+        injector = Guice.createInjector(new HibernateModule());
+    }
+
     @Test
     public void createAuditRecordTest() {
-        AuditDAO auditDAO = new AuditDAOImpl();
-        AuditRecord auditRecord = new AuditRecord("test_state_machine_name", "test_state_machine_instance_id", 10L, 0, Status.initialized, new Date(), null);
+        AuditDAO auditDAO = injector.getInstance(AuditDAO.class);
+        Date date = new Date();
+        AuditRecord auditRecord = new AuditRecord("test_state_machine_instance_id", "abcd-xyz", 0, Status.running, null, null);
         auditDAO.create(auditRecord);
 
         List<AuditRecord> records = auditDAO.findBySMInstanceId("test_state_machine_instance_id");
         Assert.assertNotNull(records);
     }
-
-    @Test
-    public void setStateEndTimeTest() {
-        AuditDAO auditDAO = new AuditDAOImpl();
-        AuditRecord auditRecord = auditDAO.find("test_state_machine_instance_id", 10L, 0);
-        Date date = new Date();
-        auditRecord.setStateEndTime(date);
-        auditDAO.update(auditRecord);
-
-        AuditRecord savedRecord = auditDAO.find("test_state_machine_instance_id", 10L, 0);
-        Assert.assertEquals(date, savedRecord.getStateEndTime());
-    }
-
 }

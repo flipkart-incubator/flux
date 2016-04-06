@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.flipkart</groupId>
+        <artifactId>flux</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <groupId>com.flipkart.flux</groupId>
+    <artifactId>persistence-mysql</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>persistence-mysql</name>
+    <url>http://maven.apache.org</url>
+
+    <dependencies>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.38</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <version>3.4.2</version>
+                <configuration>
+                    <changeLogFile>migrations.xml</changeLogFile>
+                    <driver>com.mysql.jdbc.Driver</driver>
+                    <url>jdbc:mysql://localhost:3306/flux</url>
+                    <username>root</username>
+                    <dropFirst>false</dropFirst>
+                    <promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>
+                    <logging>info</logging>
+                </configuration>
+                <goals>
+                    <goal>update</goal>
+                </goals>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
