@@ -1,3 +1,7 @@
+--liquibase formatted sql
+
+--changeset flux:1
+
 CREATE TABLE IF NOT EXISTS `AuditRecords` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `stateMachineInstanceId` VARCHAR(100) NOT NULL,
@@ -15,6 +19,9 @@ ROW_FORMAT=DEFAULT
 DEFAULT CHARSET=utf8
 AUTO_INCREMENT=1;
 
+--rollback drop table AuditRecords;
+
+--changeset flux:2
 
 CREATE TABLE IF NOT EXISTS `Events` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -33,6 +40,9 @@ ROW_FORMAT=DEFAULT
 DEFAULT CHARSET=utf8
 AUTO_INCREMENT=1;
 
+--rollback drop table Events;
+
+--changeset flux:3
 
 CREATE TABLE IF NOT EXISTS `StateMachines` (
   `id` VARCHAR(100) NOT NULL,
@@ -48,6 +58,9 @@ ROW_FORMAT=DEFAULT
 DEFAULT CHARSET=utf8
 AUTO_INCREMENT=1;
 
+--rollback drop table StateMachines;
+
+--changeset flux:4
 
 CREATE TABLE IF NOT EXISTS `States` (
   `id` VARCHAR(100) NOT NULL,
@@ -71,5 +84,6 @@ ROW_FORMAT=DEFAULT
 DEFAULT CHARSET=utf8
 AUTO_INCREMENT=1;
 
+--rollback drop table States;
 
 commit;
