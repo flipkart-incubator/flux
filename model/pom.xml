@@ -16,6 +16,26 @@
     <name>model</name>
     <url>http://maven.apache.org</url>
 
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <distributionManagement>
+        <repository>
+            <id>clojars</id>
+            <name>Clojars repository</name>
+            <url>https://clojars.org/repo</url>
+        </repository>
+    </distributionManagement>
+
+    <scm>
+        <url>https://github.com/flipkart-incubator/flux</url>
+        <connection>https://github.com/flipkart-incubator/flux.git</connection>
+    </scm>
+
     <dependencies>
         <dependency>
             <groupId>org.hibernate</groupId>
