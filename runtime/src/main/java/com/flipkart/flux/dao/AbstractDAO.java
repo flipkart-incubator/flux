@@ -21,13 +21,16 @@ import javax.inject.Inject;
 
 /**
  * Provides methods to perform CRUD operations on object through Hibernate
- *
  * @author shyam.akirala
  */
 public class AbstractDAO<T> {
 
+    private SessionFactory sessionFactory;
+
     @Inject
-    SessionFactory sessionFactory;
+    public AbstractDAO(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
 
     public Session currentSession() {
         return sessionFactory.getCurrentSession();

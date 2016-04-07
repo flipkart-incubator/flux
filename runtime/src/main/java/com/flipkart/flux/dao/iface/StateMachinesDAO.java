@@ -18,16 +18,21 @@ import com.flipkart.flux.domain.StateMachine;
 import java.util.List;
 
 /**
+ * Provides methods to perform CR operations on {@link com.flipkart.flux.domain.StateMachine}
  * @author shyam.akirala
  */
 public interface StateMachinesDAO {
 
+    /** Creates state machine and returns saved object*/
     StateMachine create(StateMachine stateMachine);
 
+    /** Retrieves state machine by it's unique identifier*/
     StateMachine findById(String id);
 
+    /** Retrieves list of state machines by State machine's Name*/
     List<StateMachine> findByName(String stateMachineName);
 
+    /** Retrieves list of state machines by Name and version*/
     List<StateMachine> findByNameAndVersion(String stateMachineName, Long Version);
 
 }

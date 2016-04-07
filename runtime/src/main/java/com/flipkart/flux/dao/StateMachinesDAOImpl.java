@@ -16,14 +16,22 @@ package com.flipkart.flux.dao;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.StateMachine;
 import org.hibernate.Criteria;
+import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
+import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.List;
 
 /**
+ * Implementation of {@link com.flipkart.flux.dao.iface.StateMachinesDAO} which uses Hibernate to perform operations.
  * @author shyam.akirala
  */
 public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements StateMachinesDAO {
+
+    @Inject
+    public StateMachinesDAOImpl(SessionFactory sessionFactory) {
+        super(sessionFactory);
+    }
 
     @Override
     @Transactional

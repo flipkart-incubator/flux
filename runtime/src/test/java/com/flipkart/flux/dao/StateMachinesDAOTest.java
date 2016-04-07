@@ -13,7 +13,7 @@
 
 package com.flipkart.flux.dao;
 
-import com.flipkart.flux.guice.HibernateModule;
+import com.flipkart.flux.guice.modules.HibernateModule;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;

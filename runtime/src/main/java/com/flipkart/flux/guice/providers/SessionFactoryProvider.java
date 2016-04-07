@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.guice;
+package com.flipkart.flux.guice.providers;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;

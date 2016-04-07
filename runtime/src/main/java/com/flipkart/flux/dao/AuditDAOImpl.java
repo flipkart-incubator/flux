@@ -16,15 +16,22 @@ package com.flipkart.flux.dao;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
 import org.hibernate.Criteria;
+import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
-
+import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.List;
 
 /**
+ * Implementation of {@link com.flipkart.flux.dao.iface.AuditDAO} which uses Hibernate to perform operations.
  * @author shyam.akirala
  */
 public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
+
+    @Inject
+    public AuditDAOImpl(SessionFactory sessionFactory) {
+        super(sessionFactory);
+    }
 
     @Override
     @Transactional

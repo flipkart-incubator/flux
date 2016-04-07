@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.guice;
+package com.flipkart.flux.guice.interceptors;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;

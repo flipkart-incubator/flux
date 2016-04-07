@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.guice;
+package com.flipkart.flux.guice.modules;
 
 import com.flipkart.flux.dao.AuditDAOImpl;
 import com.flipkart.flux.dao.EventsDAOImpl;
@@ -21,6 +21,9 @@ import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
+import com.flipkart.flux.guice.interceptors.TransactionInterceptor;
+import com.flipkart.flux.guice.providers.ConfigurationProvider;
+import com.flipkart.flux.guice.providers.SessionFactoryProvider;
 import com.google.inject.AbstractModule;
 import com.google.inject.matcher.Matchers;
 import org.hibernate.SessionFactory;

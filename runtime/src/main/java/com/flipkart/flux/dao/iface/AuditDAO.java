@@ -17,12 +17,15 @@ import com.flipkart.flux.domain.AuditRecord;
 import java.util.List;
 
 /**
+ * Provides methods to perform CR operations on {@link com.flipkart.flux.domain.AuditRecord}
  * @author shyam.akirala
  */
 public interface AuditDAO {
 
+    /** Retrieves all the audit logs which belongs to a particular state machine*/
     List<AuditRecord> findBySMInstanceId(String stateMachineInstanceId);
 
+    /** Creates Audit record*/
     Long create(AuditRecord auditRecord);
 
 }

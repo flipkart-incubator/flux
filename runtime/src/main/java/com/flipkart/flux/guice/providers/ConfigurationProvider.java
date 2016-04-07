@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.guice;
+package com.flipkart.flux.guice.providers;
 
 import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Event;

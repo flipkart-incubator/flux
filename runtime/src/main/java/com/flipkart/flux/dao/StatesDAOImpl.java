@@ -15,12 +15,20 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.State;
+import org.hibernate.SessionFactory;
+import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 /**
+ * Implementation of {@link com.flipkart.flux.dao.iface.StatesDAO} which uses Hibernate to perform operations.
  * @author shyam.akirala
  */
 public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
+
+    @Inject
+    public StatesDAOImpl(SessionFactory sessionFactory) {
+        super(sessionFactory);
+    }
 
     @Override
     @Transactional
