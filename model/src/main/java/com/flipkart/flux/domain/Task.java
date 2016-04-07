@@ -31,6 +31,5 @@ public interface Task<T> {
      * @param events Dependencies that need to be satisfied for this task to be executed
      * @return The event produced by a worker on successful execution OR an error object representing the error.
      */
-    @SuppressWarnings("unchecked")
-	public Pair<Event<T>,FluxError> execute(Event<T>... events);
+	public Pair<Event<T>,FluxError> execute(Event<T>[] events);
 }
