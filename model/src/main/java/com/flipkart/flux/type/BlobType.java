@@ -26,6 +26,7 @@ import java.sql.Types;
 
 /**
  * Custom hibernate type to store object as byte array in DB
+ *
  * @author shyam.akirala
  */
 public class BlobType implements UserType, Serializable {
@@ -79,6 +80,7 @@ public class BlobType implements UserType, Serializable {
         }
     }
 
+    /** Provides deep copy of an object using serialization and de-serialization*/
     @Override
     public Object deepCopy(Object value) throws HibernateException {
         try {
@@ -114,12 +116,14 @@ public class BlobType implements UserType, Serializable {
         return original;
     }
 
+    /** converts fetched byte array to Object*/
     public Object deSerialize(byte[] value) throws IOException, ClassNotFoundException {
         ByteArrayInputStream baip = new ByteArrayInputStream(value);
         ObjectInputStream ois = new ObjectInputStream(baip);
         return ois.readObject();
     }
 
+    /** converts Object to byte array to store in DB*/
     public byte[] serialize(Object value) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);

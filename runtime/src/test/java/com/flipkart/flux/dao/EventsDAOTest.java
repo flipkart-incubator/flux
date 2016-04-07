@@ -13,7 +13,7 @@
 
 package com.flipkart.flux.dao;
 
-import com.flipkart.flux.HibernateModule;
+import com.flipkart.flux.guice.HibernateModule;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
 import com.google.inject.Guice;

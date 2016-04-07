@@ -13,18 +13,24 @@
 
 package com.flipkart.flux.dao;
 
-import com.flipkart.flux.util.HibernateUtil;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
+import javax.inject.Inject;
 
 /**
+ * Provides methods to perform CRUD operations on object through Hibernate
+ *
  * @author shyam.akirala
  */
 public class AbstractDAO<T> {
 
+    @Inject
+    SessionFactory sessionFactory;
+
     public Session currentSession() {
-        return HibernateUtil.getSessionFactory().getCurrentSession();
+        return sessionFactory.getCurrentSession();
     }
 
     public T findById(Class cls, String id) {

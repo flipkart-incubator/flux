@@ -11,20 +11,30 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux;
+package com.flipkart.flux.guice;
 
-import com.google.inject.AbstractModule;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
 
-import java.sql.Driver;
+import javax.inject.Inject;
+import javax.inject.Provider;
 
 /**
+ * Builds {@link org.hibernate.SessionFactory} through DI
  * @author shyam.akirala
  */
-public class PersistenceModule extends AbstractModule {
+public class SessionFactoryProvider implements Provider<SessionFactory> {
+
+    private Configuration configuration;
+
+    @Inject
+    public SessionFactoryProvider(Configuration configuration) {
+        this.configuration = configuration;
+    }
 
     @Override
-    protected void configure() {
-        requestStaticInjection(Driver.class);
-        bind(Driver.class).to(com.mysql.jdbc.Driver.class);
+    public SessionFactory get() {
+        return configuration.buildSessionFactory();
     }
+
 }

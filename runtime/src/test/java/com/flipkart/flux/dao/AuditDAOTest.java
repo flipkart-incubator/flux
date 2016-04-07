@@ -13,13 +13,15 @@
 
 package com.flipkart.flux.dao;
 
-import com.flipkart.flux.HibernateModule;
+import com.flipkart.flux.guice.HibernateModule;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Status;
 import com.google.inject.Guice;
+import javax.inject.Inject;
 import com.google.inject.Injector;
 import junit.framework.Assert;
+import org.hibernate.SessionFactory;
 import org.junit.Before;
 import org.junit.Test;
 import java.util.List;
@@ -30,6 +32,9 @@ import java.util.List;
 public class AuditDAOTest {
 
     private Injector injector;
+
+    @Inject
+    private SessionFactory sessionFactory;
 
     @Before
     public void setup() {

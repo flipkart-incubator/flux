@@ -11,13 +11,16 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.util;
+package com.flipkart.flux.guice;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.context.internal.ManagedSessionContext;
+
+import javax.inject.Inject;
 
 /**
  * Provides transactional boundaries to methods which are annotated with {@link javax.transaction.Transactional}.
@@ -27,9 +30,12 @@ import org.hibernate.context.internal.ManagedSessionContext;
  */
 public class TransactionInterceptor implements MethodInterceptor {
 
+    @Inject
+    SessionFactory sessionFactory;
+
     public Object invoke(MethodInvocation invocation) throws Throwable {
 
-        Session session = HibernateUtil.getSessionFactory().openSession();
+        Session session = sessionFactory.openSession();
         ManagedSessionContext.bind(session);
         Transaction transaction = session.getTransaction();
         transaction.begin();
@@ -52,7 +58,7 @@ public class TransactionInterceptor implements MethodInterceptor {
         } finally {
             if (session != null) {
                 session.close();
-                ManagedSessionContext.unbind(HibernateUtil.getSessionFactory());
+                ManagedSessionContext.unbind(sessionFactory);
             }
         }
     }
