@@ -15,7 +15,6 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.State;
-
 import javax.transaction.Transactional;
 
 /**
