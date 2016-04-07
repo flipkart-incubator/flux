@@ -14,7 +14,5 @@
         <property name="connection.provider_class">org.hibernate.c3p0.internal.C3P0ConnectionProvider</property>
         <property name="hibernate.c3p0.min_size">10</property>
         <property name="hibernate.c3p0.max_size">100</property>
-
-        <mapping package="com.flipkart.flux"/>
     </session-factory>
 </hibernate-configuration>

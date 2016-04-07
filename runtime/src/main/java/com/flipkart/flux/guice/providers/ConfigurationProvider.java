@@ -17,6 +17,8 @@ import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.type.BlobType;
+import com.flipkart.flux.type.StoreFQNType;
 import org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl;
 import org.hibernate.cfg.Configuration;
 import javax.inject.Provider;
@@ -30,13 +32,17 @@ public class ConfigurationProvider implements Provider<Configuration> {
     @Override
     public Configuration get() {
         Configuration configuration = new Configuration().configure("hibernate.cfg.xml");
-        addAnnotatedClasses(configuration);
+        addAnnotatedClassesAndTypes(configuration);
         configuration.setImplicitNamingStrategy(ImplicitNamingStrategyJpaCompliantImpl.INSTANCE);
         return configuration;
     }
 
-    /** Adds annotated classes to configuration*/
-    private static void addAnnotatedClasses(Configuration configuration) {
+    private static void addAnnotatedClassesAndTypes(Configuration configuration) {
+        //register hibernate custom types
+        configuration.registerTypeOverride(new BlobType(), new String[]{"BlobType"});
+        configuration.registerTypeOverride(new StoreFQNType(), new String[]{"StoreFQNOnly"});
+
+        //add annotated classes to configuration
         configuration.addAnnotatedClass(AuditRecord.class);
         configuration.addAnnotatedClass(Event.class);
         configuration.addAnnotatedClass(State.class);
