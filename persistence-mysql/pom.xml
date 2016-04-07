@@ -14,15 +14,11 @@
     <url>http://maven.apache.org</url>
 
     <dependencies>
+        <!-- Third party dependencies -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.38</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
-            <version>4.0</version>
         </dependency>
     </dependencies>
 
