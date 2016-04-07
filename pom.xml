@@ -48,11 +48,14 @@
         <junit.version>4.7</junit.version>
         <hibernate.version>5.1.0.Final</hibernate.version>
         <guice.version>4.0</guice.version>
+        <javax.inject.version>1</javax.inject.version>
+        <hystrix.version>1.5.1</hystrix.version>
     </properties>
 
     <modules>
         <module>model</module>
         <module>runtime</module>
+        <module>task</module>
         <module>client</module>
         <module>examples</module>
         <module>persistence-mysql</module>
