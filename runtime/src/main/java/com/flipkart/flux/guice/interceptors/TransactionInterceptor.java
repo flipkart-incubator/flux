@@ -43,12 +43,13 @@ public class TransactionInterceptor implements MethodInterceptor {
         boolean startNewTransaction = true;
 
         if (session == null) {
+            //start a new session and transaction if current session is null
             session = sessionFactory.openSession();
             ManagedSessionContext.bind(session);
             transaction = session.getTransaction();
             transaction.begin();
         } else {
-            //already in transaction
+            //already in transaction, don't start new transaction
             startNewTransaction = false;
         }
 
