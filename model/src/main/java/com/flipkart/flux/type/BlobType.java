@@ -26,7 +26,6 @@ import java.sql.Types;
 
 /**
  * Custom hibernate type to store object as byte array in DB
- *
  * @author shyam.akirala
  */
 public class BlobType implements UserType, Serializable {

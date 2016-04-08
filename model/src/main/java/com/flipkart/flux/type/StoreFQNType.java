@@ -104,11 +104,13 @@ public class StoreFQNType implements UserType, Serializable {
         return original;
     }
 
+    /** Builds class instance using reflection*/
     public Object constructObject(String value) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
         Class c = Class.forName(value);
         return c.newInstance();
     }
 
+    /** Returns fully qualified class name of a object*/
     public String getClassFQN(Object value) {
         if(value != null)
             return value.getClass().getName();
