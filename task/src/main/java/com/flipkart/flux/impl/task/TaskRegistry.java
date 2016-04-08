@@ -12,6 +12,7 @@
  */
 package com.flipkart.flux.impl.task;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,6 +30,12 @@ public class TaskRegistry {
 
     /** Map storing the mapping of a EventS to TaskS */
 	private Map<String,AbstractTask> eventsToTaskMap = new ConcurrentHashMap<String, AbstractTask>();
+
+    /** Map storing the mapping of a Task to pre execution HookS */
+	private Map<String,List<AbstractHook>> taskToPreExecHookMap = new ConcurrentHashMap<String, List<AbstractHook>>();
+
+    /** Map storing the mapping of a Task to post execution HookS */
+	private Map<String,List<AbstractHook>> taskToPostExecHookMap = new ConcurrentHashMap<String, List<AbstractHook>>();
 	
 	/**
 	 * Gets the Task that can process the specified set of EventS
@@ -47,9 +54,45 @@ public class TaskRegistry {
 	public void registerTask(AbstractTask task, Event<Object>[] events) {
 		this.eventsToTaskMap.put(TaskRegistry.getEventsKey(events), task);
 	}
+
+	/**
+	 * Gets the List of HookS to be invoked pre-execution of the specified Task
+	 * @param task the Task pending execution
+	 * @return null or List of HookS that are to be executed pre-execution of the specified Task
+	 */
+	public List<AbstractHook> getPreExecHooks(Task<Object> task) {
+		return this.taskToPreExecHookMap.get(task.getClass().getName());
+	}
+
+	/**
+	 * Gets the List of HookS to be invoked post-execution of the specified Task
+	 * @param task the Task that has been executed
+	 * @return null or List of HookS that are to be executed post-execution of the specified Task
+	 */
+	public List<AbstractHook> getPostExecHooks(Task<Object> task) {
+		return this.taskToPostExecHookMap.get(task.getClass().getName());
+	}
 	
 	/**
-	 * Helpemr method to get a key from fully qualified class names of the specified EventS
+	 * Registers the specified List of HookS for pre-execution of the specified Task
+	 * @param task the Task to register against
+	 * @param hooks List of HookS for execution
+	 */
+	public void registerPreExecHooks(AbstractTask task, List<AbstractHook> hooks) {
+		this.taskToPreExecHookMap.put(task.getClass().getName(), hooks);
+	}
+
+	/**
+	 * Registers the specified List of HookS for post-execution of the specified Task
+	 * @param task the Task to register against
+	 * @param hooks List of HookS for execution
+	 */
+	public void registerPostExecHooks(AbstractTask task, List<AbstractHook> hooks) {
+		this.taskToPostExecHookMap.put(task.getClass().getName(), hooks);
+	}
+	
+	/**
+	 * Helper method to get a key from fully qualified class names of the specified EventS
 	 * @param events Event[] array for creating key
 	 * @return String representing the EventS
 	 */

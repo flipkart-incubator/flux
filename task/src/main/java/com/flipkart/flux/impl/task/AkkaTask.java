@@ -13,14 +13,18 @@
 
 package com.flipkart.flux.impl.task;
 
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
+import java.util.List;
 
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.Task;
+import com.flipkart.flux.impl.message.HookAndEvents;
 import com.netflix.hystrix.HystrixCommand;
 
+import akka.actor.ActorRef;
+import akka.actor.Props;
 import akka.actor.UntypedActor;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
 
 /**
  * <code>AkkaTask</code> is an Akka {@link UntypedActor} that executes {@link Task} instances concurrently. Tasks are executed using a {@link TaskExecutor} where 
@@ -40,21 +44,42 @@ public class AkkaTask extends UntypedActor {
     private TaskRegistry taskRegistry;
 	
 	/**
-	 * The Akka Actor callback method for processing this Task
+	 * The Akka Actor callback method for processing the Task
 	 * @see akka.actor.UntypedActor#onReceive(java.lang.Object)
 	 */
 	@SuppressWarnings("unchecked")
 	public void onReceive(Object message) throws Exception {
 		if (Event[].class.isAssignableFrom(message.getClass())) {
-			AbstractTask task = this.taskRegistry.getTaskForEvents((Event<Object>[])message);
+			Event<Object>[] events = (Event<Object>[])message;
+			AbstractTask task = this.taskRegistry.getTaskForEvents(events);
 			if (task == null) {
-				getSender().tell(new TaskExecutor(task, (Event<Object>[])message).execute(), getSelf());
+				// Execute any pre-exec HookS 
+				this.executeHooks(this.taskRegistry.getPreExecHooks(task), events);
+				getSender().tell(new TaskExecutor(task, events).execute(), getSelf());
+				// Execute any post-exec HookS 
+				this.executeHooks(this.taskRegistry.getPostExecHooks(task), events);
 			} else {
-				logger.error("Task received EventS that it cannot process. Events received are : " + TaskRegistry.getEventsKey((Event<Object>[])message));				
+				logger.error("Task received EventS that it cannot process. Events received are : " + TaskRegistry.getEventsKey(events));				
 			}
+		} else if (HookExecutor.STATUS.class.isAssignableFrom(message.getClass())) {
+			// do nothing as we don't process or interpret Hook execution responses
 		} else {
 			logger.error("Task received a message that it cannot process. Only com.flipkart.flux.domain.Event[] is supported. Message type received is : " + message.getClass().getName());
 			unhandled(message);
+		}
+	}
+	
+	/**
+	 * Helper method to execute pre and post Task execution Hooks as independent Actor invocations
+	 */
+	private void executeHooks(List<AbstractHook> hooks, Event<Object>[] events) {
+		if (hooks != null) {
+			for (AbstractHook hook : hooks) {
+				HookAndEvents hookAndEvents = new HookAndEvents(hook, events);
+				ActorRef aRef = getContext().actorOf(Props.create(AkkaHook.class),hookAndEvents.getHook().getName());
+				// no monitoring of execution of Hooks. Fire & forget
+				aRef.tell(hookAndEvents, getSelf());
+			}
 		}
 	}
 
