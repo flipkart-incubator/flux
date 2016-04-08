@@ -15,30 +15,42 @@ package com.flipkart.flux.guice.interceptors;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.context.internal.ManagedSessionContext;
-
 import javax.inject.Inject;
 
 /**
  * Provides transactional boundaries to methods which are annotated with {@link javax.transaction.Transactional}.
- * Note: This doesn't support nested Transactions.
- *
  * @author shyam.akirala
  */
 public class TransactionInterceptor implements MethodInterceptor {
 
     @Inject
-    SessionFactory sessionFactory;
+    private SessionFactory sessionFactory;
 
     public Object invoke(MethodInvocation invocation) throws Throwable {
 
-        Session session = sessionFactory.openSession();
-        ManagedSessionContext.bind(session);
-        Transaction transaction = session.getTransaction();
-        transaction.begin();
+        Transaction transaction = null;
+
+        Session session = null;
+        try {
+            session = sessionFactory.getCurrentSession();
+        } catch (HibernateException e) {}
+
+        boolean startNewTransaction = true;
+
+        if (session == null) {
+            session = sessionFactory.openSession();
+            ManagedSessionContext.bind(session);
+            transaction = session.getTransaction();
+            transaction.begin();
+        } else {
+            //already in transaction
+            startNewTransaction = false;
+        }
 
         try {
 
@@ -56,9 +68,9 @@ public class TransactionInterceptor implements MethodInterceptor {
             }
             throw e;
         } finally {
-            if (session != null) {
-                session.close();
+            if (startNewTransaction && session != null) {
                 ManagedSessionContext.unbind(sessionFactory);
+                session.close();
             }
         }
     }
