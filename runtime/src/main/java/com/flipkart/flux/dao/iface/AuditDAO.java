@@ -25,7 +25,7 @@ public interface AuditDAO {
     /** Retrieves all the audit logs which belongs to a particular state machine*/
     List<AuditRecord> findBySMInstanceId(String stateMachineInstanceId);
 
-    /** Creates Audit record*/
-    Long create(AuditRecord auditRecord);
+    /** Creates Audit record and returns the saved object*/
+    AuditRecord create(AuditRecord auditRecord);
 
 }

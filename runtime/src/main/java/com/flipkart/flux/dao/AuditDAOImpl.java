@@ -43,8 +43,8 @@ public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
 
     @Override
     @Transactional
-    public Long create(AuditRecord auditRecord) {
-        return super.save(auditRecord).getId();
+    public AuditRecord create(AuditRecord auditRecord) {
+        return super.save(auditRecord);
     }
 
 }
