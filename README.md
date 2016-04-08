@@ -22,7 +22,7 @@ To get involved in the evolution of Flux, subscribe to the Flux interest mailing
 ## Releases
 | Release | Date | Description |
 | --- | --- | --- |
-| 1.0-beta | March 2016 | Beta release for first customers |
+| 1.0-beta | April 2016 | Beta release for first customers |
 
 
 ## Changelog
