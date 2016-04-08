@@ -49,7 +49,7 @@ public class TaskRegistry {
 	}
 	
 	/**
-	 * Helpemr method to get a key from fully qualified class names of the specified EventS
+	 * Helper method to get a key from fully qualified class names of the specified EventS
 	 * @param events Event[] array for creating key
 	 * @return String representing the EventS
 	 */
