@@ -63,7 +63,7 @@ public class HookExecutor extends HystrixCommand<HookExecutor.STATUS> {
 	 */
 	protected HookExecutor.STATUS run() throws Exception {
 		this.hook.execute(events);
-		return HookExecutor.STATUS.EXECUTION_SCHEDULED;
+		return HookExecutor.STATUS.EXECUTION_SCHEDULED; // Hook execution response is not tracked or used. So just return a status to indicate execution was scheduled.
 	}
 	
 }

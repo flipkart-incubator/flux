@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.impl.task;
 
+import java.util.concurrent.Future;
+
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.Hook;
 import com.flipkart.flux.impl.message.HookAndEvents;
@@ -40,7 +42,10 @@ public class AkkaHook extends UntypedActor {
 	 */
 	public void onReceive(Object message) throws Exception {
 		if (HookAndEvents.class.isAssignableFrom(message.getClass())) {
-			getSender().tell(new HookExecutor(((HookAndEvents)message).getHook(), ((HookAndEvents)message).getEvents()).execute(), getSelf());
+			@SuppressWarnings("unused")
+			Future<HookExecutor.STATUS> hookResult = new HookExecutor(((HookAndEvents)message).getHook(), ((HookAndEvents)message).getEvents()).queue();
+			// we don't wait on the Future and just return the status that Hook execution was scheduled.
+			getSender().tell(HookExecutor.STATUS.EXECUTION_SCHEDULED, getSelf());
 		} else {
 			logger.error("Hook received a message that it cannot process. Only com.flipkart.flux.impl.message.HookAndEvents is supported. Message type received is : " + message.getClass().getName());
 			unhandled(message);
