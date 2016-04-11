@@ -6,6 +6,9 @@ import java.util.Random;
 
 /**
  * Dummy Implementation of a class that implements all the 4 tasks needed to execute <code>SimpleConcurrentWorkflow</code>
+ * Note that each of the Task methods are re-entrant do not make use of any internal state of the class.
+ * Each of these methods is capable of being executed independently on any machine based purely on their input requirements.
+ * @author yogesh.nachnani
  */
 public class SimpleTasker {
 
