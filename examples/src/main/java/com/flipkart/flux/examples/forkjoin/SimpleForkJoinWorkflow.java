@@ -44,13 +44,15 @@ public class SimpleForkJoinWorkflow {
 
         List<Character> listOfCharacters = new ArrayList<>();
         for (int i = 0; i < n ; i ++) {
+            /* fork returns the character at index i */
             listOfCharacters.add(simpleTasker.fork(someInputString, i));
         }
 
-        /*
-         Note: Since the fork operations are not inter-dependent on each other, they may be started and completed out of order.
-              Thus, the final reCreation message may be a different permutation of the given input variable "someInputString".
-        */
+    /*
+     The following method simply concatenates the given list of characters into a message and saves it to DB.
+     Note:Since the fork operations are not inter-dependent on each other, they may be started & completed in any order.
+     Thus, the final message may be a different permutation of the given input variable "someInputString".
+    */
         simpleTasker.join(listOfCharacters);
     }
 
