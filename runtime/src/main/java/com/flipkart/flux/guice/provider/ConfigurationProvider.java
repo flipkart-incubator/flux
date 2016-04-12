@@ -52,6 +52,10 @@ public class ConfigurationProvider implements Provider<Configuration> {
         return configuration;
     }
 
+    /**
+     * Adds annotated classes and custom types to passed configuration
+     * @param configuration
+     */
     private void addAnnotatedClassesAndTypes(Configuration configuration) {
         //register hibernate custom types
         configuration.registerTypeOverride(new BlobType(), new String[]{"BlobType"});
@@ -64,7 +68,11 @@ public class ConfigurationProvider implements Provider<Configuration> {
         configuration.addAnnotatedClass(StateMachine.class);
     }
 
-    /** Returns Hibernate properties from configuration.yml file*/
+    /**
+     * Returns Hibernate properties from configuration.yml file
+     * @return Hibernate properties
+     * @throws IOException
+     */
     private Properties getHibernateProperties() throws IOException {
         ClassLoader loader = this.getClass().getClassLoader();
         URL url = loader.getResource("packaged/configuration.yml");

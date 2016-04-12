@@ -20,7 +20,7 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 
 /**
- * Builds {@link org.hibernate.SessionFactory} through DI
+ * Builds and provides {@link org.hibernate.SessionFactory} instance
  * @author shyam.akirala
  */
 public class SessionFactoryProvider implements Provider<SessionFactory> {

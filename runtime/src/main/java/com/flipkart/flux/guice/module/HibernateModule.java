@@ -40,7 +40,7 @@ public class HibernateModule extends AbstractModule {
     @Override
     protected void configure() {
         //bind hibernate configuration and session factory
-        bind(Configuration.class).toProvider(ConfigurationProvider.class);
+        bind(Configuration.class).toProvider(ConfigurationProvider.class).in(Singleton.class);
         bind(SessionFactory.class).toProvider(SessionFactoryProvider.class).in(Singleton.class);
 
         //bind entity classes

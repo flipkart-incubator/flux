@@ -24,6 +24,23 @@ import javax.inject.Inject;
 
 /**
  * Provides transactional boundaries to methods which are annotated with {@link javax.transaction.Transactional}.
+ *
+ * Example:
+ * {
+ *     method1(); //call method1 which is annotated with transactional
+ * }
+ *
+ * @Transactional
+ * void method1() {
+ *      method2() //call method2 which is annotated with transactional
+ * }
+ *
+ * @Transactional
+ * void method2() {}
+ *
+ * In the above case a transaction would be started before method1 invocation using this interceptor and ended once method1's execution is over.
+ * Same session and transaction would be used throughout.
+ *
  * @author shyam.akirala
  */
 public class TransactionInterceptor implements MethodInterceptor {
@@ -31,6 +48,7 @@ public class TransactionInterceptor implements MethodInterceptor {
     @Inject
     private SessionFactory sessionFactory;
 
+    @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
 
         Transaction transaction = null;
