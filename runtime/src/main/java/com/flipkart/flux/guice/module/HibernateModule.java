@@ -11,14 +11,19 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux;
+package com.flipkart.flux.guice.module;
 
-import com.flipkart.flux.dao.*;
-import com.flipkart.flux.dao.iface.*;
+import com.flipkart.flux.dao.AuditDAOImpl;
+import com.flipkart.flux.dao.EventsDAOImpl;
+import com.flipkart.flux.dao.StateMachinesDAOImpl;
+import com.flipkart.flux.dao.StatesDAOImpl;
+import com.flipkart.flux.dao.iface.AuditDAO;
+import com.flipkart.flux.dao.iface.EventsDAO;
+import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.util.TransactionInterceptor;
 import com.flipkart.flux.util.Transactional;
 import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
 import com.google.inject.matcher.Matchers;
 
 /**
