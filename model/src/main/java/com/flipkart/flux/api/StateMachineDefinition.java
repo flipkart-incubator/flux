@@ -27,7 +27,7 @@ public class StateMachineDefinition<T> {
     private String name;
 
     /** Version of this state machine definition*/
-    private Long Version;
+    private Long version;
 
 	/** Short description for this state machine definition*/
     private String description;
@@ -50,10 +50,10 @@ public class StateMachineDefinition<T> {
 		this.name = name;
 	}
     public Long getVersion() {
-        return Version;
+        return version;
     }
     public void setVersion(Long version) {
-        Version = version;
+        this.version = version;
     }
     public String getDescription() {
 		return description;

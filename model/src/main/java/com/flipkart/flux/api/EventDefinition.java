@@ -20,10 +20,14 @@ package com.flipkart.flux.api;
  * @author Yogesh
  * @author regunath.balasubramanian
  * @author shyam.akirala
+ * @author kartik.bommepally
  */
 public class EventDefinition {
-	
-	/** The Event FQN*/
+
+    /** The version of this event definition*/
+    private Long version;
+
+    /** The Event FQN*/
     private String eventFqn; // java.lang.String_foo
 
     /** Constructor*/
@@ -39,5 +43,44 @@ public class EventDefinition {
 	public void setEventFqn(String eventFqn) {
 		this.eventFqn = eventFqn;
 	}
-    
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((eventFqn == null) ? 0 : eventFqn.hashCode());
+        result = prime * result + ((version == null) ? 0 : version.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        EventDefinition other = (EventDefinition) obj;
+        if (eventFqn == null) {
+            if (other.eventFqn != null)
+                return false;
+        } else if (!eventFqn.equals(other.eventFqn))
+            return false;
+        if (version == null) {
+            if (other.version != null)
+                return false;
+        } else if (!version.equals(other.version))
+            return false;
+        return true;
+    }
 }
