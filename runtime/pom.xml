@@ -87,6 +87,11 @@
             <artifactId>javax.transaction-api</artifactId>
             <version>1.2</version>
         </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.15</version>
+        </dependency>
         <!-- DI dependencies -->
         <dependency>
             <groupId>com.google.inject</groupId>
