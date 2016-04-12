@@ -41,6 +41,10 @@ import com.google.inject.servlet.GuiceFilter;
  *
  */
 public class ContainerModule extends AbstractModule {
+	
+	/** Useful constants for servlet container configuration parts */
+	public static final String DASHBOARD_CONTEXT_PATH = "/admin";
+	public static final String API_CONTEXT_PATH = "/api";
 
 	/**
 	 * Performs concrete bindings for interfaces
@@ -80,7 +84,7 @@ public class ContainerModule extends AbstractModule {
 		if (path.endsWith("WEB-INF")) {
 			path = path.replace("WEB-INF", "");
 		}
-		WebAppContext webAppContext = new WebAppContext(path, "/admin");
+		WebAppContext webAppContext = new WebAppContext(path, ContainerModule.DASHBOARD_CONTEXT_PATH);
 		return webAppContext;
 	}
 	
@@ -93,7 +97,7 @@ public class ContainerModule extends AbstractModule {
 	@Singleton
 	ServletContextHandler getAPIServletContext() {
 		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SECURITY);
-        context.setContextPath("/api");
+        context.setContextPath(ContainerModule.API_CONTEXT_PATH);
         // now have a Guice filter process all the requests and dispatch it appropriately
         context.addFilter(GuiceFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
         return context;

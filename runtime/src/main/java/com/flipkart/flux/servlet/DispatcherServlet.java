@@ -23,7 +23,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.flipkart.flux.guice.module.ContainerModule;
+import com.flipkart.flux.guice.module.FluxServletModule;
 import com.google.inject.Singleton;
+
+import javafx.util.Pair;
 
 /**
  * <code>DispatcherServlet</code> is a {@link HttpServlet} that dispatches all API requests to appropriate Flux managed Finite State Machine instances.
@@ -45,8 +49,8 @@ public class DispatcherServlet extends HttpServlet {
 	 * @see javax.servlet.http.HttpServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		Pair<String,String> entityActionPair = this.parseEntityAction(request);
 		// TODO : Dispatch to Flux Akka sub-system
 	}
 	
@@ -55,9 +59,26 @@ public class DispatcherServlet extends HttpServlet {
 	 * @see javax.servlet.http.HttpServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		Pair<String,String> entityActionPair = this.parseEntityAction(request);
 		// TODO : Dispatch to Flux Akka sub-system
+	}
+	
+	/** 
+	 * Helper method to extract the Entity(e.g. "SimpleOrderFulfilmentWorkflow") and Action (e.g "start") parts of the Request URI
+	 */
+	private Pair<String,String> parseEntityAction(HttpServletRequest request) {
+		String requestURI = request.getRequestURI();
+		String leadingPrefix = ContainerModule.API_CONTEXT_PATH + FluxServletModule.FSM_SERVLET_PATH + "/";
+		String entityAction = requestURI.substring(leadingPrefix.length());
+		// remaining part has just the entity name and action identifiers separated by "/"
+		String entity = entityAction.substring(0, entityAction.indexOf("/"));
+		String action = entityAction.substring(entityAction.indexOf(entity + "/"),entityAction.length());
+		if (action.endsWith("/")) {
+			action = action.replace("/", "");
+		}
+		Pair<String,String> entityActionPair = new Pair<String, String>(entity, action);
+		return entityActionPair;
 	}
 	
 }

@@ -29,6 +29,9 @@ import com.google.inject.servlet.ServletModule;
  */
 public class FluxServletModule extends ServletModule {
 
+	/** Useful constants for servlet container configuration parts */
+	public static final String FSM_SERVLET_PATH = "/fsm";
+	
 	/**
 	 * Configures servlets to be registered via Guice.
 	 * @see com.google.inject.servlet.ServletModule#configureServlets()
@@ -36,7 +39,7 @@ public class FluxServletModule extends ServletModule {
     @Override
     protected void configureServlets() {
     	// Register the DispatcherServlet that will service all calls to interact with deployed Flux Finite State Machines
-        serve("/fsms/*").with(DispatcherServlet.class);
+        serve(FSM_SERVLET_PATH + "/*").with(DispatcherServlet.class);
     }
 
 }
