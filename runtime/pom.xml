@@ -35,6 +35,13 @@
         <url>https://github.com/flipkart-incubator/flux</url>
         <connection>https://github.com/flipkart-incubator/flux.git</connection>
     </scm>
+   
+	<!-- Properties local to this module only -->    
+	<properties>
+	    <org.springframework.version>4.2.0.RELEASE</org.springframework.version>
+		<jersey.version>1.18.1</jersey.version>
+		<jetty.version>9.2.10.v20150310</jetty.version>
+	</properties>
 
     <dependencies>
         <dependency>
@@ -46,11 +53,6 @@
             <groupId>com.flipkart.flux</groupId>
             <artifactId>model</artifactId>
             <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
-            <version>${guice.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -73,6 +75,54 @@
             <artifactId>log4j-core</artifactId>
             <version>${log4j.version}</version>
         </dependency>
+        <!-- DI dependencies -->
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>${guice.version}</version>
+        </dependency>
+		<dependency>
+		    <groupId>com.sun.jersey.contribs</groupId>
+		    <artifactId>jersey-guice</artifactId>
+		    <version>${jersey.version}</version>
+		</dependency>	
+		<dependency>
+		    <groupId>com.google.inject.extensions</groupId>
+		    <artifactId>guice-servlet</artifactId>
+		    <version>${guice.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.eclipse.jetty</groupId>
+		    <artifactId>jetty-servlet</artifactId>
+		    <version>${jetty.version}</version>
+		</dependency>	
+	    <dependency>
+	        <groupId>org.eclipse.jetty</groupId>
+	        <artifactId>jetty-webapp</artifactId>
+	        <version>${jetty.version}</version>
+	    </dependency>
+	    <!-- Dashboard dependencies -->
+		<dependency>
+		    <groupId>org.springframework</groupId>
+		    <artifactId>spring-context-support</artifactId>
+		    <version>${org.springframework.version}</version>
+		</dependency>    
+	    <dependency>
+	        <groupId>org.springframework</groupId>
+	        <artifactId>spring-web</artifactId>
+	        <version>${org.springframework.version}</version>
+	    </dependency>
+	    <dependency>
+	        <groupId>org.springframework</groupId>
+	        <artifactId>spring-webmvc</artifactId>
+	        <version>${org.springframework.version}</version>
+	    </dependency>
+	    <dependency>
+	        <groupId>org.freemarker</groupId>
+	        <artifactId>freemarker</artifactId>
+	        <version>2.3.14</version>
+	    </dependency>
+        
     </dependencies>
 
     <build>
