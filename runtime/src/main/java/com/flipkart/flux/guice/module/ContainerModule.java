@@ -17,15 +17,22 @@
 package com.flipkart.flux.guice.module;
 
 import java.io.File;
+import java.util.EnumSet;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.servlet.DispatcherType;
 
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import com.flipkart.flux.config.FileLocator;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.google.inject.servlet.GuiceFilter;
 
 /**
  * <code>ContainerModule</code> is a Guice {@link AbstractModule} implementation used for wiring Flux container components.
@@ -45,7 +52,7 @@ public class ContainerModule extends AbstractModule {
 	
 	/**
 	 * Creates a Jetty {@link WebAppContext} for the Flux dashboard
-	 * @return
+	 * @return Jetty WebAppContext
 	 */
 	@Named("DashboardContext")
 	@Provides
@@ -75,6 +82,67 @@ public class ContainerModule extends AbstractModule {
 		}
 		WebAppContext webAppContext = new WebAppContext(path, "/admin");
 		return webAppContext;
+	}
+	
+	/**
+	 * Creates a Jetty {@link ServletContextHandler} for the Flux API endpoint
+	 * @return Jetty ServletContextHandler
+	 */
+	@Named("APIServletContext")
+	@Provides
+	@Singleton
+	ServletContextHandler getAPIServletContext() {
+		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SECURITY);
+        context.setContextPath("/api");
+        // now have a Guice filter process all the requests and dispatch it appropriately
+        context.addFilter(GuiceFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
+        return context;
+	}
+	
+	/**
+	 * Creates the Jetty server instance for the admin Dashboard and configures it with the @Named("DashboardContext").
+	 * @param port where the service is available
+	 * @param acceptorThreads no. of acceptors
+	 * @param maxWorkerThreads max no. of worker threads
+	 * @return Jetty Server instance
+	 */
+	@Named("DashboardJettyServer")
+	@Provides
+	@Singleton
+	Server getDashboardJettyServer(@Named("dashboard.service.port")int port, 
+			@Named("dashboard.service.acceptors")int acceptorThreads, 
+			@Named("dashboard.service.workers")int maxWorkerThreads, 
+			@Named("DashboardContext")WebAppContext webappContext) {
+		QueuedThreadPool threadPool = new QueuedThreadPool();
+        threadPool.setMaxThreads(maxWorkerThreads);
+		Server server = new Server(threadPool);
+		ServerConnector http = new ServerConnector(server,acceptorThreads,port);
+		server.addConnector(http);
+		server.setHandler(webappContext);
+		return server;
+	}
+
+	/**
+	 * Creates the Jetty server instance for the Flux API endpoint and configures it with the @Named("APIServletContext").  
+	 * @param port where the service is available
+	 * @param acceptorThreads no. of acceptors
+	 * @param maxWorkerThreads max no. of worker threads
+	 * @return Jetty Server instance
+	 */
+	@Named("APIJettyServer")
+	@Provides
+	@Singleton
+	Server getAPIJettyServer(@Named("api.service.port")int port, 
+			@Named("api.service.acceptors")int acceptorThreads, 
+			@Named("api.service.workers")int maxWorkerThreads,
+			@Named("APIServletContext")ServletContextHandler servletContextHandler) {
+		QueuedThreadPool threadPool = new QueuedThreadPool();
+        threadPool.setMaxThreads(maxWorkerThreads);
+		Server server = new Server(threadPool);
+		ServerConnector http = new ServerConnector(server,acceptorThreads,port);
+		server.addConnector(http);
+		server.setHandler(servletContextHandler);
+		return server;
 	}
 
 }
