@@ -40,17 +40,12 @@ public class TransactionInterceptor implements MethodInterceptor {
             session = sessionFactory.getCurrentSession();
         } catch (HibernateException e) {}
 
-        boolean startNewTransaction = true;
-
         if (session == null) {
             //start a new session and transaction if current session is null
             session = sessionFactory.openSession();
             ManagedSessionContext.bind(session);
             transaction = session.getTransaction();
             transaction.begin();
-        } else {
-            //already in transaction, don't start new transaction
-            startNewTransaction = false;
         }
 
         try {
@@ -69,7 +64,7 @@ public class TransactionInterceptor implements MethodInterceptor {
             }
             throw e;
         } finally {
-            if (startNewTransaction && session != null) {
+            if (transaction != null && session != null) {
                 ManagedSessionContext.unbind(sessionFactory);
                 session.close();
             }
