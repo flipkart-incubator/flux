@@ -13,18 +13,17 @@
 
 package com.flipkart.flux.dao;
 
-import com.flipkart.flux.guice.module.HibernateModule;
+import java.util.HashSet;
+import java.util.Set;
+import org.junit.Before;
+import org.junit.Test;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.guice.module.HibernateModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import junit.framework.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author shyam.akirala

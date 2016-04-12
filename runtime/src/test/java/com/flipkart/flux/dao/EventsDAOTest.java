@@ -13,16 +13,15 @@
 
 package com.flipkart.flux.dao;
 
-import com.flipkart.flux.guice.module.HibernateModule;
+import java.io.Serializable;
+import org.junit.Before;
+import org.junit.Test;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.guice.module.HibernateModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import junit.framework.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.Serializable;
 
 /**
  * @author shyam.akirala

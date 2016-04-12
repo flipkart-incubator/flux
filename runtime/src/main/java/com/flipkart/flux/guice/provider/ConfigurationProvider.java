@@ -67,7 +67,7 @@ public class ConfigurationProvider implements Provider<Configuration> {
     /** Returns Hibernate properties from configuration.yml file*/
     private Properties getHibernateProperties() throws IOException {
         ClassLoader loader = this.getClass().getClassLoader();
-        URL url = loader.getResource("configuration.yml");
+        URL url = loader.getResource("packaged/configuration.yml");
         Yaml yaml = new Yaml();
         InputStreamReader reader = new InputStreamReader(url.openStream());
         Map<String, Object> map = (Map<String, Object>) ((Map) yaml.load(reader)).get("Hibernate");
