@@ -32,8 +32,7 @@ import javax.inject.Singleton;
 import javax.transaction.Transactional;
 
 /**
- * Guice module to define bindings and interceptor.
- *
+ * Guice module to define bindings and interceptors.
  * @author shyam.akirala
  */
 public class HibernateModule extends AbstractModule {

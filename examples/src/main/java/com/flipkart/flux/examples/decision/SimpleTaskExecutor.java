@@ -17,7 +17,9 @@ import com.flipkart.flux.client.model.Promise;
 import com.flipkart.flux.client.model.Task;
 
 /**
- * Dummy Interface for simple task execution
+ * Dummy Interface for simple task execution.
+ * Since the Flux client supports Dependency Injection, we can continue to use the interface in <code>SimpleDecisionWorkflow</code>
+ * The class's implementation will be injected by the DI framework within Flux.
  */
 public interface SimpleTaskExecutor {
     @Task(version = 1, timeout = 1000l)

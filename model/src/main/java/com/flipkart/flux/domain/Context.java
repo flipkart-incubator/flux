@@ -24,6 +24,7 @@ import java.util.Map;
  * @author Yogesh
  * @author regunath.balasubramanian
  * @author shyam.akirala
+ * @author kartik.bommepally
  */
 public abstract class Context<T> {
 
@@ -31,8 +32,11 @@ public abstract class Context<T> {
     protected Long startTime;
     /** Identifier for the Context*/
     protected String contextId;
-    /** A dependency graph created across States - holds information on possible next state transitions for a State, keyed by the Event FQN*/
-    protected Map<String,List<State<T>>> stateToEventDependencyGraph;
+    /**
+     * A reverse dependency graph created across States based on Events.
+     * Holds information on possible list of States waiting on an Event represented by its FQN.
+     */
+    protected Map<String, List<State<T>>> stateToEventDependencyGraph;
 
     /**
      * Stores the specified data against the key for this Context. Implementations may bound the type and size of data stored into this Context.
