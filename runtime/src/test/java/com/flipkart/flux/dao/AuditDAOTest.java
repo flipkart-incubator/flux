@@ -13,19 +13,20 @@
 
 package com.flipkart.flux.dao;
 
-import com.flipkart.flux.HibernateModule;
-import com.flipkart.flux.dao.iface.AuditDAO;
-import com.flipkart.flux.domain.AuditRecord;
-import com.flipkart.flux.domain.Status;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import junit.framework.Assert;
+import java.util.Date;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
+import com.flipkart.flux.dao.iface.AuditDAO;
+import com.flipkart.flux.domain.AuditRecord;
+import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.guice.module.HibernateModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
+import junit.framework.Assert;
 
 /**
  * @author shyam.akirala
