@@ -20,7 +20,7 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 /**
- * Implementation of {@link com.flipkart.flux.dao.iface.StatesDAO} which uses Hibernate to perform operations.
+ * <code>StatesDAOImpl</code> is an implementation of {@link StatesDAO} which uses Hibernate to perform operations.
  * @author shyam.akirala
  */
 public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {

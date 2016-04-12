@@ -23,7 +23,7 @@ import javax.transaction.Transactional;
 import java.util.List;
 
 /**
- * Implementation of {@link com.flipkart.flux.dao.iface.AuditDAO} which uses Hibernate to perform operations.
+ * <code>AuditDAOImpl</code> is an implementation of {@link AuditDAO} which uses Hibernate to perform operations.
  * @author shyam.akirala
  */
 public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {

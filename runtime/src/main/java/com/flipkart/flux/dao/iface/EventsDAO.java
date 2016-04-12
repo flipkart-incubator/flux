@@ -18,7 +18,7 @@ import com.flipkart.flux.domain.Event;
 import java.util.List;
 
 /**
- * Provides methods to perform CR operations on {@link com.flipkart.flux.domain.Event}
+ * <code>EventsDAO</code> interface provides methods to perform CR operations on {@link Event}
  * @author shyam.akirala
  */
 public interface EventsDAO {

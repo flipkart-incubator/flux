@@ -30,14 +30,18 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Provides Hibernate configuration to build {@link org.hibernate.SessionFactory}
+ * <code>ConfigurationProvider</code> is a {@link Provider} implementation used to provide
+ * Hibernate configuration to build {@link org.hibernate.SessionFactory}
  * @author shyam.akirala
  */
 public class ConfigurationProvider implements Provider<Configuration> {
 
+    /**
+     * Provides Hibernate configuration object
+     * @return configuration
+     */
     @Override
     public Configuration get() {
-
         Configuration configuration = new Configuration();
         addAnnotatedClassesAndTypes(configuration);
         configuration.setImplicitNamingStrategy(ImplicitNamingStrategyJpaCompliantImpl.INSTANCE);
@@ -53,7 +57,7 @@ public class ConfigurationProvider implements Provider<Configuration> {
     }
 
     /**
-     * Adds annotated classes and custom types to passed configuration
+     * Adds annotated classes and custom types to passed Hibernate configuration
      * @param configuration
      */
     private void addAnnotatedClassesAndTypes(Configuration configuration) {

@@ -18,7 +18,7 @@ import com.flipkart.flux.domain.StateMachine;
 import java.util.List;
 
 /**
- * Provides methods to perform CR operations on {@link com.flipkart.flux.domain.StateMachine}
+ * <code>StateMachinesDAO</code> interface provides methods to perform CR operations on {@link StateMachine}
  * @author shyam.akirala
  */
 public interface StateMachinesDAO {

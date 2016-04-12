@@ -32,7 +32,7 @@ import javax.inject.Singleton;
 import javax.transaction.Transactional;
 
 /**
- * Guice module to define bindings and interceptors.
+ * <code>HibernateModule</code> is a Guice {@link AbstractModule} implementation used for wiring SessionFactory, DAO and Interceptor classes.
  * @author shyam.akirala
  */
 public class HibernateModule extends AbstractModule {

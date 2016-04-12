@@ -25,7 +25,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 /**
- * Custom hibernate type to store FQN of a class in DB
+ * <code>StoreFQNType</code> is a Hibernate {@link UserType} implementation to store class FQN of an object in DB
  * @author shyam.akirala
  */
 public class StoreFQNType implements UserType, Serializable {
@@ -104,13 +104,25 @@ public class StoreFQNType implements UserType, Serializable {
         return original;
     }
 
-    /** Builds class instance using reflection*/
+    /**
+     * Builds class instance using reflection
+     * @param value of type String
+     * @return constructed object
+     * @throws IOException
+     * @throws ClassNotFoundException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     */
     public Object constructObject(String value) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
         Class c = Class.forName(value);
         return c.newInstance();
     }
 
-    /** Returns fully qualified class name of a object*/
+    /**
+     * Returns fully qualified class name of an object
+     * @param value of type Object
+     * @return class FQN of an object
+     */
     public String getClassFQN(Object value) {
         if(value != null)
             return value.getClass().getName();

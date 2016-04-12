@@ -23,7 +23,8 @@ import org.hibernate.context.internal.ManagedSessionContext;
 import javax.inject.Inject;
 
 /**
- * Provides transactional boundaries to methods which are annotated with {@link javax.transaction.Transactional}.
+ * <code>TransactionInterceptor</code> is a {@link MethodInterceptor} implementation to provide
+ * transactional boundaries to methods which are annotated with {@link javax.transaction.Transactional}.
  *
  * Example:
  * {
@@ -32,7 +33,7 @@ import javax.inject.Inject;
  *
  * @Transactional
  * void method1() {
- *      method2() //call method2 which is annotated with transactional
+ *      method2(); //call method2 which is annotated with transactional
  * }
  *
  * @Transactional

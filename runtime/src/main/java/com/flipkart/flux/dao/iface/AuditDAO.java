@@ -17,7 +17,7 @@ import com.flipkart.flux.domain.AuditRecord;
 import java.util.List;
 
 /**
- * Provides methods to perform CR operations on {@link com.flipkart.flux.domain.AuditRecord}
+ * <code>AuditDAO</code> interface provides methods to perform CR operations on {@link AuditRecord}
  * @author shyam.akirala
  */
 public interface AuditDAO {

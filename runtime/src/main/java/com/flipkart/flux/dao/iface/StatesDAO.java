@@ -16,7 +16,7 @@ package com.flipkart.flux.dao.iface;
 import com.flipkart.flux.domain.State;
 
 /**
- * Provides methods to perform CR operations on {@link com.flipkart.flux.domain.State}
+ * <code>StatesDAO</code> interface provides methods to perform CR operations on {@link State}
  * @author shyam.akirala
  */
 public interface StatesDAO {

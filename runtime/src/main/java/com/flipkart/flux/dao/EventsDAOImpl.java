@@ -23,7 +23,7 @@ import javax.transaction.Transactional;
 import java.util.List;
 
 /**
- * Implementation of {@link com.flipkart.flux.dao.iface.EventsDAO} which uses Hibernate to perform operations.
+ * <code>EventsDAOImpl</code> is an implementation of {@link EventsDAO} which uses Hibernate to perform operations.
  * @author shyam.akirala
  */
 public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
