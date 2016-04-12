@@ -24,6 +24,7 @@ import com.google.inject.Injector;
 import junit.framework.Assert;
 
 /**
+ * <code>EventsDAOTest</code> class tests the functionality of {@link EventsDAO} using JUnit tests.
  * @author shyam.akirala
  */
 public class EventsDAOTest {
@@ -38,34 +39,12 @@ public class EventsDAOTest {
     @Test
     public void createEventTest() {
         EventsDAO eventsDAO = injector.getInstance(EventsDAO.class);
-        EventData data = new EventData("external_event", "test_event_info");
-        Event<EventData> event = new Event("test_name","test_type", Event.EventStatus.pending,"test_state_machine_instance_id", data,"internal_event");
+        DummyEventData data = new DummyEventData("event_dat");
+        Event<DummyEventData> event = new Event("test_name","test_type", Event.EventStatus.pending,"test_state_machine_instance_id", data,"internal_event");
         Long eventId = eventsDAO.create(event).getId();
 
         Event event1 = eventsDAO.findById(eventId);
         Assert.assertNotNull(event1);
     }
 
-}
-
-class EventData implements Serializable{
-    String eventType;
-    String eventInfo;
-
-    public EventData(String eventType, String eventInfo) {
-        this.eventType = eventType;
-        this.eventInfo = eventInfo;
-    }
-    public String getEventType() {
-        return eventType;
-    }
-    public void setEventType(String eventType) {
-        this.eventType = eventType;
-    }
-    public String getEventInfo() {
-        return eventInfo;
-    }
-    public void setEventInfo(String eventInfo) {
-        this.eventInfo = eventInfo;
-    }
 }

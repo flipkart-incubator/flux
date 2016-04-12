@@ -117,17 +117,17 @@
         <dependency>
             <groupId>com.flipkart.polyguice</groupId>
             <artifactId>polyguice-core</artifactId>
-            <version>1.0</version>
+            <version>${polyguice.version}</version>
         </dependency>
         <dependency>
             <groupId>com.flipkart.polyguice</groupId>
             <artifactId>polyguice-config</artifactId>
-            <version>1.0</version>
+            <version>${polyguice.version}</version>
         </dependency>
         <dependency>
             <groupId>com.flipkart.polyguice</groupId>
             <artifactId>polyguice-akka</artifactId>
-            <version>1.0</version>
+            <version>${polyguice.version}</version>
         </dependency>
         <!-- Dashboard dependencies -->
         <dependency>

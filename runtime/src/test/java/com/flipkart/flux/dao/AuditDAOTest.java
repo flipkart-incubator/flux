@@ -25,6 +25,7 @@ import org.junit.Test;
 import java.util.List;
 
 /**
+ * <code>AuditDAOTest</code> class tests the functionality of {@link AuditDAO} using JUnit tests.
  * @author shyam.akirala
  */
 public class AuditDAOTest {
