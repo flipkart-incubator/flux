@@ -41,9 +41,9 @@ public class AuditDAOTest {
     public void createAuditRecordTest() {
         AuditDAO auditDAO = injector.getInstance(AuditDAO.class);
         AuditRecord auditRecord = new AuditRecord("test_state_machine_instance_id", "abcd-xyz", 0, Status.running, null, null);
-        auditDAO.create(auditRecord);
+        Long recordId = auditDAO.create(auditRecord).getId();
 
-        List<AuditRecord> records = auditDAO.findBySMInstanceId("test_state_machine_instance_id");
-        Assert.assertNotNull(records);
+        AuditRecord auditRecord1 = auditDAO.findById(recordId);
+        Assert.assertNotNull(auditRecord1);
     }
 }

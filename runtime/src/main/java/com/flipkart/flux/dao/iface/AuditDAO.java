@@ -28,4 +28,7 @@ public interface AuditDAO {
     /** Creates Audit record and returns the saved object*/
     AuditRecord create(AuditRecord auditRecord);
 
+    /** Retrieves Audit record by it's unique identifier */
+    public AuditRecord findById(Long id);
+
 }

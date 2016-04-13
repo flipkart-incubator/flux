@@ -14,7 +14,7 @@
 package com.flipkart.flux.api;
 
 /**
- * <code>EventDefinition</code> define an event to the system
+ * <code>EventDefinition</code> defines an event to the system
  * An event is a named object of a certain type (say a java.lang.String with name foo)
  * 
  * @author Yogesh

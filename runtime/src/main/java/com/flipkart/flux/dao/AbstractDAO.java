@@ -17,17 +17,15 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
-import javax.inject.Inject;
 
 /**
  * <code>AbstractDAO</code> class provides methods to perform CRUD operations on an object using Hibernate.
  * @author shyam.akirala
  */
-public class AbstractDAO<T> {
+public abstract class AbstractDAO<T> {
 
     private SessionFactory sessionFactory;
 
-    @Inject
     public AbstractDAO(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
     }

@@ -47,4 +47,16 @@ public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
         return super.save(auditRecord);
     }
 
+    @Override
+    @Transactional
+    public AuditRecord findById(Long id) {
+        Criteria criteria = currentSession().createCriteria(AuditRecord.class).add(Restrictions.eq("id", id));
+        Object object = criteria.uniqueResult();
+        AuditRecord auditRecord = null;
+        if(object != null)
+            auditRecord = (AuditRecord) object;
+        return auditRecord;
+    }
+
+
 }
