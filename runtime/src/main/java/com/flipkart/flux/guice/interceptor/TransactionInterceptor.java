@@ -11,41 +11,60 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.util;
+package com.flipkart.flux.guice.interceptor;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.context.internal.ManagedSessionContext;
+import javax.inject.Inject;
 
 /**
- * Provides transactional boundaries to methods which are annotated with {@link com.flipkart.flux.util.Transactional}.
+ * <code>TransactionInterceptor</code> is a {@link MethodInterceptor} implementation to provide
+ * transactional boundaries to methods which are annotated with {@link javax.transaction.Transactional}.
+ *
+ * Example:
+ * {
+ *     method1(); //call method1 which is annotated with transactional
+ * }
+ *
+ * @Transactional
+ * void method1() {
+ *      method2(); //call method2 which is annotated with transactional
+ * }
+ *
+ * @Transactional
+ * void method2() {}
+ *
+ * In the above case a transaction would be started before method1 invocation using this interceptor and ended once method1's execution is over.
+ * Same session and transaction would be used throughout.
+ *
  * @author shyam.akirala
  */
 public class TransactionInterceptor implements MethodInterceptor {
 
-    private ThreadLocal<Session> threadLocalSession;
+    @Inject
+    private SessionFactory sessionFactory;
 
-    public TransactionInterceptor() {
-        threadLocalSession = new ThreadLocal<Session>();
-    }
-
+    @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
 
         Transaction transaction = null;
-        Session session = threadLocalSession.get();
-        boolean startNewTransaction = true;
+
+        Session session = null;
+        try {
+            session = sessionFactory.getCurrentSession();
+        } catch (HibernateException e) {}
 
         if (session == null) {
-            session = HibernateUtil.getSessionFactory().openSession();
-            threadLocalSession.set(session);
+            //start a new session and transaction if current session is null
+            session = sessionFactory.openSession();
             ManagedSessionContext.bind(session);
             transaction = session.getTransaction();
             transaction.begin();
-        } else {
-            //already in transaction
-            startNewTransaction = false;
         }
 
         try {
@@ -54,7 +73,6 @@ public class TransactionInterceptor implements MethodInterceptor {
 
             if (transaction != null) {
                 transaction.commit();
-                threadLocalSession.remove();
             }
 
             return result;
@@ -62,21 +80,14 @@ public class TransactionInterceptor implements MethodInterceptor {
         } catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();
-                threadLocalSession.remove();
             }
             throw e;
         } finally {
-            if (startNewTransaction && session != null) {
-                ManagedSessionContext.unbind(HibernateUtil.getSessionFactory());
+            if (transaction != null && session != null) {
+                ManagedSessionContext.unbind(sessionFactory);
                 session.close();
             }
         }
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        threadLocalSession.remove();
-        super.finalize();
     }
 
 }

@@ -16,14 +16,6 @@
     <name>examples</name>
     <url>http://maven.apache.org</url>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.flipkart.flux</groupId>
-            <artifactId>client</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-    </dependencies>
-
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -43,6 +35,15 @@
         <url>https://github.com/flipkart-incubator/flux</url>
         <connection>https://github.com/flipkart-incubator/flux.git</connection>
     </scm>
+
+    <dependencies>
+        <!-- Flux dependencies -->
+        <dependency>
+            <groupId>com.flipkart.flux</groupId>
+            <artifactId>client</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <sourceDirectory>src/main/java</sourceDirectory>

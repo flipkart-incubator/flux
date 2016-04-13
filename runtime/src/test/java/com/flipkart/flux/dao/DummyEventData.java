@@ -11,17 +11,27 @@
  * limitations under the License.
  */
 
+package com.flipkart.flux.dao;
+
+import java.io.Serializable;
+
 /**
+ * Dummy class which would be used as {@link com.flipkart.flux.domain.Event}'s eventData.
  * @author shyam.akirala
  */
+public class DummyEventData implements Serializable {
+    String data;
 
-@TypeDefs({
-        @TypeDef(name = "BlobType", typeClass = BlobType.class), //Stores object as byte array in DB
-        @TypeDef(name = "StoreFQNOnly", typeClass = StoreFQNType.class) //Stores FQN of class in DB
-})
-package com.flipkart.flux;
+    public DummyEventData(String data) {
+        this.data = data;
+    }
 
-import com.flipkart.flux.type.BlobType;
-import com.flipkart.flux.type.StoreFQNType;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
+    public String getData() {
+        return data;
+    }
+
+    public void setData(String data) {
+        this.data = data;
+    }
+
+}

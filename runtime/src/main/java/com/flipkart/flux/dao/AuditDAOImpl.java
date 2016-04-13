@@ -15,16 +15,23 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
-import com.flipkart.flux.util.Transactional;
 import org.hibernate.Criteria;
+import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
-
+import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.util.List;
 
 /**
+ * <code>AuditDAOImpl</code> is an implementation of {@link AuditDAO} which uses Hibernate to perform operations.
  * @author shyam.akirala
  */
 public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
+
+    @Inject
+    public AuditDAOImpl(SessionFactory sessionFactory) {
+        super(sessionFactory);
+    }
 
     @Override
     @Transactional
@@ -36,8 +43,20 @@ public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
 
     @Override
     @Transactional
-    public Long create(AuditRecord auditRecord) {
-        return super.save(auditRecord).getId();
+    public AuditRecord create(AuditRecord auditRecord) {
+        return super.save(auditRecord);
     }
+
+    @Override
+    @Transactional
+    public AuditRecord findById(Long id) {
+        Criteria criteria = currentSession().createCriteria(AuditRecord.class).add(Restrictions.eq("id", id));
+        Object object = criteria.uniqueResult();
+        AuditRecord auditRecord = null;
+        if(object != null)
+            auditRecord = (AuditRecord) object;
+        return auditRecord;
+    }
+
 
 }

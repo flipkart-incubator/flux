@@ -21,23 +21,38 @@ import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
-import com.flipkart.flux.util.TransactionInterceptor;
-import com.flipkart.flux.util.Transactional;
+import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
+import com.flipkart.flux.guice.provider.ConfigurationProvider;
+import com.flipkart.flux.guice.provider.SessionFactoryProvider;
 import com.google.inject.AbstractModule;
 import com.google.inject.matcher.Matchers;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+import javax.inject.Singleton;
+import javax.transaction.Transactional;
 
 /**
+ * <code>HibernateModule</code> is a Guice {@link AbstractModule} implementation used for wiring SessionFactory, DAO and Interceptor classes.
  * @author shyam.akirala
  */
 public class HibernateModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(AuditDAO.class).to(AuditDAOImpl.class);
-        bind(EventsDAO.class).to(EventsDAOImpl.class);
-        bind(StateMachinesDAO.class).to(StateMachinesDAOImpl.class);
-        bind(StatesDAO.class).to(StatesDAOImpl.class);
-        bindInterceptor(Matchers.any(), Matchers.annotatedWith(Transactional.class), new TransactionInterceptor());
+        //bind hibernate configuration and session factory
+        bind(Configuration.class).toProvider(ConfigurationProvider.class).in(Singleton.class);
+        bind(SessionFactory.class).toProvider(SessionFactoryProvider.class).in(Singleton.class);
+
+        //bind entity classes
+        bind(AuditDAO.class).to(AuditDAOImpl.class).in(Singleton.class);
+        bind(EventsDAO.class).to(EventsDAOImpl.class).in(Singleton.class);
+        bind(StateMachinesDAO.class).to(StateMachinesDAOImpl.class).in(Singleton.class);
+        bind(StatesDAO.class).to(StatesDAOImpl.class).in(Singleton.class);
+
+        //bind Transactional Interceptor to intercept methods which are annotated with javax.transaction.Transactional
+        TransactionInterceptor transactionInterceptor = new TransactionInterceptor();
+        requestInjection(transactionInterceptor);
+        bindInterceptor(Matchers.any(), Matchers.annotatedWith(Transactional.class), transactionInterceptor);
     }
 
 }

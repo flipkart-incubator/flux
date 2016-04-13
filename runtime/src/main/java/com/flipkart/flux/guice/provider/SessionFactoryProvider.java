@@ -11,34 +11,30 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.dao;
+package com.flipkart.flux.guice.provider;
 
-import com.flipkart.flux.dao.iface.StatesDAO;
-import com.flipkart.flux.domain.State;
 import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
 import javax.inject.Inject;
-import javax.transaction.Transactional;
+import javax.inject.Provider;
 
 /**
- * <code>StatesDAOImpl</code> is an implementation of {@link StatesDAO} which uses Hibernate to perform operations.
+ * <code>SessionFactoryProvider</code> is a {@link Provider} implementation used to provide {@link SessionFactory} instance
  * @author shyam.akirala
  */
-public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
+public class SessionFactoryProvider implements Provider<SessionFactory> {
+
+    private Configuration configuration;
 
     @Inject
-    public StatesDAOImpl(SessionFactory sessionFactory) {
-        super(sessionFactory);
+    public SessionFactoryProvider(Configuration configuration) {
+        this.configuration = configuration;
     }
 
     @Override
-    @Transactional
-    public State create(State state) {
-        return super.save(state);
+    public SessionFactory get() {
+        return configuration.buildSessionFactory();
     }
 
-    @Override
-    @Transactional
-    public State findById(String id) {
-        return super.findById(State.class, id);
-    }
 }
