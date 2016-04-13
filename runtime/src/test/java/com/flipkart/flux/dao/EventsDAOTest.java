@@ -44,7 +44,7 @@ public class EventsDAOTest {
         Long eventId = eventsDAO.create(event).getId();
 
         Event event1 = eventsDAO.findById(eventId);
-        Assert.assertNotNull(event1);
+        Assert.assertEquals(event, event1);
     }
 
 }

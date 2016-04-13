@@ -44,6 +44,6 @@ public class AuditDAOTest {
         Long recordId = auditDAO.create(auditRecord).getId();
 
         AuditRecord auditRecord1 = auditDAO.findById(recordId);
-        Assert.assertNotNull(auditRecord1);
+        Assert.assertEquals(auditRecord, auditRecord1);
     }
 }
