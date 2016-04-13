@@ -44,10 +44,10 @@ public class HibernateModule extends AbstractModule {
         bind(SessionFactory.class).toProvider(SessionFactoryProvider.class).in(Singleton.class);
 
         //bind entity classes
-        bind(AuditDAO.class).to(AuditDAOImpl.class);
-        bind(EventsDAO.class).to(EventsDAOImpl.class);
-        bind(StateMachinesDAO.class).to(StateMachinesDAOImpl.class);
-        bind(StatesDAO.class).to(StatesDAOImpl.class);
+        bind(AuditDAO.class).to(AuditDAOImpl.class).in(Singleton.class);
+        bind(EventsDAO.class).to(EventsDAOImpl.class).in(Singleton.class);
+        bind(StateMachinesDAO.class).to(StateMachinesDAOImpl.class).in(Singleton.class);
+        bind(StatesDAO.class).to(StatesDAOImpl.class).in(Singleton.class);
 
         //bind Transactional Interceptor to intercept methods which are annotated with javax.transaction.Transactional
         TransactionInterceptor transactionInterceptor = new TransactionInterceptor();
