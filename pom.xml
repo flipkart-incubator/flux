@@ -53,6 +53,7 @@
         <akka.version>2.4.1</akka.version>
         <kamon.version>0.6.0</kamon.version>
         <log4j.version>2.5</log4j.version>
+        <assertj-core.version>2.0.0</assertj-core.version>
     </properties>
 
     <modules>
