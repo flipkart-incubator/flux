@@ -56,9 +56,9 @@
 		<url-pattern>/hystrix.stream.tp.local</url-pattern> <!-- all the hystrix metrics will be streamed to JSON to this URL -->
 	</servlet-mapping>
 	
-	<!-- Spring MVC servlet for ServiceProxy Web Console -->
+	<!-- Spring MVC servlet for Dashboard Web Console -->
 	<servlet>
-		<servlet-name>ServiceProxyServlet</servlet-name>
+		<servlet-name>DashboardServlet</servlet-name>
 		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
 		<init-param>
 			<param-name>contextConfigLocation</param-name>
@@ -68,7 +68,7 @@
 	</servlet>
 	
 	<servlet-mapping>
-		<servlet-name>ServiceProxyServlet</servlet-name>
+		<servlet-name>DashboardServlet</servlet-name>
 		<url-pattern>/</url-pattern>
 	</servlet-mapping>
 	
