@@ -14,6 +14,7 @@
 package com.flipkart.flux.guice.module;
 
 import java.util.Iterator;
+import java.util.Properties;
 
 import com.flipkart.flux.dao.AuditDAOImpl;
 import com.flipkart.flux.dao.EventsDAOImpl;
@@ -91,12 +92,13 @@ public class HibernateModule extends AbstractModule {
         addAnnotatedClassesAndTypes(configuration);
         org.apache.commons.configuration.Configuration hibernateConfig = yamlConfiguration.subset(HIBERNATE_NAME_SPACE);
         Iterator<String> propertyKeys = hibernateConfig.getKeys();
+        Properties configProperties = new Properties();
         while (propertyKeys.hasNext()) {
             String propertyKey = propertyKeys.next();
             Object propertyValue = hibernateConfig.getProperty(propertyKey);
-            String propertyValueStr = propertyValue == null ? null : String.valueOf(propertyValue);
-            configuration.setProperty(propertyKey, propertyValueStr);
+            configProperties.put(propertyKey, propertyValue);
         }
+        configuration.addProperties(configProperties);
         return configuration;
     }
 
