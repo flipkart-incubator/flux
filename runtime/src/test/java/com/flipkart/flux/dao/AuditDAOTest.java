@@ -16,17 +16,20 @@ package com.flipkart.flux.dao;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.flux.guice.module.HibernateModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
 import junit.framework.Assert;
+
 import org.junit.Before;
 import org.junit.Test;
-import java.util.List;
 
 /**
  * <code>AuditDAOTest</code> class tests the functionality of {@link AuditDAO} using JUnit tests.
  * @author shyam.akirala
+ * @author kartik.bommepally
  */
 public class AuditDAOTest {
 
@@ -34,7 +37,7 @@ public class AuditDAOTest {
 
     @Before
     public void setup() {
-        injector = Guice.createInjector(new HibernateModule());
+        injector = Guice.createInjector(new ConfigModule(), new HibernateModule());
     }
 
     @Test
