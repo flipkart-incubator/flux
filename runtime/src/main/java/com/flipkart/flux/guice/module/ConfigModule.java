@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.guice.module;
 
+import static com.flipkart.flux.constant.RuntimeConstants.CONFIGURATION_YML;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
@@ -28,8 +30,6 @@ import com.google.inject.name.Names;
  * @author kartik.bommepally
  */
 public class ConfigModule extends AbstractModule {
-
-    private static final String CONFIGURATION_YML = "packaged/configuration.yml";
 
     @Override
     protected void configure() {

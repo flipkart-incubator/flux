@@ -49,7 +49,6 @@ import javax.transaction.Transactional;
 public class HibernateModule extends AbstractModule {
 
     public static final String HIBERNATE_NAME_SPACE = "Hibernate";
-    public static final String HIBERNATE_NAME_SPACE_REGEX = "^Hibernate.";
 
     @Override
     protected void configure() {
@@ -90,14 +89,13 @@ public class HibernateModule extends AbstractModule {
     public Configuration getConfiguration(YamlConfiguration yamlConfiguration) {
         Configuration configuration = new Configuration();
         addAnnotatedClassesAndTypes(configuration);
-        Iterator<String> propertyKeys = yamlConfiguration.getKeys();
+        org.apache.commons.configuration.Configuration hibernateConfig = yamlConfiguration.subset(HIBERNATE_NAME_SPACE);
+        Iterator<String> propertyKeys = hibernateConfig.getKeys();
         while (propertyKeys.hasNext()) {
             String propertyKey = propertyKeys.next();
-            if (propertyKey.startsWith(HIBERNATE_NAME_SPACE)) {
-                Object propertyValue = yamlConfiguration.getProperty(propertyKey);
-                String propertyValueStr = propertyValue == null ? null : String.valueOf(propertyValue);
-                configuration.setProperty(propertyKey.replaceFirst(HIBERNATE_NAME_SPACE_REGEX, ""), propertyValueStr);
-            }
+            Object propertyValue = hibernateConfig.getProperty(propertyKey);
+            String propertyValueStr = propertyValue == null ? null : String.valueOf(propertyValue);
+            configuration.setProperty(propertyKey, propertyValueStr);
         }
         return configuration;
     }
