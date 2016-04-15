@@ -26,5 +26,9 @@ public class RuntimeConstants {
 	 */
 	public static final String RESOURCES_SUFFIX = "resources";
 	public static final String EXTERNAL_RESOURCES_SUFFIX = "external";	
-	
+
+    /**
+     * Configration yml resource path.
+     */
+    public static final String CONFIGURATION_YML = "packaged/configuration.yml";
 }

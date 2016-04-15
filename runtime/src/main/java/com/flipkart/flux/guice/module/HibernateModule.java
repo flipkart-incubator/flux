@@ -13,6 +13,9 @@
 
 package com.flipkart.flux.guice.module;
 
+import java.util.Iterator;
+import java.util.Properties;
+
 import com.flipkart.flux.dao.AuditDAOImpl;
 import com.flipkart.flux.dao.EventsDAOImpl;
 import com.flipkart.flux.dao.StateMachinesDAOImpl;
@@ -21,28 +24,35 @@ import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
+import com.flipkart.flux.domain.AuditRecord;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.State;
+import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
-import com.flipkart.flux.guice.provider.ConfigurationProvider;
-import com.flipkart.flux.guice.provider.SessionFactoryProvider;
+import com.flipkart.flux.type.BlobType;
+import com.flipkart.flux.type.StoreFQNType;
+import com.flipkart.polyguice.config.YamlConfiguration;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.inject.matcher.Matchers;
+
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
-import javax.inject.Singleton;
+
 import javax.transaction.Transactional;
 
 /**
  * <code>HibernateModule</code> is a Guice {@link AbstractModule} implementation used for wiring SessionFactory, DAO and Interceptor classes.
  * @author shyam.akirala
+ * @author kartik.bommepally
  */
 public class HibernateModule extends AbstractModule {
 
+    public static final String HIBERNATE_NAME_SPACE = "Hibernate";
+
     @Override
     protected void configure() {
-        //bind hibernate configuration and session factory
-        bind(Configuration.class).toProvider(ConfigurationProvider.class).in(Singleton.class);
-        bind(SessionFactory.class).toProvider(SessionFactoryProvider.class).in(Singleton.class);
-
         //bind entity classes
         bind(AuditDAO.class).to(AuditDAOImpl.class).in(Singleton.class);
         bind(EventsDAO.class).to(EventsDAOImpl.class).in(Singleton.class);
@@ -55,4 +65,49 @@ public class HibernateModule extends AbstractModule {
         bindInterceptor(Matchers.any(), Matchers.annotatedWith(Transactional.class), transactionInterceptor);
     }
 
+    /**
+     * Adds annotated classes and custom types to passed Hibernate configuration.
+     */
+    private void addAnnotatedClassesAndTypes(Configuration configuration) {
+        //register hibernate custom types
+        configuration.registerTypeOverride(new BlobType(), new String[]{"BlobType"});
+        configuration.registerTypeOverride(new StoreFQNType(), new String[]{"StoreFQNOnly"});
+
+        //add annotated classes to configuration
+        configuration.addAnnotatedClass(AuditRecord.class);
+        configuration.addAnnotatedClass(Event.class);
+        configuration.addAnnotatedClass(State.class);
+        configuration.addAnnotatedClass(StateMachine.class);
+    }
+
+    /**
+     * Creates hibernate configuration from the configuration yaml properties.
+     * Since the yaml properties are already flattened in input param <code>yamlConfiguration</code>
+     * the method loops over them to selectively pick Hibernate specific properties.
+     */
+    @Provides
+    @Singleton
+    public Configuration getConfiguration(YamlConfiguration yamlConfiguration) {
+        Configuration configuration = new Configuration();
+        addAnnotatedClassesAndTypes(configuration);
+        org.apache.commons.configuration.Configuration hibernateConfig = yamlConfiguration.subset(HIBERNATE_NAME_SPACE);
+        Iterator<String> propertyKeys = hibernateConfig.getKeys();
+        Properties configProperties = new Properties();
+        while (propertyKeys.hasNext()) {
+            String propertyKey = propertyKeys.next();
+            Object propertyValue = hibernateConfig.getProperty(propertyKey);
+            configProperties.put(propertyKey, propertyValue);
+        }
+        configuration.addProperties(configProperties);
+        return configuration;
+    }
+
+    /**
+     * Provides SessionFactory singleton.
+     */
+    @Provides
+    @Singleton
+    public SessionFactory getSessionFactory(Configuration configuration) {
+        return configuration.buildSessionFactory();
+    }
 }

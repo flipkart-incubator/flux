@@ -13,19 +13,22 @@
 
 package com.flipkart.flux.dao;
 
-import java.io.Serializable;
 import org.junit.Before;
 import org.junit.Test;
+
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.flux.guice.module.HibernateModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
 import junit.framework.Assert;
 
 /**
  * <code>EventsDAOTest</code> class tests the functionality of {@link EventsDAO} using JUnit tests.
  * @author shyam.akirala
+ * @author kartik.bommepally
  */
 public class EventsDAOTest {
 
@@ -33,7 +36,7 @@ public class EventsDAOTest {
 
     @Before
     public void setup() {
-        injector = Guice.createInjector(new HibernateModule());
+        injector = Guice.createInjector(new ConfigModule(), new HibernateModule());
     }
 
     @Test

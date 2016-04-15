@@ -15,19 +15,24 @@ package com.flipkart.flux.dao;
 
 import java.util.HashSet;
 import java.util.Set;
+
 import org.junit.Before;
 import org.junit.Test;
+
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.flux.guice.module.HibernateModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
 import junit.framework.Assert;
 
 /**
  * <code>StateMachinesDAOTest</code> class tests the functionality of {@link StateMachinesDAO} using JUnit tests.
  * @author shyam.akirala
+ * @author kartik.bommepally
  */
 public class StateMachinesDAOTest {
 
@@ -35,7 +40,7 @@ public class StateMachinesDAOTest {
 
     @Before
     public void setup() {
-        injector = Guice.createInjector(new HibernateModule());
+        injector = Guice.createInjector(new ConfigModule(), new HibernateModule());
     }
 
     @Test

@@ -30,5 +30,4 @@ public interface AuditDAO {
 
     /** Retrieves Audit record by it's unique identifier */
     public AuditRecord findById(Long id);
-
 }
