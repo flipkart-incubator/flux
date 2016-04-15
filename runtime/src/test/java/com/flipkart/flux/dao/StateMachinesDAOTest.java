@@ -16,6 +16,7 @@ package com.flipkart.flux.dao;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.flipkart.flux.dao.iface.StatesDAO;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,6 +29,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import junit.framework.Assert;
+
+import javax.transaction.Transactional;
 
 /**
  * <code>StateMachinesDAOTest</code> class tests the functionality of {@link StateMachinesDAO} using JUnit tests.
@@ -44,13 +47,15 @@ public class StateMachinesDAOTest {
     }
 
     @Test
+    @Transactional
     public void createSMTest() {
         StateMachinesDAO stateMachinesDAO = injector.getInstance(StateMachinesDAO.class);
+        StatesDAO statesDAO = injector.getInstance(StatesDAO.class);
         DummyTask task = new DummyTask();
         DummyOnEntryHook onEntryHook = new DummyOnEntryHook();
         DummyOnExitHook onExitHook = new DummyOnExitHook();
-        State<DummyEventData> state1 = new State<DummyEventData>(2L, "state1", "desc1", onEntryHook, task, onExitHook, 3L, 60L);
-        State<DummyEventData> state2 = new State<DummyEventData>(2L, "state2", "desc2", null, null, null, 2L, 50L);
+        State<DummyEventData> state1 = statesDAO.create(new State<DummyEventData>(2L, "state1", "desc1", onEntryHook, task, onExitHook, 3L, 60L));
+        State<DummyEventData> state2 = statesDAO.create(new State<DummyEventData>(2L, "state2", "desc2", null, null, null, 2L, 50L));
         Set<State<DummyEventData>> states = new HashSet<State<DummyEventData>>();
         states.add(state1);
         states.add(state2);
