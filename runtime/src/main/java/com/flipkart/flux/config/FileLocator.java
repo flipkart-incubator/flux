@@ -42,7 +42,8 @@ public class FileLocator {
 	 * The Log instance for this class
 	 */
 	private static final Logger LOGGER = LogManager.getLogger(FileLocator.class);
-	
+
+	// TODO: Keep this injectable config
 	/** The config root folder of Flux */
 	private static final String DEPLOYED_CONFIG_ROOT;
 	static {

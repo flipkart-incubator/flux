@@ -45,6 +45,7 @@ public class DashboardWebAppTest {
     private static Server server;
     private static int port;
 
+    // TODO: Replace this with the GuiceJunit4Runner
     @BeforeClass
     public static void beforeClass() throws Exception {
         injector = Guice.createInjector(new ConfigModule(), new ContainerModule());
