@@ -15,6 +15,8 @@
  */
 package com.flipkart.flux.controller;
 
+import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.stereotype.Controller;
@@ -26,16 +28,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * <code>DashboardController</code> is a Spring MVC Controller for the Dashboard
  * 
  * @author regunath.balasubramanian
- *
+ * @author kartik.bommepally
  */
 @Controller
 public class DashboardController {
-	/** 
-	 * Controller for dashboard
-	 */
-	@RequestMapping(value = {"/dashboard"}, method = RequestMethod.GET)
-	public String dashboard(ModelMap model, HttpServletRequest request) {
-		return "dashboard";
-	}
-	
+    /**
+     * Controller for dashboard
+     */
+    @RequestMapping(value = {"/dashboard"}, method = RequestMethod.GET)
+    public String dashboard(ModelMap model, HttpServletRequest request) {
+        return DASHBOARD_VIEW;
+    }
 }

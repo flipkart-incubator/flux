@@ -16,6 +16,10 @@
 
 package com.flipkart.flux.guice.module;
 
+import static com.flipkart.flux.constant.RuntimeConstants.API_CONTEXT_PATH;
+import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_CONTEXT_PATH;
+import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
+
 import java.io.File;
 import java.util.EnumSet;
 
@@ -38,13 +42,10 @@ import com.google.inject.servlet.GuiceFilter;
  * <code>ContainerModule</code> is a Guice {@link AbstractModule} implementation used for wiring Flux container components.
  * 
  * @author regunath.balasubramanian
+ * @author kartik.bommepally
  *
  */
 public class ContainerModule extends AbstractModule {
-	
-	/** Useful constants for servlet container configuration parts */
-	public static final String DASHBOARD_CONTEXT_PATH = "/admin";
-	public static final String API_CONTEXT_PATH = "/api";
 
 	/**
 	 * Performs concrete bindings for interfaces
@@ -74,7 +75,7 @@ public class ContainerModule extends AbstractModule {
 					break;
 				}
 			} else {
-				if (fileToString.contains("runtime")) {
+				if (fileToString.contains(DASHBOARD_VIEW)) {
 					path = fileToString;
 					break;
 				}
@@ -84,7 +85,7 @@ public class ContainerModule extends AbstractModule {
 		if (path.endsWith("WEB-INF")) {
 			path = path.replace("WEB-INF", "");
 		}
-		WebAppContext webAppContext = new WebAppContext(path, ContainerModule.DASHBOARD_CONTEXT_PATH);
+		WebAppContext webAppContext = new WebAppContext(path, DASHBOARD_CONTEXT_PATH);
 		return webAppContext;
 	}
 	
@@ -97,7 +98,7 @@ public class ContainerModule extends AbstractModule {
 	@Singleton
 	ServletContextHandler getAPIServletContext() {
 		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SECURITY);
-        context.setContextPath(ContainerModule.API_CONTEXT_PATH);
+        context.setContextPath(API_CONTEXT_PATH);
         // now have a Guice filter process all the requests and dispatch it appropriately
         context.addFilter(GuiceFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
         return context;
@@ -113,14 +114,16 @@ public class ContainerModule extends AbstractModule {
 	@Named("DashboardJettyServer")
 	@Provides
 	@Singleton
-	Server getDashboardJettyServer(@Named("dashboard.service.port")int port, 
-			@Named("dashboard.service.acceptors")int acceptorThreads, 
-			@Named("dashboard.service.workers")int maxWorkerThreads, 
-			@Named("DashboardContext")WebAppContext webappContext) {
+	Server getDashboardJettyServer(@Named("Dashboard.service.port") int port,
+			@Named("Dashboard.service.acceptors") int acceptorThreads,
+			@Named("Dashboard.service.selectors") int selectorThreads,
+			@Named("Dashboard.service.workers") int maxWorkerThreads,
+			@Named("DashboardContext") WebAppContext webappContext) {
 		QueuedThreadPool threadPool = new QueuedThreadPool();
         threadPool.setMaxThreads(maxWorkerThreads);
 		Server server = new Server(threadPool);
-		ServerConnector http = new ServerConnector(server,acceptorThreads,port);
+		ServerConnector http = new ServerConnector(server, acceptorThreads, selectorThreads);
+		http.setPort(port);
 		server.addConnector(http);
 		server.setHandler(webappContext);
 		return server;
@@ -136,17 +139,19 @@ public class ContainerModule extends AbstractModule {
 	@Named("APIJettyServer")
 	@Provides
 	@Singleton
-	Server getAPIJettyServer(@Named("api.service.port")int port, 
-			@Named("api.service.acceptors")int acceptorThreads, 
-			@Named("api.service.workers")int maxWorkerThreads,
-			@Named("APIServletContext")ServletContextHandler servletContextHandler) {
-		QueuedThreadPool threadPool = new QueuedThreadPool();
+	Server getAPIJettyServer(@Named("Api.service.port") int port,
+			@Named("Api.service.acceptors") int acceptorThreads,
+            @Named("Api.service.selectors") int selectorThreads,
+			@Named("Api.service.workers") int maxWorkerThreads,
+			@Named("APIServletContext") ServletContextHandler servletContextHandler) {
+	    QueuedThreadPool threadPool = new QueuedThreadPool();
         threadPool.setMaxThreads(maxWorkerThreads);
-		Server server = new Server(threadPool);
-		ServerConnector http = new ServerConnector(server,acceptorThreads,port);
-		server.addConnector(http);
-		server.setHandler(servletContextHandler);
-		return server;
+        Server server = new Server(threadPool);
+	    ServerConnector http = new ServerConnector(server, acceptorThreads, selectorThreads);
+        http.setPort(port);
+        server.addConnector(http);
+        server.setHandler(servletContextHandler);
+        return server;
 	}
 
 }

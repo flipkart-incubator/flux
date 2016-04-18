@@ -17,18 +17,27 @@ package com.flipkart.flux.constant;
  * The <code>RuntimeConstants</code> class is a placeholder for all runtime framework constants.
  * 
  * @author regunath.balasubramanian
+ * @author kartik.bommepally
  *
  */
 public class RuntimeConstants {
 
-	/**
-	 * Constant to identify the resource folder names under different projects
-	 */
-	public static final String RESOURCES_SUFFIX = "resources";
-	public static final String EXTERNAL_RESOURCES_SUFFIX = "external";	
+    /** Useful constants for servlet container configuration parts */
+    public static final String DASHBOARD_CONTEXT_PATH = "/admin";
+    public static final String API_CONTEXT_PATH = "/api";
 
     /**
-     * Configration yml resource path.
+     * Root for all the configs.
      */
-    public static final String CONFIGURATION_YML = "packaged/configuration.yml";
+    public static final String CONFIG_ROOT = "packaged";
+
+   /**
+     * Root for dashboard webapp configs.
+     */
+    public static final String DASHBOARD_VIEW = "dashboard";
+
+    /**
+     * Configuration yml resource path.
+     */
+    public static final String CONFIGURATION_YML = CONFIG_ROOT + "/configuration.yml";
 }
