@@ -54,6 +54,7 @@
         <akka.version>2.4.1</akka.version>
         <kamon.version>0.6.0</kamon.version>
         <log4j.version>2.5</log4j.version>
+        <lombok.version>1.16.6</lombok.version>
     </properties>
 
     <modules>
@@ -63,6 +64,7 @@
         <module>task</module>
         <module>client</module>
         <module>examples</module>
+        <module>commons</module>
     </modules>
 
 </project>
