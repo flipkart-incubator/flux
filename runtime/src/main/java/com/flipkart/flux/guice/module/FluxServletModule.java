@@ -23,7 +23,7 @@ import com.google.inject.servlet.ServletModule;
 /**
  * <code>FluxServletModule</code> is a Guice {@link AbstractModule} implementation used for wiring Flux servlets, specifically the ones
  * used to service the API endpoint(s).
- * 
+ *
  * @author regunath.balasubramanian
  *
  */
@@ -31,7 +31,7 @@ public class FluxServletModule extends ServletModule {
 
 	/** Useful constants for servlet container configuration parts */
 	public static final String FSM_SERVLET_PATH = "/fsm";
-	
+
 	/**
 	 * Configures servlets to be registered via Guice.
 	 * @see com.google.inject.servlet.ServletModule#configureServlets()
