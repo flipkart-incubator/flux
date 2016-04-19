@@ -13,11 +13,6 @@
 
 package com.flipkart.flux.resource;
 
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-
 import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
@@ -25,12 +20,17 @@ import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.google.inject.Inject;
 
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * @understands Exposes APIs for end users
  */
+@Path("/api")
 public class StateMachineResource<T> {
 
     @Inject
@@ -42,7 +42,7 @@ public class StateMachineResource<T> {
      * @return unique machineId of the instantiated state machine
      */
     @POST
-    @Path("/machines")
+    @Path("/fsm")
     public String createStateMachine(StateMachineDefinition<T> stateMachineDefinition) {
         // 1. Convert to StateMachine (domain object) and save in DB
         StateMachine stateMachine = persistStateMachine(stateMachineDefinition);
@@ -63,7 +63,7 @@ public class StateMachineResource<T> {
      */
 
     @POST
-    @Path("/machines/{machineId}/context/events/{eventFqn}")
+    @Path("/fsm/{machineId}/context/events/{eventFqn}")
     public void submitEvent(@PathParam("machineId") Long machineId,
                             @PathParam("eventFqn") String eventFqn,
                             String eventDataJson
@@ -80,7 +80,7 @@ public class StateMachineResource<T> {
      */
 
     @PUT
-    @Path("/machines/{machineId}/cancel")
+    @Path("/fsm/{machineId}/cancel")
     public void cancelExecution(@PathParam("machineId") Long machineId) {
         // Trigger cancellation on all currently executing states
     }
