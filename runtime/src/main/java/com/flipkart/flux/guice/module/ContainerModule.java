@@ -18,9 +18,14 @@ package com.flipkart.flux.guice.module;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.config.FileLocator;
+import com.flipkart.flux.constant.RuntimeConstants;
+import com.flipkart.flux.resource.FluxUIResource;
+import com.flipkart.flux.resource.StateMachineResource;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -31,17 +36,16 @@ import javax.ws.rs.core.UriBuilder;
 import java.io.File;
 import java.net.URISyntaxException;
 
+import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
+
 /**
  * <code>ContainerModule</code> is a Guice {@link AbstractModule} implementation used for wiring Flux container components.
  * 
  * @author regunath.balasubramanian
+ * @author kartik.bommepally
  *
  */
 public class ContainerModule extends AbstractModule {
-	
-	/** Useful constants for servlet container configuration parts */
-	public static final String DASHBOARD_CONTEXT_PATH = "http://admin";
-	public static final String API_CONTEXT_PATH = "http://api";
 
 	/**
 	 * Performs concrete bindings for interfaces
@@ -49,8 +53,9 @@ public class ContainerModule extends AbstractModule {
 	 */
 	@Override
 	protected void configure() {
+
 	}
-	
+
 	/**
 	 * Creates a Jetty {@link WebAppContext} for the Flux dashboard
 	 * @return Jetty WebAppContext
@@ -71,7 +76,7 @@ public class ContainerModule extends AbstractModule {
 					break;
 				}
 			} else {
-				if (fileToString.contains("runtime")) {
+				if (fileToString.contains(DASHBOARD_VIEW)) {
 					path = fileToString;
 					break;
 				}
@@ -81,36 +86,60 @@ public class ContainerModule extends AbstractModule {
 		if (path.endsWith("WEB-INF")) {
 			path = path.replace("WEB-INF", "");
 		}
-		WebAppContext webAppContext = new WebAppContext(path, ContainerModule.DASHBOARD_CONTEXT_PATH);
+		WebAppContext webAppContext = new WebAppContext(path, RuntimeConstants.DASHBOARD_CONTEXT_PATH);
 		return webAppContext;
 	}
-
 	
 	/**
 	 * Creates the Jetty server instance for the admin Dashboard and configures it with the @Named("DashboardContext").
 	 * @param port where the service is available
+	 * @param acceptorThreads no. of acceptors
+	 * @param maxWorkerThreads max no. of worker threads
 	 * @return Jetty Server instance
 	 */
 	@Named("DashboardJettyServer")
 	@Provides
 	@Singleton
-	Server getDashboardJettyServer(@Named("dashboard.service.port")int port,
-								   @Named("DashboardResourceConfig") ResourceConfig resourceConfig) {
-		return JettyHttpContainerFactory.createServer(UriBuilder.fromUri(DASHBOARD_CONTEXT_PATH).port(port).build(), resourceConfig);
-
+	Server getDashboardJettyServer(@Named("Dashboard.service.port") int port,
+			@Named("Dashboard.service.acceptors") int acceptorThreads,
+			@Named("Dashboard.service.selectors") int selectorThreads,
+			@Named("Dashboard.service.workers") int maxWorkerThreads,
+			@Named("DashboardContext") WebAppContext webappContext) {
+		QueuedThreadPool threadPool = new QueuedThreadPool();
+        threadPool.setMaxThreads(maxWorkerThreads);
+		Server server = new Server(threadPool);
+		ServerConnector http = new ServerConnector(server, acceptorThreads, selectorThreads);
+		http.setPort(port);
+		server.addConnector(http);
+		server.setHandler(webappContext);
+		return server;
 	}
 
 	/**
-	 * Creates the Jetty server instance for the Flux API endpoint and configures it with the @Named("APIServletContext").  
-	 * @param port where the service is available
+	 * Creates the Jetty server instance for the Flux API endpoint.
+	 * @param port where the service is available.
+	 * @param baseURL base url where the service is located.
 	 * @return Jetty Server instance
 	 */
 	@Named("APIJettyServer")
 	@Provides
 	@Singleton
-	Server getAPIJettyServer(@Named("api.service.port")int port,
+	Server getAPIJettyServer(@Named("Api.service.port") int port,
+							 @Named("Api.service.baseURL") String baseURL,
 							 @Named("APIResourceConfig")ResourceConfig resourceConfig) throws URISyntaxException {
-		return JettyHttpContainerFactory.createServer(UriBuilder.fromUri(API_CONTEXT_PATH).port(port).build(), resourceConfig);
+		return JettyHttpContainerFactory.createServer(UriBuilder.fromUri(baseURL+ RuntimeConstants.API_CONTEXT_PATH).port(port).build(), resourceConfig);
+	}
+
+
+	@Named("APIResourceConfig")
+	@Singleton
+	@Provides
+	public ResourceConfig getAPIResourceConfig(FluxUIResource fluxUIResource,
+											   StateMachineResource stateMachineResource) {
+		ResourceConfig resourceConfig = new ResourceConfig();
+		resourceConfig.register(fluxUIResource);
+		resourceConfig.register(stateMachineResource);
+		return resourceConfig;
 	}
 
 	//may not be the right module class for this. may need to be moved later.

@@ -7,7 +7,9 @@ import com.flipkart.flux.commons.dto.WorkFlowStateSummary;
 import com.flipkart.flux.commons.dto.WorkFlowStatesDetail;
 import com.flipkart.flux.commons.dto.WorkflowSummary;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
+import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -18,6 +20,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 @Path("/api/teams")
+@Named
+@Singleton
 public class FluxUIResource {
 
     private final FluxRunTimeService fluxRunTimeService;
@@ -35,7 +39,6 @@ public class FluxUIResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{teamName}/workflows/summary")
     public Response getSummary(@PathParam("teamName") String teamName) {
-
         try {
             WorkflowSummary workflowSummary = fluxRunTimeService.getTeamWorkFloWSummary(teamName);
             String response = objectMapper.writeValueAsString(workflowSummary);
@@ -73,7 +76,7 @@ public class FluxUIResource {
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("{teamName}/workflows/{workflowName}/{version}/{state}/summary")
+    @Path("{teamName}/workflows/{workflowName}/{version}/{state}")
     public Response getStateDetail(@PathParam("teamName") String teamName,
                                    @PathParam("workflowName") String workflowName,
                                    @PathParam("version") String version,

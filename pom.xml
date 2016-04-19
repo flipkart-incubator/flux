@@ -43,7 +43,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jdk.version>1.8</jdk.version>
-        <maven-compiler-plugin.version>2.0.2</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
         <maven-jar-plugin.version>2.2</maven-jar-plugin.version>
         <junit.version>4.7</junit.version>
         <hibernate.version>5.1.0.Final</hibernate.version>
@@ -54,7 +54,8 @@
         <akka.version>2.4.1</akka.version>
         <kamon.version>0.6.0</kamon.version>
         <log4j.version>2.5</log4j.version>
-        <lombok.version>1.16.6</lombok.version>
+        <lombok.version>1.16.8</lombok.version>
+        <jackson.version>2.7.3</jackson.version>
     </properties>
 
     <modules>

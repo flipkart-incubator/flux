@@ -15,13 +15,13 @@
  */
 package com.flipkart.flux.config;
 
+import static com.flipkart.flux.constant.RuntimeConstants.CONFIG_ROOT;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
-
-import javax.inject.Inject;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,7 +33,8 @@ import com.flipkart.flux.constant.RuntimeConstants;
 * The <code>FileLocator</code> is a utility for locating configuration files deployed under the projects root. This class provides methods to locate
 * all occurrences of a file with the specified name. This class looks into specific directories under the project root folder to locate files.
 *  
-* @author regunath.balasubramanian 
+* @author regunath.balasubramanian
+* @author kartik.bommepally 
 */
 public class FileLocator {
 	
@@ -41,10 +42,13 @@ public class FileLocator {
 	 * The Log instance for this class
 	 */
 	private static final Logger LOGGER = LogManager.getLogger(FileLocator.class);
-	
-	/** The root folder where Flux runtime is deployed*/
-	@Inject
-	private static String deploymentRoot;
+
+	// TODO: Keep this injectable config
+	/** The config root folder of Flux */
+	private static final String DEPLOYED_CONFIG_ROOT;
+	static {
+	    DEPLOYED_CONFIG_ROOT = FileLocator.class.getClassLoader().getResource(CONFIG_ROOT).getPath();
+	}
 
 	/**
 	 * Finds the unique instance of config file with name as the specified string.
@@ -140,7 +144,7 @@ public class FileLocator {
 	 *                    if false, find only file.
 	 * @return array of matching files. May be an empty array if no matching files are found
 	 */
-	private static File[] findFiles(String fileName,String path, boolean isDirectory) {
+    private static File[] findFiles(String fileName,String path, boolean isDirectory) {
 		// Create the root folder to search files from using projects root
 		// available in RuntimeVariables
 		
@@ -151,10 +155,10 @@ public class FileLocator {
 			if (pathFile.isAbsolute() || pathFile.isDirectory()) { // use the path as-is if it is absolute or a directory by itself
 				projectRootFolder = pathFile;
 			} else {
-				projectRootFolder = new File(deploymentRoot,path);
+				projectRootFolder = new File(DEPLOYED_CONFIG_ROOT,path);
 			}
 		} else {
-			projectRootFolder = new File(deploymentRoot);
+			projectRootFolder = new File(DEPLOYED_CONFIG_ROOT);
 		}
 		ArrayList<File> locatedFiles = new ArrayList<File>();
 		locateFiles(fileName, locatedFiles, projectRootFolder, false, isDirectory);
@@ -190,10 +194,7 @@ public class FileLocator {
 		if (file.exists()) {
 			if (file.isDirectory()) {
 				if (!isConfigFolder) {
-					String fileNameUpper = file.getName().toUpperCase();
-					String fileParentUpper = file.getParent().toUpperCase();
-					isConfigFolder = (fileParentUpper.endsWith(RuntimeConstants.RESOURCES_SUFFIX.toUpperCase()) && 
-							fileNameUpper.equalsIgnoreCase(RuntimeConstants.EXTERNAL_RESOURCES_SUFFIX));
+					isConfigFolder = file.getName().equalsIgnoreCase(RuntimeConstants.CONFIG_ROOT);
 				}
 				File[] files = file.listFiles();
 				for (int i = 0; i < files.length; i++) {

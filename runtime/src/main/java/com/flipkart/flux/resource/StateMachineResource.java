@@ -20,6 +20,7 @@ import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.google.inject.Inject;
 
+import javax.inject.Named;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -31,6 +32,7 @@ import java.util.Set;
  * @understands Exposes APIs for end users
  */
 @Path("/api")
+@Named
 public class StateMachineResource<T> {
 
     @Inject
@@ -43,7 +45,7 @@ public class StateMachineResource<T> {
      */
     @POST
     @Path("/fsm")
-    public String createStateMachine(StateMachineDefinition<T> stateMachineDefinition) {
+    public String createStateMachine(StateMachineDefinition stateMachineDefinition) {
         // 1. Convert to StateMachine (domain object) and save in DB
         StateMachine stateMachine = persistStateMachine(stateMachineDefinition);
 

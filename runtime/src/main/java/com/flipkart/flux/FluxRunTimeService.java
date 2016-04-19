@@ -3,10 +3,9 @@ package com.flipkart.flux;
 import com.flipkart.flux.commons.dto.WorkFlowStateSummary;
 import com.flipkart.flux.commons.dto.WorkFlowStatesDetail;
 import com.flipkart.flux.commons.dto.WorkflowSummary;
-import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.google.inject.Inject;
 
 import javax.inject.Named;
+import javax.inject.Singleton;
 
 
 /**
@@ -14,16 +13,8 @@ import javax.inject.Named;
  *
  */
 @Named
+@Singleton
 public class FluxRunTimeService {
-
-    private final StateMachinesDAO stateMachinesDAO;
-
-    @Inject
-    public FluxRunTimeService(StateMachinesDAO stateMachinesDAO) {
-        this.stateMachinesDAO = stateMachinesDAO;
-    }
-
-
 
     public WorkflowSummary getTeamWorkFloWSummary(String teamName) {
         //todo
