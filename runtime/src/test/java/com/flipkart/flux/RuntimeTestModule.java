@@ -18,7 +18,7 @@ import com.flipkart.flux.guice.module.HibernateModule;
 import com.google.inject.AbstractModule;
 
 /**
- * <code>RuntimeTestModule</code> is a Guice module binds modules which required to run tests.
+ * <code>RuntimeTestModule</code> is a Guice module binds modules which are required to run tests.
  * @author shyam.akirala
  */
 public class RuntimeTestModule extends AbstractModule{

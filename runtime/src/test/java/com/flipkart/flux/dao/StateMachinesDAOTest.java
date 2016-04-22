@@ -75,6 +75,7 @@ public class StateMachinesDAOTest {
         Assert.assertNotNull(stateMachine1);
     }
 
+    /** Test creation of State machine from state machine definition */
     @Test @SuppressWarnings("unchecked")
     public void createSMDTest() {
         EventDefinition eventDefinition1 = new EventDefinition("event1");
