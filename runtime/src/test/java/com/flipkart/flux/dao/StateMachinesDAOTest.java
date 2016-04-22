@@ -25,7 +25,7 @@ import com.flipkart.flux.rules.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import junit.framework.Assert;
 import org.junit.Before;
-import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -43,8 +43,8 @@ import java.util.Set;
 public class StateMachinesDAOTest {
 
     @Inject
-    @ClassRule
-    public static DbClearRule dbClearRule;
+    @Rule
+    public DbClearRule dbClearRule;
 
     @Inject
     StateMachinesDAO stateMachinesDAO;
@@ -63,12 +63,12 @@ public class StateMachinesDAOTest {
         DummyTask task = new DummyTask();
         DummyOnEntryHook onEntryHook = new DummyOnEntryHook();
         DummyOnExitHook onExitHook = new DummyOnExitHook();
-        State<DummyEventData> state1 = statesDAO.create(new State<>(2L, "state1", "desc1", onEntryHook, task, onExitHook, 3L, 60L));
-        State<DummyEventData> state2 = statesDAO.create(new State<>(2L, "state2", "desc2", null, null, null, 2L, 50L));
+        State<DummyEventData> state1 = statesDAO.create(new State<>(2L, "state1__", "desc1", onEntryHook, task, onExitHook, 3L, 60L));
+        State<DummyEventData> state2 = statesDAO.create(new State<>(2L, "state2__", "desc2", null, null, null, 2L, 50L));
         Set<State<DummyEventData>> states = new HashSet<>();
         states.add(state1);
         states.add(state2);
-        StateMachine<DummyEventData> stateMachine = new StateMachine<>(2L, "SM_name", "SM_desc", states);
+        StateMachine<DummyEventData> stateMachine = new StateMachine<>(2L, "SM_name_", "SM_desc_", states);
         String savedSMId = stateMachinesDAO.create(stateMachine).getId();
 
         StateMachine stateMachine1 = stateMachinesDAO.findById(savedSMId);
@@ -84,12 +84,12 @@ public class StateMachinesDAOTest {
         eventSet1.add(eventDefinition1);
         Set eventSet2 = new HashSet<>();
         eventSet2.add(eventDefinition2);
-        StateDefinition stateDefinition1 = new StateDefinition(1L, "state1", "desc1", new DummyOnEntryHook(), new DummyTask(), new DummyOnExitHook(), 0L, 60L, eventSet1);
-        StateDefinition stateDefinition2 = new StateDefinition(1L, "state2", "desc2", new DummyOnEntryHook(), new DummyTask(), new DummyOnExitHook(), 0L, 60L, eventSet2);
+        StateDefinition stateDefinition1 = new StateDefinition(1L, "state1_", "desc1_", new DummyOnEntryHook(), new DummyTask(), new DummyOnExitHook(), 0L, 60L, eventSet1);
+        StateDefinition stateDefinition2 = new StateDefinition(1L, "state2_", "desc2_", new DummyOnEntryHook(), new DummyTask(), new DummyOnExitHook(), 0L, 60L, eventSet2);
         Set stateSet = new HashSet<>();
         stateSet.add(stateDefinition1);
         stateSet.add(stateDefinition2);
-        StateMachineDefinition stateMachineDefinition = new StateMachineDefinition(1L, "SMD_name", "SMD_desc", stateSet);
+        StateMachineDefinition stateMachineDefinition = new StateMachineDefinition(1L, "SMD_name_", "SMD_desc_", stateSet);
 
         String stateMachineId = domainTypeCreator.createStateMachine(stateMachineDefinition).getId();
 
