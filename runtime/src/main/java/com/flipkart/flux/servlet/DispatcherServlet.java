@@ -16,6 +16,8 @@
 
 package com.flipkart.flux.servlet;
 
+import static com.flipkart.flux.constant.RuntimeConstants.API_CONTEXT_PATH;
+
 import java.io.IOException;
 
 import javax.servlet.ServletException;
@@ -23,7 +25,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.FluxServletModule;
 import com.google.inject.Singleton;
 
@@ -69,7 +70,7 @@ public class DispatcherServlet extends HttpServlet {
 	 */
 	private Pair<String,String> parseEntityAction(HttpServletRequest request) {
 		String requestURI = request.getRequestURI();
-		String leadingPrefix = ContainerModule.API_CONTEXT_PATH + FluxServletModule.FSM_SERVLET_PATH + "/";
+		String leadingPrefix = API_CONTEXT_PATH + FluxServletModule.FSM_SERVLET_PATH + "/";
 		String entityAction = requestURI.substring(leadingPrefix.length());
 		// remaining part has just the entity name and action identifiers separated by "/"
 		String entity = entityAction.substring(0, entityAction.indexOf("/"));

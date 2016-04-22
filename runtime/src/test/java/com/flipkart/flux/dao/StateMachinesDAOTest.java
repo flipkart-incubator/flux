@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -57,7 +58,7 @@ public class StateMachinesDAOTest {
     @Before
     public void setup() {}
 
-    @Test @SuppressWarnings("unchecked")
+    @Test @Transactional
     public void createSMTest() {
         DummyTask task = new DummyTask();
         DummyOnEntryHook onEntryHook = new DummyOnEntryHook();
