@@ -26,41 +26,47 @@ import org.junit.rules.ExternalResource;
 import javax.inject.Inject;
 
 /**
+ * <code>DbClearRule</code> is a Junit Rule which clears db tables before running a test.
  * @author shyam.akirala
  */
 public class DbClearRule extends ExternalResource{
 
-    @Inject
     private SessionFactory sessionFactory;
 
+    /** List of entity tables which need to be cleared*/
     private static Class[] tables = {StateMachine.class, State.class, AuditRecord.class, Event.class};
+
+    @Inject
+    public DbClearRule(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
 
     @Override
     protected void before() throws Throwable {
-        super.before();
         clearDb();
     }
 
+    /** Clears all the tables which are mentioned in the tables array*/
     private void clearDb() {
         Session session = sessionFactory.openSession();
         ManagedSessionContext.bind(session);
         Transaction tx = session.beginTransaction();
         try {
-
             sessionFactory.getCurrentSession().createSQLQuery("set foreign_key_checks=0").executeUpdate();
-
             for (Class anEntity : tables) {
-                sessionFactory.getCurrentSession().createSQLQuery("delete from " + anEntity.getSimpleName() + "s").executeUpdate();
+                sessionFactory.getCurrentSession().createSQLQuery("delete from " + anEntity.getSimpleName() + "s").executeUpdate(); //table name is plural form of class name, so appending 's'
             }
-
             sessionFactory.getCurrentSession().createSQLQuery("set foreign_key_checks=1").executeUpdate();
             tx.commit();
+        } catch (Exception e) {
+            if(tx != null)
+                tx.rollback();
+            throw new RuntimeException("Unable to clear tables. Exception: "+e.getMessage(), e);
         } finally {
             if(session != null) {
                 ManagedSessionContext.unbind(sessionFactory);
                 session.close();
             }
-
         }
     }
 }

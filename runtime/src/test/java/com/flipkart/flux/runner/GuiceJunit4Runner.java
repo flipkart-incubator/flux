@@ -23,6 +23,7 @@ import org.junit.runners.model.InitializationError;
 import java.io.IOException;
 
 /**
+ * <code>GuiceJunit4Runner</code> provides guice injection capabilities to a test class instance
  * @author shyam.akirala
  */
 public class GuiceJunit4Runner extends BlockJUnit4ClassRunner {

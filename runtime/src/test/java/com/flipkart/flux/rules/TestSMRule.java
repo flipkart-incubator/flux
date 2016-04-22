@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * <code>TestSMRule</code> is a Junit Rule which creates a state machine.
  * @author shyam.akirala
  */
 public class TestSMRule extends ExternalResource {
@@ -37,8 +38,10 @@ public class TestSMRule extends ExternalResource {
 
     private final StatesDAO statesDAO;
 
+    /** Id of test state machine instance*/
     private String stateMachineId;
 
+    /** Id of test state*/
     private String stateId;
 
     @Inject

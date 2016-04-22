@@ -18,6 +18,7 @@ import org.junit.rules.ExternalResource;
 import javax.inject.Inject;
 
 /**
+ * <code>DbClearWithTestSMRule</code> is a Junit Rule which clears db tables before running a test and also creates a test state machine for testing purpose.
  * @author shyam.akirala
  */
 public class DbClearWithTestSMRule extends ExternalResource {
@@ -30,14 +31,19 @@ public class DbClearWithTestSMRule extends ExternalResource {
 
     @Override
     protected void before() throws Throwable{
+        //clear db
         dbClearRule.before();
+
+        //create state machine for test purpose
         testSMRule.before();
     }
 
+    /** Returns test state machine instance id*/
     public String getStateMachineId() {
         return this.testSMRule.getStateMachineId();
     }
 
+    /** Returns test state id*/
     public String getStateId() {
         return this.testSMRule.getStateId();
     }

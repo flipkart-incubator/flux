@@ -13,27 +13,22 @@
 
 package com.flipkart.flux.resource;
 
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-
-import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
-import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.representation.DomainTypeCreator;
 import com.google.inject.Inject;
 
-import java.util.HashSet;
-import java.util.Set;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 
 /**
  * @understands Exposes APIs for end users
  */
 public class StateMachineResource<T> {
 
+    /** Instance of {@link DomainTypeCreator} which converts entity definition to domain object*/
     @Inject
     DomainTypeCreator domainTypeCreator;
 
