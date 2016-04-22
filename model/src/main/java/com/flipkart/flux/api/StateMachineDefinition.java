@@ -36,7 +36,8 @@ public class StateMachineDefinition<T> {
     private Set<StateDefinition<T>> states;
     
     /** Constructor */
-    public StateMachineDefinition(String description, String name, Set<StateDefinition<T>> states) {
+    public StateMachineDefinition(Long version, String name, String description, Set<StateDefinition<T>> states) {
+        this.version = version;
         this.description = description;
         this.name = name;
         this.states = states;

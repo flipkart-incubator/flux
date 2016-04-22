@@ -23,6 +23,7 @@ import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.representation.DomainTypeCreator;
 import com.google.inject.Inject;
 
 import java.util.HashSet;
@@ -34,7 +35,7 @@ import java.util.Set;
 public class StateMachineResource<T> {
 
     @Inject
-    StateMachinesDAO stateMachinesDAO;
+    DomainTypeCreator domainTypeCreator;
 
     /**
      * Will instantiate a state machine in the flux execution engine
@@ -45,7 +46,7 @@ public class StateMachineResource<T> {
     @Path("/machines")
     public String createStateMachine(StateMachineDefinition<T> stateMachineDefinition) {
         // 1. Convert to StateMachine (domain object) and save in DB
-        StateMachine stateMachine = persistStateMachine(stateMachineDefinition);
+        StateMachine stateMachine = domainTypeCreator.createStateMachine(stateMachineDefinition);
 
         // 2. workFlowExecutionController.init(stateMachine_domainObject)
 
@@ -84,37 +85,4 @@ public class StateMachineResource<T> {
     public void cancelExecution(@PathParam("machineId") Long machineId) {
         // Trigger cancellation on all currently executing states
     }
-
-    /**
-     * converts state machine definition to state machine domain object and saves in db
-     */
-    private StateMachine persistStateMachine(StateMachineDefinition<T> stateMachineDefinition) {
-
-        Set<StateDefinition<T>> stateDefinitions = stateMachineDefinition.getStates();
-        Set<State<T>> states = new HashSet<State<T>>();
-
-        for(StateDefinition<T> stateDefinition : stateDefinitions) {
-            states.add(convertStateDefinitionToState(stateDefinition));
-        }
-
-        StateMachine<T> stateMachine = new StateMachine<T>(stateMachineDefinition.getVersion(),
-                stateMachineDefinition.getName(),
-                stateMachineDefinition.getDescription(),
-                states);
-
-        return stateMachinesDAO.create(stateMachine);
-    }
-
-    private State<T> convertStateDefinitionToState(StateDefinition<T> stateDefinition) {
-        State<T> state = new State<T>(stateDefinition.getVersion(),
-                stateDefinition.getName(),
-                stateDefinition.getDescription(),
-                stateDefinition.getOnEntryHook(),
-                stateDefinition.getTask(),
-                stateDefinition.getOnExitHook(),
-                stateDefinition.getRetryCount(),
-                stateDefinition.getTimeout());
-        return state;
-    }
-
 }
