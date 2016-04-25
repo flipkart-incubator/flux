@@ -13,11 +13,6 @@
 
 package com.flipkart.flux.resource;
 
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-
 import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
@@ -25,6 +20,10 @@ import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.google.inject.Inject;
 
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -43,7 +42,7 @@ public class StateMachineResource<T> {
      */
     @POST
     @Path("/machines")
-    public String createStateMachine(StateMachineDefinition<T> stateMachineDefinition) {
+    public Long createStateMachine(StateMachineDefinition<T> stateMachineDefinition) {
         // 1. Convert to StateMachine (domain object) and save in DB
         StateMachine stateMachine = persistStateMachine(stateMachineDefinition);
 

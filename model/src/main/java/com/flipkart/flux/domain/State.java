@@ -13,11 +13,9 @@
 
 package com.flipkart.flux.domain;
 
-import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
-
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -35,10 +33,9 @@ import java.util.List;
 @Table(name = "States")
 public class State<T> {
 
-    /** UUID to identify this state*/
-    @Id @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    private String id;
+    /** Unique identifier of the state*/
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     /* Defined by the User */
     /** Version for this State*/
@@ -48,7 +45,7 @@ public class State<T> {
     /** Description for this State*/
     private String description;
     /** Id of the State Machine to which this State belongs*/
-    private String stateMachineId;
+    private Long stateMachineId;
     /** Hook that is executed on entry of this State, must be a public class*/
     @Type(type = "StoreFQNOnly")
     private Hook<T> onEntryHook;
@@ -114,7 +111,7 @@ public class State<T> {
     }
 
     /** Accessor/Mutator methods*/
-    public String getId() {
+    public Long getId() {
         return id;
     }
     public Long getVersion() {
@@ -135,10 +132,10 @@ public class State<T> {
     public void setDescription(String description) {
         this.description = description;
     }
-    public String getStateMachineId() {
+    public Long getStateMachineId() {
         return stateMachineId;
     }
-    public void setStateMachineId(String stateMachineId) {
+    public void setStateMachineId(Long stateMachineId) {
         this.stateMachineId = stateMachineId;
     }
     public Hook<T> getOnEntryHook() {

@@ -38,7 +38,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
-    public State findById(String id) {
+    public State findById(Long id) {
         return super.findById(State.class, id);
     }
 }

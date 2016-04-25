@@ -43,7 +43,7 @@ public class EventsDAOTest {
     public void createEventTest() {
         EventsDAO eventsDAO = injector.getInstance(EventsDAO.class);
         DummyEventData data = new DummyEventData("event_dat");
-        Event<DummyEventData> event = new Event("test_name","test_type", Event.EventStatus.pending,"test_state_machine_instance_id", data,"internal_event");
+        Event<DummyEventData> event = new Event("test_name","test_type", Event.EventStatus.pending,1L, data,"internal_event");
         Long eventId = eventsDAO.create(event).getId();
 
         Event event1 = eventsDAO.findById(eventId);

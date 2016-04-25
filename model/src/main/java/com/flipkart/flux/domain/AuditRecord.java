@@ -30,10 +30,10 @@ public class AuditRecord {
     private Long id;
 
     /** Instance id of the state machine to which this audit belongs */
-    private String stateMachineInstanceId;
+    private Long stateMachineInstanceId;
 
     /** The State identifier to which this audit belongs */
-    private String stateId;
+    private Long stateId;
 
     /** The State execution retry count */
     private int retryAttempt;
@@ -54,7 +54,7 @@ public class AuditRecord {
 
     /** Constructors */
     protected AuditRecord(){}
-    public AuditRecord(String stateMachineInstanceId, String stateId, int retryAttempt, Status stateStatus, Status stateRollbackStatus,
+    public AuditRecord(Long stateMachineInstanceId, Long stateId, int retryAttempt, Status stateStatus, Status stateRollbackStatus,
                        String errors) {
         this.stateMachineInstanceId = stateMachineInstanceId;
         this.stateId = stateId;
@@ -68,16 +68,16 @@ public class AuditRecord {
     public Long getId() {
         return id;
     }
-    public String getStateMachineInstanceId() {
+    public Long getStateMachineInstanceId() {
         return stateMachineInstanceId;
     }
-    public void setStateMachineInstanceId(String stateMachineInstanceId) {
+    public void setStateMachineInstanceId(Long stateMachineInstanceId) {
         this.stateMachineInstanceId = stateMachineInstanceId;
     }
-    public String getStateId() {
+    public Long getStateId() {
         return stateId;
     }
-    public void setStateId(String stateId) {
+    public void setStateId(Long stateId) {
         this.stateId = stateId;
     }
     public int getRetryAttempt() {

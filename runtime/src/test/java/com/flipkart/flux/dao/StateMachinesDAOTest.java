@@ -13,24 +13,21 @@
 
 package com.flipkart.flux.dao;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import com.flipkart.flux.dao.iface.StatesDAO;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.flux.guice.module.HibernateModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
 import junit.framework.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 import javax.transaction.Transactional;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * <code>StateMachinesDAOTest</code> class tests the functionality of {@link StateMachinesDAO} using JUnit tests.
@@ -60,7 +57,7 @@ public class StateMachinesDAOTest {
         states.add(state1);
         states.add(state2);
         StateMachine<DummyEventData> stateMachine = new StateMachine<DummyEventData>(2L, "test_name", "test_desc", states);
-        String savedSMId = stateMachinesDAO.create(stateMachine).getId();
+        Long savedSMId = stateMachinesDAO.create(stateMachine).getId();
 
         StateMachine stateMachine1 = stateMachinesDAO.findById(savedSMId);
         Assert.assertNotNull(stateMachine1);

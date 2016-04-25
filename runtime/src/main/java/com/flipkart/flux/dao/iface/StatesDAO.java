@@ -25,5 +25,5 @@ public interface StatesDAO {
     State create(State state);
 
     /** Retrieves a state by it's unique identifier*/
-    State findById(String id);
+    State findById(Long id);
 }

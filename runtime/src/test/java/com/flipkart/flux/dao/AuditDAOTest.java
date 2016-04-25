@@ -43,7 +43,7 @@ public class AuditDAOTest {
     @Test
     public void createAuditRecordTest() {
         AuditDAO auditDAO = injector.getInstance(AuditDAO.class);
-        AuditRecord auditRecord = new AuditRecord("test_state_machine_instance_id", "abcd-xyz", 0, Status.running, null, null);
+        AuditRecord auditRecord = new AuditRecord(1L, 10L, 0, Status.running, null, null);
         Long recordId = auditDAO.create(auditRecord).getId();
 
         AuditRecord auditRecord1 = auditDAO.findById(recordId);
