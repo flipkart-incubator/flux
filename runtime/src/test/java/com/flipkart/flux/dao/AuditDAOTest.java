@@ -16,34 +16,37 @@ package com.flipkart.flux.dao;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Status;
-import com.flipkart.flux.guice.module.ConfigModule;
-import com.flipkart.flux.guice.module.HibernateModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-
+import com.flipkart.flux.rules.DbClearWithTestSMRule;
+import com.flipkart.flux.runner.GuiceJunit4Runner;
 import junit.framework.Assert;
-
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import javax.inject.Inject;
 
 /**
  * <code>AuditDAOTest</code> class tests the functionality of {@link AuditDAO} using JUnit tests.
  * @author shyam.akirala
  * @author kartik.bommepally
  */
+@RunWith(GuiceJunit4Runner.class)
 public class AuditDAOTest {
 
-    private Injector injector;
+    @Inject
+    AuditDAO auditDAO;
+
+    @Inject
+    @Rule
+    public DbClearWithTestSMRule dbClearWithTestSMRule;
 
     @Before
-    public void setup() {
-        injector = Guice.createInjector(new ConfigModule(), new HibernateModule());
-    }
+    public void setup() {}
 
     @Test
     public void createAuditRecordTest() {
-        AuditDAO auditDAO = injector.getInstance(AuditDAO.class);
-        AuditRecord auditRecord = new AuditRecord(1L, 10L, 0, Status.running, null, null);
+        AuditRecord auditRecord = new AuditRecord(dbClearWithTestSMRule.getStateMachineId(), dbClearWithTestSMRule.getStateId(), 0, Status.completed, null, null);
         Long recordId = auditDAO.create(auditRecord).getId();
 
         AuditRecord auditRecord1 = auditDAO.findById(recordId);
