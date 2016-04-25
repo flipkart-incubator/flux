@@ -23,11 +23,15 @@ import javax.inject.Inject;
  */
 public class DbClearWithTestSMRule extends ExternalResource {
 
-    @Inject
     private DbClearRule dbClearRule;
 
-    @Inject
     private TestSMRule testSMRule;
+
+    @Inject
+    public DbClearWithTestSMRule(DbClearRule dbClearRule, TestSMRule testSMRule) {
+        this.dbClearRule = dbClearRule;
+        this.testSMRule = testSMRule;
+    }
 
     @Override
     protected void before() throws Throwable{
