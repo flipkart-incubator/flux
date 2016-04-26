@@ -17,10 +17,10 @@ package com.flipkart.flux.domain;
  * <code>Hook</code> is user defined code that is executed asynchronously on entry or exit of a {@link State}
  * The outcome of Hook execution does not impact state transition. Hooks are executed every time a state transition happens, including when retries happen and
  * this implies that Hook executions are better off being idempotent.
- * 
+ *
  *  @author shyam.akirala
  *  @author regunath.balasubramanian
- * 
+ *
  */
 public interface Hook<T> {
 

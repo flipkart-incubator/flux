@@ -31,6 +31,7 @@ import java.util.Set;
 /**
  * @understands Exposes APIs for end users
  */
+//todo merge with FluxResource
 @Path("/api")
 @Named
 public class StateMachineResource<T> {
@@ -44,7 +45,7 @@ public class StateMachineResource<T> {
      * @return unique machineId of the instantiated state machine
      */
     @POST
-    @Path("/fsm")
+    @Path("/fsms")
     public String createStateMachine(StateMachineDefinition stateMachineDefinition) {
         // 1. Convert to StateMachine (domain object) and save in DB
         StateMachine stateMachine = persistStateMachine(stateMachineDefinition);
@@ -55,17 +56,18 @@ public class StateMachineResource<T> {
         return stateMachine.getId();
     }
 
-    
+
     /**
      * Used to post Data corresponding to an event.
      * This data may be a result of a task getting completed or independently posted (manually, for example)
      * @param machineId machineId the event is to be submitted against
      * @param eventFqn fully qualified name of the event. Like java.lang.String_foo
      * @param eventDataJson Json representation of data
+     *
      */
 
     @POST
-    @Path("/fsm/{machineId}/context/events/{eventFqn}")
+    @Path("/fsms/{machineId}/context/events/{eventFqn}")
     public void submitEvent(@PathParam("machineId") Long machineId,
                             @PathParam("eventFqn") String eventFqn,
                             String eventDataJson
@@ -82,14 +84,12 @@ public class StateMachineResource<T> {
      */
 
     @PUT
-    @Path("/fsm/{machineId}/cancel")
+    @Path("/fsms/{machineId}/cancel")
     public void cancelExecution(@PathParam("machineId") Long machineId) {
         // Trigger cancellation on all currently executing states
     }
 
-    /**
-     * converts state machine definition to state machine domain object and saves in db
-     */
+
     private StateMachine persistStateMachine(StateMachineDefinition<T> stateMachineDefinition) {
 
         Set<StateDefinition<T>> stateDefinitions = stateMachineDefinition.getStates();

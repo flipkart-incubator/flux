@@ -1,13 +1,26 @@
+/*
+ * Copyright 2012-2016, the original author or authors.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.flipkart.flux.resource;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.FluxRunTimeService;
-import com.flipkart.flux.commons.dto.WorkFlowStateSummary;
-import com.flipkart.flux.commons.dto.WorkFlowStatesDetail;
+import com.flipkart.flux.FluxRuntimeService;
+import com.flipkart.flux.commons.dto.WorkflowStateSummary;
+import com.flipkart.flux.commons.dto.WorkflowStatesDetail;
 import com.flipkart.flux.commons.dto.WorkflowSummary;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -19,17 +32,24 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+/**
+ * The <code>FluxResource</code> class contains http endpoints of flux
+ *
+ * @author ashish.bhutani
+ *
+ */
 @Path("/api/teams")
 @Named
 @Singleton
-public class FluxUIResource {
+@Slf4j
+public class FluxResource {
 
-    private final FluxRunTimeService fluxRunTimeService;
+    private final FluxRuntimeService fluxRunTimeService;
     private ObjectMapper objectMapper;
 
     @Inject
-    public FluxUIResource(FluxRunTimeService fluxRunTimeService,
-                          ObjectMapper objectMapper) {
+    public FluxResource(FluxRuntimeService fluxRunTimeService,
+                        ObjectMapper objectMapper) {
         this.fluxRunTimeService = fluxRunTimeService;
         this.objectMapper = objectMapper;
     }
@@ -40,7 +60,7 @@ public class FluxUIResource {
     @Path("/{teamName}/workflows/summary")
     public Response getSummary(@PathParam("teamName") String teamName) {
         try {
-            WorkflowSummary workflowSummary = fluxRunTimeService.getTeamWorkFloWSummary(teamName);
+            WorkflowSummary workflowSummary = fluxRunTimeService.getTeamWorkfloWSummary(teamName);
             String response = objectMapper.writeValueAsString(workflowSummary);
             return Response.status(Response.Status.OK.getStatusCode()).entity(response).build();
         } catch (Exception e) {
@@ -60,7 +80,7 @@ public class FluxUIResource {
                                     @PathParam("state") String state) {
 
         try {
-            WorkFlowStateSummary workFlowStateSummary = fluxRunTimeService.getWorkflowStateSummary(teamName,
+            WorkflowStateSummary workFlowStateSummary = fluxRunTimeService.getWorkflowStateSummary(teamName,
                     workflowName,
                     version,
                     state);
@@ -86,7 +106,7 @@ public class FluxUIResource {
 
         try {
 
-            WorkFlowStatesDetail workFlowStatesDetail = fluxRunTimeService.getWorkflowStatesDetail(teamName,
+            WorkflowStatesDetail workFlowStatesDetail = fluxRunTimeService.getWorkflowStatesDetail(teamName,
                     workflowName,
                     version,
                     state,

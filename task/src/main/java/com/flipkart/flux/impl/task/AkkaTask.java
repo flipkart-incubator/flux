@@ -13,18 +13,17 @@
 
 package com.flipkart.flux.impl.task;
 
-import java.util.List;
-
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.Task;
-import com.flipkart.flux.impl.message.HookAndEvents;
-import com.netflix.hystrix.HystrixCommand;
-
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.Task;
+import com.flipkart.flux.impl.message.HookAndEvents;
+import com.netflix.hystrix.HystrixCommand;
+
+import java.util.List;
 
 /**
  * <code>AkkaTask</code> is an Akka {@link UntypedActor} that executes {@link Task} instances concurrently. Tasks are executed using a {@link TaskExecutor} where 

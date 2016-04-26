@@ -61,11 +61,11 @@
     <modules>
         <module>model</module>
         <module>persistence-mysql</module>
+        <module>commons</module>
         <module>runtime</module>
         <module>task</module>
         <module>client</module>
         <module>examples</module>
-        <module>commons</module>
     </modules>
 
 </project>

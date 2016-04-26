@@ -19,7 +19,7 @@ package com.flipkart.flux.guice.module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.config.FileLocator;
 import com.flipkart.flux.constant.RuntimeConstants;
-import com.flipkart.flux.resource.FluxUIResource;
+import com.flipkart.flux.resource.FluxResource;
 import com.flipkart.flux.resource.StateMachineResource;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -127,6 +127,7 @@ public class ContainerModule extends AbstractModule {
 	Server getAPIJettyServer(@Named("Api.service.port") int port,
 							 @Named("Api.service.baseURL") String baseURL,
 							 @Named("APIResourceConfig")ResourceConfig resourceConfig) throws URISyntaxException {
+		//todo-ashish figure out some way of setting acceptor/worker threads
 		return JettyHttpContainerFactory.createServer(UriBuilder.fromUri(baseURL+ RuntimeConstants.API_CONTEXT_PATH).port(port).build(), resourceConfig);
 	}
 
@@ -134,7 +135,7 @@ public class ContainerModule extends AbstractModule {
 	@Named("APIResourceConfig")
 	@Singleton
 	@Provides
-	public ResourceConfig getAPIResourceConfig(FluxUIResource fluxUIResource,
+	public ResourceConfig getAPIResourceConfig(FluxResource fluxUIResource,
 											   StateMachineResource stateMachineResource) {
 		ResourceConfig resourceConfig = new ResourceConfig();
 		resourceConfig.register(fluxUIResource);
