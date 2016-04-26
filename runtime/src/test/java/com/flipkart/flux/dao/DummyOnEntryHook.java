@@ -19,7 +19,7 @@ import com.flipkart.flux.domain.Hook;
 /**
  * @author shyam.akirala
  */
-public class DummyOnEntryHook implements Hook {
+public class DummyOnEntryHook<T> implements Hook<T> {
 
     @Override
     public void execute(Event[] events) {

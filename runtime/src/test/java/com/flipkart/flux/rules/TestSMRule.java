@@ -24,6 +24,7 @@ import com.flipkart.flux.domain.StateMachine;
 import org.junit.rules.ExternalResource;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,6 +33,7 @@ import java.util.Set;
  * <code>TestSMRule</code> is a Junit Rule which creates a state machine.
  * @author shyam.akirala
  */
+@Singleton
 public class TestSMRule extends ExternalResource {
 
     private final StateMachinesDAO stateMachinesDAO;
@@ -55,14 +57,12 @@ public class TestSMRule extends ExternalResource {
         DummyTask task = new DummyTask();
         DummyOnEntryHook onEntryHook = new DummyOnEntryHook();
         DummyOnExitHook onExitHook = new DummyOnExitHook();
-        State<DummyEventData> state1 = statesDAO.create(new State<>(2L, "state1", "desc1", onEntryHook, task, onExitHook, 3L, 60L));
-        State<DummyEventData> state2 = statesDAO.create(new State<>(2L, "state2", "desc2", null, null, null, 2L, 50L));
+        State<DummyEventData> state = statesDAO.create(new State<>(2L, "state1", "desc1", onEntryHook, task, onExitHook, 3L, 60L));
         Set<State<DummyEventData>> states = new HashSet<>();
-        states.add(state1);
-        states.add(state2);
+        states.add(state);
         StateMachine<DummyEventData> stateMachine = new StateMachine<>(2L, "SM_name", "SM_desc", states);
         stateMachineId = stateMachinesDAO.create(stateMachine).getId();
-        stateId = state1.getId();
+        stateId = state.getId();
     }
 
     public Long getStateMachineId() {

@@ -16,11 +16,13 @@ package com.flipkart.flux.rules;
 import org.junit.rules.ExternalResource;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 /**
  * <code>DbClearWithTestSMRule</code> is a Junit Rule which clears db tables before running a test and also creates a test state machine for testing purpose.
  * @author shyam.akirala
  */
+@Singleton
 public class DbClearWithTestSMRule extends ExternalResource {
 
     private DbClearRule dbClearRule;

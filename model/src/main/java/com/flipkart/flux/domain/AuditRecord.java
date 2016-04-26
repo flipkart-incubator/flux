@@ -109,28 +109,30 @@ public class AuditRecord {
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AuditRecord)) return false;
+
+        AuditRecord that = (AuditRecord) o;
+
+        if (retryAttempt != that.retryAttempt) return false;
+        if (!id.equals(that.id)) return false;
+        if (!stateId.equals(that.stateId)) return false;
+        if (!stateMachineInstanceId.equals(that.stateMachineInstanceId)) return false;
+        if (stateRollbackStatus != that.stateRollbackStatus) return false;
+        if (stateStatus != that.stateStatus) return false;
+
+        return true;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        @SuppressWarnings("unchecked")
-        AuditRecord other = (AuditRecord) obj;
-        if (id == null) {
-            if (other.id != null)
-                return false;
-        } else if (!id.equals(other.id))
-            return false;
-        return true;
+    public int hashCode() {
+        int result = id.hashCode();
+        result = 31 * result + stateMachineInstanceId.hashCode();
+        result = 31 * result + stateId.hashCode();
+        result = 31 * result + retryAttempt;
+        result = 31 * result + stateStatus.hashCode();
+        result = 31 * result + stateRollbackStatus.hashCode();
+        return result;
     }
 }

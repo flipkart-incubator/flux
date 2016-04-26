@@ -11,21 +11,34 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.dao;
+package com.flipkart.flux.representation;
 
+import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.FluxError;
-import com.flipkart.flux.domain.Task;
-import javafx.util.Pair;
+
+import javax.inject.Inject;
 
 /**
+ * <code>EventPersistenceService</code> class converts user provided Event entity definition to domain type object and stores in DB.
  * @author shyam.akirala
  */
-public class DummyTask<T> implements Task<T> {
+public class EventPersistenceService<T> {
 
-    @Override
-    public Pair<Event, FluxError> execute(Event[] events) {
-        //DO SOMETHING
+    private EventsDAO eventsDAO;
+
+    @Inject
+    public EventPersistenceService(EventsDAO eventsDAO) {
+        this.eventsDAO = eventsDAO;
+    }
+
+    /**
+     * TO DO:
+     * @param eventDefinition
+     * @return
+     */
+    public Event<T> createEvent(EventDefinition eventDefinition) {
         return null;
     }
+
 }

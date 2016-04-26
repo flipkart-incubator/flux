@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flipkart.flux;
+package com.flipkart.flux.MigrationUtil;
 
 import com.flipkart.polyguice.config.YamlConfiguration;
 import liquibase.Contexts;
@@ -25,11 +25,11 @@ import java.sql.DriverManager;
 import java.util.Properties;
 
 /**
- * <code>MigrationUtil</code> performs mysql migration using liquibase.
+ * <code>MigrationsRunner</code> performs mysql migration using liquibase.
  * To perform migration run this class with "migrate" parameter.
  * @author shyam.akirala
  */
-public class MigrationUtil {
+public class MigrationsRunner {
 
     public static void main(String[] args) {
 
@@ -48,7 +48,8 @@ public class MigrationUtil {
                 Liquibase liquibase = new Liquibase("persistence-mysql/src/main/resources/migrations.xml", new FileSystemResourceAccessor(), database);
                 liquibase.update(new Contexts());
             } catch (Exception e) {
-                System.out.println("Unable to perform database migration. Exception: " + e.getMessage());
+                System.err.println("Unable to perform database migration.");
+                e.printStackTrace();
             }
         }
     }
