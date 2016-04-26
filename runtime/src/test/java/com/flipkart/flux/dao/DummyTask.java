@@ -21,7 +21,7 @@ import javafx.util.Pair;
 /**
  * @author shyam.akirala
  */
-public class DummyTask implements Task {
+public class DummyTask<T> implements Task<T> {
 
     @Override
     public Pair<Event, FluxError> execute(Event[] events) {

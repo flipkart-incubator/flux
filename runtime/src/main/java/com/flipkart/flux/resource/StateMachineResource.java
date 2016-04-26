@@ -16,8 +16,11 @@ package com.flipkart.flux.resource;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.representation.DomainTypeCreator;
+import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.google.inject.Inject;
 
+import javax.inject.Singleton;
+import javax.transaction.Transactional;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -26,6 +29,7 @@ import javax.ws.rs.PathParam;
 /**
  * @understands Exposes APIs for end users
  */
+@Singleton
 public class StateMachineResource<T> {
 
     /** Instance of {@link DomainTypeCreator} which converts entity definition to domain object*/
@@ -39,8 +43,12 @@ public class StateMachineResource<T> {
      */
     @POST
     @Path("/machines")
+    @Transactional
     public String createStateMachine(StateMachineDefinition<T> stateMachineDefinition) {
         // 1. Convert to StateMachine (domain object) and save in DB
+        if(stateMachineDefinition == null)
+            throw new IllegalRepresentationException("State machine definition is empty");
+
         StateMachine stateMachine = domainTypeCreator.createStateMachine(stateMachineDefinition);
 
         // 2. workFlowExecutionController.init(stateMachine_domainObject)

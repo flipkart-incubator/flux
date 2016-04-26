@@ -24,7 +24,6 @@ import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -50,16 +49,12 @@ public class DomainTypeCreator<T> {
      * @param stateMachineDefinition
      * @return saved state machine object
      */
-    @Transactional
     public StateMachine createStateMachine(StateMachineDefinition<T> stateMachineDefinition) {
-        if(stateMachineDefinition == null)
-            throw new IllegalRepresentationException("State machine definition is null");
-
         Set<StateDefinition<T>> stateDefinitions = stateMachineDefinition.getStates();
         Set<State<T>> states = new HashSet<>();
 
         for(StateDefinition<T> stateDefinition : stateDefinitions) {
-            State state = convertStateDefinitionToState(stateDefinition);
+            State state = convertStateDefinitionToStateAndPersist(stateDefinition);
             states.add(state);
         }
 
@@ -72,11 +67,11 @@ public class DomainTypeCreator<T> {
     }
 
     /**
-     * Converts state definition to state domain object.
+     * Converts state definition to state domain object and persists in db.
      * @param stateDefinition
      * @return state
      */
-    private State<T> convertStateDefinitionToState(StateDefinition<T> stateDefinition) {
+    private State<T> convertStateDefinitionToStateAndPersist(StateDefinition<T> stateDefinition) {
         State<T> state = new State<>(stateDefinition.getVersion(),
                 stateDefinition.getName(),
                 stateDefinition.getDescription(),

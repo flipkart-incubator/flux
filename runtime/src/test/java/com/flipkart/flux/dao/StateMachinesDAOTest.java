@@ -53,18 +53,18 @@ public class StateMachinesDAOTest {
     StatesDAO statesDAO;
 
     @Inject
-    DomainTypeCreator domainTypeCreator;
+    DomainTypeCreator<DummyEventData> domainTypeCreator;
 
     @Before
     public void setup() {}
 
-    @Test @Transactional
+    @Test
     public void createSMTest() {
-        DummyTask task = new DummyTask();
-        DummyOnEntryHook onEntryHook = new DummyOnEntryHook();
-        DummyOnExitHook onExitHook = new DummyOnExitHook();
-        State<DummyEventData> state1 = statesDAO.create(new State<>(2L, "state1__", "desc1", onEntryHook, task, onExitHook, 3L, 60L));
-        State<DummyEventData> state2 = statesDAO.create(new State<>(2L, "state2__", "desc2", null, null, null, 2L, 50L));
+        DummyTask<DummyEventData> task = new DummyTask<DummyEventData>();
+        DummyOnEntryHook<DummyEventData> onEntryHook = new DummyOnEntryHook<DummyEventData>();
+        DummyOnExitHook<DummyEventData> onExitHook = new DummyOnExitHook<DummyEventData>();
+        State<DummyEventData> state1 = statesDAO.create(new State<DummyEventData>(2L, "state1__", "desc1", onEntryHook, task, onExitHook, 3L, 60L));
+        State<DummyEventData> state2 = statesDAO.create(new State<DummyEventData>(2L, "state2__", "desc2", null, null, null, 2L, 50L));
         Set<State<DummyEventData>> states = new HashSet<>();
         states.add(state1);
         states.add(state2);
@@ -72,28 +72,26 @@ public class StateMachinesDAOTest {
         String savedSMId = stateMachinesDAO.create(stateMachine).getId();
 
         StateMachine stateMachine1 = stateMachinesDAO.findById(savedSMId);
-        Assert.assertNotNull(stateMachine1);
+        Assert.assertEquals(stateMachine, stateMachine1);
     }
 
     /** Test creation of State machine from state machine definition */
-    @Test @SuppressWarnings("unchecked")
+    @Test
     public void createSMDTest() {
         EventDefinition eventDefinition1 = new EventDefinition("event1");
         EventDefinition eventDefinition2 = new EventDefinition("event2");
-        Set eventSet1 = new HashSet<>();
+        Set<EventDefinition> eventSet1 = new HashSet<>();
         eventSet1.add(eventDefinition1);
-        Set eventSet2 = new HashSet<>();
+        Set<EventDefinition> eventSet2 = new HashSet<>();
         eventSet2.add(eventDefinition2);
-        StateDefinition stateDefinition1 = new StateDefinition(1L, "state1_", "desc1_", new DummyOnEntryHook(), new DummyTask(), new DummyOnExitHook(), 0L, 60L, eventSet1);
-        StateDefinition stateDefinition2 = new StateDefinition(1L, "state2_", "desc2_", new DummyOnEntryHook(), new DummyTask(), new DummyOnExitHook(), 0L, 60L, eventSet2);
-        Set stateSet = new HashSet<>();
+        StateDefinition stateDefinition1 = new StateDefinition<DummyEventData>(1L, "state1_", "desc1_", new DummyOnEntryHook<DummyEventData>(), new DummyTask<DummyEventData>(), new DummyOnExitHook<DummyEventData>(), 0L, 60L, eventSet1);
+        StateDefinition stateDefinition2 = new StateDefinition<DummyEventData>(1L, "state2_", "desc2_", new DummyOnEntryHook<DummyEventData>(), new DummyTask<DummyEventData>(), new DummyOnExitHook<DummyEventData>(), 0L, 60L, eventSet2);
+        Set<StateDefinition> stateSet = new HashSet<>();
         stateSet.add(stateDefinition1);
         stateSet.add(stateDefinition2);
-        StateMachineDefinition stateMachineDefinition = new StateMachineDefinition(1L, "SMD_name_", "SMD_desc_", stateSet);
-
-        String stateMachineId = domainTypeCreator.createStateMachine(stateMachineDefinition).getId();
-
-        StateMachine stateMachine = stateMachinesDAO.findById(stateMachineId);
-        Assert.assertNotNull(stateMachine);
+        StateMachineDefinition<DummyEventData> stateMachineDefinition = new StateMachineDefinition(1L, "SMD_name_", "SMD_desc_", stateSet);
+        StateMachine stateMachine = domainTypeCreator.createStateMachine(stateMachineDefinition);
+        StateMachine stateMachine1 = stateMachinesDAO.findById(stateMachine.getId());
+        Assert.assertEquals(stateMachine, stateMachine1);
     }
 }

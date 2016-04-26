@@ -24,11 +24,13 @@ import org.hibernate.context.internal.ManagedSessionContext;
 import org.junit.rules.ExternalResource;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 /**
  * <code>DbClearRule</code> is a Junit Rule which clears db tables before running a test.
  * @author shyam.akirala
  */
+@Singleton
 public class DbClearRule extends ExternalResource{
 
     private SessionFactory sessionFactory;

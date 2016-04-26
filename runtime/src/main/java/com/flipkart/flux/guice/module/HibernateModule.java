@@ -13,9 +13,6 @@
 
 package com.flipkart.flux.guice.module;
 
-import java.util.Iterator;
-import java.util.Properties;
-
 import com.flipkart.flux.dao.AuditDAOImpl;
 import com.flipkart.flux.dao.EventsDAOImpl;
 import com.flipkart.flux.dao.StateMachinesDAOImpl;
@@ -29,19 +26,20 @@ import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
+import com.flipkart.flux.representation.DomainTypeCreator;
 import com.flipkart.flux.type.BlobType;
 import com.flipkart.flux.type.StoreFQNType;
 import com.flipkart.polyguice.config.YamlConfiguration;
-import com.flipkart.flux.representation.DomainTypeCreator;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.matcher.Matchers;
-
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
 import javax.transaction.Transactional;
+import java.util.Iterator;
+import java.util.Properties;
 
 /**
  * <code>HibernateModule</code> is a Guice {@link AbstractModule} implementation used for wiring SessionFactory, DAO and Interceptor classes.
@@ -59,7 +57,7 @@ public class HibernateModule extends AbstractModule {
         bind(EventsDAO.class).to(EventsDAOImpl.class).in(Singleton.class);
         bind(StateMachinesDAO.class).to(StateMachinesDAOImpl.class).in(Singleton.class);
         bind(StatesDAO.class).to(StatesDAOImpl.class).in(Singleton.class);
-        bind(DomainTypeCreator.class);
+        bind(DomainTypeCreator.class).in(Singleton.class);
 
         //bind Transactional Interceptor to intercept methods which are annotated with javax.transaction.Transactional
         TransactionInterceptor transactionInterceptor = new TransactionInterceptor();

@@ -43,10 +43,10 @@ public class EventsDAOTest {
     @Before
     public void setup() {}
 
-    @Test @SuppressWarnings("unchecked")
+    @Test
     public void createEventTest() {
         DummyEventData data = new DummyEventData("event_dat");
-        Event<DummyEventData> event = new Event("test_event_name","Internal", Event.EventStatus.pending,dbClearWithTestSMRule.getStateMachineId(), data,"state1");
+        Event<DummyEventData> event = new Event<DummyEventData>("test_event_name","Internal", Event.EventStatus.pending,dbClearWithTestSMRule.getStateMachineId(), data,"state1");
         Long eventId = eventsDAO.create(event).getId();
 
         Event event1 = eventsDAO.findById(eventId);
