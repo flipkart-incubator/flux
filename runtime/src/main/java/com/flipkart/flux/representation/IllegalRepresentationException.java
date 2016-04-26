@@ -11,21 +11,19 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.dao;
-
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.FluxError;
-import com.flipkart.flux.domain.Task;
-import javafx.util.Pair;
+package com.flipkart.flux.representation;
 
 /**
+ * <code>IllegalRepresentationException</code> denotes Illegal entity representation.
  * @author shyam.akirala
  */
-public class DummyTask<T> implements Task<T> {
+public class IllegalRepresentationException extends RuntimeException {
 
-    @Override
-    public Pair<Event, FluxError> execute(Event[] events) {
-        //DO SOMETHING
-        return null;
+    public IllegalRepresentationException(String message) {
+        super(message);
+    }
+
+    public IllegalRepresentationException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

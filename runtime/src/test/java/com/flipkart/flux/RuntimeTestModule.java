@@ -11,21 +11,20 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.dao;
+package com.flipkart.flux;
 
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.FluxError;
-import com.flipkart.flux.domain.Task;
-import javafx.util.Pair;
+import com.flipkart.flux.guice.module.ConfigModule;
+import com.flipkart.flux.guice.module.HibernateModule;
+import com.google.inject.AbstractModule;
 
 /**
+ * <code>RuntimeTestModule</code> is a Guice module binds modules which are required to run tests.
  * @author shyam.akirala
  */
-public class DummyTask<T> implements Task<T> {
-
+public class RuntimeTestModule extends AbstractModule{
     @Override
-    public Pair<Event, FluxError> execute(Event[] events) {
-        //DO SOMETHING
-        return null;
+    protected void configure() {
+        install(new ConfigModule());
+        install(new HibernateModule());
     }
 }
