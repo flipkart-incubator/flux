@@ -50,12 +50,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     @Override
     @Transactional
     public Event findById(Long id) {
-        Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("id", id));
-        Object object = criteria.uniqueResult();
-        Event event = null;
-        if(object != null)
-            event = (Event) object;
-        return event;
+        return super.findById(Event.class, id);
     }
 
 }
