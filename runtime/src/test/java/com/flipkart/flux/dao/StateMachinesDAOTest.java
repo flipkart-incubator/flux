@@ -20,7 +20,7 @@ import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.representation.DomainTypeCreator;
+import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.flipkart.flux.rules.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import junit.framework.Assert;
@@ -30,7 +30,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -53,7 +52,7 @@ public class StateMachinesDAOTest {
     StatesDAO statesDAO;
 
     @Inject
-    DomainTypeCreator<DummyEventData> domainTypeCreator;
+    StateMachinePersistenceService<DummyEventData> stateMachinePersistenceService;
 
     @Before
     public void setup() {}
@@ -63,8 +62,8 @@ public class StateMachinesDAOTest {
         DummyTask<DummyEventData> task = new DummyTask<DummyEventData>();
         DummyOnEntryHook<DummyEventData> onEntryHook = new DummyOnEntryHook<DummyEventData>();
         DummyOnExitHook<DummyEventData> onExitHook = new DummyOnExitHook<DummyEventData>();
-        State<DummyEventData> state1 = statesDAO.create(new State<DummyEventData>(2L, "state1__", "desc1", onEntryHook, task, onExitHook, 3L, 60L));
-        State<DummyEventData> state2 = statesDAO.create(new State<DummyEventData>(2L, "state2__", "desc2", null, null, null, 2L, 50L));
+        State<DummyEventData> state1 = new State<DummyEventData>(2L, "state1__", "desc1", onEntryHook, task, onExitHook, 3L, 60L);
+        State<DummyEventData> state2 = new State<DummyEventData>(2L, "state2__", "desc2", null, task, null, 2L, 50L);
         Set<State<DummyEventData>> states = new HashSet<>();
         states.add(state1);
         states.add(state2);
@@ -90,7 +89,7 @@ public class StateMachinesDAOTest {
         stateSet.add(stateDefinition1);
         stateSet.add(stateDefinition2);
         StateMachineDefinition<DummyEventData> stateMachineDefinition = new StateMachineDefinition(1L, "SMD_name_", "SMD_desc_", stateSet);
-        StateMachine stateMachine = domainTypeCreator.createStateMachine(stateMachineDefinition);
+        StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineDefinition);
         StateMachine stateMachine1 = stateMachinesDAO.findById(stateMachine.getId());
         Assert.assertEquals(stateMachine, stateMachine1);
     }

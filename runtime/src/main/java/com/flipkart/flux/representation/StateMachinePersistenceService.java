@@ -13,13 +13,10 @@
 
 package com.flipkart.flux.representation;
 
-import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
-import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
-import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 
@@ -28,19 +25,17 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * <code>DomainTypeCreator</code> class converts user provided entity definition to domain type object and stores in DB.
+ * <code>StateMachinePersistenceService</code> class converts user provided state machine entity definition to domain type object and stores in DB.
  * @author shyam.akirala
  */
-public class DomainTypeCreator<T> {
+public class StateMachinePersistenceService<T> {
 
     private StateMachinesDAO stateMachinesDAO;
-    private EventsDAO eventsDAO;
     private StatesDAO statesDAO;
 
     @Inject
-    public DomainTypeCreator(StateMachinesDAO stateMachinesDAO, EventsDAO eventsDAO, StatesDAO statesDAO) {
+    public StateMachinePersistenceService(StateMachinesDAO stateMachinesDAO, StatesDAO statesDAO) {
         this.stateMachinesDAO = stateMachinesDAO;
-        this.eventsDAO = eventsDAO;
         this.statesDAO = statesDAO;
     }
 
@@ -54,7 +49,7 @@ public class DomainTypeCreator<T> {
         Set<State<T>> states = new HashSet<>();
 
         for(StateDefinition<T> stateDefinition : stateDefinitions) {
-            State state = convertStateDefinitionToStateAndPersist(stateDefinition);
+            State state = convertStateDefinitionToState(stateDefinition);
             states.add(state);
         }
 
@@ -67,11 +62,11 @@ public class DomainTypeCreator<T> {
     }
 
     /**
-     * Converts state definition to state domain object and persists in db.
+     * Converts state definition to state domain object.
      * @param stateDefinition
      * @return state
      */
-    private State<T> convertStateDefinitionToStateAndPersist(StateDefinition<T> stateDefinition) {
+    private State<T> convertStateDefinitionToState(StateDefinition<T> stateDefinition) {
         State<T> state = new State<>(stateDefinition.getVersion(),
                 stateDefinition.getName(),
                 stateDefinition.getDescription(),
@@ -80,17 +75,7 @@ public class DomainTypeCreator<T> {
                 stateDefinition.getOnExitHook(),
                 stateDefinition.getRetryCount(),
                 stateDefinition.getTimeout());
-
-        return statesDAO.create(state);
-    }
-
-    /**
-     * TO DO:
-     * @param eventDefinition
-     * @return
-     */
-    public Event<T> createEvent(EventDefinition eventDefinition) {
-        return null;
+        return state;
     }
 
 }

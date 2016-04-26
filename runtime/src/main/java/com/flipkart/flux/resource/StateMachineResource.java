@@ -15,8 +15,8 @@ package com.flipkart.flux.resource;
 
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.representation.DomainTypeCreator;
 import com.flipkart.flux.representation.IllegalRepresentationException;
+import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.google.inject.Inject;
 
 import javax.inject.Singleton;
@@ -32,9 +32,9 @@ import javax.ws.rs.PathParam;
 @Singleton
 public class StateMachineResource<T> {
 
-    /** Instance of {@link DomainTypeCreator} which converts entity definition to domain object*/
+    /** Instance of {@link StateMachinePersistenceService} which converts entity definition to domain object*/
     @Inject
-    DomainTypeCreator domainTypeCreator;
+    StateMachinePersistenceService stateMachinePersistenceService;
 
     /**
      * Will instantiate a state machine in the flux execution engine
@@ -49,7 +49,7 @@ public class StateMachineResource<T> {
         if(stateMachineDefinition == null)
             throw new IllegalRepresentationException("State machine definition is empty");
 
-        StateMachine stateMachine = domainTypeCreator.createStateMachine(stateMachineDefinition);
+        StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineDefinition);
 
         // 2. workFlowExecutionController.init(stateMachine_domainObject)
 
