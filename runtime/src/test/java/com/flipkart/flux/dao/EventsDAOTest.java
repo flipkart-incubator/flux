@@ -15,6 +15,7 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.rules.DbClearWithTestSMRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import junit.framework.Assert;
@@ -45,8 +46,9 @@ public class EventsDAOTest {
 
     @Test
     public void createEventTest() {
+        StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
         DummyEventData data = new DummyEventData("event_dat");
-        Event<DummyEventData> event = new Event<DummyEventData>("test_event_name","Internal", Event.EventStatus.pending,dbClearWithTestSMRule.getStateMachineId(), data,"state1");
+        Event<DummyEventData> event = new Event<DummyEventData>("test_event_name","Internal", Event.EventStatus.pending,stateMachine.getId(), data,"state1");
         Long eventId = eventsDAO.create(event).getId();
 
         Event event1 = eventsDAO.findById(eventId);

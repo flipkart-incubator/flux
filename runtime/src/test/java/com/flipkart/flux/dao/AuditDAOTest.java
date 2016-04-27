@@ -15,6 +15,8 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
+import com.flipkart.flux.domain.State;
+import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.rules.DbClearWithTestSMRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
@@ -46,7 +48,13 @@ public class AuditDAOTest {
 
     @Test
     public void createAuditRecordTest() {
-        AuditRecord auditRecord = new AuditRecord(dbClearWithTestSMRule.getStateMachineId(), dbClearWithTestSMRule.getStateId(), 0, Status.completed, null, null);
+        StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
+        State state = null;
+        for(Object ob : stateMachine.getStates()) {
+            state = (State) ob;
+            break;
+        }
+        AuditRecord auditRecord = new AuditRecord(stateMachine.getId(), (state!=null) ? state.getId() : null, 0, Status.completed, null, null);
         Long recordId = auditDAO.create(auditRecord).getId();
 
         AuditRecord auditRecord1 = auditDAO.findById(recordId);

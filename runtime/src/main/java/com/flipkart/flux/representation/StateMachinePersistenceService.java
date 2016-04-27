@@ -21,6 +21,7 @@ import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -28,6 +29,7 @@ import java.util.Set;
  * <code>StateMachinePersistenceService</code> class converts user provided state machine entity definition to domain type object and stores in DB.
  * @author shyam.akirala
  */
+@Singleton
 public class StateMachinePersistenceService<T> {
 
     private StateMachinesDAO stateMachinesDAO;

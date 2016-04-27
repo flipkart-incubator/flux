@@ -40,11 +40,7 @@ public class TestSMRule extends ExternalResource {
 
     private final StatesDAO statesDAO;
 
-    /** Id of test state machine instance*/
-    private String stateMachineId;
-
-    /** Id of test state*/
-    private String stateId;
+    private StateMachine stateMachine;
 
     @Inject
     public TestSMRule(StateMachinesDAO stateMachinesDAO, StatesDAO statesDAO) {
@@ -57,19 +53,17 @@ public class TestSMRule extends ExternalResource {
         DummyTask task = new DummyTask();
         DummyOnEntryHook onEntryHook = new DummyOnEntryHook();
         DummyOnExitHook onExitHook = new DummyOnExitHook();
-        State<DummyEventData> state = statesDAO.create(new State<>(2L, "state1", "desc1", onEntryHook, task, onExitHook, 3L, 60L));
+        State<DummyEventData> state1 = statesDAO.create(new State<>(2L, "state1", "desc1", onEntryHook, task, onExitHook, 3L, 60L));
+        State<DummyEventData> state2 = statesDAO.create(new State<>(2L, "state1", "desc1", onEntryHook, task, onExitHook, 3L, 60L));
         Set<State<DummyEventData>> states = new HashSet<>();
-        states.add(state);
-        StateMachine<DummyEventData> stateMachine = new StateMachine<>(2L, "SM_name", "SM_desc", states);
-        stateMachineId = stateMachinesDAO.create(stateMachine).getId();
-        stateId = state.getId();
+        states.add(state1);
+        states.add(state2);
+        StateMachine<DummyEventData> stateMachine1 = new StateMachine<>(2L, "SM_name", "SM_desc", states);
+        stateMachine = stateMachinesDAO.create(stateMachine1);
     }
 
-    public String getStateMachineId() {
-        return stateMachineId;
+    public StateMachine getStateMachine() {
+        return stateMachine;
     }
 
-    public String getStateId() {
-        return stateId;
-    }
 }

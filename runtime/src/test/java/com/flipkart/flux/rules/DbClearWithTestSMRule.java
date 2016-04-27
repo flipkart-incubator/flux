@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.rules;
 
+import com.flipkart.flux.domain.StateMachine;
 import org.junit.rules.ExternalResource;
 
 import javax.inject.Inject;
@@ -44,14 +45,9 @@ public class DbClearWithTestSMRule extends ExternalResource {
         testSMRule.before();
     }
 
-    /** Returns test state machine instance id*/
-    public String getStateMachineId() {
-        return this.testSMRule.getStateMachineId();
-    }
-
-    /** Returns test state id*/
-    public String getStateId() {
-        return this.testSMRule.getStateId();
+    /** Returns test state machine*/
+    public StateMachine getStateMachine() {
+        return this.testSMRule.getStateMachine();
     }
 
 }

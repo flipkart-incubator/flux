@@ -26,7 +26,6 @@ import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
-import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.flipkart.flux.type.BlobType;
 import com.flipkart.flux.type.StoreFQNType;
 import com.flipkart.polyguice.config.YamlConfiguration;
@@ -57,7 +56,6 @@ public class HibernateModule extends AbstractModule {
         bind(EventsDAO.class).to(EventsDAOImpl.class).in(Singleton.class);
         bind(StateMachinesDAO.class).to(StateMachinesDAOImpl.class).in(Singleton.class);
         bind(StatesDAO.class).to(StatesDAOImpl.class).in(Singleton.class);
-        bind(StateMachinePersistenceService.class).in(Singleton.class);
 
         //bind Transactional Interceptor to intercept methods which are annotated with javax.transaction.Transactional
         TransactionInterceptor transactionInterceptor = new TransactionInterceptor();
