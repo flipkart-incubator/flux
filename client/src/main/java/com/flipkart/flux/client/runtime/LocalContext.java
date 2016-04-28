@@ -14,7 +14,12 @@
 
 package com.flipkart.flux.client.runtime;
 
+import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Maintains all local flux related context
@@ -43,7 +48,19 @@ public class LocalContext {
             /* This ensures we don't compose workflows within workflows */
             throw new IllegalStateException("A single thread cannot execute more than one workflow");
         }
-        stateMachineDefinition.set(new StateMachineDefinition(description,methodIdentifier, version));
+        stateMachineDefinition.set(new StateMachineDefinition(description,methodIdentifier, version, new HashSet<StateDefinition>()));
+    }
+
+    public void registerNewState(Long version,
+                                 String name, String description,
+                                 String hookIdentifier, String taskIdentifier,
+                                 Long retryCount, Long timeout,
+                                 Set<EventDefinition> eventDefinitionSet
+                                 ) {
+        final StateDefinition stateDefinition = new StateDefinition(version, name, description,
+            hookIdentifier, taskIdentifier, hookIdentifier,
+            retryCount, timeout, eventDefinitionSet);
+        this.stateMachineDefinition.get().addState(stateDefinition);
     }
 
     /**

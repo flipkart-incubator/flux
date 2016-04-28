@@ -41,11 +41,15 @@ public class StateMachineDefinition {
     }
 
     /** Constructor */
-    public StateMachineDefinition(String description, String name, long version) {
+    public StateMachineDefinition(String description, String name, long version, Set<StateDefinition> stateDefinitions) {
         this.description = description;
         this.name = name;
-        this.states = new HashSet<>();
+        this.states = stateDefinitions;
         this.version = version;
+    }
+
+    public void addState(StateDefinition stateDefinition) {
+        this.states.add(stateDefinition);
     }
 
     /** Accessors/Mutators for member variables*/
