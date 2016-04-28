@@ -13,9 +13,6 @@
 
 package com.flipkart.flux.api;
 
-import com.flipkart.flux.domain.Hook;
-import com.flipkart.flux.domain.Task;
-
 import java.util.Set;
 
 /**
@@ -27,7 +24,7 @@ import java.util.Set;
  *  @author shyam.akirala
  */
 
-public class StateDefinition<T> {
+public class StateDefinition {
 	
 	/** The version of this state definition*/
     private Long version;
@@ -39,13 +36,13 @@ public class StateDefinition<T> {
     private String description;
 
     /** Hook that will be executed on entry of this state*/
-    private Hook<T> onEntryHook;
+    private String onEntryHook;
 
     /** Task that will be executed when the state machine transitions to the state*/
-    private Task<T> task;
+    private String task;
 
     /** Hook that will be executed on exit of this state*/
-    private Hook<T> onExitHook;
+    private String onExitHook;
 
     /** Retry count for task execution*/    
     private Long retryCount;
@@ -57,7 +54,7 @@ public class StateDefinition<T> {
     private Set<EventDefinition> dependencies;
 
     /** Constructor*/
-	public StateDefinition(Long version, String name, String description, Hook<T> onEntryHook, Task<T> task, Hook<T> onExitHook,
+	public StateDefinition(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
                            Long retryCount, Long timeout, Set<EventDefinition> dependencies) {
 		super();
 		this.version = version;
@@ -90,22 +87,22 @@ public class StateDefinition<T> {
     public void setDescription(String description) {
         this.description = description;
     }
-	public Task<T> getTask() {
+	public String getTask() {
 		return task;
 	}
-	public void setTask(Task<T> task) {
+	public void setTask(String task) {
 		this.task = task;
 	}
-    public Hook<T> getOnEntryHook() {
+    public String getOnEntryHook() {
         return onEntryHook;
     }
-    public void setOnEntryHook(Hook<T> onEntryHook) {
+    public void setOnEntryHook(String onEntryHook) {
         this.onEntryHook = onEntryHook;
     }
-    public Hook<T> getOnExitHook() {
+    public String getOnExitHook() {
         return onExitHook;
     }
-    public void setOnExitHook(Hook<T> onExitHook) {
+    public void setOnExitHook(String onExitHook) {
         this.onExitHook = onExitHook;
     }
 	public Long getRetryCount() {

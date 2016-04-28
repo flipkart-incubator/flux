@@ -43,7 +43,7 @@ public class StateMachineResource<T> {
      */
     @POST
     @Path("/machines")
-    public String createStateMachine(StateMachineDefinition<T> stateMachineDefinition) {
+    public String createStateMachine(StateMachineDefinition stateMachineDefinition) {
         // 1. Convert to StateMachine (domain object) and save in DB
         StateMachine stateMachine = persistStateMachine(stateMachineDefinition);
 
@@ -88,12 +88,12 @@ public class StateMachineResource<T> {
     /**
      * converts state machine definition to state machine domain object and saves in db
      */
-    private StateMachine persistStateMachine(StateMachineDefinition<T> stateMachineDefinition) {
+    private StateMachine persistStateMachine(StateMachineDefinition stateMachineDefinition) {
 
-        Set<StateDefinition<T>> stateDefinitions = stateMachineDefinition.getStates();
+        Set<StateDefinition> stateDefinitions = stateMachineDefinition.getStates();
         Set<State<T>> states = new HashSet<State<T>>();
 
-        for(StateDefinition<T> stateDefinition : stateDefinitions) {
+        for(StateDefinition stateDefinition : stateDefinitions) {
             states.add(convertStateDefinitionToState(stateDefinition));
         }
 
@@ -105,7 +105,7 @@ public class StateMachineResource<T> {
         return stateMachinesDAO.create(stateMachine);
     }
 
-    private State<T> convertStateDefinitionToState(StateDefinition<T> stateDefinition) {
+    private State<T> convertStateDefinitionToState(StateDefinition stateDefinition) {
         State<T> state = new State<T>(stateDefinition.getVersion(),
                 stateDefinition.getName(),
                 stateDefinition.getDescription(),

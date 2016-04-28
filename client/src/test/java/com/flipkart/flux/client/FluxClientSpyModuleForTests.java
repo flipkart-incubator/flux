@@ -18,6 +18,7 @@ import com.flipkart.flux.client.intercept.SimpleWorkflowForTest;
 import com.flipkart.flux.client.intercept.WorkflowInterceptor;
 import com.flipkart.flux.client.model.Workflow;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
+import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
 import com.flipkart.flux.client.runtime.LocalContext;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -38,14 +39,12 @@ public class FluxClientSpyModuleForTests extends AbstractModule {
     }
 
     @Provides
-    @Singleton
     public LocalContext provideLocalContext( ) {
         return Mockito.spy(new LocalContext());
     }
 
     @Provides
-    @Singleton
     public FluxRuntimeConnector provideFluxRuntimeConnector( ){
-        return Mockito.spy(new FluxRuntimeConnector());
+        return Mockito.spy(new FluxRuntimeConnectorHttpImpl());
     }
 }

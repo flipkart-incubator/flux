@@ -13,12 +13,10 @@
  */
 
 package com.flipkart.flux.client.runtime;
-/**
- * Used to connect with the core Flux Runtime
- * This class hides the actual API call to the Flux runtime
- *
- * @author yogesh.nachnani
- */
-public interface FluxRuntimeConnector {
-    void submitNewWorkflow();
+
+public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
+    @Override
+    public void submitNewWorkflow() {
+
+    }
 }

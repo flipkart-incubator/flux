@@ -15,6 +15,7 @@
 package com.flipkart.flux.client.runtime;
 
 
+import com.flipkart.flux.api.StateMachineDefinition;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,39 +24,46 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class LocalContextTest {
     LocalContext localContext;
-    private ThreadLocal<String> stringThreadLocal;
+    private ThreadLocal<StateMachineDefinition> threadLocal;
 
     @Before
     public void setUp() throws Exception {
-        stringThreadLocal = new ThreadLocal<>();
-        localContext = new LocalContext(stringThreadLocal);
+        threadLocal = new ThreadLocal<>();
+        localContext = new LocalContext(threadLocal);
     }
 
     @Test
     public void testRegisterNew_shouldCreateALocalRegistration() throws Exception {
-        localContext.registerNew("fooBar");
-        assertThat(stringThreadLocal.get()).isEqualTo("fooBar");
+        localContext.registerNew("fooBar", 1, "someDescription");
+        assertThat(threadLocal.get()).isEqualTo(new StateMachineDefinition("someDescription","fooBar",1l));
+    }
+
+    @Test
+    public void testReset() throws Exception {
+        localContext.registerNew("fooBar", 1, "someDescription");
+        localContext.reset();
+        assertThat(threadLocal.get()).isNull();
     }
 
     @Test(expected = IllegalStateException.class)
     public void shouldDisallowDuplicateRegistrations() throws Exception {
-        localContext.registerNew("fooBar");
-        localContext.registerNew("fooBar");
+        localContext.registerNew("fooBar", 1, "someDescription");
+        localContext.registerNew("fooBar", 1, "someOtherDescription");
     }
 
     @Test
     public void shouldAllowSameMethodRegistrationFromDifferentThreads() throws Exception {
 
-        final MutableObject<String> settableString1 = new MutableObject<>(null);
-        final MutableObject<String> settableString2 = new MutableObject<>(null);
+        final MutableObject<StateMachineDefinition> definitionOne = new MutableObject<>(null);
+        final MutableObject<StateMachineDefinition> definitionTwo = new MutableObject<>(null);
 
         final Thread thread1 = new Thread(() -> {
-            localContext.registerNew("foobar");
-            settableString1.setValue(stringThreadLocal.get());
+            localContext.registerNew("fooBar", 1, "someDescription");
+            definitionOne.setValue(threadLocal.get());
         });
         final Thread thread2 = new Thread(() -> {
-            localContext.registerNew("foobar");
-            settableString2.setValue(stringThreadLocal.get());
+            localContext.registerNew("fooBar", 1, "someDescription");
+            definitionTwo.setValue(threadLocal.get());
         });
         thread1.start();
         thread2.start();
@@ -63,6 +71,7 @@ public class LocalContextTest {
         thread1.join();
         thread2.join();
 
-        assertThat(settableString1.getValue()).isNotNull().isEqualTo(settableString2.getValue()).isEqualTo("foobar");
+        assertThat(definitionOne.getValue()).isNotNull().isEqualTo(definitionTwo.getValue()).isEqualTo(new StateMachineDefinition("someDescription","fooBar",1l));
     }
+
 }

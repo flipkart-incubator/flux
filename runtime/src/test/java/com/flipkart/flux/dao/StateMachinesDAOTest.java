@@ -44,7 +44,7 @@ public class StateMachinesDAOTest {
         DummyTask task = new DummyTask();
         DummyOnEntryHook onEntryHook = new DummyOnEntryHook();
         DummyOnExitHook onExitHook = new DummyOnExitHook();
-        State<Data> state1 = new State<Data>(2L, "state1", "desc1", onEntryHook, task, onExitHook, 3L, 60L);
+        State<Data> state1 = new State<Data>(2L, "state1", "desc1", onEntryHook.getClass().getName(), task.getClass().getName(), onExitHook.getClass().getName(), 3L, 60L);
         State<Data> state2 = new State<Data>(2L, "state2", "desc2", null, null, null, 2L, 50L);
         Set<State<Data>> states = new HashSet<State<Data>>();
         states.add(state1);

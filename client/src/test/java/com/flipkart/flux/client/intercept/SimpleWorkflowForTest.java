@@ -37,6 +37,6 @@ public class SimpleWorkflowForTest {
      */
     @Workflow(version = 2)
     public int badWorkflow() {
-        return 2;
+        return 1;
     }
 }

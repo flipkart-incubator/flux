@@ -14,30 +14,42 @@
 
 package com.flipkart.flux.client.runtime;
 
+import com.flipkart.flux.api.StateMachineDefinition;
+
 /**
  * Maintains all local flux related context
  * @author yogesh.nachnani
  */
 public class LocalContext {
-    private ThreadLocal<String> stateMachineId;
+    private ThreadLocal<StateMachineDefinition> stateMachineDefinition;
 
     public LocalContext() {
         this(new ThreadLocal<>());
     }
 
-    LocalContext(ThreadLocal<String> stateMachineId) {
-        this.stateMachineId = stateMachineId ;
+    LocalContext(ThreadLocal<StateMachineDefinition> stateMachineDefinition) {
+        this.stateMachineDefinition = stateMachineDefinition;
     }
 
     /**
      * Creates a new, local Workflow Definition instance
      * @return
      * @param methodIdentifier
+     * @param version
+     * @param description
      */
-    public void registerNew(String methodIdentifier) {
-        if (this.stateMachineId.get() != null) {
-            throw new IllegalStateException("A single thread can register a new workflow only once");
+    public void registerNew(String methodIdentifier, long version, String description) {
+        if (this.stateMachineDefinition.get() != null) {
+            /* This ensures we don't compose workflows within workflows */
+            throw new IllegalStateException("A single thread cannot execute more than one workflow");
         }
-        stateMachineId.set(methodIdentifier);
+        stateMachineDefinition.set(new StateMachineDefinition(description,methodIdentifier, version));
+    }
+
+    /**
+     * Resets the LocalContext so that it is ready to work on the next request
+     */
+    public void reset() {
+        this.stateMachineDefinition.remove();
     }
 }

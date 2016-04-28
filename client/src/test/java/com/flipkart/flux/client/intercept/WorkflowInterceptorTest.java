@@ -18,6 +18,7 @@ import com.flipkart.flux.client.runner.GuiceJunit4Runner;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.IllegalSignatureException;
 import com.flipkart.flux.client.runtime.LocalContext;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -26,6 +27,7 @@ import javax.inject.Inject;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @RunWith(GuiceJunit4Runner.class)
 public class WorkflowInterceptorTest {
@@ -39,10 +41,12 @@ public class WorkflowInterceptorTest {
     @Inject
     FluxRuntimeConnector fluxRuntimeConnector;
 
+
     @Test
     public void shouldRegisterNewDefinitionWithLocalContext() throws Exception {
-        simpleWorkflowForTest.simpleDummyWorkflow("foo",2);
-        Mockito.verify(localContext,times(1)).registerNew("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleDummyWorkflow_void_java.lang.String_java.lang.Integer");
+        simpleWorkflowForTest.simpleDummyWorkflow("foo", 2);
+        final String expectedMethodIdentifer = "com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleDummyWorkflow_void_java.lang.String_java.lang.Integer";
+        Mockito.verify(localContext, times(1)).registerNew(expectedMethodIdentifer, 1, "");
     }
 
     @Test
@@ -52,8 +56,19 @@ public class WorkflowInterceptorTest {
         assertThat(true).isFalse();
     }
 
+    @Test
+    public void shouldRefreshLocalContext() throws Exception {
+        try {
+            simpleWorkflowForTest.badWorkflow();
+        } catch (IllegalSignatureException e) {
+            // Expected
+        }
+        verify(localContext,times(1)).reset();
+    }
+
     @Test(expected = IllegalSignatureException.class)
     public void shouldNotAllowWorkflowMethodsThatReturnAnything() throws Exception {
         simpleWorkflowForTest.badWorkflow();
     }
+
 }

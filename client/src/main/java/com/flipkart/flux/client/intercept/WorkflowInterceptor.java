@@ -14,6 +14,7 @@
 
 package com.flipkart.flux.client.intercept;
 
+import com.flipkart.flux.client.model.Workflow;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.IllegalSignatureException;
 import com.flipkart.flux.client.runtime.LocalContext;
@@ -50,17 +51,24 @@ public class WorkflowInterceptor implements MethodInterceptor {
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
-        checkForBadSignatures(invocation);
-        localContext.registerNew(createMethodIdentifier(invocation.getMethod()));
-        connector.submitNewWorkflow();
-        return null ;
+        try {
+            final Method method = invocation.getMethod();
+            final Workflow[] workFlowAnnotations = method.getAnnotationsByType(Workflow.class);
+            checkForBadSignatures(method);
+            localContext.registerNew(createMethodIdentifier(method),workFlowAnnotations[0].version(),workFlowAnnotations[0].description());
+            invocation.proceed();
+            connector.submitNewWorkflow();
+            return null ;
+        }
+        finally {
+            this.localContext.reset();
+        }
     }
 
-    private void checkForBadSignatures(MethodInvocation invocation) {
-        final Method invocationMethod = invocation.getMethod();
-        final Class<?> returnType = invocationMethod.getReturnType();
-        if (!returnType.equals(Void.class)) {
-            throw new IllegalSignatureException(createMethodIdentifier(invocationMethod),"A workflow method can only return void");
+    private void checkForBadSignatures(Method method) {
+        final Class<?> returnType = method.getReturnType();
+        if (!returnType.equals(void.class)) {
+            throw new IllegalSignatureException(createMethodIdentifier(method),"A workflow method can only return void");
         }
     }
 
