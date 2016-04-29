@@ -78,13 +78,14 @@ public class FluxInitializer {
         context.addFilter(GuiceFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
         context.addServlet(DefaultServlet.class, "/*");
         server.setStopAtShutdown(true);
-//        server.setStopTimeout(30 * 1000); //Max time to wait for Jetty, to cleanly shutdown before forcibly terminating.
+        server.setStopTimeout(20 * 1000); //Max time to wait for Jetty, to cleanly shutdown before forcibly terminating.
         server.start();
-        server.join();
+        logger.debug("Jetty server has started");
     }
 
     private static void stop() throws Exception {
-        //STOP THE JETTY SERVER
+        //////////////////////CHANGE THIS, KEPT IT FOR AS CALLING IT FROM TESTS.
+        server.stop();
     }
 
     private static void migrate() {

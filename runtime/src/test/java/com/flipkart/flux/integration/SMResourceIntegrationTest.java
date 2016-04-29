@@ -14,18 +14,19 @@
 package com.flipkart.flux.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.initializer.FluxInitializer;
 import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author shyam.akirala
@@ -41,8 +42,15 @@ public class SMResourceIntegrationTest {
 
     private Client client;
 
-    private static ObjectMapper mapper = new ObjectMapper();
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        FluxInitializer.main(new String[]{"start"});
+    }
 
+    @AfterClass
+    public static void afterClass() throws Exception {
+        FluxInitializer.main(new String[]{"stop"});
+    }
     @Before
     public void setup() {
         client = Client.create();
@@ -50,8 +58,6 @@ public class SMResourceIntegrationTest {
 
     @Test
     public void createStateMachineTest() throws IOException {
-//        StateMachineDefinition stateMachineDefinition = mapper.readValue(SMResourceIntegrationTest.class.getResourceAsStream("state_machine_definition.json"), StateMachineDefinition.class);
-
         String json = "{\n" +
                 "  \"name\": \"test_state_machine\",\n" +
                 "  \"version\": 1,\n" +
@@ -61,9 +67,9 @@ public class SMResourceIntegrationTest {
                 "      \"version\": 1,\n" +
                 "      \"name\": \"test_state1\",\n" +
                 "      \"description\": \"test_state_desc1\",\n" +
-                "      \"onEntryHook\": null,\n" +
-                "      \"task\": null,\n" +
-                "      \"onExitHook\": null,\n" +
+                "      \"onEntryHook\": \"com.flipkart.flux.dao.DummyOnEntryHook\",\n" +
+                "      \"task\": \"com.flipkart.flux.dao.DummyTask\",\n" +
+                "      \"onExitHook\": \"com.flipkart.flux.dao.DummyOnExitHook\",\n" +
                 "      \"retryCount\": \"5\",\n" +
                 "      \"timeout\": \"100\",\n" +
                 "      \"dependencies\": null\n" +
@@ -72,8 +78,6 @@ public class SMResourceIntegrationTest {
                 "}";
         WebResource webResource = client.resource(fluxUrl+"/fsm/machines");
         ClientResponse clientResponse  = webResource.accept("application/json").type("application/json").post(ClientResponse.class, json);
-        if (clientResponse.getStatus() != 201) {
-            throw new RuntimeException("Unable to create state machine. status: " + clientResponse.getStatus());
-        }
+        assertThat(clientResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
     }
 }

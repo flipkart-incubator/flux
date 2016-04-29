@@ -36,14 +36,6 @@ public class StateMachineResource<T> {
     @Inject
     StateMachinePersistenceService stateMachinePersistenceService;
 
-//    ======================REMOVE IT===============
-    @GET
-    public String hello() {
-        System.out.println("hello...........");
-        return new String("hello.......");
-    }
-
-
     /**
      * Will instantiate a state machine in the flux execution engine
      * @param stateMachineDefinition User input for state machine
@@ -54,7 +46,6 @@ public class StateMachineResource<T> {
     @Transactional
     public Response createStateMachine(StateMachineDefinition stateMachineDefinition) {
 
-        System.out.println("Create state machine =========================================");
         // 1. Convert to StateMachine (domain object) and save in DB
         if(stateMachineDefinition == null)
             throw new IllegalRepresentationException("State machine definition is empty");
@@ -64,8 +55,7 @@ public class StateMachineResource<T> {
         // 2. workFlowExecutionController.init(stateMachine_domainObject)
 
         // 3. Return machineId
-        System.out.println(stateMachine.getId());
-        return Response.status(201).entity(stateMachine.getId()).build();
+        return Response.status(201).entity("State Machine Id: "+stateMachine.getId()).build();
     }
 
     
