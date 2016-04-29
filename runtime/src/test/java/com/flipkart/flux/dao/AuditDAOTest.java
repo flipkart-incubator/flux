@@ -18,7 +18,7 @@ import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
-import com.flipkart.flux.rules.DbClearWithTestSMRule;
+import com.flipkart.flux.rule.DbClearWithTestSMRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import junit.framework.Assert;
 import org.junit.Before;

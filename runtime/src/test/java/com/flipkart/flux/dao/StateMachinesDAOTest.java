@@ -21,7 +21,7 @@ import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
-import com.flipkart.flux.rules.DbClearRule;
+import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import junit.framework.Assert;
 import org.junit.Before;

@@ -14,8 +14,7 @@
 package com.flipkart.flux.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.StateMachineDefinition;
-import com.flipkart.flux.rules.DbClearRule;
+import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -26,7 +25,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -53,9 +51,6 @@ public class SMResourceIntegrationTest {
     @Test
     public void createStateMachineTest() throws IOException {
 //        StateMachineDefinition stateMachineDefinition = mapper.readValue(SMResourceIntegrationTest.class.getResourceAsStream("state_machine_definition.json"), StateMachineDefinition.class);
-
-        WebResource webResource2 = client.resource(fluxUrl+"/fsm/machines");
-        ClientResponse response2 = webResource2.accept("application/json").get(ClientResponse.class);
 
         String json = "{\n" +
                 "  \"name\": \"test_state_machine\",\n" +

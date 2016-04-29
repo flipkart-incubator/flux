@@ -16,7 +16,7 @@ package com.flipkart.flux.dao;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.rules.DbClearWithTestSMRule;
+import com.flipkart.flux.rule.DbClearWithTestSMRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import junit.framework.Assert;
 import org.junit.Before;

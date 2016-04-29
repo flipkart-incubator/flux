@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.rules;
+package com.flipkart.flux.rule;
 
 import com.flipkart.flux.domain.StateMachine;
 import org.junit.rules.ExternalResource;
