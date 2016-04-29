@@ -21,6 +21,8 @@ import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.FileSystemResourceAccessor;
 import org.apache.commons.configuration.Configuration;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.sql.DriverManager;
 import java.util.Properties;
 
@@ -29,28 +31,28 @@ import java.util.Properties;
  * To perform migration run this class with "migrate" parameter.
  * @author shyam.akirala
  */
+@Singleton
 public class MigrationsRunner {
 
-    public static void main(String[] args) {
+    @Inject
+    private YamlConfiguration yamlConfiguration;
 
-        if(args != null && args[0].equals("migrate")) {
-
-            try {
-                YamlConfiguration yamlConfiguration = new YamlConfiguration("runtime/src/main/resources/packaged/configuration.yml");
-                Configuration configuration = yamlConfiguration.subset("Hibernate");
-                Properties properties = new Properties();
-                properties.put("user", configuration.getProperty("hibernate.connection.username"));
-                properties.put("password", configuration.getProperty("hibernate.connection.password"));
-                String url = (String) configuration.getProperty("hibernate.connection.url");
-                Class.forName("com.mysql.jdbc.Driver").newInstance();
-                java.sql.Connection connection = DriverManager.getConnection(url, properties);
-                Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
-                Liquibase liquibase = new Liquibase("persistence-mysql/src/main/resources/migrations.xml", new FileSystemResourceAccessor(), database);
-                liquibase.update(new Contexts());
-            } catch (Exception e) {
-                System.err.println("Unable to perform database migration.");
-                e.printStackTrace();
-            }
+    public void migrate() {
+        try {
+            Configuration configuration = yamlConfiguration.subset("Hibernate");
+            Properties properties = new Properties();
+            properties.put("user", configuration.getProperty("hibernate.connection.username"));
+            properties.put("password", configuration.getProperty("hibernate.connection.password"));
+            String url = (String) configuration.getProperty("hibernate.connection.url");
+            Class.forName("com.mysql.jdbc.Driver").newInstance();
+            java.sql.Connection connection = DriverManager.getConnection(url, properties);
+            Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
+            Liquibase liquibase = new Liquibase("persistence-mysql/src/main/resources/migrations.xml", new FileSystemResourceAccessor(), database);
+            liquibase.update(new Contexts());
+        } catch (Exception e) {
+            System.err.println("Unable to perform database migration.");
+            e.printStackTrace();
         }
     }
+
 }

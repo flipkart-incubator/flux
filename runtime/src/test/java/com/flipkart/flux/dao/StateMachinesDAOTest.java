@@ -83,12 +83,12 @@ public class StateMachinesDAOTest {
         eventSet1.add(eventDefinition1);
         Set<EventDefinition> eventSet2 = new HashSet<>();
         eventSet2.add(eventDefinition2);
-        StateDefinition stateDefinition1 = new StateDefinition<DummyEventData>(1L, "state1_", "desc1_", new DummyOnEntryHook<DummyEventData>(), new DummyTask<DummyEventData>(), new DummyOnExitHook<DummyEventData>(), 0L, 60L, eventSet1);
-        StateDefinition stateDefinition2 = new StateDefinition<DummyEventData>(1L, "state2_", "desc2_", new DummyOnEntryHook<DummyEventData>(), new DummyTask<DummyEventData>(), new DummyOnExitHook<DummyEventData>(), 0L, 60L, eventSet2);
+        StateDefinition stateDefinition1 = new StateDefinition(1L, "state1_", "desc1_", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.DummyTask", "com.flipkart.flux.dao.DummyOnExitHook", 0L, 60L, eventSet1);
+        StateDefinition stateDefinition2 = new StateDefinition(1L, "state2_", "desc2_", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.DummyTask", "com.flipkart.flux.dao.DummyOnExitHook", 0L, 60L, eventSet2);
         Set<StateDefinition> stateSet = new HashSet<>();
         stateSet.add(stateDefinition1);
         stateSet.add(stateDefinition2);
-        StateMachineDefinition<DummyEventData> stateMachineDefinition = new StateMachineDefinition(1L, "SMD_name_", "SMD_desc_", stateSet);
+        StateMachineDefinition stateMachineDefinition = new StateMachineDefinition(1L, "SMD_name_", "SMD_desc_", stateSet);
         StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineDefinition);
         StateMachine stateMachine1 = stateMachinesDAO.findById(stateMachine.getId());
         Assert.assertEquals(stateMachine, stateMachine1);

@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.api;
 
+import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Set;
 
 /**
@@ -21,7 +22,8 @@ import java.util.Set;
  * @author regunath.balasubramanian
  * @author shyam.akirala
  */
-public class StateMachineDefinition<T> {
+@XmlRootElement
+public class StateMachineDefinition {
 	
 	/** Name for this state machine definition*/
     private String name;
@@ -31,12 +33,14 @@ public class StateMachineDefinition<T> {
 
 	/** Short description for this state machine definition*/
     private String description;
-    
+
     /** Possible states that this state machine can transition to*/
-    private Set<StateDefinition<T>> states;
-    
-    /** Constructor */
-    public StateMachineDefinition(Long version, String name, String description, Set<StateDefinition<T>> states) {
+    private Set<StateDefinition> states;
+
+    /** Constructors */
+    public StateMachineDefinition() {}
+
+    public StateMachineDefinition(Long version, String name, String description, Set<StateDefinition> states) {
         this.version = version;
         this.description = description;
         this.name = name;
@@ -62,10 +66,10 @@ public class StateMachineDefinition<T> {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	public Set<StateDefinition<T>> getStates() {
+	public Set<StateDefinition> getStates() {
 		return states;
 	}
-	public void setStates(Set<StateDefinition<T>> states) {
+	public void setStates(Set<StateDefinition> states) {
 		this.states = states;
 	}
     

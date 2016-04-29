@@ -13,7 +13,7 @@
 
 package com.flipkart.flux.runner;
 
-import com.flipkart.flux.RuntimeTestModule;
+import com.flipkart.flux.module.RuntimeTestModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Stage;

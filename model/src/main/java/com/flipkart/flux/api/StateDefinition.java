@@ -13,9 +13,7 @@
 
 package com.flipkart.flux.api;
 
-import com.flipkart.flux.domain.Hook;
-import com.flipkart.flux.domain.Task;
-
+import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Set;
 
 /**
@@ -27,8 +25,8 @@ import java.util.Set;
  *  @author shyam.akirala
  *  @author kartik.bommepally
  */
-
-public class StateDefinition<T> {
+@XmlRootElement
+public class StateDefinition {
 	
 	/** The version of this state definition*/
     private Long version;
@@ -39,14 +37,14 @@ public class StateDefinition<T> {
     /** Description of this state definition*/
     private String description;
 
-    /** Hook that will be executed on entry of this state*/
-    private Hook<T> onEntryHook;
+    /** Name of Hook class that will be executed on entry of this state*/
+    private String onEntryHook;
 
-    /** Task that will be executed when the state machine transitions to the state*/
-    private Task<T> task;
+    /** Name of Task class that will be executed when the state machine transitions to the state*/
+    private String task;
 
-    /** Hook that will be executed on exit of this state*/
-    private Hook<T> onExitHook;
+    /** Name of Hook class that will be executed on exit of this state*/
+    private String onExitHook;
 
     /** Retry count for task execution*/    
     private Long retryCount;
@@ -58,7 +56,8 @@ public class StateDefinition<T> {
     private Set<EventDefinition> dependencies;
 
     /** Constructor*/
-	public StateDefinition(Long version, String name, String description, Hook<T> onEntryHook, Task<T> task, Hook<T> onExitHook,
+    public StateDefinition() {}
+	public StateDefinition(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
                            Long retryCount, Long timeout, Set<EventDefinition> dependencies) {
 		super();
 		this.version = version;
@@ -91,22 +90,22 @@ public class StateDefinition<T> {
     public void setDescription(String description) {
         this.description = description;
     }
-	public Task<T> getTask() {
+	public String getTask() {
 		return task;
 	}
-	public void setTask(Task<T> task) {
+	public void setTask(String task) {
 		this.task = task;
 	}
-    public Hook<T> getOnEntryHook() {
+    public String getOnEntryHook() {
         return onEntryHook;
     }
-    public void setOnEntryHook(Hook<T> onEntryHook) {
+    public void setOnEntryHook(String onEntryHook) {
         this.onEntryHook = onEntryHook;
     }
-    public Hook<T> getOnExitHook() {
+    public String getOnExitHook() {
         return onExitHook;
     }
-    public void setOnExitHook(Hook<T> onExitHook) {
+    public void setOnExitHook(String onExitHook) {
         this.onExitHook = onExitHook;
     }
 	public Long getRetryCount() {
@@ -146,7 +145,7 @@ public class StateDefinition<T> {
         if (getClass() != obj.getClass())
             return false;
         @SuppressWarnings("unchecked")
-        StateDefinition<T> other = (StateDefinition<T>) obj;
+        StateDefinition other = (StateDefinition) obj;
         if (name == null) {
             if (other.name != null)
                 return false;

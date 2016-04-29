@@ -17,8 +17,10 @@ import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
+import com.flipkart.flux.domain.Hook;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.Task;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -46,11 +48,11 @@ public class StateMachinePersistenceService<T> {
      * @param stateMachineDefinition
      * @return saved state machine object
      */
-    public StateMachine createStateMachine(StateMachineDefinition<T> stateMachineDefinition) {
-        Set<StateDefinition<T>> stateDefinitions = stateMachineDefinition.getStates();
+    public StateMachine createStateMachine(StateMachineDefinition stateMachineDefinition) {
+        Set<StateDefinition> stateDefinitions = stateMachineDefinition.getStates();
         Set<State<T>> states = new HashSet<>();
 
-        for(StateDefinition<T> stateDefinition : stateDefinitions) {
+        for(StateDefinition stateDefinition : stateDefinitions) {
             State state = convertStateDefinitionToState(stateDefinition);
             states.add(state);
         }
@@ -68,16 +70,40 @@ public class StateMachinePersistenceService<T> {
      * @param stateDefinition
      * @return state
      */
-    private State<T> convertStateDefinitionToState(StateDefinition<T> stateDefinition) {
-        State<T> state = new State<>(stateDefinition.getVersion(),
-                stateDefinition.getName(),
-                stateDefinition.getDescription(),
-                stateDefinition.getOnEntryHook(),
-                stateDefinition.getTask(),
-                stateDefinition.getOnExitHook(),
-                stateDefinition.getRetryCount(),
-                stateDefinition.getTimeout());
-        return state;
+    private State<T> convertStateDefinitionToState(StateDefinition stateDefinition) {
+
+        try {
+            Hook onEntryHook = (Hook) constructObjectUsingReflection(stateDefinition.getOnEntryHook());
+            Task task = (Task) constructObjectUsingReflection(stateDefinition.getTask());
+//            =========== Uncomment this check ======================
+//            if(task == null)
+//                throw new IllegalRepresentationException("Task should not be empty");
+            Hook onExitHook = (Hook) constructObjectUsingReflection(stateDefinition.getOnEntryHook());
+
+            State<T> state = new State<T>(stateDefinition.getVersion(),
+                    stateDefinition.getName(),
+                    stateDefinition.getDescription(),
+                    onEntryHook,
+                    task,
+                    onExitHook,
+                    stateDefinition.getRetryCount(),
+                    stateDefinition.getTimeout());
+            return state;
+        } catch (Exception e) {
+            throw new IllegalRepresentationException("Unable to create state domain object", e);
+        }
+    }
+
+    /**
+     * Constructs and returns an object of given class name
+     * @param className
+     * @return class object
+     */
+    private Object constructObjectUsingReflection(String className) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        if(className == null)
+            return null;
+        Class c = Class.forName(className);
+        return c.newInstance();
     }
 
 }

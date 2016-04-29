@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux;
+package com.flipkart.flux.module;
 
 import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.flux.guice.module.HibernateModule;
