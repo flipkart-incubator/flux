@@ -84,7 +84,8 @@ public class FluxInitializer {
     }
 
     private static void stop() throws Exception {
-        //////////////////////CHANGE THIS, KEPT IT FOR AS CALLING IT FROM TESTS.
+        //////////////////////CHANGE THIS, FIND A WAY TO CLEANLY SHUTDOWN THE SERVER FROM OUTSIDE.
+        /////////////////////Kept as below for now to use in integration tests.
         server.stop();
     }
 

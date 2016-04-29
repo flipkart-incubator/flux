@@ -51,7 +51,6 @@ public class DispatcherServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		Pair<String,String> entityActionPair = this.parseEntityAction(request);
 		// TODO : Dispatch to Flux Akka sub-system
-        System.out.println("in doGet===========");
     }
 	
 	/**
@@ -62,7 +61,6 @@ public class DispatcherServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		Pair<String,String> entityActionPair = this.parseEntityAction(request);
 		// TODO : Dispatch to Flux Akka sub-system
-        System.out.println("in doPost==========");
     }
 	
 	/** 
