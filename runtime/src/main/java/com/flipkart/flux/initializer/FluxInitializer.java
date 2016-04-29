@@ -25,12 +25,11 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
-import javax.inject.Inject;
 import javax.servlet.DispatcherType;
 import java.util.EnumSet;
 
 /**
- * <code>FluxInitializer</code> is the initializer class which starts jetty server and loads polyguice containers.
+ * <code>FluxInitializer</code> is the initializer class which starts jetty server and loads polyguice container.
  * @author shyam.akirala
  */
 public class FluxInitializer {
@@ -41,8 +40,7 @@ public class FluxInitializer {
 
     private static Polyguice fluxRuntimeContainer;
 
-    @Inject
-    private static MigrationsRunner migrationsRunner;
+    private static final int jetty_port = 9999;
 
     public static void main(String[] args) throws Exception {
         if(args != null && args.length > 0) {
@@ -71,30 +69,27 @@ public class FluxInitializer {
         fluxRuntimeContainer.prepare();
     }
 
-    public static void start() throws Exception {
-        if(server != null && server.isRunning()) {
-            logger.error("Server is already started");
-        } else {
-            //load flux runtime container
-            loadFluxRuntimeContainer();
-            logger.debug("starting jetty server");
-            server = new Server(9999);
-            ServletContextHandler context = new ServletContextHandler(server, "/", ServletContextHandler.SESSIONS);
-            context.addFilter(GuiceFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
-            context.addServlet(DefaultServlet.class, "/*");
-            server.setStopAtShutdown(true);
-            server.setStopTimeout(30 * 1000); //Max time to wait for Jetty, to cleanly shutdown before forcibly terminating.
-            server.start();
-        }
+    private static void start() throws Exception {
+        //load flux runtime container
+        loadFluxRuntimeContainer();
+        logger.debug("starting jetty server");
+        server = new Server(jetty_port);
+        ServletContextHandler context = new ServletContextHandler(server, "/", ServletContextHandler.SESSIONS);
+        context.addFilter(GuiceFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
+        context.addServlet(DefaultServlet.class, "/*");
+        server.setStopAtShutdown(true);
+//        server.setStopTimeout(30 * 1000); //Max time to wait for Jetty, to cleanly shutdown before forcibly terminating.
+        server.start();
+        server.join();
     }
 
-    public static void stop() throws Exception {
+    private static void stop() throws Exception {
         //STOP THE JETTY SERVER
     }
 
-    public static void migrate() {
+    private static void migrate() {
         loadFluxRuntimeContainer();
-        //THIS DOESN'T WORK, AS IT IS STATIC, FIND A WAY TO INJECT
+        MigrationsRunner migrationsRunner = (MigrationsRunner) fluxRuntimeContainer.getInstanceOfClass(MigrationsRunner.class);
         migrationsRunner.migrate();
     }
 }
