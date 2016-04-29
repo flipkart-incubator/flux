@@ -13,7 +13,6 @@
 
 package com.flipkart.flux.integration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.initializer.FluxInitializer;
 import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;

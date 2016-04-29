@@ -13,7 +13,6 @@
 
 package com.flipkart.flux.api;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Set;
 
 /**
@@ -22,7 +21,6 @@ import java.util.Set;
  * @author regunath.balasubramanian
  * @author shyam.akirala
  */
-@XmlRootElement
 public class StateMachineDefinition {
 	
 	/** Name for this state machine definition*/
