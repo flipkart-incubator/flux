@@ -14,61 +14,67 @@
 
 package com.flipkart.flux.client.intercept;
 
-import com.flipkart.flux.client.runner.GuiceJunit4Runner;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.IllegalSignatureException;
 import com.flipkart.flux.client.runtime.LocalContext;
-import org.junit.After;
+import org.aopalliance.intercept.MethodInvocation;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.inject.Inject;
-
+import static com.flipkart.flux.client.utils.TestUtil.dummyInvocation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@RunWith(GuiceJunit4Runner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class WorkflowInterceptorTest {
 
-    @Inject
-    SimpleWorkflowForTest simpleWorkflowForTest;
+    SimpleWorkflowForTest simpleWorkflowForTest = new SimpleWorkflowForTest();
 
-    @Inject
+    @Mock
     LocalContext localContext;
 
-    @Inject
+    @Mock
     FluxRuntimeConnector fluxRuntimeConnector;
 
+    WorkflowInterceptor workflowInterceptor;
+
+    @Before
+    public void setUp() throws Exception {
+        workflowInterceptor = new WorkflowInterceptor(localContext,fluxRuntimeConnector);
+    }
 
     @Test
-    public void shouldRegisterNewDefinitionWithLocalContext() throws Exception {
-        simpleWorkflowForTest.simpleDummyWorkflow("foo", 2);
+    public void shouldRegisterNewDefinitionWithLocalContext() throws Throwable {
+        workflowInterceptor.invoke(dummyInvocation(simpleWorkflowForTest.getClass().getDeclaredMethod("simpleDummyWorkflow", String.class, Integer.class)));
         final String expectedMethodIdentifer = "com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleDummyWorkflow_void_java.lang.String_java.lang.Integer";
         Mockito.verify(localContext, times(1)).registerNew(expectedMethodIdentifer, 1, "");
     }
 
     @Test
-    public void shouldSubmitNewDefinitionAfterMethodIsInvoked() throws Exception {
-        simpleWorkflowForTest.simpleDummyWorkflow("foo",2);
+    public void shouldSubmitNewDefinitionAfterMethodIsInvoked() throws Throwable {
+        workflowInterceptor.invoke(dummyInvocation(simpleWorkflowForTest.getClass().getDeclaredMethod("simpleDummyWorkflow", String.class, Integer.class)));
         Mockito.verify(fluxRuntimeConnector, times(1)).submitNewWorkflow();
         assertThat(true).isFalse();
     }
 
     @Test
-    public void shouldRefreshLocalContext() throws Exception {
+    public void shouldRefreshLocalContext() throws Throwable {
         try {
-            simpleWorkflowForTest.badWorkflow();
+            workflowInterceptor.invoke(dummyInvocation(simpleWorkflowForTest.getClass().getDeclaredMethod("badWorkflow")));
         } catch (IllegalSignatureException e) {
             // Expected
         }
-        verify(localContext,times(1)).reset();
+        verify(localContext, times(1)).reset();
     }
 
     @Test(expected = IllegalSignatureException.class)
-    public void shouldNotAllowWorkflowMethodsThatReturnAnything() throws Exception {
-        simpleWorkflowForTest.badWorkflow();
+    public void shouldNotAllowWorkflowMethodsThatReturnAnything() throws Throwable {
+        workflowInterceptor.invoke(dummyInvocation(simpleWorkflowForTest.getClass().getDeclaredMethod("badWorkflow")));
     }
 
 }

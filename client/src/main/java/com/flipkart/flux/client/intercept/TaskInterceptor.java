@@ -14,8 +14,17 @@
 
 package com.flipkart.flux.client.intercept;
 
+import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.client.model.Task;
+import com.flipkart.flux.client.runtime.LocalContext;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+
+import javax.inject.Inject;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This intercepts the invocation to <code>@Task</code> methods
@@ -24,8 +33,41 @@ import org.aopalliance.intercept.MethodInvocation;
  * @author yogesh.nachnani
  */
 public class TaskInterceptor implements MethodInterceptor {
+
+    @Inject
+    private LocalContext localContext;
+
+    public TaskInterceptor() {
+    }
+
+    TaskInterceptor(LocalContext localContext) {
+        this.localContext = localContext;
+    }
+
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
+        final Method method = invocation.getMethod();
+        final Task taskAnnotation = method.getAnnotationsByType(Task.class)[0];
+        localContext.registerNewState(taskAnnotation.version(), generateStateIdentifier(method) ,null,null, generateTaskIdentifier(method),taskAnnotation.retries(),taskAnnotation.timeout(),generateEventDefs(method));
         return null;
+    }
+
+    private Set<EventDefinition> generateEventDefs(Method method) {
+        Set<EventDefinition> eventDefinitions = new HashSet<>();
+        final Parameter[] parameters = method.getParameters();
+        final String methodIdPrefix = MethodIdGenerator.createMethodIdPrefix(method);
+        for (Parameter parameter : parameters) {
+            eventDefinitions.add(new EventDefinition(methodIdPrefix+MethodIdGenerator.UNDERSCORE+parameter.getType().getCanonicalName()+MethodIdGenerator.UNDERSCORE+parameter.getName()));
+        }
+        return eventDefinitions;
+
+    }
+
+    private String generateStateIdentifier(Method method) {
+        return method.getName();
+    }
+
+    private String generateTaskIdentifier(Method method) {
+        return MethodIdGenerator.createMethodIdentifier(method);
     }
 }

@@ -34,8 +34,6 @@ import java.lang.reflect.Method;
 @Singleton
 public class WorkflowInterceptor implements MethodInterceptor {
 
-    public static final String UNDERSCORE = "_";
-
     @Inject
     private LocalContext localContext;
     @Inject
@@ -55,7 +53,7 @@ public class WorkflowInterceptor implements MethodInterceptor {
             final Method method = invocation.getMethod();
             final Workflow[] workFlowAnnotations = method.getAnnotationsByType(Workflow.class);
             checkForBadSignatures(method);
-            localContext.registerNew(createMethodIdentifier(method),workFlowAnnotations[0].version(),workFlowAnnotations[0].description());
+            localContext.registerNew(MethodIdGenerator.createMethodIdentifier(method),workFlowAnnotations[0].version(),workFlowAnnotations[0].description());
             invocation.proceed();
             connector.submitNewWorkflow();
             return null ;
@@ -68,22 +66,8 @@ public class WorkflowInterceptor implements MethodInterceptor {
     private void checkForBadSignatures(Method method) {
         final Class<?> returnType = method.getReturnType();
         if (!returnType.equals(void.class)) {
-            throw new IllegalSignatureException(createMethodIdentifier(method),"A workflow method can only return void");
+            throw new IllegalSignatureException(MethodIdGenerator.createMethodIdentifier(method),"A workflow method can only return void");
         }
     }
 
-    private String createMethodIdentifier(Method method) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(method.getDeclaringClass().getCanonicalName());
-        stringBuilder.append(UNDERSCORE);
-        stringBuilder.append(method.getName());
-        stringBuilder.append(UNDERSCORE);
-        stringBuilder.append(method.getReturnType());
-        final Class<?>[] parameterTypes = method.getParameterTypes();
-        for (Class<?> parameterType : parameterTypes) {
-            stringBuilder.append(UNDERSCORE);
-            stringBuilder.append(parameterType.getCanonicalName());
-        }
-        return stringBuilder.toString();
-    }
 }

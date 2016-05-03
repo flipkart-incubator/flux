@@ -14,6 +14,7 @@
 
 package com.flipkart.flux.client.intercept;
 
+import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.model.Workflow;
 
 import javax.inject.Inject;
@@ -28,7 +29,9 @@ public class SimpleWorkflowForTest {
     /* A simple workflow that goes about creating tasks and making merry */
     @Workflow(version = 1)
     public void simpleDummyWorkflow(String someString, Integer someInteger) {
-
+        final String newString = simpleStringModifyingTask(someString);
+        final Integer someNewInteger = simpleAdditionTask(someInteger);
+        someTaskWithIntegerAndString(newString, someNewInteger);
     }
 
     /*
@@ -39,4 +42,20 @@ public class SimpleWorkflowForTest {
     public int badWorkflow() {
         return 1;
     }
+
+    @Task(version = 2,retries = 2,timeout = 2000l)
+    public String simpleStringModifyingTask(String someString) {
+        return "randomBs" + someString;
+    }
+
+    @Task(version = 1, retries = 2, timeout = 3000l)
+    public Integer simpleAdditionTask(Integer i) {
+        return i+2;
+    }
+
+    @Task(version = 3, retries = 0, timeout = 1000l)
+    public void someTaskWithIntegerAndString(String someString, Integer someInteger) {
+        //blah
+    }
+
 }

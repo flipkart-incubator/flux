@@ -15,7 +15,9 @@
 package com.flipkart.flux.client;
 
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest;
+import com.flipkart.flux.client.intercept.TaskInterceptor;
 import com.flipkart.flux.client.intercept.WorkflowInterceptor;
+import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.model.Workflow;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
@@ -36,14 +38,19 @@ public class FluxClientSpyModuleForTests extends AbstractModule {
         requestInjection(workflowInterceptor);
         bindInterceptor(Matchers.any(), Matchers.annotatedWith(Workflow.class),
             workflowInterceptor);
+        final TaskInterceptor taskInterceptor = new TaskInterceptor();
+        requestInjection(taskInterceptor);
+        bindInterceptor(Matchers.any(), Matchers.annotatedWith(Task.class),taskInterceptor);
     }
 
     @Provides
+    @Singleton
     public LocalContext provideLocalContext( ) {
         return Mockito.spy(new LocalContext());
     }
 
     @Provides
+    @Singleton
     public FluxRuntimeConnector provideFluxRuntimeConnector( ){
         return Mockito.spy(new FluxRuntimeConnectorHttpImpl());
     }
