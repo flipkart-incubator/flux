@@ -13,11 +13,6 @@
 
 package com.flipkart.flux.resource;
 
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-
 import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
@@ -25,12 +20,20 @@ import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.google.inject.Inject;
 
+import javax.inject.Named;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * @understands Exposes APIs for end users
  */
+//todo merge with FluxResource
+@Path("/api")
+@Named
 public class StateMachineResource<T> {
 
     @Inject
@@ -42,7 +45,7 @@ public class StateMachineResource<T> {
      * @return unique machineId of the instantiated state machine
      */
     @POST
-    @Path("/machines")
+    @Path("/fsms")
     public String createStateMachine(StateMachineDefinition stateMachineDefinition) {
         // 1. Convert to StateMachine (domain object) and save in DB
         StateMachine stateMachine = persistStateMachine(stateMachineDefinition);
@@ -53,17 +56,18 @@ public class StateMachineResource<T> {
         return stateMachine.getId();
     }
 
-    
+
     /**
      * Used to post Data corresponding to an event.
      * This data may be a result of a task getting completed or independently posted (manually, for example)
      * @param machineId machineId the event is to be submitted against
      * @param eventFqn fully qualified name of the event. Like java.lang.String_foo
      * @param eventDataJson Json representation of data
+     *
      */
 
     @POST
-    @Path("/machines/{machineId}/context/events/{eventFqn}")
+    @Path("/fsms/{machineId}/context/events/{eventFqn}")
     public void submitEvent(@PathParam("machineId") Long machineId,
                             @PathParam("eventFqn") String eventFqn,
                             String eventDataJson
@@ -80,7 +84,7 @@ public class StateMachineResource<T> {
      */
 
     @PUT
-    @Path("/machines/{machineId}/cancel")
+    @Path("/fsms/{machineId}/cancel")
     public void cancelExecution(@PathParam("machineId") Long machineId) {
         // Trigger cancellation on all currently executing states
     }

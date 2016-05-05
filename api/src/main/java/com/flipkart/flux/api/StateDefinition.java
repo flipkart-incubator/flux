@@ -22,6 +22,7 @@ import java.util.Set;
  *  @author Yogesh
  *  @author regunath.balasubramanian
  *  @author shyam.akirala
+ *  @author kartik.bommepally
  */
 
 public class StateDefinition {
@@ -127,7 +128,7 @@ public class StateDefinition {
 	public void setDependencies(Set<EventDefinition> dependencies) {
 		this.dependencies = dependencies;
 	}
-
+	
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;

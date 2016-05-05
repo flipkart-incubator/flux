@@ -1,0 +1,22 @@
+Hibernate:
+  hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
+  hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
+  hibernate.connection.url: "jdbc:mysql://localhost:3306/flux"
+  hibernate.connection.username: "root"
+  hibernate.current_session_context_class: "managed"
+  connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
+  hibernate.c3p0.min_size: 10
+  hibernate.c3p0.max_size: 100
+
+Dashboard:
+  service.port: 9999
+  service.acceptors: 3
+  service.selectors: 6
+  service.workers: 12
+
+Api:
+  service.port: 9998
+  service.acceptors: 3
+  service.selectors: 6
+  service.workers: 12
+  service.baseURL: "http://localhost"

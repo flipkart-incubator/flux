@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+			http://java.sun.com/xml/ns/j2ee
+			http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+	version="2.4">
+
+	<context-param> 
+	    <param-name>contextConfigLocation</param-name> 
+	    <param-value>WEB-INF/webapp-config.xml</param-value> 
+	</context-param>
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener> 
+
+	<!--  
+		  Three servlets are created, as an event stream can only be accessed by one client at a time.
+		  Two servlets are for local streams (one for command, and one for Thread pool graphs)
+		  One servlet is for Global (for Turbine)
+	 -->
+	<!--  Servlet for local Dashboard (command) -->
+	<servlet>
+		<description></description>
+		<display-name>HystrixMetricsStreamServletCommandLocal</display-name>
+		<servlet-name>HystrixMetricsStreamServletCommandLocal</servlet-name>
+		<servlet-class>com.netflix.hystrix.contrib.metrics.eventstream.HystrixMetricsStreamServlet</servlet-class>
+	</servlet>
+	
+	<!--  Servlet for global Dashboard (turbine) -->
+	<servlet>
+		<description></description>
+		<display-name>HystrixMetricsStreamServletGlobal</display-name>
+		<servlet-name>HystrixMetricsStreamServletGlobal</servlet-name>
+		<servlet-class>com.netflix.hystrix.contrib.metrics.eventstream.HystrixMetricsStreamServlet</servlet-class>
+	</servlet>
+
+	<!--  Servlet for local Dashboard (thread pool) -->
+	<servlet>
+		<description></description>
+		<display-name>HystrixMetricsStreamServletThreadpoolLocal</display-name>
+		<servlet-name>HystrixMetricsStreamServletThreadpoolLocal</servlet-name>
+		<servlet-class>com.netflix.hystrix.contrib.metrics.eventstream.HystrixMetricsStreamServlet</servlet-class>
+	</servlet>
+	
+	<!--  URL mappings for each servlet -->
+	<servlet-mapping>
+		<servlet-name>HystrixMetricsStreamServletCommandLocal</servlet-name>
+		<url-pattern>/hystrix.stream.command.local</url-pattern> <!-- all the hystrix metrics will be streamed to JSON to this URL -->
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>HystrixMetricsStreamServletGlobal</servlet-name>
+		<url-pattern>/hystrix.stream.global</url-pattern> <!-- all the hystrix metrics will be streamed to JSON to this URL -->
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>HystrixMetricsStreamServletThreadpoolLocal</servlet-name>
+		<url-pattern>/hystrix.stream.tp.local</url-pattern> <!-- all the hystrix metrics will be streamed to JSON to this URL -->
+	</servlet-mapping>
+	
+	<!-- Spring MVC servlet for Dashboard Web Console -->
+	<servlet>
+		<servlet-name>DashboardServlet</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>WEB-INF/servlet-config.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	
+	<servlet-mapping>
+		<servlet-name>DashboardServlet</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+	
+</web-app>

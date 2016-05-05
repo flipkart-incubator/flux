@@ -13,21 +13,29 @@
 
 package com.flipkart.flux.dao;
 
-import com.flipkart.flux.HibernateModule;
-import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.domain.State;
-import com.flipkart.flux.domain.StateMachine;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import junit.framework.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.HashSet;
 import java.util.Set;
 
+import com.flipkart.flux.dao.iface.StatesDAO;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.domain.State;
+import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.guice.module.ConfigModule;
+import com.flipkart.flux.guice.module.HibernateModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
+import junit.framework.Assert;
+
+import javax.transaction.Transactional;
+
 /**
+ * <code>StateMachinesDAOTest</code> class tests the functionality of {@link StateMachinesDAO} using JUnit tests.
  * @author shyam.akirala
+ * @author kartik.bommepally
  */
 public class StateMachinesDAOTest {
 
@@ -35,41 +43,26 @@ public class StateMachinesDAOTest {
 
     @Before
     public void setup() {
-        injector = Guice.createInjector(new HibernateModule());
+        injector = Guice.createInjector(new ConfigModule(), new HibernateModule());
     }
 
     @Test
+    @Transactional
     public void createSMTest() {
         StateMachinesDAO stateMachinesDAO = injector.getInstance(StateMachinesDAO.class);
+        StatesDAO statesDAO = injector.getInstance(StatesDAO.class);
         DummyTask task = new DummyTask();
         DummyOnEntryHook onEntryHook = new DummyOnEntryHook();
         DummyOnExitHook onExitHook = new DummyOnExitHook();
-        State<Data> state1 = new State<Data>(2L, "state1", "desc1", onEntryHook.getClass().getName(), task.getClass().getName(), onExitHook.getClass().getName(), 3L, 60L);
-        State<Data> state2 = new State<Data>(2L, "state2", "desc2", null, null, null, 2L, 50L);
-        Set<State<Data>> states = new HashSet<State<Data>>();
+        State<DummyEventData> state1 = statesDAO.create(new State<DummyEventData>(2L, "state1", "desc1", onEntryHook.getClass().getName(), task.getClass().getName(), onExitHook.getClass().getName(), 3L, 60L));
+        State<DummyEventData> state2 = statesDAO.create(new State<DummyEventData>(2L, "state2", "desc2", null, null, null, 2L, 50L));
+        Set<State<DummyEventData>> states = new HashSet<State<DummyEventData>>();
         states.add(state1);
         states.add(state2);
-        StateMachine<Data> stateMachine = new StateMachine<Data>(2L, "test_name", "test_desc", states);
+        StateMachine<DummyEventData> stateMachine = new StateMachine<DummyEventData>(2L, "test_name", "test_desc", states);
         String savedSMId = stateMachinesDAO.create(stateMachine).getId();
 
         StateMachine stateMachine1 = stateMachinesDAO.findById(savedSMId);
         Assert.assertNotNull(stateMachine1);
-    }
-}
-
-/** Event data class*/
-class Data {
-    String data;
-
-    public Data(String data) {
-        this.data = data;
-    }
-
-    public String getData() {
-        return data;
-    }
-
-    public void setData(String data) {
-        this.data = data;
     }
 }

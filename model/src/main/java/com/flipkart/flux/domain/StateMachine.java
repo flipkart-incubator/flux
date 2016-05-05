@@ -26,6 +26,7 @@ import java.util.Set;
  * @author Yogesh
  * @author regunath.balasubramanian
  * @author shyam.akirala
+ * @author kartik.bommepally
  */
 @Entity
 @Table(name = "StateMachines")
@@ -50,9 +51,9 @@ public class StateMachine<T> {
     private Set<State<T>> states;
 
     /* maintained */
-    /** Current state of this state machine*/
+    /** Current states of this state machine*/
     @Transient
-    private State<T> currentState;
+    private Set<State<T>> currentStates;
 
     /** The Context for interacting with the Flux runtime*/
     @Transient
@@ -85,11 +86,11 @@ public class StateMachine<T> {
     public void setContext(Context<T> context) {
         this.context = context;
     }
-    public State<T> getCurrentState() {
-        return currentState;
+    public Set<State<T>> getCurrentStates() {
+        return currentStates;
     }
-    public void setCurrentState(State<T> currentState) {
-        this.currentState = currentState;
+    public void setCurrentStates(Set<State<T>> currentStates) {
+        this.currentStates = currentStates;
     }
     public Long getVersion() {
         return version;

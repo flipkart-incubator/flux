@@ -15,16 +15,23 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.util.Transactional;
 import org.hibernate.Criteria;
+import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
-
+import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.util.List;
 
 /**
+ * <code>EventsDAOImpl</code> is an implementation of {@link EventsDAO} which uses Hibernate to perform operations.
  * @author shyam.akirala
  */
 public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
+
+    @Inject
+    public EventsDAOImpl(SessionFactory sessionFactory) {
+        super(sessionFactory);
+    }
 
     @Override
     @Transactional

@@ -37,11 +37,13 @@
     </scm>
 
     <dependencies>
+        <!-- Flux dependencies -->
         <dependency>
             <groupId>com.flipkart.flux</groupId>
             <artifactId>model</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+        <!-- Third party dependencies -->
         <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>

@@ -13,20 +13,37 @@
 
 package com.flipkart.flux.dao;
 
-import com.flipkart.flux.util.HibernateUtil;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
 
 /**
+ * <code>AbstractDAO</code> class provides methods to perform CRUD operations on an object using Hibernate.
  * @author shyam.akirala
  */
-public class AbstractDAO<T> {
+public abstract class AbstractDAO<T> {
 
-    public Session currentSession() {
-        return HibernateUtil.getSessionFactory().getCurrentSession();
+    private SessionFactory sessionFactory;
+
+    public AbstractDAO(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
     }
 
+    /**
+     * Provides the session which is bound to current thread.
+     * @return Session
+     */
+    public Session currentSession() {
+        return sessionFactory.getCurrentSession();
+    }
+
+    /**
+     * Retrieves object by it's unique identifier.
+     * @param cls - Class type of the object
+     * @param id
+     * @return (T) Object
+     */
     public T findById(Class cls, String id) {
         Criteria criteria = currentSession().createCriteria(cls).add(Restrictions.eq("id", id));
         Object object = criteria.uniqueResult();
@@ -36,25 +53,39 @@ public class AbstractDAO<T> {
         return castedObject;
     }
 
-    public T persist(T object) {
-        currentSession().persist(object);
-        return object;
-    }
-
+    /**
+     * Saves the object in DB and returns the saved object.
+     * @param object
+     * @return saved object
+     */
     public T save(T object) {
         currentSession().save(object);
         return object;
     }
 
+    /**
+     * Updates the object
+     * @param object
+     */
     public void update(T object) {
         currentSession().update(object);
     }
 
+    /**
+     * Saves object in DB, and returns the saved object.
+     * If the object already exists, updates it.
+     * @param object
+     * @return saved object
+     */
     public T saveOrUpdate(T object) {
         currentSession().saveOrUpdate(object);
         return object;
     }
 
+    /**
+     * Deletes the object from DB.
+     * @param object
+     */
     public void delete(T object) {
         currentSession().delete(object);
     }

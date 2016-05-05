@@ -14,16 +14,20 @@
 package com.flipkart.flux.api;
 
 /**
- * <code>EventDefinition</code> define an event to the system
+ * <code>EventDefinition</code> defines an event to the system
  * An event is a named object of a certain type (say a java.lang.String with name foo)
  * 
  * @author Yogesh
  * @author regunath.balasubramanian
  * @author shyam.akirala
+ * @author kartik.bommepally
  */
 public class EventDefinition {
-	
-	/** The Event FQN*/
+
+    /** The version of this event definition*/
+    private Long version;
+
+    /** The Event FQN*/
     private String eventFqn; // java.lang.String_foo
 
 	/* To be used only by jackson */
@@ -43,6 +47,15 @@ public class EventDefinition {
 	public void setEventFqn(String eventFqn) {
 		this.eventFqn = eventFqn;
 	}
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
+
 
 	@Override
 	public boolean equals(Object o) {

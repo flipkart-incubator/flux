@@ -16,11 +16,14 @@ package com.flipkart.flux.dao.iface;
 import com.flipkart.flux.domain.State;
 
 /**
+ * <code>StatesDAO</code> interface provides methods to perform CR operations on {@link State}
  * @author shyam.akirala
  */
 public interface StatesDAO {
 
+    /** Creates a state in db and returns the saved object*/
     State create(State state);
 
+    /** Retrieves a state by it's unique identifier*/
     State findById(String id);
 }

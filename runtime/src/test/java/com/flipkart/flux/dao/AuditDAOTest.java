@@ -13,22 +13,23 @@
 
 package com.flipkart.flux.dao;
 
-import com.flipkart.flux.HibernateModule;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.guice.module.ConfigModule;
+import com.flipkart.flux.guice.module.HibernateModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
 import junit.framework.Assert;
+
 import org.junit.Before;
 import org.junit.Test;
 
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
-
 /**
+ * <code>AuditDAOTest</code> class tests the functionality of {@link AuditDAO} using JUnit tests.
  * @author shyam.akirala
+ * @author kartik.bommepally
  */
 public class AuditDAOTest {
 
@@ -36,17 +37,16 @@ public class AuditDAOTest {
 
     @Before
     public void setup() {
-        injector = Guice.createInjector(new HibernateModule());
+        injector = Guice.createInjector(new ConfigModule(), new HibernateModule());
     }
 
     @Test
     public void createAuditRecordTest() {
         AuditDAO auditDAO = injector.getInstance(AuditDAO.class);
-        Date date = new Date();
         AuditRecord auditRecord = new AuditRecord("test_state_machine_instance_id", "abcd-xyz", 0, Status.running, null, null);
-        auditDAO.create(auditRecord);
+        Long recordId = auditDAO.create(auditRecord).getId();
 
-        List<AuditRecord> records = auditDAO.findBySMInstanceId("test_state_machine_instance_id");
-        Assert.assertNotNull(records);
+        AuditRecord auditRecord1 = auditDAO.findById(recordId);
+        Assert.assertEquals(auditRecord, auditRecord1);
     }
 }
