@@ -14,9 +14,75 @@
 
 package com.flipkart.flux.client.runtime;
 
-public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
-    @Override
-    public void submitNewWorkflow() {
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.StateMachineDefinition;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.HttpClientUtils;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
+/**
+ * RuntimeConnector that connects to runtime over HTTP
+ * Internally, this uses Unirest as of now. This makes it difficult to write unit tests for this class,
+ * but it does very little so its okay
+ * @author yogesh.nachnani
+ */
+public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
+
+    public static final int MAX_TOTAL = 200;
+    public static final int MAX_PER_ROUTE = 20;
+    private final CloseableHttpClient closeableHttpClient;
+    private final String fluxEndpoint;
+    private final ObjectMapper objectMapper;
+
+    public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint) {
+        objectMapper = new ObjectMapper();
+        this.fluxEndpoint = fluxEndpoint;
+        RequestConfig clientConfig = RequestConfig.custom()
+            .setConnectTimeout((connectionTimeout).intValue())
+            .setSocketTimeout((socketTimeout).intValue())
+            .setConnectionRequestTimeout((socketTimeout).intValue())
+            .build();
+        PoolingHttpClientConnectionManager syncConnectionManager = new PoolingHttpClientConnectionManager();
+        syncConnectionManager.setMaxTotal(MAX_TOTAL);
+        syncConnectionManager.setDefaultMaxPerRoute(MAX_PER_ROUTE);
+
+        closeableHttpClient = HttpClientBuilder.create().setDefaultRequestConfig(clientConfig).setConnectionManager(syncConnectionManager)
+            .build();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            HttpClientUtils.closeQuietly(closeableHttpClient);
+        }));
+    }
+
+    @Override
+    public void submitNewWorkflow(StateMachineDefinition stateMachineDef) throws IOException {
+        CloseableHttpResponse httpResponse = null;
+        HttpPost httpPostRequest;
+        try {
+            httpPostRequest = new HttpPost(fluxEndpoint);
+            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            objectMapper.writeValue(byteArrayOutputStream, stateMachineDef);
+            httpPostRequest.setEntity(new ByteArrayEntity(byteArrayOutputStream.toByteArray(), ContentType.APPLICATION_JSON));
+            httpResponse = closeableHttpClient.execute(httpPostRequest);
+            final int statusCode = httpResponse.getStatusLine().getStatusCode();
+            if (statusCode >= Response.Status.OK.getStatusCode() && statusCode < Response.Status.MOVED_PERMANENTLY.getStatusCode() ) {
+                // all is well, TODO write a trace level log
+            } else {
+                // TODO: log status line here
+                throw new RuntimeCommunicationException("Did not receive a valid response from Flux core");
+            }
+        } finally {
+            HttpClientUtils.closeQuietly(httpResponse);
+        }
     }
 }

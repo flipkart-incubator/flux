@@ -16,7 +16,6 @@ package com.flipkart.flux.client.intercept;
 
 import com.flipkart.flux.client.model.Workflow;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
-import com.flipkart.flux.client.runtime.IllegalSignatureException;
 import com.flipkart.flux.client.runtime.LocalContext;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -53,10 +52,10 @@ public class WorkflowInterceptor implements MethodInterceptor {
             final Method method = invocation.getMethod();
             final Workflow[] workFlowAnnotations = method.getAnnotationsByType(Workflow.class);
             checkForBadSignatures(method);
-            localContext.registerNew(MethodIdGenerator.createMethodIdentifier(method),workFlowAnnotations[0].version(),workFlowAnnotations[0].description());
+            localContext.registerNew(MethodIdGenerator.createMethodIdentifier(method), workFlowAnnotations[0].version(), workFlowAnnotations[0].description());
             invocation.proceed();
-            connector.submitNewWorkflow();
-            return null ;
+            connector.submitNewWorkflow(localContext.getStateMachineDef());
+            return null ; // TODO, return a proxy object
         }
         finally {
             this.localContext.reset();

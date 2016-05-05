@@ -14,10 +14,9 @@
 
 package com.flipkart.flux.client.intercept;
 
+import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
-import com.flipkart.flux.client.runtime.IllegalSignatureException;
 import com.flipkart.flux.client.runtime.LocalContext;
-import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,6 +26,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import static com.flipkart.flux.client.utils.TestUtil.dummyInvocation;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -58,8 +58,7 @@ public class WorkflowInterceptorTest {
     @Test
     public void shouldSubmitNewDefinitionAfterMethodIsInvoked() throws Throwable {
         workflowInterceptor.invoke(dummyInvocation(simpleWorkflowForTest.getClass().getDeclaredMethod("simpleDummyWorkflow", String.class, Integer.class)));
-        Mockito.verify(fluxRuntimeConnector, times(1)).submitNewWorkflow();
-        assertThat(true).isFalse();
+        Mockito.verify(fluxRuntimeConnector, times(1)).submitNewWorkflow(any(StateMachineDefinition.class)); // Not verifying the actual state machine here, that is taken care in the e2e test. Besides, localContext is a mock anyway
     }
 
     @Test

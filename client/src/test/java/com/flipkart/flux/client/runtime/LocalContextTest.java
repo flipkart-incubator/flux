@@ -76,7 +76,7 @@ public class LocalContextTest {
         thread1.join();
         thread2.join();
 
-        assertThat(definitionOne.getValue()).isNotNull().isEqualTo(definitionTwo.getValue()).isEqualTo(new StateMachineDefinition("someDescription","fooBar",1l, new HashSet<StateDefinition>()));
+        assertThat(definitionOne.getValue()).isNotNull().isEqualTo(definitionTwo.getValue()).isEqualTo(new StateMachineDefinition("someDescription", "fooBar", 1l, new HashSet<StateDefinition>()));
     }
 
     @Test
@@ -89,4 +89,12 @@ public class LocalContextTest {
             1l, 1000l, Collections.singleton(someEventDefinition));
         assertThat(threadLocal.get()).isEqualTo(new StateMachineDefinition("someDescription","fooBar",1l, Collections.singleton(expectedStateDefinition)));
     }
+
+    @Test
+    public void testGet_shouldReturnStateMachineDefinition() throws Exception {
+        localContext.registerNew("fooBar", 1, "someDescription");
+        assertThat(localContext.getStateMachineDef()).isEqualTo(new StateMachineDefinition("someDescription", "fooBar", 1l, new HashSet<>()));
+    }
+
+
 }

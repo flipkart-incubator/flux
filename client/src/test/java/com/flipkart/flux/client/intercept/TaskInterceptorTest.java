@@ -15,7 +15,6 @@
 package com.flipkart.flux.client.intercept;
 
 import com.flipkart.flux.api.EventDefinition;
-import com.flipkart.flux.client.runner.GuiceJunit4Runner;
 import com.flipkart.flux.client.runtime.LocalContext;
 import com.flipkart.flux.client.utils.TestUtil;
 import org.junit.Before;
@@ -31,6 +30,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -53,7 +54,7 @@ public class TaskInterceptorTest {
 
         final Set<EventDefinition> expectedEventDef =
             Collections.singleton(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_arg0"));
-        org.mockito.Mockito.verify(localContext,times(1)).
+        org.mockito.Mockito.verify(localContext, times(1)).
             registerNewState(2l, "simpleStringModifyingTask", null, null,
                 "com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_java.lang.String", 2l, 2000l, expectedEventDef);
 
@@ -66,10 +67,15 @@ public class TaskInterceptorTest {
         final Set<EventDefinition> expectedEventDefs = new HashSet<>();
         expectedEventDefs.add(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_someTaskWithIntegerAndString_java.lang.String_arg0"));
         expectedEventDefs.add(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_someTaskWithIntegerAndString_java.lang.Integer_arg1"));
-        org.mockito.Mockito.verify(localContext,times(1)).
+        org.mockito.Mockito.verify(localContext, times(1)).
             registerNewState(3l, "someTaskWithIntegerAndString", null, null,
                 "com.flipkart.flux.client.intercept.SimpleWorkflowForTest_someTaskWithIntegerAndString_void_java.lang.String_java.lang.Integer", 0l, 1000l, expectedEventDefs);
 
     }
 
+    @Test
+    public void shouldNotAllowVarArgMethods() throws Exception {
+        fail("todo"); // TODO still need to figure out if we should allow var arg methods or no.
+
+    }
 }

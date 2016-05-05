@@ -12,19 +12,16 @@
  *
  */
 
-package com.flipkart.flux.client.runtime;
+package com.flipkart.flux.client.utils;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.client.intercept.DummyFluxRuntimeResource;
+import com.google.inject.AbstractModule;
+import com.google.inject.multibindings.Multibinder;
 
-import java.io.IOException;
-
-/**
- * Used to connect with the core Flux Runtime
- * This class hides the actual API call to the Flux runtime
- *
- * @author yogesh.nachnani
- */
-public interface FluxRuntimeConnector {
-    void submitNewWorkflow(StateMachineDefinition stateMachineDef) throws IOException;
+public class TestResourceModule extends AbstractModule {
+    @Override
+    protected void configure() {
+        final Multibinder<TestResource> testResourceMultibinder = Multibinder.newSetBinder(binder(), TestResource.class);
+        testResourceMultibinder.addBinding().to(DummyFluxRuntimeResource.class);
+    }
 }

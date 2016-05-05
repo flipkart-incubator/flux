@@ -12,19 +12,11 @@
  *
  */
 
-package com.flipkart.flux.client.runtime;
-
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.flipkart.flux.api.StateMachineDefinition;
-
-import java.io.IOException;
+package com.flipkart.flux.client.utils;
 
 /**
- * Used to connect with the core Flux Runtime
- * This class hides the actual API call to the Flux runtime
- *
- * @author yogesh.nachnani
+ * A test resource is a live HTTP REST resource that is used during end to end testing
  */
-public interface FluxRuntimeConnector {
-    void submitNewWorkflow(StateMachineDefinition stateMachineDef) throws IOException;
+public interface TestResource {
+    void reset();
 }

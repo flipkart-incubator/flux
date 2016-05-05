@@ -69,4 +69,14 @@ public class LocalContext {
     public void reset() {
         this.stateMachineDefinition.remove();
     }
+
+    /**
+     * Returns the state machine definition created for the current thread.
+     * Ideally, we should prevent any modifications to the state machine definition after this method is called.
+     * TODO Will implement safety features later
+     * @return
+     */
+    public StateMachineDefinition getStateMachineDef() {
+        return this.stateMachineDefinition.get();
+    }
 }

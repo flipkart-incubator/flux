@@ -26,7 +26,11 @@ public class EventDefinition {
 	/** The Event FQN*/
     private String eventFqn; // java.lang.String_foo
 
-    /** Constructor*/
+	/* To be used only by jackson */
+	EventDefinition() {
+	}
+
+	/** Constructor*/
 	public EventDefinition(String eventFqn) {
 		super();
 		this.eventFqn = eventFqn;

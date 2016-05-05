@@ -53,7 +53,11 @@ public class StateDefinition {
     /** The list of EventDefinitionS that this state definition is dependent on for a transition into*/
     private Set<EventDefinition> dependencies;
 
-    /** Constructor*/
+	/* Used only by Jackson */
+	StateDefinition() {
+	}
+
+	/** Constructor*/
 	public StateDefinition(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
                            Long retryCount, Long timeout, Set<EventDefinition> dependencies) {
 		super();

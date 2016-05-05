@@ -22,6 +22,7 @@ import com.flipkart.flux.client.model.Workflow;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
 import com.flipkart.flux.client.runtime.LocalContext;
+import com.flipkart.flux.client.utils.TestResourceModule;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.matcher.Matchers;
@@ -40,7 +41,8 @@ public class FluxClientSpyModuleForTests extends AbstractModule {
             workflowInterceptor);
         final TaskInterceptor taskInterceptor = new TaskInterceptor();
         requestInjection(taskInterceptor);
-        bindInterceptor(Matchers.any(), Matchers.annotatedWith(Task.class),taskInterceptor);
+        bindInterceptor(Matchers.any(), Matchers.annotatedWith(Task.class), taskInterceptor);
+        install(new TestResourceModule());
     }
 
     @Provides
@@ -52,6 +54,6 @@ public class FluxClientSpyModuleForTests extends AbstractModule {
     @Provides
     @Singleton
     public FluxRuntimeConnector provideFluxRuntimeConnector( ){
-        return Mockito.spy(new FluxRuntimeConnectorHttpImpl());
+        return Mockito.spy(new FluxRuntimeConnectorHttpImpl(1000l,1000l,"http://localhost:9091/flux/machines"));
     }
 }

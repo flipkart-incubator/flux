@@ -14,15 +14,12 @@
 
 package com.flipkart.flux.client.runtime;
 
-import java.lang.reflect.Method;
-
 /**
- * Used to denote an illegal method signature
- *
- * @author yogesh.nachnani
+ * Used to indicate an issue while communicating with the flux runtime
  */
-public class IllegalSignatureException extends RuntimeException {
-    public IllegalSignatureException(String methodIdentifier, String reason) {
-        super("Method " + methodIdentifier + " is invalid. " + reason);
+public class RuntimeCommunicationException extends RuntimeException {
+
+    public RuntimeCommunicationException(String message) {
+        super(message);
     }
 }

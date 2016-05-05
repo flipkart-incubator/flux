@@ -12,19 +12,15 @@
  *
  */
 
-package com.flipkart.flux.client.runtime;
-
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.flipkart.flux.api.StateMachineDefinition;
-
-import java.io.IOException;
+package com.flipkart.flux.client.intercept;
 
 /**
- * Used to connect with the core Flux Runtime
- * This class hides the actual API call to the Flux runtime
+ * Used to denote an illegal method signature
  *
  * @author yogesh.nachnani
  */
-public interface FluxRuntimeConnector {
-    void submitNewWorkflow(StateMachineDefinition stateMachineDef) throws IOException;
+public class IllegalSignatureException extends RuntimeException {
+    public IllegalSignatureException(String methodIdentifier, String reason) {
+        super("Method " + methodIdentifier + " is invalid. " + reason);
+    }
 }
