@@ -20,15 +20,9 @@ import com.flipkart.flux.commons.dto.WorkflowStatesDetail;
 import com.flipkart.flux.commons.dto.WorkflowSummary;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Named;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -41,7 +35,6 @@ import javax.ws.rs.core.Response;
 @Path("/api/teams")
 @Named
 @Singleton
-@Slf4j
 public class FluxResource {
 
     private final FluxRuntimeService fluxRunTimeService;

@@ -14,10 +14,6 @@
 package com.flipkart.flux.commons.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
@@ -27,12 +23,20 @@ import java.util.Map;
  * @author ashish.bhutani
  *
  */
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-@AllArgsConstructor
 public class WorkflowSummary {
-
-    @Getter
     @JsonProperty
     private Map<String, WorkflowVersionStatus> summary;
 
+    /* Used for deserialisation by jackson */
+    WorkflowSummary() {
+    }
+
+    public WorkflowSummary(Map<String, WorkflowVersionStatus> summary) {
+        this.summary = summary;
+    }
+
+    /** Getter/Setters */
+    public Map<String, WorkflowVersionStatus> getSummary() {
+        return summary;
+    }
 }

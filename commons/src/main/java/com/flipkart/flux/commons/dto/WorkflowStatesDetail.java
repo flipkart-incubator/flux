@@ -13,14 +13,7 @@
 
 package com.flipkart.flux.commons.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-
-
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AccessLevel;
-import lombok.Getter;
 
 import java.util.List;
 
@@ -32,12 +25,21 @@ import java.util.List;
  */
 
 
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-@AllArgsConstructor
 public class WorkflowStatesDetail {
 
-    @Getter
     @JsonProperty
     private List<WorkflowStateDetail> statesDetail;
 
+    /* Used for deserialisation by jackson */
+    WorkflowStatesDetail() {
+    }
+
+    public WorkflowStatesDetail(List<WorkflowStateDetail> statesDetail) {
+        this.statesDetail = statesDetail;
+    }
+
+    /* Getter/Setters */
+    public List<WorkflowStateDetail> getStatesDetail() {
+        return statesDetail;
+    }
 }

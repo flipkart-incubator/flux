@@ -15,10 +15,6 @@
 package com.flipkart.flux.commons.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
@@ -29,25 +25,49 @@ import java.util.Map;
  * @author ashish.bhutani
  *
  */
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-@AllArgsConstructor
 public class EventsInfo {
 
-    @Getter
     @JsonProperty
     /***
      * @eventsData Key here is the event id.
      */
     private Map<String, EventData> eventsData;
 
-    @NoArgsConstructor(access = AccessLevel.PACKAGE)
-    @AllArgsConstructor
-    @Getter
+    /* Used for deserialisation by jackson */
+    EventsInfo() {
+    }
+
+    public EventsInfo(Map<String, EventData> eventsData) {
+        this.eventsData = eventsData;
+    }
+
+    /* Getter/Setters */
+    public Map<String, EventData> getEventsData() {
+        return eventsData;
+    }
+
     public static class EventData {
         @JsonProperty
         private String status;
         @JsonProperty
         private String data;
+
+        /* Used for deserialisation by jackson */
+        EventData() {
+        }
+
+        public EventData(String data, String status) {
+            this.data = data;
+            this.status = status;
+        }
+
+        public String getData() {
+            return data;
+        }
+
+        public String getStatus() {
+            return status;
+        }
     }
 
 

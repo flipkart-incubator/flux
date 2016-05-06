@@ -15,10 +15,6 @@ package com.flipkart.flux.commons.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
@@ -29,16 +25,23 @@ import java.util.Map;
  *
  */
 
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-@AllArgsConstructor
-@Getter
 public class WorkflowStateDetail {
 
     private Map<String, StateDetail> statesDetail;
 
-    @NoArgsConstructor(access = AccessLevel.PACKAGE)
-    @Getter
-    @AllArgsConstructor
+    /* Used for deserialisation by jackson */
+    WorkflowStateDetail() {
+    }
+
+    public WorkflowStateDetail(Map<String, StateDetail> statesDetail) {
+        this.statesDetail = statesDetail;
+    }
+
+    /* Getter/Setters */
+    public Map<String, StateDetail> getStatesDetail() {
+        return statesDetail;
+    }
+
     public static class StateDetail {
 
         @JsonProperty
@@ -50,6 +53,34 @@ public class WorkflowStateDetail {
         @JsonProperty
         private EventsInfo events;
 
+        /* Used for deserialisation by jackson */
+        public StateDetail() {
+        }
+
+        public StateDetail(EventsInfo events, Integer retryCount, String status, String version) {
+            this.events = events;
+            this.retryCount = retryCount;
+            this.status = status;
+            this.version = version;
+        }
+
+        /* Getter/Setters */
+
+        public EventsInfo getEvents() {
+            return events;
+        }
+
+        public Integer getRetryCount() {
+            return retryCount;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public String getVersion() {
+            return version;
+        }
     }
 
 

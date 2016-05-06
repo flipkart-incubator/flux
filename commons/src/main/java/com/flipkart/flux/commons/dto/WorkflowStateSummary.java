@@ -13,13 +13,7 @@
 
 package com.flipkart.flux.commons.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AccessLevel;
 
 import java.util.List;
 import java.util.Map;
@@ -31,30 +25,64 @@ import java.util.Map;
  *
  */
 
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-@AllArgsConstructor
 public class WorkflowStateSummary {
 
-    @Getter
-    List<StateSummary> stateSummaries;
 
+    private List<StateSummary> stateSummaries;
 
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Getter
+    /* Used for deserialisation by jackson */
+    WorkflowStateSummary() {
+    }
+
+    public WorkflowStateSummary(List<StateSummary> stateSummaries) {
+        this.stateSummaries = stateSummaries;
+    }
+
+    /* Getter/Setters */
+    public List<StateSummary> getStateSummaries() {
+        return stateSummaries;
+    }
+
     public static class StateSummary {
         @JsonProperty
         private Map<String, VersionCount> summary ;
+
+        /* Used for deserialisation by jackson */
+        public StateSummary() {
+        }
+
+        public StateSummary(Map<String, VersionCount> summary) {
+            this.summary = summary;
+        }
+
+        /* Getter/Setters */
+        public Map<String, VersionCount> getSummary() {
+            return summary;
+        }
     }
 
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Getter
     public static class VersionCount {
         @JsonProperty
         private String version;
         @JsonProperty
         private Integer count;
 
+        /* Used for deserialisation by jackson */
+        public VersionCount() {
+        }
+
+        public VersionCount(Integer count, String version) {
+            this.count = count;
+            this.version = version;
+        }
+        /* Getter/Setters */
+
+        public Integer getCount() {
+            return count;
+        }
+
+        public String getVersion() {
+            return version;
+        }
     }
 }
