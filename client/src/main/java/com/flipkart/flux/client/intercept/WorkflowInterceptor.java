@@ -52,7 +52,7 @@ public class WorkflowInterceptor implements MethodInterceptor {
             final Method method = invocation.getMethod();
             final Workflow[] workFlowAnnotations = method.getAnnotationsByType(Workflow.class);
             checkForBadSignatures(method);
-            localContext.registerNew(MethodIdGenerator.createMethodIdentifier(method), workFlowAnnotations[0].version(), workFlowAnnotations[0].description());
+            localContext.registerNew(new MethodId(method).toString(), workFlowAnnotations[0].version(), workFlowAnnotations[0].description());
             invocation.proceed();
             connector.submitNewWorkflow(localContext.getStateMachineDef());
             return null ; // TODO, return a proxy object
@@ -65,7 +65,7 @@ public class WorkflowInterceptor implements MethodInterceptor {
     private void checkForBadSignatures(Method method) {
         final Class<?> returnType = method.getReturnType();
         if (!returnType.equals(void.class)) {
-            throw new IllegalSignatureException(MethodIdGenerator.createMethodIdentifier(method),"A workflow method can only return void");
+            throw new IllegalSignatureException(new MethodId(method),"A workflow method can only return void");
         }
     }
 

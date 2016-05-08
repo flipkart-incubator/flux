@@ -15,13 +15,13 @@
 package com.flipkart.flux.client.intercept;
 
 /**
- * Used to denote an illegal method signature
- *
- * @author yogesh.nachnani
+ * Used to denote runtime execution exceptions where a method of a given identifier cannot be instantiated
+ * This can happen in race conditions where freshly loaded code in another JVM triggers a workflow and the given
+ * classes are yet to be loaded on to this particular JVM.
+ * // TODO: Is there a way we can avoid this?
  */
-public class IllegalSignatureException extends RuntimeException {
-
-    public IllegalSignatureException(MethodId methodId, String reason) {
-        super("Method " + methodId + " is invalid. " + reason);
+public class UnknownIdentifierException extends RuntimeException {
+    public UnknownIdentifierException(String message) {
+        super(message);
     }
 }

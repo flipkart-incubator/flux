@@ -55,9 +55,9 @@ public class TaskInterceptor implements MethodInterceptor {
     private Set<EventDefinition> generateEventDefs(Method method) {
         Set<EventDefinition> eventDefinitions = new HashSet<>();
         final Parameter[] parameters = method.getParameters();
-        final String methodIdPrefix = MethodIdGenerator.createMethodIdPrefix(method);
+        final String methodIdPrefix = new MethodId(method).getPrefix();
         for (Parameter parameter : parameters) {
-            eventDefinitions.add(new EventDefinition(methodIdPrefix+MethodIdGenerator.UNDERSCORE+parameter.getType().getCanonicalName()+MethodIdGenerator.UNDERSCORE+parameter.getName()));
+            eventDefinitions.add(new EventDefinition(methodIdPrefix+MethodId.UNDERSCORE+parameter.getType().getCanonicalName()+MethodId.UNDERSCORE+parameter.getName()));
         }
         return eventDefinitions;
 
@@ -68,6 +68,6 @@ public class TaskInterceptor implements MethodInterceptor {
     }
 
     private String generateTaskIdentifier(Method method) {
-        return MethodIdGenerator.createMethodIdentifier(method);
+        return new MethodId(method).toString();
     }
 }
