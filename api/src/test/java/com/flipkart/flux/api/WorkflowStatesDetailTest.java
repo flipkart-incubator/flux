@@ -13,8 +13,10 @@
 package com.flipkart.flux.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.IOUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -22,8 +24,15 @@ import static org.junit.Assert.assertThat;
 
 public class WorkflowStatesDetailTest {
 
-    private String statesDetail = "{\"statesDetail\":[{\"statesDetail\":{\"state2\":{\"version\":\"1\",\"status\":\"status1\",\"retryCount\":3,\"events\":{\"eventsData\":{\"eid2\":{\"status\":\"state1\",\"data\":\"jsonData\"},\"eid1\":{\"status\":\"state1\",\"data\":\"jsonData\"}}}},\"state1\":{\"version\":\"1\",\"status\":\"status1\",\"retryCount\":3,\"events\":{\"eventsData\":{\"eid2\":{\"status\":\"state1\",\"data\":\"jsonData\"},\"eid1\":{\"status\":\"state1\",\"data\":\"jsonData\"}}}}}}]}\n";
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private String statesDetail;
+    private ObjectMapper objectMapper;
+
+
+    @Before
+    public void setUp() throws Exception {
+        objectMapper = new ObjectMapper();
+        statesDetail = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("states_detail.json"));
+    }
 
     @Test
     public void shouldParseProperly() throws Exception {

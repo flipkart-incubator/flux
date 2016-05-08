@@ -13,10 +13,12 @@
 package com.flipkart.flux.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Map;
 
 import static org.junit.Assert.assertTrue;
@@ -24,11 +26,12 @@ import static org.junit.Assert.assertTrue;
 public class WorkflowSummaryTest {
 
     private String summaryJson;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper objectMapper ;
 
     @Before
-    public void setUp() {
-        summaryJson = "{\"summary\":{\"barWF\":{\"versionStatus\":{\"1\":{\"statusCount\":{\"running\":1,\"pending\":0,\"errored\":2}}}},\"fooWF\":{\"versionStatus\":{\"1\":{\"statusCount\":{\"running\":1,\"pending\":0,\"errored\":2}}}}}}\n";
+    public void setUp() throws IOException {
+        objectMapper = new ObjectMapper();
+        summaryJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("workflow_summary.json"));
     }
 
     @Test

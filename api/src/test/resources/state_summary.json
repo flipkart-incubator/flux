@@ -1,0 +1,28 @@
+{
+  "stateSummaries":[
+    {
+      "summary":{
+        "state2":{
+          "version":"1",
+          "count":9
+        },
+       "state1":{
+          "version":"0",
+          "count":12
+        }
+      }
+    },
+    {
+      "summary": {
+        "state2":{
+          "version":"1",
+          "count":19
+        },
+        "state1":{
+          "version":"0",
+          "count":13
+        }
+      }
+    }
+  ]
+}

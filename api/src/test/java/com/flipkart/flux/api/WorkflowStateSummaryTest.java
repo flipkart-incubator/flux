@@ -13,8 +13,10 @@
 package com.flipkart.flux.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.IOUtils;
 import org.hamcrest.core.Is;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.core.Is.is;
@@ -22,9 +24,14 @@ import static org.junit.Assert.assertThat;
 
 public class WorkflowStateSummaryTest {
 
-    private String stateSummary = "{\"stateSummaries\":[{\"summary\":{\"state2\":{\"version\":\"1\",\"count\":9},\"state1\":{\"version\":\"0\",\"count\":12}}},{\"summary\":{\"state2\":{\"version\":\"1\",\"count\":19},\"state1\":{\"version\":\"0\",\"count\":13}}}]}\n";
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private String stateSummary;
+    private ObjectMapper objectMapper ;
 
+    @Before
+    public void setUp() throws Exception {
+        objectMapper = new ObjectMapper();
+        stateSummary = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_summary.json"));
+    }
 
     @Test
     public void shouldParseProperly() throws Exception {
