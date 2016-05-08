@@ -11,10 +11,11 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.commons.dto;
+package com.flipkart.flux.api;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.flipkart.flux.api.EventsInfo;
 
 import java.util.Map;
 

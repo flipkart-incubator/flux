@@ -12,7 +12,7 @@
  */
 
 
-package com.flipkart.flux.commons.dto;
+package com.flipkart.flux.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

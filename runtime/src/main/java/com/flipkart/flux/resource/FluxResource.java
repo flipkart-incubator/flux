@@ -15,9 +15,9 @@ package com.flipkart.flux.resource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.FluxRuntimeService;
-import com.flipkart.flux.commons.dto.WorkflowStateSummary;
-import com.flipkart.flux.commons.dto.WorkflowStatesDetail;
-import com.flipkart.flux.commons.dto.WorkflowSummary;
+import com.flipkart.flux.api.WorkflowStateSummary;
+import com.flipkart.flux.api.WorkflowStatesDetail;
+import com.flipkart.flux.api.WorkflowSummary;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 

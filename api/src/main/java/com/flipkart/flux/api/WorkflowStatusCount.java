@@ -11,35 +11,33 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.commons.dto;
+package com.flipkart.flux.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
+import java.util.Map;
 
 /**
- * The <code>WorkflowStatesDetail</code> class is a DTO for representing multiple states of Workflow
+ * The <code>WorkflowStatusCount</code> class is a DTO for representing count of different states in workflow
  *
  * @author ashish.bhutani
  *
  */
-
-
-public class WorkflowStatesDetail {
+public class WorkflowStatusCount {
 
     @JsonProperty
-    private List<WorkflowStateDetail> statesDetail;
+    private Map<String, Integer> statusCount;
 
     /* Used for deserialisation by jackson */
-    WorkflowStatesDetail() {
+    WorkflowStatusCount() {
     }
 
-    public WorkflowStatesDetail(List<WorkflowStateDetail> statesDetail) {
-        this.statesDetail = statesDetail;
+    public WorkflowStatusCount(Map<String, Integer> statusCount) {
+        this.statusCount = statusCount;
     }
 
     /* Getter/Setters */
-    public List<WorkflowStateDetail> getStatesDetail() {
-        return statesDetail;
+    public Map<String, Integer> getStatusCount() {
+        return statusCount;
     }
 }

@@ -12,9 +12,9 @@
  */
 package com.flipkart.flux;
 
-import com.flipkart.flux.commons.dto.WorkflowStateSummary;
-import com.flipkart.flux.commons.dto.WorkflowStatesDetail;
-import com.flipkart.flux.commons.dto.WorkflowSummary;
+import com.flipkart.flux.api.WorkflowStateSummary;
+import com.flipkart.flux.api.WorkflowStatesDetail;
+import com.flipkart.flux.api.WorkflowSummary;
 
 import javax.inject.Named;
 import javax.inject.Singleton;

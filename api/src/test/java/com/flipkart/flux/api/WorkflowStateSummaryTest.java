@@ -10,9 +10,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flipkart.flux.commons.dto;
+package com.flipkart.flux.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hamcrest.core.Is;
+import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.core.Is.is;
@@ -27,7 +29,7 @@ public class WorkflowStateSummaryTest {
     @Test
     public void shouldParseProperly() throws Exception {
         WorkflowStateSummary workFlowStateSummary = objectMapper.readValue(stateSummary, WorkflowStateSummary.class);
-        assertThat(workFlowStateSummary.getStateSummaries().get(0).getSummary().get("state2").getCount(), is(9));
+        Assert.assertThat(workFlowStateSummary.getStateSummaries().get(0).getSummary().get("state2").getCount(), Is.is(9));
     }
 
 }

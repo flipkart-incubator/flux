@@ -10,9 +10,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.flipkart.flux.commons.dto;
+package com.flipkart.flux.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,10 +41,10 @@ public class WorkflowSummaryTest {
 
     private void validatePOJO(WorkflowSummary workflowSummary, String key) {
         Map<String, WorkflowVersionStatus> summary = workflowSummary.getSummary();
-        assertTrue(summary.containsKey(key));
-        assertTrue(summary.get(key).getVersionStatus().containsKey("1"));
-        assertTrue(summary.get(key).getVersionStatus().get("1").getStatusCount().get("running")==1);
-        assertTrue(summary.get(key).getVersionStatus().get("1").getStatusCount().get("errored")==2);
-        assertTrue(summary.get(key).getVersionStatus().get("1").getStatusCount().get("pending")==0);
+        Assert.assertTrue(summary.containsKey(key));
+        Assert.assertTrue(summary.get(key).getVersionStatus().containsKey("1"));
+        Assert.assertTrue(summary.get(key).getVersionStatus().get("1").getStatusCount().get("running") == 1);
+        Assert.assertTrue(summary.get(key).getVersionStatus().get("1").getStatusCount().get("errored") == 2);
+        Assert.assertTrue(summary.get(key).getVersionStatus().get("1").getStatusCount().get("pending") == 0);
     }
 }
