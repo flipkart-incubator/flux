@@ -15,7 +15,6 @@ package com.flipkart.flux.initializer;
 
 import com.flipkart.flux.MigrationUtil.MigrationsRunner;
 import com.flipkart.flux.guice.module.ConfigModule;
-import com.flipkart.flux.guice.module.FluxServletModule;
 import com.flipkart.flux.guice.module.HibernateModule;
 import com.flipkart.polyguice.core.support.Polyguice;
 import com.google.inject.servlet.GuiceFilter;
@@ -41,7 +40,7 @@ public class FluxInitializer {
     private static Polyguice fluxRuntimeContainer;
 
     private static final int jetty_port = 9999;
-
+    // TODO the bootup needs a fix
     public static void main(String[] args) throws Exception {
         if(args != null && args.length > 0) {
             String param = args[0];
@@ -65,7 +64,7 @@ public class FluxInitializer {
     private static void loadFluxRuntimeContainer() {
         logger.debug("loading flux runtime container");
         fluxRuntimeContainer = new Polyguice();
-        fluxRuntimeContainer.modules(new ConfigModule(), new HibernateModule(), new FluxServletModule());
+        fluxRuntimeContainer.modules(new ConfigModule(), new HibernateModule());
         fluxRuntimeContainer.prepare();
     }
 
@@ -91,7 +90,8 @@ public class FluxInitializer {
 
     private static void migrate() {
         loadFluxRuntimeContainer();
-        MigrationsRunner migrationsRunner = (MigrationsRunner) fluxRuntimeContainer.getInstanceOfClass(MigrationsRunner.class);
-        migrationsRunner.migrate();
+//        MigrationsRunner migrationsRunner = (MigrationsRunner) fluxRuntimeContainer.getInstanceOfClass(MigrationsRunner.class);
+//        migrationsRunner.migrate();
+        // TODO needs to be fixed
     }
 }

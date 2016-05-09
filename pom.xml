@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     
@@ -43,7 +42,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jdk.version>1.8</jdk.version>
-        <maven-compiler-plugin.version>2.0.2</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
         <maven-jar-plugin.version>2.2</maven-jar-plugin.version>
         <junit.version>4.12</junit.version>
         <hibernate.version>5.1.0.Final</hibernate.version>
@@ -55,6 +54,7 @@
         <kamon.version>0.6.0</kamon.version>
         <log4j.version>2.5</log4j.version>
         <assertj-core.version>2.0.0</assertj-core.version>
+        <jackson.version>2.7.3</jackson.version>
     </properties>
 
     <modules>
@@ -64,6 +64,7 @@
         <module>task</module>
         <module>client</module>
         <module>examples</module>
-    </modules>
+        <module>api</module>
+  </modules>
 
 </project>

@@ -1,0 +1,18 @@
+{
+ "name": "test_state_machine",
+ "version": 1,
+ "description": "test_description",
+ "states": [
+   {
+     "version": 1,
+     "name": "test_state1",
+     "description": "test_state_desc1",
+     "onEntryHook": "com.flipkart.flux.dao.DummyOnEntryHook",
+     "task": "com.flipkart.flux.dao.DummyTask",
+     "onExitHook": "com.flipkart.flux.dao.DummyOnExitHook",
+     "retryCount": "5",
+     "timeout": "100",
+     "dependencies": null
+   }
+ ]
+}

@@ -14,22 +14,27 @@
 package com.flipkart.flux.resource;
 
 import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.google.inject.Inject;
 
+import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+
 /**
  * @understands Exposes APIs for end users
  */
+
 @Singleton
-@Path("/fsm/machines")
+@Path("/api/machines")
+@Named
 public class StateMachineResource<T> {
 
     /** Instance of {@link StateMachinePersistenceService} which converts entity definition to domain object*/
@@ -45,7 +50,6 @@ public class StateMachineResource<T> {
     @Consumes(MediaType.APPLICATION_JSON)
     @Transactional
     public Response createStateMachine(StateMachineDefinition stateMachineDefinition) {
-
         // 1. Convert to StateMachine (domain object) and save in DB
         if(stateMachineDefinition == null)
             throw new IllegalRepresentationException("State machine definition is empty");
@@ -58,16 +62,18 @@ public class StateMachineResource<T> {
         return Response.status(201).entity("State Machine Id: "+stateMachine.getId()).build();
     }
 
-    
+
     /**
      * Used to post Data corresponding to an event.
      * This data may be a result of a task getting completed or independently posted (manually, for example)
      * @param machineId machineId the event is to be submitted against
      * @param eventFqn fully qualified name of the event. Like java.lang.String_foo
      * @param eventDataJson Json representation of data
+     *
      */
 
     @POST
+
     @Path("/{machineId}/context/events/{eventFqn}")
     public void submitEvent(@PathParam("machineId") Long machineId,
                             @PathParam("eventFqn") String eventFqn,

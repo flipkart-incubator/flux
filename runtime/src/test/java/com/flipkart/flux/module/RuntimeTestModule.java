@@ -14,6 +14,7 @@
 package com.flipkart.flux.module;
 
 import com.flipkart.flux.guice.module.ConfigModule;
+import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.HibernateModule;
 import com.google.inject.AbstractModule;
 
@@ -26,5 +27,6 @@ public class RuntimeTestModule extends AbstractModule{
     protected void configure() {
         install(new ConfigModule());
         install(new HibernateModule());
+        install(new ContainerModule());
     }
 }

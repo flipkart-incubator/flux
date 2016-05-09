@@ -26,6 +26,7 @@ public class RuntimeConstants {
     public static final String DASHBOARD_CONTEXT_PATH = "/admin";
     public static final String API_CONTEXT_PATH = "/api";
 
+
     /**
      * Root for all the configs.
      */
@@ -40,4 +41,5 @@ public class RuntimeConstants {
      * Configuration yml resource path.
      */
     public static final String CONFIGURATION_YML = CONFIG_ROOT + "/configuration.yml";
+    public static final String STATE_MACHINE_RESOURCE_RELATIVE_PATH = "/machines";
 }

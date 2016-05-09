@@ -29,5 +29,7 @@ public @interface Workflow {
      * Each workflow must be versioned.
      * This enables the flux runtime to execute the right task based on the version number of this workflow
      */
-    int version();
+    long version();
+
+    String description() default "";
 }

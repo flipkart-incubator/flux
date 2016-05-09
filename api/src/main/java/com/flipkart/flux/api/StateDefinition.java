@@ -42,6 +42,7 @@ public class StateDefinition {
     private String task;
 
     /** Name of Hook class that will be executed on exit of this state*/
+
     private String onExitHook;
 
     /** Retry count for task execution*/    
@@ -53,8 +54,11 @@ public class StateDefinition {
     /** The list of EventDefinitionS that this state definition is dependent on for a transition into*/
     private Set<EventDefinition> dependencies;
 
-    /** Constructor*/
-    public StateDefinition() {}
+	/* Used only by Jackson */
+	StateDefinition() {
+	}
+
+	/** Constructor*/
 	public StateDefinition(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
                            Long retryCount, Long timeout, Set<EventDefinition> dependencies) {
 		super();
@@ -124,36 +128,52 @@ public class StateDefinition {
 	public void setDependencies(Set<EventDefinition> dependencies) {
 		this.dependencies = dependencies;
 	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((name == null) ? 0 : name.hashCode());
-        result = prime * result + ((version == null) ? 0 : version.hashCode());
-        return result;
-    }
+		StateDefinition that = (StateDefinition) o;
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        @SuppressWarnings("unchecked")
-        StateDefinition other = (StateDefinition) obj;
-        if (name == null) {
-            if (other.name != null)
-                return false;
-        } else if (!name.equals(other.name))
-            return false;
-        if (version == null) {
-            if (other.version != null)
-                return false;
-        } else if (!version.equals(other.version))
-            return false;
-        return true;
-    }
+		if (version != null ? !version.equals(that.version) : that.version != null) return false;
+		if (name != null ? !name.equals(that.name) : that.name != null) return false;
+		if (description != null ? !description.equals(that.description) : that.description != null) return false;
+		if (onEntryHook != null ? !onEntryHook.equals(that.onEntryHook) : that.onEntryHook != null) return false;
+		if (task != null ? !task.equals(that.task) : that.task != null) return false;
+		if (onExitHook != null ? !onExitHook.equals(that.onExitHook) : that.onExitHook != null) return false;
+		if (retryCount != null ? !retryCount.equals(that.retryCount) : that.retryCount != null) return false;
+		if (timeout != null ? !timeout.equals(that.timeout) : that.timeout != null) return false;
+		return !(dependencies != null ? !dependencies.equals(that.dependencies) : that.dependencies != null);
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = version != null ? version.hashCode() : 0;
+		result = 31 * result + (name != null ? name.hashCode() : 0);
+		result = 31 * result + (description != null ? description.hashCode() : 0);
+		result = 31 * result + (onEntryHook != null ? onEntryHook.hashCode() : 0);
+		result = 31 * result + (task != null ? task.hashCode() : 0);
+		result = 31 * result + (onExitHook != null ? onExitHook.hashCode() : 0);
+		result = 31 * result + (retryCount != null ? retryCount.hashCode() : 0);
+		result = 31 * result + (timeout != null ? timeout.hashCode() : 0);
+		result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
+		return result;
+	}
+
+	@Override
+	public String toString() {
+		return "StateDefinition{" +
+			"dependencies=" + dependencies +
+			", version=" + version +
+			", name='" + name + '\'' +
+			", description='" + description + '\'' +
+			", onEntryHook='" + onEntryHook + '\'' +
+			", task='" + task + '\'' +
+			", onExitHook='" + onExitHook + '\'' +
+			", retryCount=" + retryCount +
+			", timeout=" + timeout +
+			'}';
+	}
 }

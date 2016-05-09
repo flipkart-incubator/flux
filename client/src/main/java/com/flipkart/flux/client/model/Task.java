@@ -29,7 +29,7 @@ public @interface Task {
      * Each task must be versioned.
      * This enables the flux runtime to execute the right task based on the version number of the caller
      */
-    int version();
+    long version();
 
     /** The number of times Flux can retry the task in case of runtime failures.
      * Note: Runtime failures are failures encountered by Flux - such as a task being timed out, or Flux not receiving the response on time.
@@ -37,7 +37,7 @@ public @interface Task {
      * This exception is carried back to the caller stack - similar to the way in which jvm bubbles up the exception in regular method calls
      *
      */
-    int retries() default 0;
+    long retries() default 0;
 
     /**
      * Defines the maximum time flux can "expect" the task to run for.
