@@ -16,6 +16,7 @@ package com.flipkart.flux.client.intercept;
 
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.client.model.Task;
+import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.client.runtime.LocalContext;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -36,19 +37,24 @@ public class TaskInterceptor implements MethodInterceptor {
 
     @Inject
     private LocalContext localContext;
+    @Inject
+    private ExecutableRegistry executableRegistry;
 
     public TaskInterceptor() {
     }
 
-    TaskInterceptor(LocalContext localContext) {
+    TaskInterceptor(LocalContext localContext,ExecutableRegistry executableRegistry) {
         this.localContext = localContext;
+        this.executableRegistry = executableRegistry;
     }
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         final Method method = invocation.getMethod();
         final Task taskAnnotation = method.getAnnotationsByType(Task.class)[0];
-        localContext.registerNewState(taskAnnotation.version(), generateStateIdentifier(method) ,null,null, generateTaskIdentifier(method),taskAnnotation.retries(),taskAnnotation.timeout(),generateEventDefs(method));
+        final String taskIdentifier = generateTaskIdentifier(method);
+        localContext.registerNewState(taskAnnotation.version(), generateStateIdentifier(method) ,null,null, taskIdentifier,taskAnnotation.retries(),taskAnnotation.timeout(),generateEventDefs(method));
+        executableRegistry.registerTask(taskIdentifier,method);
         return null;
     }
 

@@ -15,6 +15,7 @@
 package com.flipkart.flux.client.intercept;
 
 import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.client.runtime.LocalContext;
 import com.flipkart.flux.client.utils.TestUtil;
 import org.junit.Before;
@@ -26,6 +27,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.inject.Inject;
 
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -39,12 +41,15 @@ public class TaskInterceptorTest {
     @Mock
     LocalContext localContext;
 
+    @Mock
+    ExecutableRegistry executableRegistry;
+
     private SimpleWorkflowForTest simpleWorkflowForTest;
     private TaskInterceptor taskInterceptor;
 
     @Before
     public void setUp() throws Exception {
-        taskInterceptor = new TaskInterceptor(localContext);
+        taskInterceptor = new TaskInterceptor(localContext,executableRegistry);
         simpleWorkflowForTest = new SimpleWorkflowForTest();
     }
 
@@ -76,6 +81,12 @@ public class TaskInterceptorTest {
     @Test
     public void shouldNotAllowVarArgMethods() throws Exception {
         fail("todo"); // TODO still need to figure out if we should allow var arg methods or no.
+    }
 
+    @Test
+    public void shouldRegisterTaskMethodsWithRegistry() throws Throwable {
+        taskInterceptor.invoke(TestUtil.dummyInvocation(simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class)));
+        final Method expectedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class);
+        verify(executableRegistry,times(1)).registerTask("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_java.lang.String",expectedMethod);
     }
 }
