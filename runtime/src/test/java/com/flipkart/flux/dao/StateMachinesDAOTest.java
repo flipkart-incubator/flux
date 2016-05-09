@@ -21,9 +21,9 @@ import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
-import com.flipkart.flux.rules.DbClearRule;
+import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
-import junit.framework.Assert;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,6 +32,7 @@ import org.junit.runner.RunWith;
 import javax.inject.Inject;
 import java.util.HashSet;
 import java.util.Set;
+
 
 /**
  * <code>StateMachinesDAOTest</code> class tests the functionality of {@link StateMachinesDAO} using JUnit tests.
@@ -51,17 +52,14 @@ public class StateMachinesDAOTest {
     @Inject
     StatesDAO statesDAO;
 
-    @Inject
-    StateMachinePersistenceService<DummyEventData> stateMachinePersistenceService;
-
     @Before
     public void setup() {}
 
     @Test
     public void createSMTest() {
-        DummyTask<DummyEventData> task = new DummyTask<DummyEventData>();
-        DummyOnEntryHook<DummyEventData> onEntryHook = new DummyOnEntryHook<DummyEventData>();
-        DummyOnExitHook<DummyEventData> onExitHook = new DummyOnExitHook<DummyEventData>();
+        String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
+        String task = "com.flipkart.flux.dao.DummyTask";
+        String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
         State<DummyEventData> state1 = new State<DummyEventData>(2L, "state1__", "desc1", onEntryHook, task, onExitHook, 3L, 60L);
         State<DummyEventData> state2 = new State<DummyEventData>(2L, "state2__", "desc2", null, task, null, 2L, 50L);
         Set<State<DummyEventData>> states = new HashSet<>();
@@ -71,26 +69,7 @@ public class StateMachinesDAOTest {
         Long savedSMId = stateMachinesDAO.create(stateMachine).getId();
 
         StateMachine stateMachine1 = stateMachinesDAO.findById(savedSMId);
-        Assert.assertEquals(stateMachine, stateMachine1);
+        assertThat(stateMachine).isEqualTo(stateMachine1);
     }
 
-    /** Test creation of State machine from state machine definition */
-    @Test
-    public void createSMDTest() {
-        EventDefinition eventDefinition1 = new EventDefinition("event1");
-        EventDefinition eventDefinition2 = new EventDefinition("event2");
-        Set<EventDefinition> eventSet1 = new HashSet<>();
-        eventSet1.add(eventDefinition1);
-        Set<EventDefinition> eventSet2 = new HashSet<>();
-        eventSet2.add(eventDefinition2);
-        StateDefinition stateDefinition1 = new StateDefinition<DummyEventData>(1L, "state1_", "desc1_", new DummyOnEntryHook<DummyEventData>(), new DummyTask<DummyEventData>(), new DummyOnExitHook<DummyEventData>(), 0L, 60L, eventSet1);
-        StateDefinition stateDefinition2 = new StateDefinition<DummyEventData>(1L, "state2_", "desc2_", new DummyOnEntryHook<DummyEventData>(), new DummyTask<DummyEventData>(), new DummyOnExitHook<DummyEventData>(), 0L, 60L, eventSet2);
-        Set<StateDefinition> stateSet = new HashSet<>();
-        stateSet.add(stateDefinition1);
-        stateSet.add(stateDefinition2);
-        StateMachineDefinition<DummyEventData> stateMachineDefinition = new StateMachineDefinition(1L, "SMD_name_", "SMD_desc_", stateSet);
-        StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineDefinition);
-        StateMachine stateMachine1 = stateMachinesDAO.findById(stateMachine.getId());
-        Assert.assertEquals(stateMachine, stateMachine1);
-    }
 }

@@ -11,20 +11,27 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux;
+package com.flipkart.flux.registry;
 
-import com.flipkart.flux.guice.module.ConfigModule;
-import com.flipkart.flux.guice.module.HibernateModule;
-import com.google.inject.AbstractModule;
+import com.flipkart.flux.domain.State;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
- * <code>RuntimeTestModule</code> is a Guice module binds modules which are required to run tests.
+ * <code>StateMachineRegistry</code> contains mapping between events and states.
  * @author shyam.akirala
  */
-public class RuntimeTestModule extends AbstractModule{
-    @Override
-    protected void configure() {
-        install(new ConfigModule());
-        install(new HibernateModule());
+public class StateMachineRegistry {
+
+    private Map<Set<String>, Set<State>> stateMap;
+
+    /**
+     * Given a set of events returns states which are dependent on those particular events.
+     */
+    public Set<State> getRespectiveStates(Set<String> events) {
+        //TO DO:
+        return null;
     }
+
 }

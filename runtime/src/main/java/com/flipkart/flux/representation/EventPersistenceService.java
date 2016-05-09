@@ -18,11 +18,13 @@ import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 /**
  * <code>EventPersistenceService</code> class converts user provided Event entity definition to domain type object and stores in DB.
  * @author shyam.akirala
  */
+@Singleton
 public class EventPersistenceService<T> {
 
     private EventsDAO eventsDAO;

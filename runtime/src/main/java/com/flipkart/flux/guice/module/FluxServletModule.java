@@ -16,9 +16,16 @@
 
 package com.flipkart.flux.guice.module;
 
+import com.flipkart.flux.resource.StateMachineResource;
 import com.flipkart.flux.servlet.DispatcherServlet;
 import com.google.inject.AbstractModule;
+import com.google.inject.Singleton;
 import com.google.inject.servlet.ServletModule;
+import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
+import org.eclipse.jetty.servlet.DefaultServlet;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <code>FluxServletModule</code> is a Guice {@link AbstractModule} implementation used for wiring Flux servlets, specifically the ones
@@ -38,8 +45,13 @@ public class FluxServletModule extends ServletModule {
 	 */
     @Override
     protected void configureServlets() {
+        bind(DefaultServlet.class).in(Singleton.class);
+        bind(StateMachineResource.class).in(Singleton.class);
+        Map<String, String> options = new HashMap<>();
+        options.put("com.sun.jersey.api.json.POJOMappingFeature", "true");
     	// Register the DispatcherServlet that will service all calls to interact with deployed Flux Finite State Machines
-        serve(FSM_SERVLET_PATH + "/*").with(DispatcherServlet.class);
+        serve(FSM_SERVLET_PATH).with(DispatcherServlet.class, options);
+        serve("/*").with(GuiceContainer.class, options);
     }
 
 }

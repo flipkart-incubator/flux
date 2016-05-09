@@ -129,22 +129,25 @@ public class Event<T> implements Serializable {
 
         Event event = (Event) o;
 
-        if (!eventSource.equals(event.eventSource)) return false;
-        if (id != null ? !id.equals(event.id) : event.id != null) return false;
-        if (!name.equals(event.name)) return false;
-        if (!stateMachineInstanceId.equals(event.stateMachineInstanceId)) return false;
-        if (!type.equals(event.type)) return false;
+        if (eventData != null ? !eventData.equals(event.eventData) : event.eventData != null) return false;
+        if (eventSource != null ? !eventSource.equals(event.eventSource) : event.eventSource != null) return false;
+        if (name != null ? !name.equals(event.name) : event.name != null) return false;
+        if (stateMachineInstanceId != null ? !stateMachineInstanceId.equals(event.stateMachineInstanceId) : event.stateMachineInstanceId != null)
+            return false;
+        if (status != event.status) return false;
+        if (type != null ? !type.equals(event.type) : event.type != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + name.hashCode();
-        result = 31 * result + type.hashCode();
-        result = 31 * result + stateMachineInstanceId.hashCode();
-        result = 31 * result + eventSource.hashCode();
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result + (stateMachineInstanceId != null ? stateMachineInstanceId.hashCode() : 0);
+        result = 31 * result + (eventData != null ? eventData.hashCode() : 0);
+        result = 31 * result + (eventSource != null ? eventSource.hashCode() : 0);
         return result;
     }
 }

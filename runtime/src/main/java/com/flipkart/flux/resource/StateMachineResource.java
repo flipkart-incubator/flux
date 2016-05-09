@@ -21,15 +21,15 @@ import com.google.inject.Inject;
 
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * @understands Exposes APIs for end users
  */
 @Singleton
+@Path("/fsm/machines")
 public class StateMachineResource<T> {
 
     /** Instance of {@link StateMachinePersistenceService} which converts entity definition to domain object*/
@@ -42,9 +42,10 @@ public class StateMachineResource<T> {
      * @return unique machineId of the instantiated state machine
      */
     @POST
-    @Path("/machines")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Transactional
-    public Long createStateMachine(StateMachineDefinition<T> stateMachineDefinition) {
+    public Response createStateMachine(StateMachineDefinition stateMachineDefinition) {
+
         // 1. Convert to StateMachine (domain object) and save in DB
         if(stateMachineDefinition == null)
             throw new IllegalRepresentationException("State machine definition is empty");
@@ -54,7 +55,7 @@ public class StateMachineResource<T> {
         // 2. workFlowExecutionController.init(stateMachine_domainObject)
 
         // 3. Return machineId
-        return stateMachine.getId();
+        return Response.status(201).entity("State Machine Id: "+stateMachine.getId()).build();
     }
 
     
@@ -67,7 +68,7 @@ public class StateMachineResource<T> {
      */
 
     @POST
-    @Path("/machines/{machineId}/context/events/{eventFqn}")
+    @Path("/{machineId}/context/events/{eventFqn}")
     public void submitEvent(@PathParam("machineId") Long machineId,
                             @PathParam("eventFqn") String eventFqn,
                             String eventDataJson
@@ -84,7 +85,7 @@ public class StateMachineResource<T> {
      */
 
     @PUT
-    @Path("/machines/{machineId}/cancel")
+    @Path("/{machineId}/cancel")
     public void cancelExecution(@PathParam("machineId") Long machineId) {
         // Trigger cancellation on all currently executing states
     }

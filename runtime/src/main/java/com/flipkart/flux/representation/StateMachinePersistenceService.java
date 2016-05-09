@@ -21,6 +21,7 @@ import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -28,6 +29,7 @@ import java.util.Set;
  * <code>StateMachinePersistenceService</code> class converts user provided state machine entity definition to domain type object and stores in DB.
  * @author shyam.akirala
  */
+@Singleton
 public class StateMachinePersistenceService<T> {
 
     private StateMachinesDAO stateMachinesDAO;
@@ -44,11 +46,11 @@ public class StateMachinePersistenceService<T> {
      * @param stateMachineDefinition
      * @return saved state machine object
      */
-    public StateMachine createStateMachine(StateMachineDefinition<T> stateMachineDefinition) {
-        Set<StateDefinition<T>> stateDefinitions = stateMachineDefinition.getStates();
+    public StateMachine createStateMachine(StateMachineDefinition stateMachineDefinition) {
+        Set<StateDefinition> stateDefinitions = stateMachineDefinition.getStates();
         Set<State<T>> states = new HashSet<>();
 
-        for(StateDefinition<T> stateDefinition : stateDefinitions) {
+        for(StateDefinition stateDefinition : stateDefinitions) {
             State state = convertStateDefinitionToState(stateDefinition);
             states.add(state);
         }
@@ -66,16 +68,21 @@ public class StateMachinePersistenceService<T> {
      * @param stateDefinition
      * @return state
      */
-    private State<T> convertStateDefinitionToState(StateDefinition<T> stateDefinition) {
-        State<T> state = new State<>(stateDefinition.getVersion(),
-                stateDefinition.getName(),
-                stateDefinition.getDescription(),
-                stateDefinition.getOnEntryHook(),
-                stateDefinition.getTask(),
-                stateDefinition.getOnExitHook(),
-                stateDefinition.getRetryCount(),
-                stateDefinition.getTimeout());
-        return state;
+    private State<T> convertStateDefinitionToState(StateDefinition stateDefinition) {
+
+        try {
+            State<T> state = new State<T>(stateDefinition.getVersion(),
+                    stateDefinition.getName(),
+                    stateDefinition.getDescription(),
+                    stateDefinition.getOnEntryHook(),
+                    stateDefinition.getTask(),
+                    stateDefinition.getOnExitHook(),
+                    stateDefinition.getRetryCount(),
+                    stateDefinition.getTimeout());
+            return state;
+        } catch (Exception e) {
+            throw new IllegalRepresentationException("Unable to create state domain object", e);
+        }
     }
 
 }

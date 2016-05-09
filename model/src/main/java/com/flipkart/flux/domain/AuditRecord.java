@@ -116,9 +116,9 @@ public class AuditRecord {
         AuditRecord that = (AuditRecord) o;
 
         if (retryAttempt != that.retryAttempt) return false;
-        if (!id.equals(that.id)) return false;
-        if (!stateId.equals(that.stateId)) return false;
-        if (!stateMachineInstanceId.equals(that.stateMachineInstanceId)) return false;
+        if (stateId != null ? !stateId.equals(that.stateId) : that.stateId != null) return false;
+        if (stateMachineInstanceId != null ? !stateMachineInstanceId.equals(that.stateMachineInstanceId) : that.stateMachineInstanceId != null)
+            return false;
         if (stateRollbackStatus != that.stateRollbackStatus) return false;
         if (stateStatus != that.stateStatus) return false;
 
@@ -127,12 +127,11 @@ public class AuditRecord {
 
     @Override
     public int hashCode() {
-        int result = id.hashCode();
-        result = 31 * result + stateMachineInstanceId.hashCode();
-        result = 31 * result + stateId.hashCode();
+        int result = stateMachineInstanceId != null ? stateMachineInstanceId.hashCode() : 0;
+        result = 31 * result + (stateId != null ? stateId.hashCode() : 0);
         result = 31 * result + retryAttempt;
-        result = 31 * result + stateStatus.hashCode();
-        result = 31 * result + stateRollbackStatus.hashCode();
+        result = 31 * result + (stateStatus != null ? stateStatus.hashCode() : 0);
+        result = 31 * result + (stateRollbackStatus != null ? stateRollbackStatus.hashCode() : 0);
         return result;
     }
 }
