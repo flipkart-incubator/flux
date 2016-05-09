@@ -24,7 +24,10 @@ import java.lang.reflect.Method;
  * //TODO, need a wrapper over @java.lang.reflect.Method when we move to isolated environment
  */
 public interface ExecutableRegistry {
+    /* Retrieve a task given the taskIdentifier */
     public Method getTask(String taskIdentifier);
+    /* Retrieve a hook given the hookIdentifier */
     public Method getHook(String hookIdentifier);
+    /* register a task method against a given identifier. This operation must be idempotent */
     public void registerTask(String taskIdentifier, Method method);
 }

@@ -43,6 +43,13 @@ public class LocalExecutableRegistryImpl implements ExecutableRegistry {
         this.injector = injector;
     }
 
+    /**
+     * The <code>LocalExecutableRegistryImpl</code> stores registered tasks in a concurrent map structure
+     * If the given entry is not in the map strucuture, this implementation looks for the given class and tries to retrieve
+     * it from the guice injector.
+     * @param taskIdentifier- String that identifies a task to be executed
+     * @return The executable method that can be invoked - either one that is previously registered or one that is loaded dynamically in the JVM
+     */
     @Override
     public Method getTask(String taskIdentifier) {
         final Method cachedMethod = this.identifierToMethodMap.get(taskIdentifier);
