@@ -19,6 +19,8 @@ import com.flipkart.flux.client.intercept.TaskInterceptor;
 import com.flipkart.flux.client.intercept.WorkflowInterceptor;
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.model.Workflow;
+import com.flipkart.flux.client.registry.ExecutableRegistry;
+import com.flipkart.flux.client.registry.LocalExecutableRegistryImpl;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
 import com.flipkart.flux.client.runtime.LocalContext;
@@ -43,6 +45,7 @@ public class FluxClientSpyModuleForTests extends AbstractModule {
         requestInjection(taskInterceptor);
         bindInterceptor(Matchers.any(), Matchers.annotatedWith(Task.class), taskInterceptor);
         install(new TestResourceModule());
+        bind(ExecutableRegistry.class).to(LocalExecutableRegistryImpl.class);
     }
 
     @Provides
