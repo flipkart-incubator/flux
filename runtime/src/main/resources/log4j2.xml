@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Properties>
+        <Property name="log-path">logs</Property>
+    </Properties>
+    <Appenders>
+        <Console name="console-log" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="INFO" additivity="false">
+            <AppenderRef ref="console-log"/>
+        </Root>
+        <Logger name="org.eclipse.jetty.*" level="info" additivity="false" >
+            <AppenderRef ref="console-log"/>
+        </Logger>
+        <Logger name="com.flipkart.polyguice.config.YamlConfiguration" level="info" additivity="false">
+            <AppenderRef ref="console-log"/>
+        </Logger>
+    </Loggers>
+</Configuration>

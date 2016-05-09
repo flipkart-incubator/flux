@@ -45,8 +45,6 @@ public class State<T> {
     private String name;
     /** Description for this State*/
     private String description;
-    /** Id of the State Machine to which this State belongs*/
-    private String stateMachineId;
     /** Name of Hook class that is executed on entry of this State, must be a public class*/
     private String onEntryHook;
     /** Name of Task class that is executed when the transition happens to this State, must be a public class*/
@@ -130,12 +128,6 @@ public class State<T> {
     public void setDescription(String description) {
         this.description = description;
     }
-    public String getStateMachineId() {
-        return stateMachineId;
-    }
-    public void setStateMachineId(String stateMachineId) {
-        this.stateMachineId = stateMachineId;
-    }
     public String getOnEntryHook() {
         return onEntryHook;
     }
@@ -202,8 +194,6 @@ public class State<T> {
         if (id != null ? !id.equals(state.id) : state.id != null) return false;
         if (name != null ? !name.equals(state.name) : state.name != null) return false;
         if (retryCount != null ? !retryCount.equals(state.retryCount) : state.retryCount != null) return false;
-        if (stateMachineId != null ? !stateMachineId.equals(state.stateMachineId) : state.stateMachineId != null)
-            return false;
         if (timeout != null ? !timeout.equals(state.timeout) : state.timeout != null) return false;
         if (version != null ? !version.equals(state.version) : state.version != null) return false;
 
@@ -216,9 +206,29 @@ public class State<T> {
         result = 31 * result + (version != null ? version.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (stateMachineId != null ? stateMachineId.hashCode() : 0);
         result = 31 * result + (retryCount != null ? retryCount.hashCode() : 0);
         result = 31 * result + (timeout != null ? timeout.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "State{" +
+            "createdAt=" + createdAt +
+            ", id='" + id + '\'' +
+            ", version=" + version +
+            ", name='" + name + '\'' +
+            ", description='" + description + '\'' +
+            ", onEntryHook='" + onEntryHook + '\'' +
+            ", task='" + task + '\'' +
+            ", onExitHook='" + onExitHook + '\'' +
+            ", retryCount=" + retryCount +
+            ", timeout=" + timeout +
+            ", errors=" + errors +
+            ", status=" + status +
+            ", rollbackStatus=" + rollbackStatus +
+            ", numRetries=" + numRetries +
+            ", updatedAt=" + updatedAt +
+            '}';
     }
 }

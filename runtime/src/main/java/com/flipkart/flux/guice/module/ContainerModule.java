@@ -17,6 +17,7 @@
 package com.flipkart.flux.guice.module;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.flipkart.flux.config.FileLocator;
 import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.resource.FluxResource;
@@ -27,6 +28,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
+import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -35,6 +37,7 @@ import javax.inject.Singleton;
 import javax.ws.rs.core.UriBuilder;
 import java.io.File;
 import java.net.URISyntaxException;
+import java.util.logging.Logger;
 
 import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
 
@@ -126,8 +129,12 @@ public class ContainerModule extends AbstractModule {
 	@Singleton
 	Server getAPIJettyServer(@Named("Api.service.port") int port,
 							 @Named("Api.service.baseURL") String baseURL,
-							 @Named("APIResourceConfig")ResourceConfig resourceConfig) throws URISyntaxException {
+							 @Named("APIResourceConfig")ResourceConfig resourceConfig,
+							 ObjectMapper objectMapper) throws URISyntaxException {
 		//todo-ashish figure out some way of setting acceptor/worker threads
+		JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
+		provider.setMapper(objectMapper);
+		resourceConfig.register(provider);
 		return JettyHttpContainerFactory.createServer(UriBuilder.fromUri(baseURL+ RuntimeConstants.API_CONTEXT_PATH).port(port).build(), resourceConfig);
 	}
 
@@ -140,6 +147,7 @@ public class ContainerModule extends AbstractModule {
 		ResourceConfig resourceConfig = new ResourceConfig();
 		resourceConfig.register(fluxUIResource);
 		resourceConfig.register(stateMachineResource);
+		resourceConfig.register(new LoggingFilter(Logger.getLogger("main"),false));
 		return resourceConfig;
 	}
 

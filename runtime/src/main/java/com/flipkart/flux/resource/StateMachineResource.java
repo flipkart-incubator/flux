@@ -13,27 +13,19 @@
 
 package com.flipkart.flux.resource;
 
-import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.google.inject.Inject;
 
-
+import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import javax.inject.Named;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import java.util.HashSet;
-import java.util.Set;
 
 
 /**
@@ -41,7 +33,7 @@ import java.util.Set;
  */
 
 @Singleton
-@Path("/fsm/machines")
+@Path("/api/machines")
 @Named
 public class StateMachineResource<T> {
 
