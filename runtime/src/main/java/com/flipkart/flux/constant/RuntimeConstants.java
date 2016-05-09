@@ -26,6 +26,7 @@ public class RuntimeConstants {
     public static final String DASHBOARD_CONTEXT_PATH = "/admin";
     public static final String API_CONTEXT_PATH = "/api";
 
+
     /**
      * Root for all the configs.
      */

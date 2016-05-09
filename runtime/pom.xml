@@ -52,6 +52,11 @@
         </dependency>
         <dependency>
             <groupId>com.flipkart.flux</groupId>
+            <artifactId>api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.flipkart.flux</groupId>
             <artifactId>model</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
@@ -61,6 +66,25 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <!-- Third party dependencies -->
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -129,6 +153,27 @@
             <artifactId>jetty-webapp</artifactId>
             <version>${jetty.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-jetty-http</artifactId>
+            <version>2.17</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.eclipse.jetty</groupId>
+                    <artifactId>jetty-util</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.eclipse.jetty</groupId>
+                    <artifactId>jetty-server</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.eclipse.jetty</groupId>
+                    <artifactId>jetty-continuation</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <!-- Polyguice dependencies-->
         <dependency>
             <groupId>com.flipkart.polyguice</groupId>
@@ -145,6 +190,7 @@
             <artifactId>polyguice-akka</artifactId>
             <version>${polyguice.version}</version>
         </dependency>
+
         <!-- Dashboard dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -161,16 +207,12 @@
             <artifactId>spring-webmvc</artifactId>
             <version>${org.springframework.version}</version>
         </dependency>
+
+
         <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
             <version>2.3.14</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.7.3</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
@@ -178,6 +220,14 @@
             <version>${assertj-core.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <scope>test</scope>
+            <version>4.5.2</version>
+        </dependency>
+
+
     </dependencies>
 
     <build>

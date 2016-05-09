@@ -30,7 +30,11 @@ public class EventDefinition {
     /** The Event FQN*/
     private String eventFqn; // java.lang.String_foo
 
-    /** Constructor*/
+	/* To be used only by jackson */
+	EventDefinition() {
+	}
+
+	/** Constructor*/
 	public EventDefinition(String eventFqn) {
 		super();
 		this.eventFqn = eventFqn;
@@ -52,35 +56,27 @@ public class EventDefinition {
         this.version = version;
     }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result
-                + ((eventFqn == null) ? 0 : eventFqn.hashCode());
-        result = prime * result + ((version == null) ? 0 : version.hashCode());
-        return result;
-    }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        EventDefinition other = (EventDefinition) obj;
-        if (eventFqn == null) {
-            if (other.eventFqn != null)
-                return false;
-        } else if (!eventFqn.equals(other.eventFqn))
-            return false;
-        if (version == null) {
-            if (other.version != null)
-                return false;
-        } else if (!version.equals(other.version))
-            return false;
-        return true;
-    }
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		EventDefinition that = (EventDefinition) o;
+
+		return !(eventFqn != null ? !eventFqn.equals(that.eventFqn) : that.eventFqn != null);
+
+	}
+
+	@Override
+	public int hashCode() {
+		return eventFqn != null ? eventFqn.hashCode() : 0;
+	}
+
+	@Override
+	public String toString() {
+		return "EventDefinition{" +
+			"eventFqn='" + eventFqn + '\'' +
+			'}';
+	}
 }

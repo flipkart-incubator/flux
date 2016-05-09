@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.api;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -35,14 +36,20 @@ public class StateMachineDefinition {
     /** Possible states that this state machine can transition to*/
     private Set<StateDefinition> states;
 
-    /** Constructors */
-    public StateMachineDefinition() {}
+    /* For Jackson */
+    StateMachineDefinition() {
+    }
 
-    public StateMachineDefinition(Long version, String name, String description, Set<StateDefinition> states) {
-        this.version = version;
+    /** Constructor */
+    public StateMachineDefinition(String description, String name, long version, Set<StateDefinition> stateDefinitions) {
         this.description = description;
         this.name = name;
-        this.states = states;
+        this.states = stateDefinitions;
+        this.version = version;
+    }
+
+    public void addState(StateDefinition stateDefinition) {
+        this.states.add(stateDefinition);
     }
 
     /** Accessors/Mutators for member variables*/
@@ -70,5 +77,37 @@ public class StateMachineDefinition {
 	public void setStates(Set<StateDefinition> states) {
 		this.states = states;
 	}
-    
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        StateMachineDefinition that = (StateMachineDefinition) o;
+
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (version != null ? !version.equals(that.version) : that.version != null) return false;
+        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+        return !(states != null ? !states.equals(that.states) : that.states != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (version != null ? version.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (states != null ? states.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "StateMachineDefinition{" +
+            "description='" + description + '\'' +
+            ", name='" + name + '\'' +
+            ", version=" + version +
+            ", states=" + states +
+            '}';
+    }
 }

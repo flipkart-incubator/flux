@@ -13,26 +13,26 @@
 
 package com.flipkart.flux.controller;
 
-import static org.junit.Assert.assertTrue;
-import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_CONTEXT_PATH;
-import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
-
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
 import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.flux.guice.module.ContainerModule;
+import com.flipkart.flux.guice.module.HibernateModule;
 import com.google.common.io.ByteStreams;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.name.Names;
-
 import org.eclipse.jetty.server.Server;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_CONTEXT_PATH;
+import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Simple test spawing dashboard jetty server and asserting relevant URL paths.
@@ -48,7 +48,7 @@ public class DashboardWebAppTest {
     // TODO: Replace this with the GuiceJunit4Runner
     @BeforeClass
     public static void beforeClass() throws Exception {
-        injector = Guice.createInjector(new ConfigModule(), new ContainerModule());
+        injector = Guice.createInjector(new ConfigModule(), new ContainerModule(), new HibernateModule());
         server = injector.getInstance(Key.get(Server.class, Names.named("DashboardJettyServer")));
         server.start();
         port = injector.getInstance(Key.get(Integer.class, Names.named("Dashboard.service.port")));

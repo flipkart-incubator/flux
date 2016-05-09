@@ -16,27 +16,27 @@
 
 package com.flipkart.flux.guice.module;
 
-import static com.flipkart.flux.constant.RuntimeConstants.API_CONTEXT_PATH;
-import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_CONTEXT_PATH;
-import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
-
-import java.io.File;
-import java.util.EnumSet;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.config.FileLocator;
+import com.flipkart.flux.constant.RuntimeConstants;
+import com.flipkart.flux.resource.FluxResource;
+import com.flipkart.flux.resource.StateMachineResource;
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.webapp.WebAppContext;
+import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
+import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.servlet.DispatcherType;
+import javax.ws.rs.core.UriBuilder;
+import java.io.File;
+import java.net.URISyntaxException;
 
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.eclipse.jetty.webapp.WebAppContext;
-
-import com.flipkart.flux.config.FileLocator;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.servlet.GuiceFilter;
+import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
 
 /**
  * <code>ContainerModule</code> is a Guice {@link AbstractModule} implementation used for wiring Flux container components.
@@ -53,8 +53,9 @@ public class ContainerModule extends AbstractModule {
 	 */
 	@Override
 	protected void configure() {
+
 	}
-	
+
 	/**
 	 * Creates a Jetty {@link WebAppContext} for the Flux dashboard
 	 * @return Jetty WebAppContext
@@ -85,23 +86,8 @@ public class ContainerModule extends AbstractModule {
 		if (path.endsWith("WEB-INF")) {
 			path = path.replace("WEB-INF", "");
 		}
-		WebAppContext webAppContext = new WebAppContext(path, DASHBOARD_CONTEXT_PATH);
+		WebAppContext webAppContext = new WebAppContext(path, RuntimeConstants.DASHBOARD_CONTEXT_PATH);
 		return webAppContext;
-	}
-	
-	/**
-	 * Creates a Jetty {@link ServletContextHandler} for the Flux API endpoint
-	 * @return Jetty ServletContextHandler
-	 */
-	@Named("APIServletContext")
-	@Provides
-	@Singleton
-	ServletContextHandler getAPIServletContext() {
-		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SECURITY);
-        context.setContextPath(API_CONTEXT_PATH);
-        // now have a Guice filter process all the requests and dispatch it appropriately
-        context.addFilter(GuiceFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
-        return context;
 	}
 	
 	/**
@@ -130,28 +116,38 @@ public class ContainerModule extends AbstractModule {
 	}
 
 	/**
-	 * Creates the Jetty server instance for the Flux API endpoint and configures it with the @Named("APIServletContext").  
-	 * @param port where the service is available
-	 * @param acceptorThreads no. of acceptors
-	 * @param maxWorkerThreads max no. of worker threads
+	 * Creates the Jetty server instance for the Flux API endpoint.
+	 * @param port where the service is available.
+	 * @param baseURL base url where the service is located.
 	 * @return Jetty Server instance
 	 */
 	@Named("APIJettyServer")
 	@Provides
 	@Singleton
 	Server getAPIJettyServer(@Named("Api.service.port") int port,
-			@Named("Api.service.acceptors") int acceptorThreads,
-            @Named("Api.service.selectors") int selectorThreads,
-			@Named("Api.service.workers") int maxWorkerThreads,
-			@Named("APIServletContext") ServletContextHandler servletContextHandler) {
-	    QueuedThreadPool threadPool = new QueuedThreadPool();
-        threadPool.setMaxThreads(maxWorkerThreads);
-        Server server = new Server(threadPool);
-	    ServerConnector http = new ServerConnector(server, acceptorThreads, selectorThreads);
-        http.setPort(port);
-        server.addConnector(http);
-        server.setHandler(servletContextHandler);
-        return server;
+							 @Named("Api.service.baseURL") String baseURL,
+							 @Named("APIResourceConfig")ResourceConfig resourceConfig) throws URISyntaxException {
+		//todo-ashish figure out some way of setting acceptor/worker threads
+		return JettyHttpContainerFactory.createServer(UriBuilder.fromUri(baseURL+ RuntimeConstants.API_CONTEXT_PATH).port(port).build(), resourceConfig);
+	}
+
+
+	@Named("APIResourceConfig")
+	@Singleton
+	@Provides
+	public ResourceConfig getAPIResourceConfig(FluxResource fluxUIResource,
+											   StateMachineResource stateMachineResource) {
+		ResourceConfig resourceConfig = new ResourceConfig();
+		resourceConfig.register(fluxUIResource);
+		resourceConfig.register(stateMachineResource);
+		return resourceConfig;
+	}
+
+	//may not be the right module class for this. may need to be moved later.
+	@Provides
+	@Singleton
+	ObjectMapper getObjectMapper() {
+		return new ObjectMapper();
 	}
 
 }
