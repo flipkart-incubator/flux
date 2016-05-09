@@ -40,7 +40,7 @@ public class FluxInitializer {
     private static Polyguice fluxRuntimeContainer;
 
     private static final int jetty_port = 9999;
-
+    // TODO the bootup needs a fix
     public static void main(String[] args) throws Exception {
         if(args != null && args.length > 0) {
             String param = args[0];
