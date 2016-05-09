@@ -19,6 +19,6 @@ public class TestUtils {
 
     public static void assertStateMachineEquality(StateMachine actual, StateMachine expected) {
         assertThat(actual).isEqualToIgnoringGivenFields(expected, "states", "context", "createdAt","updatedAt","id");
-        assertThat(actual.getStates()).usingElementComparatorIgnoringFields("id","createdAt","updatedAt").containsOnlyElementsOf(expected.getStates());
+        assertThat(actual.getStates()).usingElementComparatorIgnoringFields("id","createdAt","updatedAt","stateMachineId").containsOnlyElementsOf(expected.getStates());
     }
 }

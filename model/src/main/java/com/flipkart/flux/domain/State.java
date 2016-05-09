@@ -42,6 +42,8 @@ public class State<T> {
     private String name;
     /** Description for this State*/
     private String description;
+    /** Id of the state machine to which this state belongs*/
+    private Long stateMachineId;
     /** Name of Hook class that is executed on entry of this State, must be a public class*/
     private String onEntryHook;
     /** Name of Task class that is executed when the transition happens to this State, must be a public class*/
@@ -124,6 +126,12 @@ public class State<T> {
     }
     public void setDescription(String description) {
         this.description = description;
+    }
+    public Long getStateMachineId() {
+        return stateMachineId;
+    }
+    public void setStateMachineId(Long stateMachineId) {
+        this.stateMachineId = stateMachineId;
     }
     public String getOnEntryHook() {
         return onEntryHook;
