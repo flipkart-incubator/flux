@@ -109,6 +109,39 @@ public class StateMachine<T> {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof StateMachine)) return false;
+
+        StateMachine that = (StateMachine) o;
+
+        if (context != null ? !context.equals(that.context) : that.context != null) return false;
+        if (createdAt != null ? !createdAt.equals(that.createdAt) : that.createdAt != null) return false;
+        if (currentStates != null ? !currentStates.equals(that.currentStates) : that.currentStates != null)
+            return false;
+        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (states != null ? !states.equals(that.states) : that.states != null) return false;
+        if (updatedAt != null ? !updatedAt.equals(that.updatedAt) : that.updatedAt != null) return false;
+        if (version != null ? !version.equals(that.version) : that.version != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = version != null ? version.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (states != null ? states.hashCode() : 0);
+        result = 31 * result + (currentStates != null ? currentStates.hashCode() : 0);
+        result = 31 * result + (context != null ? context.hashCode() : 0);
+        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
+        result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
+        return result;
+    }
+
+    @Override
     public String toString() {
         return "StateMachine{" +
             "context=" + context +

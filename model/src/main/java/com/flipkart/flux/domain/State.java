@@ -195,11 +195,21 @@ public class State<T> {
 
         State state = (State) o;
 
+        if (createdAt != null ? !createdAt.equals(state.createdAt) : state.createdAt != null) return false;
         if (description != null ? !description.equals(state.description) : state.description != null) return false;
-        if (id != null ? !id.equals(state.id) : state.id != null) return false;
+        if (errors != null ? !errors.equals(state.errors) : state.errors != null) return false;
         if (name != null ? !name.equals(state.name) : state.name != null) return false;
+        if (numRetries != null ? !numRetries.equals(state.numRetries) : state.numRetries != null) return false;
+        if (onEntryHook != null ? !onEntryHook.equals(state.onEntryHook) : state.onEntryHook != null) return false;
+        if (onExitHook != null ? !onExitHook.equals(state.onExitHook) : state.onExitHook != null) return false;
         if (retryCount != null ? !retryCount.equals(state.retryCount) : state.retryCount != null) return false;
+        if (rollbackStatus != state.rollbackStatus) return false;
+        if (stateMachineId != null ? !stateMachineId.equals(state.stateMachineId) : state.stateMachineId != null)
+            return false;
+        if (status != state.status) return false;
+        if (task != null ? !task.equals(state.task) : state.task != null) return false;
         if (timeout != null ? !timeout.equals(state.timeout) : state.timeout != null) return false;
+        if (updatedAt != null ? !updatedAt.equals(state.updatedAt) : state.updatedAt != null) return false;
         if (version != null ? !version.equals(state.version) : state.version != null) return false;
 
         return true;
@@ -207,12 +217,21 @@ public class State<T> {
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (version != null ? version.hashCode() : 0);
+        int result = version != null ? version.hashCode() : 0;
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (stateMachineId != null ? stateMachineId.hashCode() : 0);
+        result = 31 * result + (onEntryHook != null ? onEntryHook.hashCode() : 0);
+        result = 31 * result + (task != null ? task.hashCode() : 0);
+        result = 31 * result + (onExitHook != null ? onExitHook.hashCode() : 0);
         result = 31 * result + (retryCount != null ? retryCount.hashCode() : 0);
         result = 31 * result + (timeout != null ? timeout.hashCode() : 0);
+        result = 31 * result + (errors != null ? errors.hashCode() : 0);
+        result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result + (rollbackStatus != null ? rollbackStatus.hashCode() : 0);
+        result = 31 * result + (numRetries != null ? numRetries.hashCode() : 0);
+        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
+        result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
         return result;
     }
 
