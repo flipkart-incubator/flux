@@ -3,7 +3,7 @@
 --changeset shyam.akirala:1 runOnChange:false
 
 CREATE TABLE IF NOT EXISTS `StateMachines` (
-  `id` VARCHAR(100) NOT NULL,
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
   `version` SMALLINT UNSIGNED NOT NULL,
   `description` VARCHAR(300) DEFAULT NULL,

@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS `Events` (
   `name` VARCHAR(255) NOT NULL,
   `type` VARCHAR(100) NOT NULL,
   `status` VARCHAR(100) DEFAULT NULL,
-  `stateMachineInstanceId` VARCHAR(255) NOT NULL,
+  `stateMachineInstanceId` BIGINT NOT NULL,
   `eventData` BLOB,
   `eventSource` VARCHAR(100) DEFAULT NULL,
   `createdAt` TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3),

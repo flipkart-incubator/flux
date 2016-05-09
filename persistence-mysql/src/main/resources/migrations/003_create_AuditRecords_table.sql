@@ -4,8 +4,8 @@
 
 CREATE TABLE IF NOT EXISTS `AuditRecords` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
-  `stateMachineInstanceId` VARCHAR(100) NOT NULL,
-  `stateId` VARCHAR(100) NOT NULL,
+  `stateMachineInstanceId` BIGINT NOT NULL,
+  `stateId` BIGINT NOT NULL,
   `retryAttempt` TINYINT UNSIGNED DEFAULT NULL,
   `stateStatus` VARCHAR(100) DEFAULT NULL,
   `stateRollbackStatus` VARCHAR(100) DEFAULT NULL,
