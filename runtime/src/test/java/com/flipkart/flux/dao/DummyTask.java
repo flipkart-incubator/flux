@@ -24,7 +24,7 @@ import javafx.util.Pair;
 public class DummyTask<T> implements Task<T> {
 
     @Override
-    public Pair<Event, FluxError> execute(Event[] events) {
+    public Pair<Event<T>, FluxError> execute(Event[] events) {
         //DO SOMETHING
         return null;
     }
