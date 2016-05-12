@@ -24,59 +24,62 @@ package com.flipkart.flux.api;
  */
 public class EventDefinition {
 
-    /** The version of this event definition*/
-    private Long version;
+    /** Name of the event*/
+    private String name;
 
-    /** The Event FQN*/
-    private String eventFqn; // java.lang.String_foo
+    /** Type of the event*/
+    private String type;
 
 	/* To be used only by jackson */
 	EventDefinition() {
 	}
 
 	/** Constructor*/
-	public EventDefinition(String eventFqn) {
+	public EventDefinition(String name, String type) {
 		super();
-		this.eventFqn = eventFqn;
+		this.name = name;
+        this.type = type;
 	}
 
     /** Accessors/Mutators for member variables*/
-	public String getEventFqn() {
-		return eventFqn;
-	}
-	public void setEventFqn(String eventFqn) {
-		this.eventFqn = eventFqn;
-	}
-
-    public Long getVersion() {
-        return version;
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public String getType() {
+        return type;
+    }
+    public void setType(String type) {
+        this.type = type;
     }
 
-    public void setVersion(Long version) {
-        this.version = version;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof EventDefinition)) return false;
+
+        EventDefinition that = (EventDefinition) o;
+
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (type != null ? !type.equals(that.type) : that.type != null) return false;
+
+        return true;
     }
 
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-
-		EventDefinition that = (EventDefinition) o;
-
-		return !(eventFqn != null ? !eventFqn.equals(that.eventFqn) : that.eventFqn != null);
-
-	}
-
-	@Override
-	public int hashCode() {
-		return eventFqn != null ? eventFqn.hashCode() : 0;
-	}
-
-	@Override
-	public String toString() {
-		return "EventDefinition{" +
-			"eventFqn='" + eventFqn + '\'' +
-			'}';
-	}
+    @Override
+    public String toString() {
+        return "EventDefinition{" +
+                "name='" + name + '\'' +
+                ", type='" + type + '\'' +
+                '}';
+    }
 }

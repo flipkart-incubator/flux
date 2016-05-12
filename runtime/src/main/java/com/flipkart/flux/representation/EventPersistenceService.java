@@ -25,7 +25,7 @@ import javax.inject.Singleton;
  * @author shyam.akirala
  */
 @Singleton
-public class EventPersistenceService<T> {
+public class EventPersistenceService {
 
     private EventsDAO eventsDAO;
 
@@ -39,8 +39,12 @@ public class EventPersistenceService<T> {
      * @param eventDefinition
      * @return
      */
-    public Event<T> createEvent(EventDefinition eventDefinition) {
-        return null;
+    public Event convertEventDefinitionToEvent(EventDefinition eventDefinition) {
+        return new Event(eventDefinition.getName(), eventDefinition.getType(), Event.EventStatus.pending, null, null, null);
+    }
+
+    public Event persistEvent(Event event) {
+        return eventsDAO.create(event);
     }
 
 }

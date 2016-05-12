@@ -13,10 +13,11 @@
 
 package com.flipkart.flux.representation;
 
+import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.dao.iface.StatesDAO;
+import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 
@@ -30,15 +31,16 @@ import java.util.Set;
  * @author shyam.akirala
  */
 @Singleton
-public class StateMachinePersistenceService<T> {
+public class StateMachinePersistenceService {
 
     private StateMachinesDAO stateMachinesDAO;
-    private StatesDAO statesDAO;
+
+    private EventPersistenceService eventPersistenceService;
 
     @Inject
-    public StateMachinePersistenceService(StateMachinesDAO stateMachinesDAO, StatesDAO statesDAO) {
+    public StateMachinePersistenceService(StateMachinesDAO stateMachinesDAO, EventPersistenceService eventPersistenceService) {
         this.stateMachinesDAO = stateMachinesDAO;
-        this.statesDAO = statesDAO;
+        this.eventPersistenceService = eventPersistenceService;
     }
 
     /**
@@ -48,19 +50,27 @@ public class StateMachinePersistenceService<T> {
      */
     public StateMachine createStateMachine(StateMachineDefinition stateMachineDefinition) {
         Set<StateDefinition> stateDefinitions = stateMachineDefinition.getStates();
-        Set<State<T>> states = new HashSet<>();
+        Set<State> states = new HashSet<>();
+        Set<Event> eventSet = new HashSet<>();
 
         for(StateDefinition stateDefinition : stateDefinitions) {
-            State state = convertStateDefinitionToState(stateDefinition);
+            State state = convertStateDefinitionToState(stateDefinition, eventSet);
             states.add(state);
         }
 
-        StateMachine<T> stateMachine = new StateMachine<T>(stateMachineDefinition.getVersion(),
+        StateMachine stateMachine = new StateMachine(stateMachineDefinition.getVersion(),
                 stateMachineDefinition.getName(),
                 stateMachineDefinition.getDescription(),
                 states);
 
-        return stateMachinesDAO.create(stateMachine);
+        stateMachinesDAO.create(stateMachine);
+
+        for(Event event: eventSet) {
+            event.setStateMachineInstanceId(stateMachine.getId());
+            eventPersistenceService.persistEvent(event);
+        }
+
+        return stateMachine;
     }
 
     /**
@@ -68,15 +78,25 @@ public class StateMachinePersistenceService<T> {
      * @param stateDefinition
      * @return state
      */
-    private State<T> convertStateDefinitionToState(StateDefinition stateDefinition) {
+    private State convertStateDefinitionToState(StateDefinition stateDefinition, Set<Event> eventSet) {
 
         try {
-            State<T> state = new State<T>(stateDefinition.getVersion(),
+            Set<EventDefinition> eventDefinitions = stateDefinition.getDependencies();
+            HashSet<String> events = null;
+            if(eventDefinitions != null) {
+                events = new HashSet<>();
+                for(EventDefinition e : eventDefinitions) {
+                    events.add(e.getName());
+                    eventSet.add(eventPersistenceService.convertEventDefinitionToEvent(e));
+                }
+            }
+            State state = new State(stateDefinition.getVersion(),
                     stateDefinition.getName(),
                     stateDefinition.getDescription(),
                     stateDefinition.getOnEntryHook(),
                     stateDefinition.getTask(),
                     stateDefinition.getOnExitHook(),
+                    events,
                     stateDefinition.getRetryCount(),
                     stateDefinition.getTimeout());
             return state;

@@ -13,8 +13,10 @@
 
 package com.flipkart.flux.domain;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * <code>Context</code> carries execution context for use during a State's execution.
@@ -26,7 +28,7 @@ import java.util.Map;
  * @author shyam.akirala
  * @author kartik.bommepally
  */
-public abstract class Context<T> {
+public abstract class Context {
 
     /** The start time when this Context was created*/
     protected Long startTime;
@@ -36,7 +38,7 @@ public abstract class Context<T> {
      * A reverse dependency graph created across States based on Events.
      * Holds information on possible list of States waiting on an Event represented by its FQN.
      */
-    protected Map<String, List<State<T>>> stateToEventDependencyGraph;
+    protected Map<String, Set<State>> stateToEventDependencyGraph;
 
     /**
      * Stores the specified data against the key for this Context. Implementations may bound the type and size of data stored into this Context.
@@ -52,13 +54,40 @@ public abstract class Context<T> {
      */
     public abstract Object retrieve(String key);
 
-    public List<State<T>> getExecutableStates(State<T> currentState, Event<T> event) {
-        // Go through the dependency graph to figure the states that can now be executed
-        return null;
+    public Set<State> getDependantStates(String eventName) {
+        return stateToEventDependencyGraph.get(eventName);
     }
+
     public boolean isExecutionCancelled() {
         //check for cancelledException in data, and return whether state machine execution is cancelled or not
         return false;
+    }
+
+    public void buildDependencyMap(Set<State> states) {
+        stateToEventDependencyGraph = new HashMap<>();
+        for(State state : states) {
+            if (state.getDependencies() != null) {
+                for (String eventName : state.getDependencies()) {
+                    if (stateToEventDependencyGraph.containsKey(eventName)) {
+                        stateToEventDependencyGraph.get(eventName).add(state);
+                    } else {
+                        Set set = new HashSet<State>() {{
+                            add(state);
+                        }};
+                        stateToEventDependencyGraph.put(eventName, set);
+                    }
+                }
+            } else { //if dependencies are null, that means the state can be started immediately on state machine start
+                if (stateToEventDependencyGraph.containsKey(null)) {
+                    stateToEventDependencyGraph.get(null).add(state);
+                } else {
+                    Set set = new HashSet<State>() {{
+                        add(state);
+                    }};
+                    stateToEventDependencyGraph.put(null, set);
+                }
+            }
+        }
     }
 
     /** Accessor/Mutator methods*/

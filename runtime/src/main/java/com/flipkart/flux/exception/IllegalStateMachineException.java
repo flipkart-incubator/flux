@@ -11,27 +11,13 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.registry;
-
-import com.flipkart.flux.domain.State;
-
-import java.util.Map;
-import java.util.Set;
+package com.flipkart.flux.exception;
 
 /**
- * <code>StateMachineRegistry</code> contains mapping between events and states.
  * @author shyam.akirala
  */
-public class StateMachineRegistry {
-
-    private Map<Set<String>, Set<State>> stateMap;
-
-    /**
-     * Given a set of events returns states which are dependent on those particular events.
-     */
-    public Set<State> getRespectiveStates(Set<String> events) {
-        //TO DO:
-        return null;
+public class IllegalStateMachineException extends RuntimeException {
+    public IllegalStateMachineException(String message) {
+        super(message);
     }
-
 }

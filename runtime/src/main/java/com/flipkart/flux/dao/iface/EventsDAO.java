@@ -26,9 +26,18 @@ public interface EventsDAO {
     /** Creates Event in the db, and returns the saved object*/
     Event create(Event event);
 
+    /** Updates the event */
+    void update(Event event);
+
     /** Retrieves all the events which belongs to a particular state machine instance*/
-    List<Event> findBySMInstanceId(String stateMachineInstanceId);
+    List<Event> findBySMInstanceId(Long stateMachineInstanceId);
 
     /** Retrieves Event by it's unique identifier*/
     Event findById(Long id);
+
+    /** Retrieves Event by state machine instance id and event name */
+    Event findBySMIdAndName(Long stateMachineInstanceId, String eventName);
+
+    /** Retrieves list of event names which are in triggered state and belongs to provided state machine */
+    public List<String> findTriggeredEventsNamesBySMId(Long stateMachineInstanceId);
 }

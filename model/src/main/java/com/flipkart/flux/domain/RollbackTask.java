@@ -22,11 +22,11 @@ import javafx.util.Pair;
  * @author regunath.balasubramanian
  *
  */
-public interface RollbackTask<T> extends Task<T> {
+public interface RollbackTask extends Task {
 	
     /**
      * Callback method to effect a rollback when state transition fails in the current State or a later one
      * @param rollbackTrigger the Pair of Event and/or FluxError that triggered the rollback
      */
-    public void rollback(Pair<Event<T>,FluxError> rollbackTrigger);
+    public void rollback(Pair<Event,FluxError> rollbackTrigger);
 }

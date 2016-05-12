@@ -11,23 +11,14 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.dao.iface;
-
-import com.flipkart.flux.domain.AuditRecord;
-import java.util.List;
+package com.flipkart.flux.exception;
 
 /**
- * <code>AuditDAO</code> interface provides methods to perform CR operations on {@link AuditRecord}
+ * Raised on an illegal event.
  * @author shyam.akirala
  */
-public interface AuditDAO {
-
-    /** Retrieves all the audit logs which belongs to a particular state machine*/
-    List<AuditRecord> findBySMInstanceId(Long stateMachineInstanceId);
-
-    /** Creates Audit record and returns the saved object*/
-    AuditRecord create(AuditRecord auditRecord);
-
-    /** Retrieves Audit record by it's unique identifier */
-    public AuditRecord findById(Long id);
+public class IllegalEventException extends RuntimeException {
+    public IllegalEventException(String message) {
+        super(message);
+    }
 }

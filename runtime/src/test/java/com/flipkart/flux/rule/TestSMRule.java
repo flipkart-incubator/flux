@@ -13,10 +13,6 @@
 
 package com.flipkart.flux.rule;
 
-import com.flipkart.flux.dao.DummyEventData;
-import com.flipkart.flux.dao.DummyOnEntryHook;
-import com.flipkart.flux.dao.DummyOnExitHook;
-import com.flipkart.flux.dao.DummyTask;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.State;
@@ -53,12 +49,13 @@ public class TestSMRule extends ExternalResource {
         String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
         String task = "com.flipkart.flux.dao.DummyTask";
         String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
-        State<DummyEventData> state1 = statesDAO.create(new State<>(2L, "state1", "desc1", onEntryHook, task, onExitHook, 3L, 60L));
-        State<DummyEventData> state2 = statesDAO.create(new State<>(2L, "state1", "desc1", onEntryHook, task, onExitHook, 3L, 60L));
-        Set<State<DummyEventData>> states = new HashSet<>();
+        Set eventSet1 = new HashSet<String>(){{add("event1");}};
+        State state1 = statesDAO.create(new State(2L, "state1", "desc1", onEntryHook, task, onExitHook, null, 3L, 60L));
+        State state2 = statesDAO.create(new State(2L, "state1", "desc1", onEntryHook, task, onExitHook, eventSet1, 3L, 60L));
+        Set<State> states = new HashSet<>();
         states.add(state1);
         states.add(state2);
-        StateMachine<DummyEventData> stateMachine1 = new StateMachine<>(2L, "SM_name", "SM_desc", states);
+        StateMachine stateMachine1 = new StateMachine(2L, "SM_name", "SM_desc", states);
         stateMachine = stateMachinesDAO.create(stateMachine1);
     }
 

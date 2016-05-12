@@ -49,7 +49,7 @@ public class AkkaTask extends UntypedActor {
 	@SuppressWarnings("unchecked")
 	public void onReceive(Object message) throws Exception {
 		if (Event[].class.isAssignableFrom(message.getClass())) {
-			Event<Object>[] events = (Event<Object>[])message;
+			Event[] events = (Event[])message;
 			AbstractTask task = this.taskRegistry.getTaskForEvents(events);
 			if (task == null) {
 				// Execute any pre-exec HookS 
@@ -71,7 +71,7 @@ public class AkkaTask extends UntypedActor {
 	/**
 	 * Helper method to execute pre and post Task execution Hooks as independent Actor invocations
 	 */
-	private void executeHooks(List<AbstractHook> hooks, Event<Object>[] events) {
+	private void executeHooks(List<AbstractHook> hooks, Event[] events) {
 		if (hooks != null) {
 			for (AbstractHook hook : hooks) {
 				HookAndEvents hookAndEvents = new HookAndEvents(hook, events);

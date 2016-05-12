@@ -12,12 +12,12 @@
  */
 package com.flipkart.flux.impl.task;
 
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.Task;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.Task;
 
 /**
  * <code>TaskRegistry</code> maintains an in-memory registry of {@link Task} and their {@link Event} mappings. This registry is usually populated during Flux startup by inspecting
@@ -42,7 +42,7 @@ public class TaskRegistry {
 	 * @param events the EventS to be processed
 	 * @return null or Task that can process the specified set of EventS
 	 */
-	public AbstractTask getTaskForEvents(Event<Object>[] events) {
+	public AbstractTask getTaskForEvents(Event[] events) {
 		return this.eventsToTaskMap.get(TaskRegistry.getEventsKey(events));
 	}
 	
@@ -51,7 +51,7 @@ public class TaskRegistry {
 	 * @param task the Task
 	 * @param events array of EventS that the Task can process
 	 */
-	public void registerTask(AbstractTask task, Event<Object>[] events) {
+	public void registerTask(AbstractTask task, Event[] events) {
 		this.eventsToTaskMap.put(TaskRegistry.getEventsKey(events), task);
 	}
 
@@ -60,7 +60,7 @@ public class TaskRegistry {
 	 * @param task the Task pending execution
 	 * @return null or List of HookS that are to be executed pre-execution of the specified Task
 	 */
-	public List<AbstractHook> getPreExecHooks(Task<Object> task) {
+	public List<AbstractHook> getPreExecHooks(Task task) {
 		return this.taskToPreExecHookMap.get(task.getClass().getName());
 	}
 
@@ -69,7 +69,7 @@ public class TaskRegistry {
 	 * @param task the Task that has been executed
 	 * @return null or List of HookS that are to be executed post-execution of the specified Task
 	 */
-	public List<AbstractHook> getPostExecHooks(Task<Object> task) {
+	public List<AbstractHook> getPostExecHooks(Task task) {
 		return this.taskToPostExecHookMap.get(task.getClass().getName());
 	}
 	
@@ -96,9 +96,9 @@ public class TaskRegistry {
 	 * @param events Event[] array for creating key
 	 * @return String representing the EventS
 	 */
-	public static String getEventsKey(Event<Object>[] events) {
+	public static String getEventsKey(Event[] events) {
 		StringBuilder sb = new StringBuilder();
-		for (Event<Object> event : events) {
+		for (Event event : events) {
 			sb.append(event.getClass().getName());
 			sb.append("_");
 		}

@@ -30,7 +30,7 @@ import java.sql.Timestamp;
 
 @Entity
 @Table(name = "Events")
-public class Event<T> implements Serializable {
+public class Event implements Serializable {
 
     /** Default serial version UID*/
     private static final long serialVersionUID = 1L;
@@ -54,7 +54,7 @@ public class Event<T> implements Serializable {
 
     /** Data associated with this Event, must have public getters and setters and be serializable */
     @Type(type = "BlobType")
-    private T eventData;
+    private Object eventData;
 
     /** The source who generated this Event */
     private String eventSource;
@@ -72,7 +72,7 @@ public class Event<T> implements Serializable {
 
     /** Constructors */
     protected Event() {}
-    public Event(String name, String type, EventStatus status, Long stateMachineInstanceId, T eventData, String eventSource) {
+    public Event(String name, String type, EventStatus status, Long stateMachineInstanceId, Object eventData, String eventSource) {
         this.name = name;
         this.type = type;
         this.status = status;
@@ -97,10 +97,10 @@ public class Event<T> implements Serializable {
     public void setStateMachineInstanceId(Long stateMachineInstanceId) {
         this.stateMachineInstanceId = stateMachineInstanceId;
     }
-    public T getEventData() {
+    public Object getEventData() {
         return eventData;
     }
-    public void setEventData(T eventData) {
+    public void setEventData(Object eventData) {
         this.eventData = eventData;
     }
     public String getEventSource() {

@@ -39,13 +39,13 @@ public class HookExecutor extends HystrixCommand<HookExecutor.STATUS> {
 	private AbstractHook hook;
 	
 	/** The events used in Hook execution*/
-	private Event<Object>[] events;
+	private Event[] events;
 
 	/**
 	 * Constructor for this class
 	 * @param hook the Hook to execute
 	 */
-	public HookExecutor(AbstractHook hook, Event<Object>[] events) {
+	public HookExecutor(AbstractHook hook, Event[] events) {
         super(Setter
         		.withGroupKey(HystrixCommandGroupKey.Factory.asKey(hook.getHookGroupName()))
                 .andCommandKey(HystrixCommandKey.Factory.asKey(hook.getName()))

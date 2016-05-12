@@ -13,10 +13,10 @@
 
 package com.flipkart.flux.impl;
 
+import com.flipkart.flux.domain.Context;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.flipkart.flux.domain.Context;
 
 /**
  * <code>RAMContext</code> is a sub-type of {@link Context} that uses main memory as storage.
@@ -27,7 +27,7 @@ import com.flipkart.flux.domain.Context;
  *
  */
 
-public class RAMContext<T> extends Context<T> {
+public class RAMContext extends Context {
 
 	/** Map for storing the context data in memory*/
 	private Map<String,Object> contextDataMap = new HashMap<String, Object>();
