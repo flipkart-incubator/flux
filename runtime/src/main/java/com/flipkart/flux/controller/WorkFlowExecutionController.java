@@ -101,7 +101,7 @@ public class WorkFlowExecutionController {
         Set<State> executableStates = new HashSet<State>();
 
         //received events of a particular state machine by system so far
-        Set<String> receivedEvents = new HashSet<>(eventsDAO.findTriggeredEventsNamesBySMId(stateMachineInstanceId));
+        Set<String> receivedEvents = null;
 
 //      for each state
 //        1. get the dependencies (events)
@@ -112,6 +112,8 @@ public class WorkFlowExecutionController {
             if(dependantEvents.size() == 1) { //If state is dependant on only one event then that would be the current event
                 executableStates.add(state);
             } else {
+                if (receivedEvents == null)
+                    receivedEvents = new HashSet<>(eventsDAO.findTriggeredEventsNamesBySMId(stateMachineInstanceId));
                 boolean areAllEventsReceived = true;
                 for(String dependantEvent : dependantEvents) {
                     if(!receivedEvents.contains(dependantEvent)) {

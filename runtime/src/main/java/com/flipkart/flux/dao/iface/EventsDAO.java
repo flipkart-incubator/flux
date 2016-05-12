@@ -16,6 +16,7 @@ package com.flipkart.flux.dao.iface;
 import com.flipkart.flux.domain.Event;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * <code>EventsDAO</code> interface provides methods to perform CR operations on {@link Event}
@@ -40,4 +41,7 @@ public interface EventsDAO {
 
     /** Retrieves list of event names which are in triggered state and belongs to provided state machine */
     public List<String> findTriggeredEventsNamesBySMId(Long stateMachineInstanceId);
+
+    /** Retrieves list of events by their names and state machine id */
+    public List<Event> findByEventNamesAndSMId(Set<String> eventNames, Long stateMachineInstanceId);
 }

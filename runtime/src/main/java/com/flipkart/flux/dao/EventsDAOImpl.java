@@ -23,6 +23,7 @@ import org.hibernate.criterion.Restrictions;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <code>EventsDAOImpl</code> is an implementation of {@link EventsDAO} which uses Hibernate to perform operations.
@@ -73,6 +74,14 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("status", Event.EventStatus.triggered))
                 .setProjection(Projections.property("name"));
+        return criteria.list();
+    }
+
+    @Override
+    @Transactional
+    public List<Event> findByEventNamesAndSMId(Set<String> eventNames, Long stateMachineInstanceId) {
+        Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
+                .add(Restrictions.in("name", eventNames));
         return criteria.list();
     }
 

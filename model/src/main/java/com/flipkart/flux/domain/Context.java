@@ -63,6 +63,9 @@ public abstract class Context {
         return false;
     }
 
+    /**
+     * This builds dependency graph between event and states and keeps for later use. Currently dependency graph is created on every event arrival.
+     */
     public void buildDependencyMap(Set<State> states) {
         stateToEventDependencyGraph = new HashMap<>();
         for(State state : states) {
