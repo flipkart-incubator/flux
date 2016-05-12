@@ -45,9 +45,8 @@ public class TestSMRule extends ExternalResource {
         String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
         String task = "com.flipkart.flux.dao.DummyTask";
         String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
-        Set eventSet1 = new HashSet<String>(){{add("event1");}};
         State state1 = new State(2L, "state1", "desc1", onEntryHook, task, onExitHook, null, 3L, 60L);
-        State state2 = new State(2L, "state2", "desc2", onEntryHook, task, onExitHook, eventSet1, 3L, 60L);
+        State state2 = new State(2L, "state2", "desc2", onEntryHook, task, onExitHook, null, 3L, 60L);
         Set<State> states = new HashSet<>();
         states.add(state1);
         states.add(state2);
