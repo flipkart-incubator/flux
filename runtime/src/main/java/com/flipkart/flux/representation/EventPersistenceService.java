@@ -37,7 +37,7 @@ public class EventPersistenceService {
     /**
      * Converts {@link EventDefinition} to domain object {@link Event}
      * @param eventDefinition
-     * @return
+     * @return event domain object
      */
     public Event convertEventDefinitionToEvent(EventDefinition eventDefinition) {
         return new Event(eventDefinition.getName(), eventDefinition.getType(), Event.EventStatus.pending, null, null, null);
