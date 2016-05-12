@@ -35,7 +35,7 @@ public class EventPersistenceService {
     }
 
     /**
-     * TO DO:
+     * Converts {@link EventDefinition} to domain object {@link Event}
      * @param eventDefinition
      * @return
      */
@@ -43,6 +43,11 @@ public class EventPersistenceService {
         return new Event(eventDefinition.getName(), eventDefinition.getType(), Event.EventStatus.pending, null, null, null);
     }
 
+    /**
+     * Persists the event in the DB.
+     * @param event
+     * @return created event
+     */
     public Event persistEvent(Event event) {
         return eventsDAO.create(event);
     }

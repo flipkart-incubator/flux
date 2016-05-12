@@ -15,12 +15,14 @@
 package com.flipkart.flux.client.runtime;
 
 
+import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.HashSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -77,16 +79,16 @@ public class LocalContextTest {
         assertThat(definitionOne.getValue()).isNotNull().isEqualTo(definitionTwo.getValue()).isEqualTo(new StateMachineDefinition("someDescription", "fooBar", 1l, new HashSet<StateDefinition>()));
     }
 
-//    @Test
-//    public void testRegisterNewState() throws Exception {
-//        localContext.registerNew("fooBar", 1, "someDescription");
-//        EventDefinition someEventDefinition = new EventDefinition("com.blah.some.Event");
-//        localContext.registerNewState(1l, "someState", null, "com.blah.some.Hook", "com.blah.some.Task", 1l, 1000l, Collections.singleton(someEventDefinition));
-//        StateDefinition expectedStateDefinition = new StateDefinition(1l,"someState",null,
-//            "com.blah.some.Hook", "com.blah.some.Task", "com.blah.some.Hook",
-//            1l, 1000l, Collections.singleton(someEventDefinition));
-//        assertThat(threadLocal.get()).isEqualTo(new StateMachineDefinition("someDescription","fooBar",1l, Collections.singleton(expectedStateDefinition)));
-//    }
+    @Test
+    public void testRegisterNewState() throws Exception {
+        localContext.registerNew("fooBar", 1, "someDescription");
+        EventDefinition someEventDefinition = new EventDefinition("com.blah.some.Event",""); //TODO: CHANGE IT
+        localContext.registerNewState(1l, "someState", null, "com.blah.some.Hook", "com.blah.some.Task", 1l, 1000l, Collections.singleton(someEventDefinition));
+        StateDefinition expectedStateDefinition = new StateDefinition(1l,"someState",null,
+            "com.blah.some.Hook", "com.blah.some.Task", "com.blah.some.Hook",
+            1l, 1000l, Collections.singleton(someEventDefinition));
+        assertThat(threadLocal.get()).isEqualTo(new StateMachineDefinition("someDescription","fooBar",1l, Collections.singleton(expectedStateDefinition)));
+    }
 
     @Test
     public void testGet_shouldReturnStateMachineDefinition() throws Exception {

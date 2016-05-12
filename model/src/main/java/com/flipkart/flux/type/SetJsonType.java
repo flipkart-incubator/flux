@@ -30,6 +30,7 @@ import java.sql.Types;
 import java.util.Set;
 
 /**
+ * <code>SetJsonType</code> is a Hibernate {@link UserType} implementation to store {@link java.util.Set} as json in DB
  * @author shyam.akirala
  */
 public class SetJsonType implements UserType, Serializable {
@@ -84,6 +85,7 @@ public class SetJsonType implements UserType, Serializable {
         }
     }
 
+    /** Performs deep copy of an object using serialization and de-serialization*/
     @Override
     public Object deepCopy(Object value) throws HibernateException {
         return SerializationHelper.clone((Serializable) value);

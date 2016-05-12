@@ -14,7 +14,7 @@
 package com.flipkart.flux.exception;
 
 /**
- * Raised on an illegal event.
+ * <code>IllegalEventException</code> used to denote an illegal event.
  * @author shyam.akirala
  */
 public class IllegalEventException extends RuntimeException {

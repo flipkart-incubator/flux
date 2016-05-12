@@ -14,7 +14,6 @@
 
 package com.flipkart.flux.client.intercept;
 
-import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.runner.GuiceJunit4Runner;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.LocalContext;
@@ -24,9 +23,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 
 /**
  *
@@ -54,7 +50,7 @@ public class E2EWorkflowSubmissionTest {
     @Test
     public void test_e2eSubmissionOfAWorkflow() throws Exception {
         simpleWorkflowForTest.simpleDummyWorkflow("String one",2);
-//        dummyFluxRuntimeResource.assertStateMachineReceived(simpleWorkflowForTest.getEquivalentStateMachineDefintion(),1);
+        dummyFluxRuntimeResource.assertStateMachineReceived(simpleWorkflowForTest.getEquivalentStateMachineDefintion(),1);
     }
 
 }

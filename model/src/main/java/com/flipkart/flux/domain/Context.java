@@ -80,7 +80,7 @@ public abstract class Context {
                         stateToEventDependencyGraph.put(eventName, set);
                     }
                 }
-            } else { //if dependencies are null, that means the state can be started immediately on state machine start
+            } else {
                 if (stateToEventDependencyGraph.containsKey(null)) {
                     stateToEventDependencyGraph.get(null).add(state);
                 } else {

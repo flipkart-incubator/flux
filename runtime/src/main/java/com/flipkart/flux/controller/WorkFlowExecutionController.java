@@ -25,7 +25,8 @@ import com.flipkart.flux.exception.IllegalStateMachineException;
 import com.flipkart.flux.impl.RAMContext;
 
 import javax.inject.Inject;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * <code>WorkFlowExecutionController</code> controls the execution flow of a given state machine
@@ -40,23 +41,23 @@ public class WorkFlowExecutionController {
     EventsDAO eventsDAO;
 
     /**
-     * Perform initAndStart operations on a state machine.
-     * This can include creating the Context for the first time and storing it.
-     * Trigger state machine execution.
+     * Perform init operations on a state machine and starts execution of states which are not dependant on any events.
      * @param stateMachine
      * @return List of states that do not have any event dependencies on them
      */
-    public void initAndStart(StateMachine stateMachine) {
+    public Set<State> initAndStart(StateMachine stateMachine) {
         Context context = new RAMContext(System.currentTimeMillis(), null); //TODO: set context id
         stateMachine.setContext(context);
         context.buildDependencyMap(stateMachine.getStates());
 
-        Set<State> dependantStates = context.getDependantStates(null);
+        Set<State> dependantStates = context.getDependantStates(null); //passing dependencies as null, start all the states which are not dependant on any events.
         //TODO: Start execution of dependantStates
+
+        return dependantStates;
     }
 
     /**
-     * Retrieves the states which are dependant on this event and starts the execution of the states whose dependencies are met.
+     * Retrieves the states which are dependant on this event and starts the execution of eligible states (whose all dependencies are met).
      * @param eventData
      * @param stateMachineInstanceId
      */

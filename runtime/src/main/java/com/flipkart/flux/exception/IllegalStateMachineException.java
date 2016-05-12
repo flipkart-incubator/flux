@@ -14,6 +14,7 @@
 package com.flipkart.flux.exception;
 
 /**
+ * <code>IllegalStateMachineException</code> used to denote an illegal state machine.
  * @author shyam.akirala
  */
 public class IllegalStateMachineException extends RuntimeException {
