@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.internal.util.SerializationHelper;
 import org.hibernate.usertype.UserType;
 
 import java.io.IOException;
@@ -85,7 +86,7 @@ public class SetJsonType implements UserType, Serializable {
 
     @Override
     public Object deepCopy(Object value) throws HibernateException {
-        return value; //TODO: CHECK IT
+        return SerializationHelper.clone((Serializable) value);
     }
 
     @Override
