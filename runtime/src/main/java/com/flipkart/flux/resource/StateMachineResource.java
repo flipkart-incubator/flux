@@ -84,7 +84,6 @@ public class StateMachineResource {
 
     @POST
     @Path("/{machineId}/context/events")
-    @Transactional
     public Response submitEvent(@PathParam("machineId") Long machineId,
                             EventData eventData
                             ) throws Exception {
