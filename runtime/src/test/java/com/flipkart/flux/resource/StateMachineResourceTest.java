@@ -1,9 +1,12 @@
 package com.flipkart.flux.resource;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.State;
 import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.util.TestUtils;
@@ -16,6 +19,9 @@ import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -57,6 +63,13 @@ public class StateMachineResourceTest {
         event = eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event1");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.triggered);
         assertThat(event).isEqualToIgnoringGivenFields(TestUtils.getStandardTestEvent(), "stateMachineInstanceId", "id", "createdAt", "updatedAt");
+        Set<State> triggeredStates = new ObjectMapper().readValue(eventPostResponse.getBody(), new TypeReference<Set<State>>() {});
+        Set<String> triggeredStatesNames = new HashSet<>();
+        Iterator iterator = triggeredStates.iterator();
+        while(iterator.hasNext())
+            triggeredStatesNames.add(((State)iterator.next()).getName());
+        Set<String> expectedStatesNames = new HashSet<String>(){{add("test_state2"); add("test_state3");}};
+        assertThat(triggeredStatesNames).isEqualTo(expectedStatesNames);
     }
 
 }

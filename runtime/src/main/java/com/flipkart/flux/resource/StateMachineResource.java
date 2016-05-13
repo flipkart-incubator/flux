@@ -13,9 +13,11 @@
 
 package com.flipkart.flux.resource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
+import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
@@ -29,6 +31,7 @@ import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Set;
 
 
 /**
@@ -56,7 +59,7 @@ public class StateMachineResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response createStateMachine(StateMachineDefinition stateMachineDefinition) {
+    public Response createStateMachine(StateMachineDefinition stateMachineDefinition) throws Exception {
         // 1. Convert to StateMachine (domain object) and save in DB
         if(stateMachineDefinition == null)
             throw new IllegalRepresentationException("State machine definition is empty");
@@ -84,10 +87,10 @@ public class StateMachineResource {
     @Transactional
     public Response submitEvent(@PathParam("machineId") Long machineId,
                             EventData eventData
-                            ) {
+                            ) throws Exception {
         //retrieves states which are dependant on this event and starts execution of states which can be executable
-        workFlowExecutionController.postEvent(eventData, machineId);
-        return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
+        Set<State> triggeredStates = workFlowExecutionController.postEvent(eventData, machineId);
+        return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity(new ObjectMapper().writeValueAsString(triggeredStates)).build();
     }
 
 
