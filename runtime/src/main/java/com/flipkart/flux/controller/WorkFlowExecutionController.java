@@ -46,15 +46,15 @@ public class WorkFlowExecutionController {
      * @return List of states that do not have any event dependencies on them
      */
     public Set<State> initAndStart(StateMachine stateMachine) {
-        Context context = new RAMContext(System.currentTimeMillis(), null); //TODO: set context id, should we need it ?
-        stateMachine.setContext(context);
-        context.buildDependencyMap(stateMachine.getStates());
 
-        Set<State> dependantStates = context.getDependantStates(null); //passing dependencies as null, start all the states which are not dependant on any events.
+        //create context and dependency graph
+        Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine); //TODO: set context id, should we need it ?
 
-        //TODO: Start execution of dependantStates
+        Set<State> initialStates = context.getInitialStates();
 
-        return dependantStates;
+        //TODO: Start execution of initialStates
+
+        return initialStates;
     }
 
     /**
@@ -79,9 +79,7 @@ public class WorkFlowExecutionController {
         eventsDAO.update(event);
 
         //create context and dependency graph
-        Context context = new RAMContext(System.currentTimeMillis(), null); //TODO: set context id, should we need it ?
-        stateMachine.setContext(context);
-        context.buildDependencyMap(stateMachine.getStates());
+        Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine); //TODO: set context id, should we need it ?
 
         //get the states whose dependencies are met
         Set<State> executableStates = getExecutableStates(context.getDependantStates(eventData.getName()), stateMachineInstanceId);

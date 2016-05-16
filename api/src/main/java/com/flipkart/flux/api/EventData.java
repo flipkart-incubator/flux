@@ -14,7 +14,7 @@
 package com.flipkart.flux.api;
 
 /**
- * <code>EventData</code> represents the event which would be submitted to flux runtime from Akka system.
+ * <code>EventData</code> represents the event which would be submitted to flux runtime from inside/outside world.
  * This is useful for data transfer purpose only.
  * @author shyam.akirala
  */

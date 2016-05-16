@@ -41,6 +41,15 @@ public abstract class Context {
     protected Map<String, Set<State>> stateToEventDependencyGraph;
 
     /**
+     * Attaches context to state machine and builds dependency graph for the state machine.
+     * @param stateMachine
+     */
+    public Context(StateMachine stateMachine) {
+        stateMachine.setContext(this);
+        buildDependencyMap(stateMachine.getStates());
+    }
+
+    /**
      * Stores the specified data against the key for this Context. Implementations may bound the type and size of data stored into this Context.
      * @param key the data identifier key
      * @param data the opaque data stored against the specified key
@@ -56,6 +65,10 @@ public abstract class Context {
 
     public Set<State> getDependantStates(String eventName) {
         return stateToEventDependencyGraph.get(eventName);
+    }
+
+    public Set<State> getInitialStates() {
+        return stateToEventDependencyGraph.get(null);
     }
 
     public boolean isExecutionCancelled() {
