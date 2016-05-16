@@ -32,19 +32,19 @@ import com.netflix.hystrix.HystrixThreadPoolProperties;
  * @author regunath.balasubramanian
  *
  */
-public class TaskExecutor extends HystrixCommand<Event<Object>> {
+public class TaskExecutor extends HystrixCommand<Event> {
 	
 	/** The task to execute*/
-	private Task<Object> task;
+	private Task task;
 	
 	/** The events used in Task execution*/
-	private Event<Object>[] events;
+	private Event[] events;
 
 	/**
 	 * Constructor for this class
 	 * @param task the task to execute
 	 */
-	public TaskExecutor(AbstractTask task, Event<Object>[] events) {
+	public TaskExecutor(AbstractTask task, Event[] events) {
         super(Setter
         		.withGroupKey(HystrixCommandGroupKey.Factory.asKey(task.getTaskGroupName()))
                 .andCommandKey(HystrixCommandKey.Factory.asKey(task.getName()))
@@ -60,8 +60,8 @@ public class TaskExecutor extends HystrixCommand<Event<Object>> {
 	 * The HystrixCommand run method. Executes the Task and returns the result or throws an exception in case of a {@link FluxError}
 	 * @see com.netflix.hystrix.HystrixCommand#run()
 	 */
-	protected Event<Object> run() throws Exception {
-		Pair<Event<Object>,FluxError> result = this.task.execute(events);
+	protected Event run() throws Exception {
+		Pair<Event,FluxError> result = this.task.execute(events);
 		if (result.getValue() != null) {
 			throw result.getValue();
 		}

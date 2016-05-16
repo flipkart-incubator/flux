@@ -52,7 +52,7 @@ public abstract class Context<T> {
      */
     public abstract Object retrieve(String key);
 
-    public List<State<T>> getExecutableStates(State<T> currentState, Event<T> event) {
+    public List<State<T>> getExecutableStates(State<T> currentState, Event event) {
         // Go through the dependency graph to figure the states that can now be executed
         return null;
     }

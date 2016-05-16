@@ -55,6 +55,7 @@
         <log4j.version>2.5</log4j.version>
         <assertj-core.version>2.0.0</assertj-core.version>
         <jackson.version>2.7.3</jackson.version>
+        <mockito-all.version>1.9.0</mockito-all.version>
     </properties>
 
     <modules>

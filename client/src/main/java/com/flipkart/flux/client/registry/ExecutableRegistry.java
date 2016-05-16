@@ -21,13 +21,13 @@ import java.lang.reflect.Method;
  * Executables currently include already observed task and hook methods.
  * The client adds to the registry as an when it encounters new executables, which then become available to the
  * core runtime for execution
- * //TODO, need a wrapper over @java.lang.reflect.Method when we move to isolated environment
- */
+ *
+ * */
 public interface ExecutableRegistry {
-    /* Retrieve a task given the taskIdentifier */
-    public Method getTask(String taskIdentifier);
-    /* Retrieve a hook given the hookIdentifier */
+    /* Retrieve an executable corresponding to a task given the taskIdentifier */
+    public Executable getTask(String taskIdentifier);
+    /* Retrieve an executable hook given the hookIdentifier */
     public Method getHook(String hookIdentifier);
-    /* register a task method against a given identifier. This operation must be idempotent */
-    public void registerTask(String taskIdentifier, Method method);
+    /* register a task executable against a given identifier. This operation must be idempotent */
+    public void registerTask(String taskIdentifier, Executable method);
 }

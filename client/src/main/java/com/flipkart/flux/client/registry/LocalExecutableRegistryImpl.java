@@ -16,6 +16,7 @@ package com.flipkart.flux.client.registry;
 
 import com.flipkart.flux.client.intercept.MethodId;
 import com.flipkart.flux.client.intercept.UnknownIdentifierException;
+import com.flipkart.flux.client.model.Task;
 import com.google.inject.Injector;
 
 import javax.inject.Inject;
@@ -30,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Singleton
 public class LocalExecutableRegistryImpl implements ExecutableRegistry {
-    private final Map<String,Method> identifierToMethodMap;
+    private final Map<String, Executable> identifierToMethodMap;
     private final Injector injector;
 
     @Inject
@@ -38,7 +39,7 @@ public class LocalExecutableRegistryImpl implements ExecutableRegistry {
         this(new ConcurrentHashMap<>(),injector);
     }
 
-    public LocalExecutableRegistryImpl(Map<String, Method> identifierToMethodMap,Injector injector) {
+    public LocalExecutableRegistryImpl(Map<String, Executable> identifierToMethodMap,Injector injector) {
         this.identifierToMethodMap = identifierToMethodMap  ;
         this.injector = injector;
     }
@@ -51,18 +52,20 @@ public class LocalExecutableRegistryImpl implements ExecutableRegistry {
      * @return The executable method that can be invoked - either one that is previously registered or one that is loaded dynamically in the JVM
      */
     @Override
-    public Method getTask(String taskIdentifier) {
-        final Method cachedMethod = this.identifierToMethodMap.get(taskIdentifier);
-        if (cachedMethod == null) {
+    public Executable getTask(String taskIdentifier) {
+        final Executable cachedExecutable = this.identifierToMethodMap.get(taskIdentifier);
+        if (cachedExecutable == null) {
             try {
                 final MethodId methodId = MethodId.fromIdentifier(taskIdentifier);
                 final Object classInstance = this.injector.getInstance(Class.forName(methodId.getClassName()));
-                return classInstance.getClass().getDeclaredMethod(methodId.getMethodName(), methodId.getParameterTypes());
+                final Method methodToInvoke = classInstance.getClass().getDeclaredMethod(methodId.getMethodName(), methodId.getParameterTypes());
+                final Task taskAnnotation = methodToInvoke.getAnnotationsByType(Task.class)[0];
+                return new Executable(classInstance, methodToInvoke, taskAnnotation.timeout());
             } catch (ClassNotFoundException | NoSuchMethodException e) {
                 throw new UnknownIdentifierException("Could not load method corresponding to the given task identifier:" + taskIdentifier);
             }
         }
-        return cachedMethod;
+        return cachedExecutable;
     }
 
     @Override
@@ -71,7 +74,7 @@ public class LocalExecutableRegistryImpl implements ExecutableRegistry {
     }
 
     @Override
-    public void registerTask(String taskIdentifier, Method method) {
+    public void registerTask(String taskIdentifier, Executable method) {
         this.identifierToMethodMap.put(taskIdentifier,method);
     }
 }

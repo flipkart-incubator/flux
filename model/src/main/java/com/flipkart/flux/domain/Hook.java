@@ -28,6 +28,6 @@ public interface Hook<T> {
 	 * Executes this Hook asynchronous to State transition
 	 * @param events the EventS available on entry or while exiting a State
 	 */
-	public void execute(Event<T>[] events);
+	public void execute(Event[] events);
 
 }
