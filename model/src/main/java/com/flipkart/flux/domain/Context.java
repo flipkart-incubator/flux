@@ -102,7 +102,7 @@ public abstract class Context {
                 }
             } else {
                 if (!stateToEventDependencyGraph.containsKey(START))
-                    stateToEventDependencyGraph.put(START, new HashSet<>());
+                    stateToEventDependencyGraph.put(START, new HashSet<State>());
                 stateToEventDependencyGraph.get(START).add(state);
             }
         }
