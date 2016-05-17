@@ -34,6 +34,9 @@ public abstract class Context {
     protected Long startTime;
     /** Identifier for the Context*/
     protected String contextId;
+
+    /** will be used in dependency graph map as key for initial states which are dependant on no events*/
+    private static final String START = "start";
     /**
      * A reverse dependency graph created across States based on Events.
      * Holds information on possible list of States waiting on an Event represented by its FQN.
@@ -63,12 +66,21 @@ public abstract class Context {
      */
     public abstract Object retrieve(String key);
 
+    /**
+     * Returns set of states which are dependant on an event.
+     * @param eventName
+     * @return
+     */
     public Set<State> getDependantStates(String eventName) {
         return stateToEventDependencyGraph.get(eventName);
     }
 
+    /**
+     * Returns set of states which can be started when state machine starts.
+     * @return initial states
+     */
     public Set<State> getInitialStates() {
-        return stateToEventDependencyGraph.get(null);
+        return stateToEventDependencyGraph.get(START);
     }
 
     public boolean isExecutionCancelled() {
@@ -84,24 +96,14 @@ public abstract class Context {
         for(State state : states) {
             if (state.getDependencies() != null) {
                 for (String eventName : state.getDependencies()) {
-                    if (stateToEventDependencyGraph.containsKey(eventName)) {
-                        stateToEventDependencyGraph.get(eventName).add(state);
-                    } else {
-                        Set set = new HashSet<State>() {{
-                            add(state);
-                        }};
-                        stateToEventDependencyGraph.put(eventName, set);
-                    }
+                    if (!stateToEventDependencyGraph.containsKey(eventName))
+                        stateToEventDependencyGraph.put(eventName, new HashSet<State>());
+                    stateToEventDependencyGraph.get(eventName).add(state);
                 }
             } else {
-                if (stateToEventDependencyGraph.containsKey(null)) {
-                    stateToEventDependencyGraph.get(null).add(state);
-                } else {
-                    Set set = new HashSet<State>() {{
-                        add(state);
-                    }};
-                    stateToEventDependencyGraph.put(null, set);
-                }
+                if (!stateToEventDependencyGraph.containsKey(START))
+                    stateToEventDependencyGraph.put(START, new HashSet<>());
+                stateToEventDependencyGraph.get(START).add(state);
             }
         }
     }
