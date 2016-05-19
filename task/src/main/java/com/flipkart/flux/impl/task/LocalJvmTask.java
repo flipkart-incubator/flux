@@ -49,7 +49,7 @@ public class LocalJvmTask extends AbstractTask {
         }
         final Object returnObject = toInvoke.execute(parameters);
         // TODO - fix this
-        return new Pair<>(new Event("foo",returnObject.getClass().getCanonicalName(), Event.EventStatus.triggered,"",returnObject,"managedRuntime"),null);
+        return new Pair<>(new Event("foo",returnObject.getClass().getCanonicalName(), Event.EventStatus.triggered,events[0].getStateMachineInstanceId(),returnObject,"managedRuntime"),null);
     }
 
     @Override
