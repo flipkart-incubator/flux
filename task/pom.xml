@@ -127,6 +127,16 @@
             <version>${assertj-core.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.flipkart.polyguice</groupId>
+            <artifactId>polyguice-core</artifactId>
+            <version>${polyguice.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.flipkart.polyguice</groupId>
+            <artifactId>polyguice-config</artifactId>
+            <version>${polyguice.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

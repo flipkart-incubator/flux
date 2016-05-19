@@ -1,0 +1,4 @@
+routers:
+  somerouter:
+    totalInstances: 100
+    maxInstancesPerNode: 3
