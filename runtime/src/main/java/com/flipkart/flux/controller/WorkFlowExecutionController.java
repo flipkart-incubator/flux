@@ -13,32 +13,120 @@
 
 package com.flipkart.flux.controller;
 
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.dao.iface.EventsDAO;
+import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.Context;
+import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.exception.IllegalEventException;
+import com.flipkart.flux.exception.IllegalStateMachineException;
+import com.flipkart.flux.impl.RAMContext;
 
-import java.util.List;
+import javax.inject.Inject;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * @understands Controls the execution flow of a given state machine
+ * <code>WorkFlowExecutionController</code> controls the execution flow of a given state machine
+ * @author shyam.akirala
  */
-public interface WorkFlowExecutionController<T> {
+public class WorkFlowExecutionController {
+
+    @Inject
+    StateMachinesDAO stateMachinesDAO;
+
+    @Inject
+    EventsDAO eventsDAO;
+
     /**
-     * Perform init operations on a state machine.
-     * This can include creating the Context for the first time and storing it.
-     * Trigger state machine execution.
+     * Perform init operations on a state machine and starts execution of states which are not dependant on any events.
      * @param stateMachine
      * @return List of states that do not have any event dependencies on them
      */
-    List<State<T>> init(StateMachine<T> stateMachine);
+    public Set<State> initAndStart(StateMachine stateMachine) {
+
+        //create context and dependency graph
+        Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine); //TODO: set context id, should we need it ?
+
+        Set<State> initialStates = context.getInitialStates();
+
+        //TODO: Start execution of initialStates
+
+        return initialStates;
+    }
 
     /**
-     * Attaches the event to the stateMachineContext.
-     * The stateMachineContext can then be used to retrieve the states that have now been enabled and ready for execution
-     * @param stateMachineContext
-     * @param eventFqn
+     * Retrieves the states which are dependant on this event and starts the execution of eligible states (whose all dependencies are met).
      * @param eventData
-     * @return List of states unblocked by the given event
+     * @param stateMachineInstanceId
      */
-    List<State<T>> postEvent(Context<T> stateMachineContext, String eventFqn,String eventData); // Accepts an event against a given instance of a state machine and returns list of states that can now be active
+    public Set<State> postEvent(EventData eventData, Long stateMachineInstanceId) {
+
+        //retrieve the state machine
+        StateMachine stateMachine = stateMachinesDAO.findById(stateMachineInstanceId);
+        if(stateMachine == null)
+            throw new IllegalStateMachineException("State machine with id: "+stateMachineInstanceId+ " not found");
+
+        //update event's data and status
+        Event event = eventsDAO.findBySMIdAndName(stateMachineInstanceId, eventData.getName());
+        if(event == null)
+            throw new IllegalEventException("Event with stateMachineId: "+stateMachineInstanceId+", event name: "+ eventData.getName()+" not found");
+        event.setStatus(Event.EventStatus.triggered);
+        event.setEventData(eventData.getData());
+        event.setEventSource(eventData.getEventSource());
+        eventsDAO.update(event);
+
+        //create context and dependency graph
+        Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine); //TODO: set context id, should we need it ?
+
+        //get the states whose dependencies are met
+        Set<State> executableStates = getExecutableStates(context.getDependantStates(eventData.getName()), stateMachineInstanceId);
+
+        //start execution of the above states
+        //TODO: Start execution of executableStates
+
+        return executableStates;
+    }
+
+    /**
+     * Given states which are dependant on a particular event, returns which of them can be executable (states whose all dependencies are met)
+     * @param dependantStates
+     * @param stateMachineInstanceId
+     * @return executableStates
+     */
+    private Set<State> getExecutableStates(Set<State> dependantStates, Long stateMachineInstanceId) {
+
+        Set<State> executableStates = new HashSet<State>();
+
+        //received events of a particular state machine by system so far
+        Set<String> receivedEvents = null;
+
+//      for each state
+//        1. get the dependencies (events)
+//        2. check whether all events are in triggered state
+//        3. if all events are in triggered status, then add this state to executableStates
+        for(State state : dependantStates) {
+            Set<String> dependantEvents = state.getDependencies();
+            if(dependantEvents.size() == 1) { //If state is dependant on only one event then that would be the current event
+                executableStates.add(state);
+            } else {
+                if (receivedEvents == null)
+                    receivedEvents = new HashSet<>(eventsDAO.findTriggeredEventsNamesBySMId(stateMachineInstanceId));
+                boolean areAllEventsReceived = true;
+                for(String dependantEvent : dependantEvents) {
+                    if(!receivedEvents.contains(dependantEvent)) {
+                        areAllEventsReceived = false;
+                        break;
+                    }
+                }
+                if(areAllEventsReceived)
+                    executableStates.add(state);
+            }
+        }
+
+        return executableStates;
+    }
+
 }

@@ -64,7 +64,7 @@ public class TaskInterceptor implements MethodInterceptor {
         final Parameter[] parameters = method.getParameters();
         final String methodIdPrefix = new MethodId(method).getPrefix();
         for (Parameter parameter : parameters) {
-            eventDefinitions.add(new EventDefinition(methodIdPrefix+MethodId.UNDERSCORE+parameter.getType().getCanonicalName()+MethodId.UNDERSCORE+parameter.getName()));
+            eventDefinitions.add(new EventDefinition(methodIdPrefix+MethodId.UNDERSCORE+parameter.getType().getCanonicalName()+MethodId.UNDERSCORE+parameter.getName(),""));//TODO: CHANGE IT
         }
         return eventDefinitions;
 

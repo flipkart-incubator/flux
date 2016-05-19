@@ -15,7 +15,7 @@ package com.flipkart.flux.dao.iface;
 
 import com.flipkart.flux.domain.StateMachine;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * <code>StateMachinesDAO</code> interface provides methods to perform CR operations on {@link StateMachine}
@@ -27,12 +27,12 @@ public interface StateMachinesDAO {
     StateMachine create(StateMachine stateMachine);
 
     /** Retrieves state machine by it's unique identifier*/
-    StateMachine findById(String id);
+    StateMachine findById(Long id);
 
-    /** Retrieves list of state machines by State machine's Name*/
-    List<StateMachine> findByName(String stateMachineName);
+    /** Retrieves set of state machines by State machine's Name*/
+    Set<StateMachine> findByName(String stateMachineName);
 
-    /** Retrieves list of state machines by Name and version*/
-    List<StateMachine> findByNameAndVersion(String stateMachineName, Long Version);
+    /** Retrieves set of state machines by Name and version*/
+    Set<StateMachine> findByNameAndVersion(String stateMachineName, Long Version);
 
 }

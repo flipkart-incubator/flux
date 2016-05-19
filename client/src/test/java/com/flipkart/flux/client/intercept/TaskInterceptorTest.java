@@ -30,9 +30,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TaskInterceptorTest {
@@ -56,7 +55,7 @@ public class TaskInterceptorTest {
         taskInterceptor.invoke(TestUtil.dummyInvocation(simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class)));
 
         final Set<EventDefinition> expectedEventDef =
-            Collections.singleton(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_arg0"));
+            Collections.singleton(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_arg0","")); //TODO: CHANGE IT
         org.mockito.Mockito.verify(localContext, times(1)).
             registerNewState(2l, "simpleStringModifyingTask", null, null,
                 "com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_java.lang.String", 2l, 2000l, expectedEventDef);
@@ -68,8 +67,8 @@ public class TaskInterceptorTest {
         taskInterceptor.invoke(TestUtil.dummyInvocation(simpleWorkflowForTest.getClass().getDeclaredMethod("someTaskWithIntegerAndString", String.class,Integer.class)));
         /* Third task intercepted */
         final Set<EventDefinition> expectedEventDefs = new HashSet<>();
-        expectedEventDefs.add(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_someTaskWithIntegerAndString_java.lang.String_arg0"));
-        expectedEventDefs.add(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_someTaskWithIntegerAndString_java.lang.Integer_arg1"));
+        expectedEventDefs.add(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_someTaskWithIntegerAndString_java.lang.String_arg0","")); //TODO: CHANGE IT
+        expectedEventDefs.add(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_someTaskWithIntegerAndString_java.lang.Integer_arg1","")); //TODO: CHANGE IT
         org.mockito.Mockito.verify(localContext, times(1)).
             registerNewState(3l, "someTaskWithIntegerAndString", null, null,
                 "com.flipkart.flux.client.intercept.SimpleWorkflowForTest_someTaskWithIntegerAndString_void_java.lang.String_java.lang.Integer", 0l, 1000l, expectedEventDefs);

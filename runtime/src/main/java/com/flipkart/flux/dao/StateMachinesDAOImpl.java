@@ -18,9 +18,12 @@ import com.flipkart.flux.domain.StateMachine;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
+
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <code>StateMachinesDAOImpl</code> is an implementation of {@link StateMachinesDAO} which uses Hibernate to perform operations.
@@ -41,26 +44,26 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
 
     @Override
     @Transactional
-    public StateMachine findById(String id) {
+    public StateMachine findById(Long id) {
         return super.findById(StateMachine.class, id);
     }
 
     @Override
     @Transactional
-    public List<StateMachine> findByName(String stateMachineName) {
+    public Set<StateMachine> findByName(String stateMachineName) {
         Criteria criteria = currentSession().createCriteria(StateMachine.class)
                 .add(Restrictions.eq("name", stateMachineName));
         List<StateMachine> stateMachines = criteria.list();
-        return stateMachines;
+        return new HashSet<>(stateMachines);
     }
 
     @Override
     @Transactional
-    public List<StateMachine> findByNameAndVersion(String stateMachineName, Long version) {
+    public Set<StateMachine> findByNameAndVersion(String stateMachineName, Long version) {
         Criteria criteria = currentSession().createCriteria(StateMachine.class)
                 .add(Restrictions.eq("name", stateMachineName))
                 .add(Restrictions.eq("version", version));
         List<StateMachine> stateMachines = criteria.list();
-        return stateMachines;
+        return new HashSet<>(stateMachines);
     }
 }

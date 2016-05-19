@@ -11,8 +11,7 @@
 	</context-param>
 	<listener>
 		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
-	</listener> 
-
+	</listener>
 	<!--  
 		  Three servlets are created, as an event stream can only be accessed by one client at a time.
 		  Two servlets are for local streams (one for command, and one for Thread pool graphs)

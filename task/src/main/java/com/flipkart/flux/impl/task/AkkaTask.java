@@ -13,18 +13,25 @@
 
 package com.flipkart.flux.impl.task;
 
-import akka.actor.ActorRef;
-import akka.actor.Props;
-import akka.actor.UntypedActor;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.Task;
 import com.flipkart.flux.impl.message.HookAndEvents;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.netflix.hystrix.HystrixCommand;
 
-import java.util.List;
+import akka.actor.ActorRef;
+import akka.actor.Props;
+import akka.actor.Terminated;
+import akka.actor.UntypedActor;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
+import akka.routing.ActorRefRoutee;
+import akka.routing.Router;
 
 /**
  * <code>AkkaTask</code> is an Akka {@link UntypedActor} that executes {@link Task} instances concurrently. Tasks are executed using a {@link TaskExecutor} where 
@@ -42,18 +49,24 @@ public class AkkaTask extends UntypedActor {
     /** TaskRegistry instance to look up Task instances from */
     // TODO : Need a way to inject/lookup this registry
     private TaskRegistry taskRegistry;
-	
+    
+    /** Router instance for the Hook actors*/
+    @Inject
+    @Named("HookRouter")
+    private Router hookRouter;
+
 	/**
 	 * The Akka Actor callback method for processing the Task
 	 * @see akka.actor.UntypedActor#onReceive(java.lang.Object)
 	 */
 	@SuppressWarnings("unchecked")
 	public void onReceive(Object message) throws Exception {
+
 		if (TaskAndEvents.class.isAssignableFrom(message.getClass())) {
 			TaskAndEvents taskAndEvent = (TaskAndEvents)message;
 		 	AbstractTask task = this.taskRegistry.retrieveTask(taskAndEvent.getTaskIdentifier());
 			if (task != null) {
-				// Execute any pre-exec HookS 
+				// Execute any pre-exec HookS
 				this.executeHooks(this.taskRegistry.getPreExecHooks(task), taskAndEvent.getEvents());
 				getSender().tell(new TaskExecutor(task, taskAndEvent.getEvents()).execute(), getSelf());
 				// Execute any post-exec HookS 
@@ -63,6 +76,15 @@ public class AkkaTask extends UntypedActor {
 			}
 		} else if (HookExecutor.STATUS.class.isAssignableFrom(message.getClass())) {
 			// do nothing as we don't process or interpret Hook execution responses
+		} else if (message instanceof Terminated) { 
+			/*
+			 * add a fresh local AkkaHook instance to the router. This happens only for local JVM routers i.e when Flux runtime 
+			 * in local and not distributed/clustered
+			 */
+			hookRouter = hookRouter.removeRoutee(((Terminated) message).actor());
+			ActorRef r = getContext().actorOf(Props.create(AkkaHook.class));
+			getContext().watch(r);
+			hookRouter = hookRouter.addRoutee(new ActorRefRoutee(r));			
 		} else {
 			logger.error("Task received a message that it cannot process. Only com.flipkart.flux.domain.Event[] is supported. Message type received is : {}", message.getClass().getName());
 			unhandled(message);
@@ -76,9 +98,7 @@ public class AkkaTask extends UntypedActor {
 		if (hooks != null) {
 			for (AbstractHook hook : hooks) {
 				HookAndEvents hookAndEvents = new HookAndEvents(hook, events);
-				ActorRef aRef = getContext().actorOf(Props.create(AkkaHook.class),hookAndEvents.getHook().getName());
-				// no monitoring of execution of Hooks. Fire & forget
-				aRef.tell(hookAndEvents, getSelf());
+				hookRouter.route(hookAndEvents, getSelf());
 			}
 		}
 	}

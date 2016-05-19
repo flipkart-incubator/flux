@@ -13,8 +13,6 @@
 
 package com.flipkart.flux.domain;
 
-import org.hibernate.annotations.GenericGenerator;
-
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Set;
@@ -30,12 +28,11 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "StateMachines")
-public class StateMachine<T> {
+public class StateMachine {
 
-    /** UUID to identify the state machine*/
-    @Id @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    private String id;
+    /** Unique identifier of the state machine*/
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     /* provided */
     /** The version identifier*/
@@ -48,16 +45,16 @@ public class StateMachine<T> {
     /** List of states that this machine has*/
     @OneToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL, targetEntity = State.class)
     @JoinColumn(name = "stateMachineId")
-    private Set<State<T>> states;
+    private Set<State> states;
 
     /* maintained */
     /** Current states of this state machine*/
     @Transient
-    private Set<State<T>> currentStates;
+    private Set<State> currentStates;
 
     /** The Context for interacting with the Flux runtime*/
     @Transient
-    private Context<T> context;
+    private Context context;
 
     /** Time at which this State Machine has been created */
     private Timestamp createdAt;
@@ -68,7 +65,7 @@ public class StateMachine<T> {
 
     /** Constructors*/
     protected StateMachine() {}
-    public StateMachine(Long version, String name, String description, Set<State<T>> states) {
+    public StateMachine(Long version, String name, String description, Set<State> states) {
         super();
         this.version = version;
         this.name = name;
@@ -77,19 +74,19 @@ public class StateMachine<T> {
     }
 
     /** Accessor/Mutator methods */
-    public String getId() {
+    public Long getId() {
         return id;
     }
-    public Context<T> getContext() {
+    public Context getContext() {
         return context;
     }
-    public void setContext(Context<T> context) {
+    public void setContext(Context context) {
         this.context = context;
     }
-    public Set<State<T>> getCurrentStates() {
+    public Set<State> getCurrentStates() {
         return currentStates;
     }
-    public void setCurrentStates(Set<State<T>> currentStates) {
+    public void setCurrentStates(Set<State> currentStates) {
         this.currentStates = currentStates;
     }
     public Long getVersion() {
@@ -101,7 +98,7 @@ public class StateMachine<T> {
     public String getDescription() {
         return description;
     }
-    public Set<State<T>> getStates() {
+    public Set<State> getStates() {
         return states;
     }
     public Timestamp getCreatedAt() {
@@ -109,5 +106,53 @@ public class StateMachine<T> {
     }
     public Timestamp getUpdatedAt() {
         return updatedAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof StateMachine)) return false;
+
+        StateMachine that = (StateMachine) o;
+
+        if (context != null ? !context.equals(that.context) : that.context != null) return false;
+        if (createdAt != null ? !createdAt.equals(that.createdAt) : that.createdAt != null) return false;
+        if (currentStates != null ? !currentStates.equals(that.currentStates) : that.currentStates != null)
+            return false;
+        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (states != null ? !states.equals(that.states) : that.states != null) return false;
+        if (updatedAt != null ? !updatedAt.equals(that.updatedAt) : that.updatedAt != null) return false;
+        if (version != null ? !version.equals(that.version) : that.version != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = version != null ? version.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (states != null ? states.hashCode() : 0);
+        result = 31 * result + (currentStates != null ? currentStates.hashCode() : 0);
+        result = 31 * result + (context != null ? context.hashCode() : 0);
+        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
+        result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "StateMachine{" +
+            "context=" + context +
+            ", id='" + id + '\'' +
+            ", version=" + version +
+            ", name='" + name + '\'' +
+            ", description='" + description + '\'' +
+            ", states=" + states +
+            ", currentStates=" + currentStates +
+            ", createdAt=" + createdAt +
+            ", updatedAt=" + updatedAt +
+            '}';
     }
 }

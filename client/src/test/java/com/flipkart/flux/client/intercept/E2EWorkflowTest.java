@@ -14,7 +14,6 @@
 
 package com.flipkart.flux.client.intercept;
 
-import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.client.runner.GuiceJunit4Runner;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
@@ -27,12 +26,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.inject.Inject;
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
+
 
 /**
  *

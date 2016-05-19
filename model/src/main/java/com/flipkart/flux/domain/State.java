@@ -13,13 +13,12 @@
 
 package com.flipkart.flux.domain;
 
-import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
-
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <code>State</code> represents the current state of the StateMachine. This implementation also supports integration with user defined code that is executed when the 
@@ -33,12 +32,11 @@ import java.util.List;
  */
 @Entity
 @Table(name = "States")
-public class State<T> {
+public class State {
 
-    /** UUID to identify this state*/
-    @Id @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    private String id;
+    /** Unique identifier of the state*/
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     /* Defined by the User */
     /** Version for this State*/
@@ -47,21 +45,21 @@ public class State<T> {
     private String name;
     /** Description for this State*/
     private String description;
-    /** Id of the State Machine to which this State belongs*/
-    private String stateMachineId;
-    /** Hook that is executed on entry of this State, must be a public class*/
-    @Type(type = "StoreFQNOnly")
+    /** Id of the state machine to which this state belongs*/
+    private Long stateMachineId;
+    /** Name of Hook class that is executed on entry of this State, must be a public class*/
     private String onEntryHook;
-    /** Task that is executed when the transition happens to this State, must be a public class*/
-    @Type(type = "StoreFQNOnly")
+    /** Name of Task class that is executed when the transition happens to this State, must be a public class*/
     private String task;
-    /** Hook that is executed on exit of this State, must be a public class*/
-    @Type(type = "StoreFQNOnly")
+    /** Name of Hook class that is executed on exit of this State, must be a public class*/
     private String onExitHook;
     /** The max retry count for a successful transition*/
     private Long retryCount;
     /** Timeout for state transition*/
     private Long timeout;
+    /** Set of event names this state is dependent on*/
+    @Type(type = "SetJsonType")
+    private Set<String> dependencies;
 
     /* Maintained by the execution engine */
     /** List of errors during state transition*/
@@ -89,7 +87,7 @@ public class State<T> {
 
     /** Constructors */
     protected State() {}
-    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
+    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, Set<String> dependencies,
                  Long retryCount, Long timeout) {
         super();
         this.version = version;
@@ -98,6 +96,7 @@ public class State<T> {
         this.onEntryHook = onEntryHook;
         this.task = task;
         this.onExitHook = onExitHook;
+        this.dependencies = dependencies;
         this.retryCount = retryCount;
         this.timeout = timeout;
     }
@@ -106,7 +105,7 @@ public class State<T> {
      * The entry method to state transition. Executes the {@link Task} associated with this State and signals a transition to the next state on successful execution.
      * @param context the Task execution context
      */
-    public void enter(Context<T> context) {
+    public void enter(Context context) {
         // 1. Begin execution of the task
         // 2. Set next state
         // The return value of the task can either be returned from here, or if we go truly async then
@@ -114,7 +113,7 @@ public class State<T> {
     }
 
     /** Accessor/Mutator methods*/
-    public String getId() {
+    public Long getId() {
         return id;
     }
     public Long getVersion() {
@@ -135,10 +134,10 @@ public class State<T> {
     public void setDescription(String description) {
         this.description = description;
     }
-    public String getStateMachineId() {
+    public Long getStateMachineId() {
         return stateMachineId;
     }
-    public void setStateMachineId(String stateMachineId) {
+    public void setStateMachineId(Long stateMachineId) {
         this.stateMachineId = stateMachineId;
     }
     public String getOnEntryHook() {
@@ -158,6 +157,12 @@ public class State<T> {
     }
     public void setOnExitHook(String onExitHook) {
         this.onExitHook = onExitHook;
+    }
+    public Set<String> getDependencies() {
+        return dependencies;
+    }
+    public void setDependencies(Set<String> dependencies) {
+        this.dependencies = dependencies;
     }
     public Long getRetryCount() {
         return retryCount;
@@ -197,28 +202,72 @@ public class State<T> {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof State)) return false;
+
+        State state = (State) o;
+
+        if (createdAt != null ? !createdAt.equals(state.createdAt) : state.createdAt != null) return false;
+        if (description != null ? !description.equals(state.description) : state.description != null) return false;
+        if (errors != null ? !errors.equals(state.errors) : state.errors != null) return false;
+        if (name != null ? !name.equals(state.name) : state.name != null) return false;
+        if (numRetries != null ? !numRetries.equals(state.numRetries) : state.numRetries != null) return false;
+        if (onEntryHook != null ? !onEntryHook.equals(state.onEntryHook) : state.onEntryHook != null) return false;
+        if (onExitHook != null ? !onExitHook.equals(state.onExitHook) : state.onExitHook != null) return false;
+        if (retryCount != null ? !retryCount.equals(state.retryCount) : state.retryCount != null) return false;
+        if (rollbackStatus != state.rollbackStatus) return false;
+        if (stateMachineId != null ? !stateMachineId.equals(state.stateMachineId) : state.stateMachineId != null)
+            return false;
+        if (status != state.status) return false;
+        if (task != null ? !task.equals(state.task) : state.task != null) return false;
+        if (timeout != null ? !timeout.equals(state.timeout) : state.timeout != null) return false;
+        if (updatedAt != null ? !updatedAt.equals(state.updatedAt) : state.updatedAt != null) return false;
+        if (version != null ? !version.equals(state.version) : state.version != null) return false;
+
+        return true;
+    }
+
+    @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        int result = version != null ? version.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (stateMachineId != null ? stateMachineId.hashCode() : 0);
+        result = 31 * result + (onEntryHook != null ? onEntryHook.hashCode() : 0);
+        result = 31 * result + (task != null ? task.hashCode() : 0);
+        result = 31 * result + (onExitHook != null ? onExitHook.hashCode() : 0);
+        result = 31 * result + (retryCount != null ? retryCount.hashCode() : 0);
+        result = 31 * result + (timeout != null ? timeout.hashCode() : 0);
+        result = 31 * result + (errors != null ? errors.hashCode() : 0);
+        result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result + (rollbackStatus != null ? rollbackStatus.hashCode() : 0);
+        result = 31 * result + (numRetries != null ? numRetries.hashCode() : 0);
+        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
+        result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
         return result;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        @SuppressWarnings("unchecked")
-        State<T> other = (State<T>) obj;
-        if (id == null) {
-            if (other.id != null)
-                return false;
-        } else if (!id.equals(other.id))
-            return false;
-        return true;
+    public String toString() {
+        return "State{" +
+                "id=" + id +
+                ", version=" + version +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", stateMachineId=" + stateMachineId +
+                ", onEntryHook='" + onEntryHook + '\'' +
+                ", task='" + task + '\'' +
+                ", onExitHook='" + onExitHook + '\'' +
+                ", retryCount=" + retryCount +
+                ", timeout=" + timeout +
+                ", dependencies=" + dependencies +
+                ", errors=" + errors +
+                ", status=" + status +
+                ", rollbackStatus=" + rollbackStatus +
+                ", numRetries=" + numRetries +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
 }

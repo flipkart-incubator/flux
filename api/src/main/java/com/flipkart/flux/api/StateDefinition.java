@@ -24,7 +24,6 @@ import java.util.Set;
  *  @author shyam.akirala
  *  @author kartik.bommepally
  */
-
 public class StateDefinition {
 	
 	/** The version of this state definition*/
@@ -36,13 +35,14 @@ public class StateDefinition {
     /** Description of this state definition*/
     private String description;
 
-    /** Hook that will be executed on entry of this state*/
+    /** Name of Hook class that will be executed on entry of this state*/
     private String onEntryHook;
 
-    /** Task that will be executed when the state machine transitions to the state*/
+    /** Name of Task class that will be executed when the state machine transitions to the state*/
     private String task;
 
-    /** Hook that will be executed on exit of this state*/
+    /** Name of Hook class that will be executed on exit of this state*/
+
     private String onExitHook;
 
     /** Retry count for task execution*/    

@@ -32,7 +32,7 @@ public class StateMachineDefinition {
 
 	/** Short description for this state machine definition*/
     private String description;
-    
+
     /** Possible states that this state machine can transition to*/
     private Set<StateDefinition> states;
 

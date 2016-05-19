@@ -35,7 +35,7 @@ public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
 
     @Override
     @Transactional
-    public List<AuditRecord> findBySMInstanceId(String stateMachineInstanceId) {
+    public List<AuditRecord> findBySMInstanceId(Long stateMachineInstanceId) {
         Criteria criteria = currentSession().createCriteria(AuditRecord.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId));
         List<AuditRecord> records = criteria.list();
         return records;
@@ -50,12 +50,7 @@ public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
     @Override
     @Transactional
     public AuditRecord findById(Long id) {
-        Criteria criteria = currentSession().createCriteria(AuditRecord.class).add(Restrictions.eq("id", id));
-        Object object = criteria.uniqueResult();
-        AuditRecord auditRecord = null;
-        if(object != null)
-            auditRecord = (AuditRecord) object;
-        return auditRecord;
+        return super.findById(AuditRecord.class, id);
     }
 
 

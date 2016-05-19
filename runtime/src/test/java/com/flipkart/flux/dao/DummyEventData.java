@@ -34,4 +34,20 @@ public class DummyEventData implements Serializable {
         this.data = data;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DummyEventData)) return false;
+
+        DummyEventData that = (DummyEventData) o;
+
+        if (data != null ? !data.equals(that.data) : that.data != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return data != null ? data.hashCode() : 0;
+    }
 }

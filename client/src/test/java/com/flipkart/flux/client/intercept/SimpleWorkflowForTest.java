@@ -20,13 +20,10 @@ import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.model.Workflow;
 
-import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.mockito.Mockito.times;
 
 /**
  * Workflow used in <code>WorkflowInterceptorTest</code> to test e2e interception
@@ -74,20 +71,20 @@ public class SimpleWorkflowForTest {
 
         Set<StateDefinition> expectedStateDefs = new HashSet<>();
 
-        final EventDefinition stringModifyingTaskEventDef = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_arg0");
+        final EventDefinition stringModifyingTaskEventDef = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_arg0",""); //TODO: CHANGE IT
         expectedStateDefs.add(new StateDefinition(2l, "simpleStringModifyingTask", null, null,
             "com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_java.lang.String", null,
             2l, 2000l, Collections.singleton(stringModifyingTaskEventDef)));
 
-        final EventDefinition simpleAdditionTaskEventDef = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleAdditionTask_java.lang.Integer_arg0");
+        final EventDefinition simpleAdditionTaskEventDef = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleAdditionTask_java.lang.Integer_arg0", ""); //TODO: CHANGE IT
         expectedStateDefs.add(new StateDefinition(1l, "simpleAdditionTask", null, null,
             "com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleAdditionTask_java.lang.Integer_java.lang.Integer", null,
             2l, 3000l, Collections.singleton(simpleAdditionTaskEventDef)));
 
 
         final Set<EventDefinition> expectedEventDefsForIntStringTask = new HashSet<>();
-        expectedEventDefsForIntStringTask.add(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_someTaskWithIntegerAndString_java.lang.String_arg0"));
-        expectedEventDefsForIntStringTask.add(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_someTaskWithIntegerAndString_java.lang.Integer_arg1"));
+        expectedEventDefsForIntStringTask.add(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_someTaskWithIntegerAndString_java.lang.String_arg0", "")); //TODO: CHANGE IT
+        expectedEventDefsForIntStringTask.add(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_someTaskWithIntegerAndString_java.lang.Integer_arg1", "")); //TODO: CHANGE IT
         expectedStateDefs.add(new StateDefinition(3l, "someTaskWithIntegerAndString", null,
             null, "com.flipkart.flux.client.intercept.SimpleWorkflowForTest_someTaskWithIntegerAndString_void_java.lang.String_java.lang.Integer", null,
             0l, 1000l, expectedEventDefsForIntStringTask));

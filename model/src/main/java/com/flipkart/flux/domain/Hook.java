@@ -22,7 +22,7 @@ package com.flipkart.flux.domain;
  *  @author regunath.balasubramanian
  *
  */
-public interface Hook<T> {
+public interface Hook {
 
 	/**
 	 * Executes this Hook asynchronous to State transition

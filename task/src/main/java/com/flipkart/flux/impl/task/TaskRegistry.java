@@ -12,16 +12,15 @@
  */
 package com.flipkart.flux.impl.task;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.Task;
 
 import javax.inject.Singleton;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <code>TaskRegistry</code> maintains an in-memory registry of {@link Task} and their {@link Event} mappings. This registry is usually populated during Flux startup by inspecting
@@ -43,6 +42,7 @@ public class TaskRegistry {
     /** Map storing the mapping of a Task to post execution HookS */
 	private Map<String,List<AbstractHook>> taskToPostExecHookMap = new ConcurrentHashMap<String, List<AbstractHook>>();
 	
+
 	private final ExecutableRegistry executableRegistry;
 
 	public TaskRegistry(ExecutableRegistry executableRegistry) {
@@ -101,7 +101,7 @@ public class TaskRegistry {
 	 */
 	public static String getEventsKey(Event[] events) {
 		StringBuilder sb = new StringBuilder();
-		for (Event	 event : events) {
+		for (Event event : events) {
 			sb.append(event.getClass().getName());
 			sb.append("_");
 		}

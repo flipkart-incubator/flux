@@ -50,7 +50,7 @@ public class Event implements Serializable {
     private EventStatus status;
 
     /** Instance Id of state machine with which this event is associated */
-    private String stateMachineInstanceId;
+    private Long stateMachineInstanceId;
 
     /** Data associated with this Event, must have public getters and setters and be serializable */
     @Type(type = "BlobType")
@@ -72,7 +72,7 @@ public class Event implements Serializable {
 
     /** Constructors */
     protected Event() {}
-    public Event(String name, String type, EventStatus status, String stateMachineInstanceId, Object eventData, String eventSource) {
+    public Event(String name, String type, EventStatus status, Long stateMachineInstanceId, Object eventData, String eventSource) {
         this.name = name;
         this.type = type;
         this.status = status;
@@ -90,6 +90,12 @@ public class Event implements Serializable {
     }
     public void setStatus(EventStatus status) {
         this.status = status;
+    }
+    public Long getStateMachineInstanceId() {
+        return stateMachineInstanceId;
+    }
+    public void setStateMachineInstanceId(Long stateMachineInstanceId) {
+        this.stateMachineInstanceId = stateMachineInstanceId;
     }
     public Object getEventData() {
         return eventData;
@@ -117,28 +123,31 @@ public class Event implements Serializable {
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Event)) return false;
+
+        Event event = (Event) o;
+
+        if (eventData != null ? !eventData.equals(event.eventData) : event.eventData != null) return false;
+        if (eventSource != null ? !eventSource.equals(event.eventSource) : event.eventSource != null) return false;
+        if (name != null ? !name.equals(event.name) : event.name != null) return false;
+        if (stateMachineInstanceId != null ? !stateMachineInstanceId.equals(event.stateMachineInstanceId) : event.stateMachineInstanceId != null)
+            return false;
+        if (status != event.status) return false;
+        if (type != null ? !type.equals(event.type) : event.type != null) return false;
+
+        return true;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        @SuppressWarnings("unchecked")
-        Event other = (Event) obj;
-        if (id == null) {
-            if (other.id != null)
-                return false;
-        } else if (!id.equals(other.id))
-            return false;
-        return true;
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result + (stateMachineInstanceId != null ? stateMachineInstanceId.hashCode() : 0);
+        result = 31 * result + (eventData != null ? eventData.hashCode() : 0);
+        result = 31 * result + (eventSource != null ? eventSource.hashCode() : 0);
+        return result;
     }
 }

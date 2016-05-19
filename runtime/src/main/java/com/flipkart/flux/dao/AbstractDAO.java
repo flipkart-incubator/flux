@@ -44,7 +44,7 @@ public abstract class AbstractDAO<T> {
      * @param id
      * @return (T) Object
      */
-    public T findById(Class cls, String id) {
+    public T findById(Class cls, Long id) {
         Criteria criteria = currentSession().createCriteria(cls).add(Restrictions.eq("id", id));
         Object object = criteria.uniqueResult();
         T castedObject = null;

@@ -30,10 +30,10 @@ public class AuditRecord {
     private Long id;
 
     /** Instance id of the state machine to which this audit belongs */
-    private String stateMachineInstanceId;
+    private Long stateMachineInstanceId;
 
     /** The State identifier to which this audit belongs */
-    private String stateId;
+    private Long stateId;
 
     /** The State execution retry count */
     private int retryAttempt;
@@ -54,7 +54,7 @@ public class AuditRecord {
 
     /** Constructors */
     protected AuditRecord(){}
-    public AuditRecord(String stateMachineInstanceId, String stateId, int retryAttempt, Status stateStatus, Status stateRollbackStatus,
+    public AuditRecord(Long stateMachineInstanceId, Long stateId, int retryAttempt, Status stateStatus, Status stateRollbackStatus,
                        String errors) {
         this.stateMachineInstanceId = stateMachineInstanceId;
         this.stateId = stateId;
@@ -68,16 +68,16 @@ public class AuditRecord {
     public Long getId() {
         return id;
     }
-    public String getStateMachineInstanceId() {
+    public Long getStateMachineInstanceId() {
         return stateMachineInstanceId;
     }
-    public void setStateMachineInstanceId(String stateMachineInstanceId) {
+    public void setStateMachineInstanceId(Long stateMachineInstanceId) {
         this.stateMachineInstanceId = stateMachineInstanceId;
     }
-    public String getStateId() {
+    public Long getStateId() {
         return stateId;
     }
-    public void setStateId(String stateId) {
+    public void setStateId(Long stateId) {
         this.stateId = stateId;
     }
     public int getRetryAttempt() {
@@ -109,28 +109,29 @@ public class AuditRecord {
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AuditRecord)) return false;
+
+        AuditRecord that = (AuditRecord) o;
+
+        if (retryAttempt != that.retryAttempt) return false;
+        if (stateId != null ? !stateId.equals(that.stateId) : that.stateId != null) return false;
+        if (stateMachineInstanceId != null ? !stateMachineInstanceId.equals(that.stateMachineInstanceId) : that.stateMachineInstanceId != null)
+            return false;
+        if (stateRollbackStatus != that.stateRollbackStatus) return false;
+        if (stateStatus != that.stateStatus) return false;
+
+        return true;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        @SuppressWarnings("unchecked")
-        AuditRecord other = (AuditRecord) obj;
-        if (id == null) {
-            if (other.id != null)
-                return false;
-        } else if (!id.equals(other.id))
-            return false;
-        return true;
+    public int hashCode() {
+        int result = stateMachineInstanceId != null ? stateMachineInstanceId.hashCode() : 0;
+        result = 31 * result + (stateId != null ? stateId.hashCode() : 0);
+        result = 31 * result + retryAttempt;
+        result = 31 * result + (stateStatus != null ? stateStatus.hashCode() : 0);
+        result = 31 * result + (stateRollbackStatus != null ? stateRollbackStatus.hashCode() : 0);
+        return result;
     }
 }
