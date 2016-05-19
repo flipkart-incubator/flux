@@ -20,7 +20,7 @@ import com.flipkart.flux.domain.Hook;
  * @author regunath.balasubramanian
  *
  */
-public abstract class AbstractHook implements Hook<Object> {
+public abstract class AbstractHook implements Hook {
 	
 	/**
 	 * Returns the name of this Hook. Used mostly for display and human interpretation

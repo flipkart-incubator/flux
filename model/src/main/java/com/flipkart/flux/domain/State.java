@@ -13,9 +13,12 @@
 
 package com.flipkart.flux.domain;
 
+import org.hibernate.annotations.Type;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <code>State</code> represents the current state of the StateMachine. This implementation also supports integration with user defined code that is executed when the 
@@ -29,7 +32,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = "States")
-public class State<T> {
+public class State {
 
     /** Unique identifier of the state*/
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,6 +57,9 @@ public class State<T> {
     private Long retryCount;
     /** Timeout for state transition*/
     private Long timeout;
+    /** Set of event names this state is dependent on*/
+    @Type(type = "SetJsonType")
+    private Set<String> dependencies;
 
     /* Maintained by the execution engine */
     /** List of errors during state transition*/
@@ -81,7 +87,7 @@ public class State<T> {
 
     /** Constructors */
     protected State() {}
-    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
+    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, Set<String> dependencies,
                  Long retryCount, Long timeout) {
         super();
         this.version = version;
@@ -90,6 +96,7 @@ public class State<T> {
         this.onEntryHook = onEntryHook;
         this.task = task;
         this.onExitHook = onExitHook;
+        this.dependencies = dependencies;
         this.retryCount = retryCount;
         this.timeout = timeout;
     }
@@ -98,7 +105,7 @@ public class State<T> {
      * The entry method to state transition. Executes the {@link Task} associated with this State and signals a transition to the next state on successful execution.
      * @param context the Task execution context
      */
-    public void enter(Context<T> context) {
+    public void enter(Context context) {
         // 1. Begin execution of the task
         // 2. Set next state
         // The return value of the task can either be returned from here, or if we go truly async then
@@ -150,6 +157,12 @@ public class State<T> {
     }
     public void setOnExitHook(String onExitHook) {
         this.onExitHook = onExitHook;
+    }
+    public Set<String> getDependencies() {
+        return dependencies;
+    }
+    public void setDependencies(Set<String> dependencies) {
+        this.dependencies = dependencies;
     }
     public Long getRetryCount() {
         return retryCount;
@@ -238,21 +251,23 @@ public class State<T> {
     @Override
     public String toString() {
         return "State{" +
-            "createdAt=" + createdAt +
-            ", id='" + id + '\'' +
-            ", version=" + version +
-            ", name='" + name + '\'' +
-            ", description='" + description + '\'' +
-            ", onEntryHook='" + onEntryHook + '\'' +
-            ", task='" + task + '\'' +
-            ", onExitHook='" + onExitHook + '\'' +
-            ", retryCount=" + retryCount +
-            ", timeout=" + timeout +
-            ", errors=" + errors +
-            ", status=" + status +
-            ", rollbackStatus=" + rollbackStatus +
-            ", numRetries=" + numRetries +
-            ", updatedAt=" + updatedAt +
-            '}';
+                "id=" + id +
+                ", version=" + version +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", stateMachineId=" + stateMachineId +
+                ", onEntryHook='" + onEntryHook + '\'' +
+                ", task='" + task + '\'' +
+                ", onExitHook='" + onExitHook + '\'' +
+                ", retryCount=" + retryCount +
+                ", timeout=" + timeout +
+                ", dependencies=" + dependencies +
+                ", errors=" + errors +
+                ", status=" + status +
+                ", rollbackStatus=" + rollbackStatus +
+                ", numRetries=" + numRetries +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
 }

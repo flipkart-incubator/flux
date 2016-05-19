@@ -20,7 +20,7 @@ import com.flipkart.flux.domain.Task;
  * @author regunath.balasubramanian
  *
  */
-public abstract class AbstractTask implements Task<Object> {
+public abstract class AbstractTask implements Task {
 	
 	/**
 	 * Returns the name of this Task. Used mostly for display and human interpretation

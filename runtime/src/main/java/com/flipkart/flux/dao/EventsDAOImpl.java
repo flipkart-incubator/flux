@@ -17,10 +17,13 @@ import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <code>EventsDAOImpl</code> is an implementation of {@link EventsDAO} which uses Hibernate to perform operations.
@@ -41,16 +44,45 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    public List<Event> findBySMInstanceId(String stateMachineInstanceId) {
-        Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId));
-        List<Event> events = criteria.list();
-        return events;
+    public void update(Event event) {
+        super.update(event);
+    }
+
+    @Override
+    @Transactional
+    public List<Event> findBySMInstanceId(Long stateMachineInstanceId) {
+        return currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId)).list();
     }
 
     @Override
     @Transactional
     public Event findById(Long id) {
         return super.findById(Event.class, id);
+    }
+
+    @Override
+    @Transactional
+    public Event findBySMIdAndName(Long stateMachineInstanceId, String eventName) {
+        Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
+                .add(Restrictions.eq("name", eventName));
+        return (Event) criteria.uniqueResult();
+    }
+
+    @Override
+    @Transactional
+    public List<String> findTriggeredEventsNamesBySMId(Long stateMachineInstanceId) {
+        Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
+                .add(Restrictions.eq("status", Event.EventStatus.triggered))
+                .setProjection(Projections.property("name"));
+        return criteria.list();
+    }
+
+    @Override
+    @Transactional
+    public List<Event> findByEventNamesAndSMId(Set<String> eventNames, Long stateMachineInstanceId) {
+        Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
+                .add(Restrictions.in("name", eventNames));
+        return criteria.list();
     }
 
 }

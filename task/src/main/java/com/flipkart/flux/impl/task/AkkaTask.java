@@ -21,6 +21,7 @@ import javax.inject.Named;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.Task;
 import com.flipkart.flux.impl.message.HookAndEvents;
+import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.netflix.hystrix.HystrixCommand;
 
 import akka.actor.ActorRef;
@@ -60,17 +61,18 @@ public class AkkaTask extends UntypedActor {
 	 */
 	@SuppressWarnings("unchecked")
 	public void onReceive(Object message) throws Exception {
-		if (Event[].class.isAssignableFrom(message.getClass())) {
-			Event<Object>[] events = (Event<Object>[])message;
-			AbstractTask task = this.taskRegistry.getTaskForEvents(events);
-			if (task == null) {
-				// Execute any pre-exec HookS 
-				this.executeHooks(this.taskRegistry.getPreExecHooks(task), events);
-				getSender().tell(new TaskExecutor(task, events).execute(), getSelf());
+
+		if (TaskAndEvents.class.isAssignableFrom(message.getClass())) {
+			TaskAndEvents taskAndEvent = (TaskAndEvents)message;
+		 	AbstractTask task = this.taskRegistry.retrieveTask(taskAndEvent.getTaskIdentifier());
+			if (task != null) {
+				// Execute any pre-exec HookS
+				this.executeHooks(this.taskRegistry.getPreExecHooks(task), taskAndEvent.getEvents());
+				getSender().tell(new TaskExecutor(task, taskAndEvent.getEvents()).execute(), getSelf());
 				// Execute any post-exec HookS 
-				this.executeHooks(this.taskRegistry.getPostExecHooks(task), events);
+				this.executeHooks(this.taskRegistry.getPostExecHooks(task), taskAndEvent.getEvents());
 			} else {
-				logger.error("Task received EventS that it cannot process. Events received are : " + TaskRegistry.getEventsKey(events));				
+				logger.error("Task received EventS that it cannot process. Events received are : {}",TaskRegistry.getEventsKey(taskAndEvent.getEvents()));
 			}
 		} else if (HookExecutor.STATUS.class.isAssignableFrom(message.getClass())) {
 			// do nothing as we don't process or interpret Hook execution responses
@@ -84,7 +86,7 @@ public class AkkaTask extends UntypedActor {
 			getContext().watch(r);
 			hookRouter = hookRouter.addRoutee(new ActorRefRoutee(r));			
 		} else {
-			logger.error("Task received a message that it cannot process. Only com.flipkart.flux.domain.Event[] is supported. Message type received is : " + message.getClass().getName());
+			logger.error("Task received a message that it cannot process. Only com.flipkart.flux.domain.Event[] is supported. Message type received is : {}", message.getClass().getName());
 			unhandled(message);
 		}
 	}
@@ -92,7 +94,7 @@ public class AkkaTask extends UntypedActor {
 	/**
 	 * Helper method to execute pre and post Task execution Hooks as independent Actor invocations
 	 */
-	private void executeHooks(List<AbstractHook> hooks, Event<Object>[] events) {
+	private void executeHooks(List<AbstractHook> hooks, Event[] events) {
 		if (hooks != null) {
 			for (AbstractHook hook : hooks) {
 				HookAndEvents hookAndEvents = new HookAndEvents(hook, events);

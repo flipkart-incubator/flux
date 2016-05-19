@@ -48,7 +48,7 @@ public class EventsDAOTest {
     public void createEventTest() {
         StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
         DummyEventData data = new DummyEventData("event_dat");
-        Event<DummyEventData> event = new Event<DummyEventData>("test_event_name","Internal", Event.EventStatus.pending,stateMachine.getId(), data,"state1");
+        Event event = new Event("test_event_name","Internal", Event.EventStatus.pending,stateMachine.getId(), data,"state1");
         Long eventId = eventsDAO.create(event).getId();
 
         Event event1 = eventsDAO.findById(eventId);

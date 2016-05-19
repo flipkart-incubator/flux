@@ -43,6 +43,11 @@
             <artifactId>model</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>com.flipkart.flux</groupId>
+            <artifactId>client</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
         <!-- Third party dependencies -->
         <dependency>
             <groupId>javax.inject</groupId>
@@ -109,6 +114,28 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
             <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${mockito-all.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj-core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.flipkart.polyguice</groupId>
+            <artifactId>polyguice-core</artifactId>
+            <version>${polyguice.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.flipkart.polyguice</groupId>
+            <artifactId>polyguice-config</artifactId>
+            <version>${polyguice.version}</version>
         </dependency>
     </dependencies>
 

@@ -25,7 +25,7 @@ import javax.inject.Singleton;
  * @author shyam.akirala
  */
 @Singleton
-public class EventPersistenceService<T> {
+public class EventPersistenceService {
 
     private EventsDAO eventsDAO;
 
@@ -35,12 +35,21 @@ public class EventPersistenceService<T> {
     }
 
     /**
-     * TO DO:
+     * Converts {@link EventDefinition} to domain object {@link Event}
      * @param eventDefinition
-     * @return
+     * @return event domain object
      */
-    public Event<T> createEvent(EventDefinition eventDefinition) {
-        return null;
+    public Event convertEventDefinitionToEvent(EventDefinition eventDefinition) {
+        return new Event(eventDefinition.getName(), eventDefinition.getType(), Event.EventStatus.pending, null, null, null);
+    }
+
+    /**
+     * Persists the event in the DB.
+     * @param event
+     * @return created event
+     */
+    public Event persistEvent(Event event) {
+        return eventsDAO.create(event);
     }
 
 }

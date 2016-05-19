@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS `Events` (
   `createdAt` TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3),
   `updatedAt` TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`),
+  UNIQUE KEY (`name`, `stateMachineInstanceId`),
   CONSTRAINT `FK_sm_events` FOREIGN KEY (`stateMachineInstanceId`) REFERENCES `StateMachines` (`id`)
 )
 ENGINE=InnoDB

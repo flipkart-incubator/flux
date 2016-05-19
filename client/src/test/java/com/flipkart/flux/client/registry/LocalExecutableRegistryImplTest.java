@@ -24,7 +24,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.lang.reflect.Method;
 import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,7 +42,7 @@ public class LocalExecutableRegistryImplTest {
     @Mock
     Provider<SimpleWorkflowForTest> simpleWorkflowForTestProvider;
 
-    private HashMap<String, Method> identifierToMethodMap;
+    private HashMap<String, Executable> identifierToMethodMap;
 
     @Before
     public void setUp() throws Exception {
@@ -53,38 +52,37 @@ public class LocalExecutableRegistryImplTest {
     }
 
     @Test
-    public void testRegisterNewTask_shouldStoreMethodObjectInCache() throws Exception {
-        localExecutableRegistry.registerTask("fooBar", simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class));
+    public void testRegisterNewTask_shouldStoreExecutableInCache() throws Exception {
+        localExecutableRegistry.registerTask("fooBar", new Executable(simpleWorkflowForTest,simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class), 2000l));
         assertThat(identifierToMethodMap.containsKey("fooBar")).isTrue();
-        assertThat(identifierToMethodMap.get("fooBar").getName()).contains("simpleStringModifyingTask");
+        assertThat(identifierToMethodMap.get("fooBar")).isEqualTo(new Executable(simpleWorkflowForTest, simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class), 2000l));
     }
 
     @Test
     public void testRegisterNewTask_gracefullyHandleDuplicates() throws Exception {
-        localExecutableRegistry.registerTask("fooBar", simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class));
-        localExecutableRegistry.registerTask("fooBar", simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class));
+        localExecutableRegistry.registerTask("fooBar",new Executable(simpleWorkflowForTest,simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class), 2000l));
+        localExecutableRegistry.registerTask("fooBar",new Executable(simpleWorkflowForTest,simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class), 2000l));
         assertThat(identifierToMethodMap.containsKey("fooBar")).isTrue();
-        assertThat(identifierToMethodMap.get("fooBar").getName()).contains("simpleStringModifyingTask");
+        assertThat(identifierToMethodMap.get("fooBar")).isEqualTo(new Executable(simpleWorkflowForTest,simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class), 2000l));
     }
 
     @Test
-    public void testTaskRetrieval_shouldRetrieveRegisteredMethods() throws Exception {
-        final Method givenMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class);
-        localExecutableRegistry.registerTask("fooBar", givenMethod);
-        assertThat(localExecutableRegistry.getTask("fooBar")).isEqualTo(givenMethod);
+    public void testTaskRetrieval_shouldRetrieveRegisteredExecutables() throws Exception {
+        final Executable givenExecutable = new Executable(simpleWorkflowForTest, simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class), 2000l);
+        localExecutableRegistry.registerTask("fooBar", givenExecutable);
+        assertThat(localExecutableRegistry.getTask("fooBar")).isEqualTo(givenExecutable);
     }
 
     @Test
     public void testTaskRetrieval_shouldTryToRetrieveNonRegisteredMethods() throws Exception {
         /* Test Setup */
-        final SimpleWorkflowForTest mockSimpleWorkflow = new SimpleWorkflowForTest();
-        when(injector.getInstance(any(Class.class))).thenReturn(mockSimpleWorkflow);
+        when(injector.getInstance(any(Class.class))).thenReturn(simpleWorkflowForTest);
 
         /* actual test */
-        final Method expectedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class);
+        final Executable expectedExecutable = new Executable(simpleWorkflowForTest, simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class), 2000l);
         assertThat(
             localExecutableRegistry.getTask("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_java.lang.String"))
-        .isEqualTo(expectedMethod);
+        .isEqualTo(expectedExecutable);
         org.mockito.Mockito.verify(injector,times(1)).getInstance(Class.forName("com.flipkart.flux.client.intercept.SimpleWorkflowForTest"));
     }
 
