@@ -1,4 +1,7 @@
 routers:
-  somerouter:
+  someRouter:
     totalInstances: 100
     maxInstancesPerNode: 3
+  default:
+    totalInstances: 10
+    maxInstancesPerNode: 2
