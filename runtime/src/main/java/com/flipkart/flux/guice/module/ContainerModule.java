@@ -132,6 +132,7 @@ public class ContainerModule extends AbstractModule {
 		http.setPort(port);
 		server.addConnector(http);
 		server.setHandler(webappContext);
+		server.setStopAtShutdown(true);
 		return server;
 	}
 
@@ -152,7 +153,9 @@ public class ContainerModule extends AbstractModule {
 		JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
 		provider.setMapper(objectMapper);
 		resourceConfig.register(provider);
-		return JettyHttpContainerFactory.createServer(UriBuilder.fromUri(baseURL+ RuntimeConstants.API_CONTEXT_PATH).port(port).build(), resourceConfig);
+		final Server server = JettyHttpContainerFactory.createServer(UriBuilder.fromUri(baseURL + RuntimeConstants.API_CONTEXT_PATH).port(port).build(), resourceConfig);
+		server.setStopAtShutdown(true);
+		return server;
 	}
 
 	@Named("APIResourceConfig")

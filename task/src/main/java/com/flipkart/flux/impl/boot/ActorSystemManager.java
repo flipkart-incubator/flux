@@ -20,40 +20,27 @@ import javax.inject.Singleton;
 @Singleton
 public class ActorSystemManager implements Disposable, Initializable {
 
-    @Configuration(required = true,name = "runtime.actorsystem.name")
-    @Inject
-    @Named("runtime.actorsystem.name")
     private String actorSystemName;
-
-
-    @Configuration(required = true,name = "runtime.actorsystem.configname")
-    @Inject
-    @Named("runtime.actorsystem.configname")
     private String configName;
-
-    @Configuration(required = true,name = "runtime.actorsystem.metrics")
-    @Inject
-    @Named("runtime.actorsystem.metrics")
     private  Boolean withMetrics;
 
     private ActorSystem system;
 
     private boolean isInitialised;
 
-    /* Used by Polyguice - not to be used in production*/
     ActorSystemManager() {
         this.isInitialised = false;
     }
 
-    public ActorSystemManager(String actorSystemName,
-                              String configName,
-                              Boolean withMetrics
+    @Inject
+    public ActorSystemManager(@Named("runtime.actorsystem.name") String actorSystemName,
+                              @Named("runtime.actorsystem.configname") String configName,
+                              @Named("runtime.actorsystem.metrics") Boolean withMetrics
     ) {
         this();
         this.actorSystemName = actorSystemName;
         this.configName = configName;
         this.withMetrics = withMetrics;
-        initialize(); // Calling initialise so we always create a "valid" object if we ever create this class ourselves in tests
     }
 
     public ActorSystem retrieveActorSystem() {

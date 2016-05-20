@@ -21,6 +21,7 @@ import java.util.Iterator;
 
 import com.flipkart.polyguice.config.ApacheCommonsConfigProvider;
 import com.flipkart.polyguice.config.YamlConfiguration;
+import com.flipkart.polyguice.core.ConfigurationProvider;
 import com.google.inject.AbstractModule;
 import com.google.inject.binder.LinkedBindingBuilder;
 import com.google.inject.name.Names;
@@ -31,11 +32,18 @@ import com.google.inject.name.Names;
  */
 public class ConfigModule extends AbstractModule {
 
+    private URL configUrl;
+    private final ConfigurationProvider configProvider;
+
+    public ConfigModule(URL configUrl) {
+        this.configUrl =configUrl;
+        configProvider = new ApacheCommonsConfigProvider().location(configUrl.getPath());
+    }
+
     @Override
     protected void configure() {
-        URL url = this.getClass().getClassLoader().getResource(CONFIGURATION_YML);
-        bind(ApacheCommonsConfigProvider.class).toInstance(new ApacheCommonsConfigProvider().location(url.getPath()));
-        bindConfigProperties(url);
+        bind(ConfigurationProvider.class).toInstance(configProvider);
+        bindConfigProperties(configUrl);
     }
 
     /**
@@ -59,5 +67,9 @@ public class ConfigModule extends AbstractModule {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public ConfigurationProvider getConfigProvider() {
+        return configProvider;
     }
 }

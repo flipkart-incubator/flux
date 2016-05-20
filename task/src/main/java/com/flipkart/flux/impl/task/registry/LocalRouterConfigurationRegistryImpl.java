@@ -24,22 +24,18 @@ public class LocalRouterConfigurationRegistryImpl implements RouterConfiguration
 
     private static final Logger log = LoggerFactory.getLogger(LocalRouterConfigurationRegistryImpl.class);
 
-    @Inject
-    @Named("router.names")
     Set<String> routerNames;
-
-    @Inject
     ConfigurationProvider configurationProvider;
 
     private Integer defaultTotalInstances;
     private Integer defaultMaxInstancesPerNode;
 
-    /* Used by polyguice */
     LocalRouterConfigurationRegistryImpl() {
     }
 
-    // To be used only in tests. In production, the lifecycle of this class is to be managed by Polyguice
-    public LocalRouterConfigurationRegistryImpl(Set<String> routerNames, ConfigurationProvider configurationProvider) {
+    @Inject
+    public LocalRouterConfigurationRegistryImpl(@Named("router.names") Set<String> routerNames,
+                                                ConfigurationProvider configurationProvider) {
         this();
         this.routerNames = routerNames;
         this.configurationProvider = configurationProvider;

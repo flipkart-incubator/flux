@@ -26,25 +26,16 @@ import java.util.Iterator;
 @Singleton
 public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializable {
 
-    @Inject
     private ActorSystemManager actorSystemManager;
 
-    @Inject
     RouterConfigurationRegistry routerConfigurationRegistry;
 
     private final HashMap<String, ActorRef> proxyMap;
 
-    public EagerInitRouterRegistryImpl(){
-        proxyMap = new HashMap<>();
-    }
 
-    /*
-        This constructor to be used only in tests, if at all. The lifecycle of this class is to be managed by polyguice
-        This is because we may want to re-load this class after deploying new "deployment units"
-     */
-    @Deprecated
-    EagerInitRouterRegistryImpl(ActorSystemManager actorSystemManager, RouterConfigurationRegistry routerConfigurationRegistry) {
-        this();
+    @Inject
+    public EagerInitRouterRegistryImpl(ActorSystemManager actorSystemManager, RouterConfigurationRegistry routerConfigurationRegistry) {
+        this.proxyMap = new HashMap<>();
         this.actorSystemManager = actorSystemManager;
         this.routerConfigurationRegistry = routerConfigurationRegistry;
     }
@@ -67,9 +58,7 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
             AddressFromURIString.parse("akka.tcp://" + actorSystem.name() + "@localhost:2551"),
         };
         final Iterable<Pair<String, ClusterRouterPoolSettings>> configurations = routerConfigurationRegistry.getConfigurations();
-        final Iterator<Pair<String, ClusterRouterPoolSettings>> routerConfigurations = configurations.iterator();
-        while (routerConfigurations.hasNext()) {
-            final Pair<String, ClusterRouterPoolSettings> next = routerConfigurations.next();
+        for (Pair<String, ClusterRouterPoolSettings> next : configurations) {
             actorSystem.actorOf(
                 ClusterSingletonManager.props(new ClusterRouterPool(new RoundRobinPool(2), next.getValue()).props(
                     new RemoteRouterConfig(new RoundRobinPool(6), addresses1).props(

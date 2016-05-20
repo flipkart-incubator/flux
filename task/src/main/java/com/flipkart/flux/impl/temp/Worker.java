@@ -29,11 +29,11 @@ public class Worker extends UntypedActor {
 	@Override
 	public void onReceive(Object message) {
 		System.out.println("Received Work " +message);
+		if (Work.class.isAssignableFrom(message.getClass())) {
+			new TaskExecutor(this).execute();
+		}
 	}
 
-	public static Props createWorker() {
-		return Props.create(Worker.class);
-	}
 	
 	class TaskExecutor extends HystrixCommand<BigInteger> {
 

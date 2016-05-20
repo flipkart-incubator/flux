@@ -21,3 +21,17 @@ Api:
   service.selectors: 6
   service.workers: 12
   service.baseURL: "http://localhost"
+
+routers:
+  someRouter:
+    totalInstances: 100
+    maxInstancesPerNode: 3
+  default:
+    totalInstances: 10
+    maxInstancesPerNode: 2
+
+runtime:
+  actorsystem:
+    metrics: false
+    name: FluxSystem
+    configname: application.conf
