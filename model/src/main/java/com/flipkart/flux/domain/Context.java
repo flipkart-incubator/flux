@@ -13,8 +13,10 @@
 
 package com.flipkart.flux.domain;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * <code>Context</code> carries execution context for use during a State's execution.
@@ -26,17 +28,29 @@ import java.util.Map;
  * @author shyam.akirala
  * @author kartik.bommepally
  */
-public abstract class Context<T> {
+public abstract class Context {
 
     /** The start time when this Context was created*/
     protected Long startTime;
     /** Identifier for the Context*/
     protected String contextId;
+
+    /** will be used in dependency graph map as key for initial states which are dependant on no events*/
+    private static final String START = "start";
     /**
      * A reverse dependency graph created across States based on Events.
      * Holds information on possible list of States waiting on an Event represented by its FQN.
      */
-    protected Map<String, List<State<T>>> stateToEventDependencyGraph;
+    protected Map<String, Set<State>> stateToEventDependencyGraph;
+
+    /**
+     * Attaches context to state machine and builds dependency graph for the state machine.
+     * @param stateMachine
+     */
+    public Context(StateMachine stateMachine) {
+        stateMachine.setContext(this);
+        buildDependencyMap(stateMachine.getStates());
+    }
 
     /**
      * Stores the specified data against the key for this Context. Implementations may bound the type and size of data stored into this Context.
@@ -52,13 +66,46 @@ public abstract class Context<T> {
      */
     public abstract Object retrieve(String key);
 
-    public List<State<T>> getExecutableStates(State<T> currentState, Event<T> event) {
-        // Go through the dependency graph to figure the states that can now be executed
-        return null;
+    /**
+     * Returns set of states which are dependant on an event.
+     * @param eventName
+     * @return
+     */
+    public Set<State> getDependantStates(String eventName) {
+        return stateToEventDependencyGraph.get(eventName);
     }
+
+    /**
+     * Returns set of states which can be started when state machine starts.
+     * @return initial states
+     */
+    public Set<State> getInitialStates() {
+        return stateToEventDependencyGraph.get(START);
+    }
+
     public boolean isExecutionCancelled() {
         //check for cancelledException in data, and return whether state machine execution is cancelled or not
         return false;
+    }
+
+    /**
+     * This builds dependency graph between event and states and keeps for later use. Currently dependency graph is created on every event arrival.
+     */
+    public void buildDependencyMap(Set<State> states) {
+        stateToEventDependencyGraph = new HashMap<>();
+        for(State state : states) {
+            if (state.getDependencies() != null) {
+                for (String eventName : state.getDependencies()) {
+                    if (!stateToEventDependencyGraph.containsKey(eventName))
+                        stateToEventDependencyGraph.put(eventName, new HashSet<State>());
+                    stateToEventDependencyGraph.get(eventName).add(state);
+                }
+            } else {
+                if (!stateToEventDependencyGraph.containsKey(START))
+                    stateToEventDependencyGraph.put(START, new HashSet<State>());
+                stateToEventDependencyGraph.get(START).add(state);
+            }
+        }
     }
 
     /** Accessor/Mutator methods*/

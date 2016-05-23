@@ -28,7 +28,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "StateMachines")
-public class StateMachine<T> {
+public class StateMachine {
 
     /** Unique identifier of the state machine*/
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,16 +45,16 @@ public class StateMachine<T> {
     /** List of states that this machine has*/
     @OneToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL, targetEntity = State.class)
     @JoinColumn(name = "stateMachineId")
-    private Set<State<T>> states;
+    private Set<State> states;
 
     /* maintained */
     /** Current states of this state machine*/
     @Transient
-    private Set<State<T>> currentStates;
+    private Set<State> currentStates;
 
     /** The Context for interacting with the Flux runtime*/
     @Transient
-    private Context<T> context;
+    private Context context;
 
     /** Time at which this State Machine has been created */
     private Timestamp createdAt;
@@ -65,7 +65,7 @@ public class StateMachine<T> {
 
     /** Constructors*/
     protected StateMachine() {}
-    public StateMachine(Long version, String name, String description, Set<State<T>> states) {
+    public StateMachine(Long version, String name, String description, Set<State> states) {
         super();
         this.version = version;
         this.name = name;
@@ -77,16 +77,16 @@ public class StateMachine<T> {
     public Long getId() {
         return id;
     }
-    public Context<T> getContext() {
+    public Context getContext() {
         return context;
     }
-    public void setContext(Context<T> context) {
+    public void setContext(Context context) {
         this.context = context;
     }
-    public Set<State<T>> getCurrentStates() {
+    public Set<State> getCurrentStates() {
         return currentStates;
     }
-    public void setCurrentStates(Set<State<T>> currentStates) {
+    public void setCurrentStates(Set<State> currentStates) {
         this.currentStates = currentStates;
     }
     public Long getVersion() {
@@ -98,7 +98,7 @@ public class StateMachine<T> {
     public String getDescription() {
         return description;
     }
-    public Set<State<T>> getStates() {
+    public Set<State> getStates() {
         return states;
     }
     public Timestamp getCreatedAt() {

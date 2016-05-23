@@ -14,6 +14,7 @@
 
 package com.flipkart.flux.client.utils;
 
+import com.flipkart.flux.client.intercept.SimpleWorkflowForTest;
 import org.aopalliance.intercept.MethodInvocation;
 
 import java.lang.reflect.AccessibleObject;
@@ -53,5 +54,34 @@ public class TestUtil {
             }
         };
 
+    }
+
+    public static MethodInvocation dummyInvocation(Method methodToReturn, Object methodOwner) {
+        return new MethodInvocation() {
+            @Override
+            public Method getMethod() {
+                return methodToReturn;
+            }
+
+            @Override
+            public Object[] getArguments() {
+                return new Object[0];
+            }
+
+            @Override
+            public Object proceed() throws Throwable {
+                return null;
+            }
+
+            @Override
+            public Object getThis() {
+                return methodOwner;
+            }
+
+            @Override
+            public AccessibleObject getStaticPart() {
+                return null;
+            }
+        };
     }
 }

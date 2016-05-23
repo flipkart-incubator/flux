@@ -28,10 +28,10 @@ public class HookAndEvents {
 
 	/** Member variables for this message*/
 	private AbstractHook hook;
-	private Event<Object>[] events;
+	private Event[] events;
 	
 	/** Constructor with all member variables */
-	public HookAndEvents(AbstractHook hook, Event<Object>[] events) {
+	public HookAndEvents(AbstractHook hook, Event[] events) {
 		super();
 		this.hook = hook;
 		this.events = events;
@@ -41,7 +41,7 @@ public class HookAndEvents {
 	public AbstractHook getHook() {
 		return hook;
 	}
-	public Event<Object>[] getEvents() {
+	public Event[] getEvents() {
 		return events;
 	}
 	

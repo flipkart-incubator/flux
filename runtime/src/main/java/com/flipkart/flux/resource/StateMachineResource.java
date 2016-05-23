@@ -13,12 +13,17 @@
 
 package com.flipkart.flux.resource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.StateMachineDefinition;
-import com.flipkart.flux.constant.RuntimeConstants;
+import com.flipkart.flux.controller.WorkFlowExecutionController;
+import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.google.inject.Inject;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -26,6 +31,7 @@ import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Set;
 
 
 /**
@@ -35,11 +41,15 @@ import javax.ws.rs.core.Response;
 @Singleton
 @Path("/api/machines")
 @Named
-public class StateMachineResource<T> {
+public class StateMachineResource {
 
-    /** Instance of {@link StateMachinePersistenceService} which converts entity definition to domain object*/
     @Inject
     StateMachinePersistenceService stateMachinePersistenceService;
+
+    @Inject
+    WorkFlowExecutionController workFlowExecutionController;
+
+    private static final Logger logger = LogManager.getLogger(StateMachineResource.class);
 
     /**
      * Will instantiate a state machine in the flux execution engine
@@ -49,17 +59,18 @@ public class StateMachineResource<T> {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response createStateMachine(StateMachineDefinition stateMachineDefinition) {
+    public Response createStateMachine(StateMachineDefinition stateMachineDefinition) throws Exception {
         // 1. Convert to StateMachine (domain object) and save in DB
         if(stateMachineDefinition == null)
             throw new IllegalRepresentationException("State machine definition is empty");
 
         StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineDefinition);
 
-        // 2. workFlowExecutionController.init(stateMachine_domainObject)
+        // 2. initialize and start State Machine
+        workFlowExecutionController.initAndStart(stateMachine);
 
         // 3. Return machineId
-        return Response.status(201).entity("State Machine Id: "+stateMachine.getId()).build();
+        return Response.status(Response.Status.CREATED.getStatusCode()).entity(stateMachine.getId()).build();
     }
 
 
@@ -67,21 +78,18 @@ public class StateMachineResource<T> {
      * Used to post Data corresponding to an event.
      * This data may be a result of a task getting completed or independently posted (manually, for example)
      * @param machineId machineId the event is to be submitted against
-     * @param eventFqn fully qualified name of the event. Like java.lang.String_foo
-     * @param eventDataJson Json representation of data
+     * @param eventData Json representation of event
      *
      */
 
     @POST
-
-    @Path("/{machineId}/context/events/{eventFqn}")
-    public void submitEvent(@PathParam("machineId") Long machineId,
-                            @PathParam("eventFqn") String eventFqn,
-                            String eventDataJson
-                            ) {
-        // Controversial API. This assumes, for now, that events are pushed to flux
-        // 1. Retrieve StateMachine's execution context
-        // 2. Submit event to it - workFlowExecutionController.postEvent(context, eventFqn,eventDataJson)
+    @Path("/{machineId}/context/events")
+    public Response submitEvent(@PathParam("machineId") Long machineId,
+                            EventData eventData
+                            ) throws Exception {
+        //retrieves states which are dependant on this event and starts execution of states which can be executable
+        Set<State> triggeredStates = workFlowExecutionController.postEvent(eventData, machineId);
+        return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity(new ObjectMapper().writeValueAsString(triggeredStates)).build();
     }
 
 

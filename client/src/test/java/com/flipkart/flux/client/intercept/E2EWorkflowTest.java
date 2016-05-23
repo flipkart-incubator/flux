@@ -14,7 +14,7 @@
 
 package com.flipkart.flux.client.intercept;
 
-import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.client.runner.GuiceJunit4Runner;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.LocalContext;
@@ -22,18 +22,22 @@ import com.flipkart.flux.client.utils.TestHttpServer;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.inject.Inject;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.lang.reflect.Method;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+
 
 /**
  *
  * @author yogesh.nachnani
  */
 @RunWith(GuiceJunit4Runner.class)
-public class E2EWorkflowSubmissionTest {
+public class E2EWorkflowTest {
 
     @Inject
     SimpleWorkflowForTest simpleWorkflowForTest;
@@ -51,10 +55,20 @@ public class E2EWorkflowSubmissionTest {
     @Inject
     public DummyFluxRuntimeResource dummyFluxRuntimeResource;
 
+    @Inject
+    ExecutableRegistry executableRegistry;
+
     @Test
     public void test_e2eSubmissionOfAWorkflow() throws Exception {
         simpleWorkflowForTest.simpleDummyWorkflow("String one",2);
-        dummyFluxRuntimeResource.assertStateMachineReceived(simpleWorkflowForTest.getEquivalentStateMachineDefintion(),1);
+        /* verify submission to flux runtime */
+        dummyFluxRuntimeResource.assertStateMachineReceived(simpleWorkflowForTest.getEquivalentStateMachineDefintion(), 1);
+        /* verify registration in executable registry */
+        final Map<String,Method> identifierToMethodMap = (Map<String, Method>) ReflectionTestUtils.getField(executableRegistry, "identifierToMethodMap");
+        assertThat(identifierToMethodMap.keySet()).containsOnly(
+            "com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_java.lang.String",
+            "com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleAdditionTask_java.lang.Integer_java.lang.Integer",
+            "com.flipkart.flux.client.intercept.SimpleWorkflowForTest_someTaskWithIntegerAndString_void_java.lang.String_java.lang.Integer"
+        );
     }
-
 }

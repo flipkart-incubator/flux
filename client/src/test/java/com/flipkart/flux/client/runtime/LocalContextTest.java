@@ -82,7 +82,7 @@ public class LocalContextTest {
     @Test
     public void testRegisterNewState() throws Exception {
         localContext.registerNew("fooBar", 1, "someDescription");
-        EventDefinition someEventDefinition = new EventDefinition("com.blah.some.Event");
+        EventDefinition someEventDefinition = new EventDefinition("com.blah.some.Event",""); //TODO: CHANGE IT
         localContext.registerNewState(1l, "someState", null, "com.blah.some.Hook", "com.blah.some.Task", 1l, 1000l, Collections.singleton(someEventDefinition));
         StateDefinition expectedStateDefinition = new StateDefinition(1l,"someState",null,
             "com.blah.some.Hook", "com.blah.some.Task", "com.blah.some.Hook",

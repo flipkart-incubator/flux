@@ -27,6 +27,7 @@ import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
 import com.flipkart.flux.type.BlobType;
+import com.flipkart.flux.type.SetJsonType;
 import com.flipkart.flux.type.StoreFQNType;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import com.google.inject.AbstractModule;
@@ -70,6 +71,7 @@ public class HibernateModule extends AbstractModule {
         //register hibernate custom types
         configuration.registerTypeOverride(new BlobType(), new String[]{"BlobType"});
         configuration.registerTypeOverride(new StoreFQNType(), new String[]{"StoreFQNOnly"});
+        configuration.registerTypeOverride(new SetJsonType(), new String[]{"SetJsonType"});
 
         //add annotated classes to configuration
         configuration.addAnnotatedClass(AuditRecord.class);

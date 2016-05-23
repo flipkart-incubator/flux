@@ -12,20 +12,25 @@
  */
 package com.flipkart.flux.impl.task;
 
+import com.flipkart.flux.client.registry.Executable;
+import com.flipkart.flux.client.registry.ExecutableRegistry;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.Task;
+
+import javax.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.Task;
 
 /**
  * <code>TaskRegistry</code> maintains an in-memory registry of {@link Task} and their {@link Event} mappings. This registry is usually populated during Flux startup by inspecting
  * deployment units containing Task definitions and the events that trigger them
  * 
  * @author regunath.balasubramanian
+ * @author yogesh.nachnani
  *
  */
+@Singleton
 public class TaskRegistry {
 
     /** Map storing the mapping of a EventS to TaskS */
@@ -37,21 +42,19 @@ public class TaskRegistry {
     /** Map storing the mapping of a Task to post execution HookS */
 	private Map<String,List<AbstractHook>> taskToPostExecHookMap = new ConcurrentHashMap<String, List<AbstractHook>>();
 	
-	/**
-	 * Gets the Task that can process the specified set of EventS
-	 * @param events the EventS to be processed
-	 * @return null or Task that can process the specified set of EventS
-	 */
-	public AbstractTask getTaskForEvents(Event<Object>[] events) {
-		return this.eventsToTaskMap.get(TaskRegistry.getEventsKey(events));
+
+	private final ExecutableRegistry executableRegistry;
+
+	public TaskRegistry(ExecutableRegistry executableRegistry) {
+		this.executableRegistry = executableRegistry;
 	}
-	
+
 	/**
 	 * Registers the specified Task as one that can process the specified set of EventS
 	 * @param task the Task
 	 * @param events array of EventS that the Task can process
 	 */
-	public void registerTask(AbstractTask task, Event<Object>[] events) {
+	public void registerTask(AbstractTask task, Event[] events) {
 		this.eventsToTaskMap.put(TaskRegistry.getEventsKey(events), task);
 	}
 
@@ -60,7 +63,7 @@ public class TaskRegistry {
 	 * @param task the Task pending execution
 	 * @return null or List of HookS that are to be executed pre-execution of the specified Task
 	 */
-	public List<AbstractHook> getPreExecHooks(Task<Object> task) {
+	public List<AbstractHook> getPreExecHooks(Task task) {
 		return this.taskToPreExecHookMap.get(task.getClass().getName());
 	}
 
@@ -69,7 +72,7 @@ public class TaskRegistry {
 	 * @param task the Task that has been executed
 	 * @return null or List of HookS that are to be executed post-execution of the specified Task
 	 */
-	public List<AbstractHook> getPostExecHooks(Task<Object> task) {
+	public List<AbstractHook> getPostExecHooks(Task task) {
 		return this.taskToPostExecHookMap.get(task.getClass().getName());
 	}
 	
@@ -96,13 +99,22 @@ public class TaskRegistry {
 	 * @param events Event[] array for creating key
 	 * @return String representing the EventS
 	 */
-	public static String getEventsKey(Event<Object>[] events) {
+	public static String getEventsKey(Event[] events) {
 		StringBuilder sb = new StringBuilder();
-		for (Event<Object> event : events) {
+		for (Event event : events) {
 			sb.append(event.getClass().getName());
 			sb.append("_");
 		}
 		return sb.toString();
 	}
-	
+
+	/**
+	 * Retrieves the task corresponding to the given task identifier
+	 * @param taskIdentifier A string that is used to uniquely identify a task
+	 * @return an @link AbstractTask implementation, throws a @link UnknownTaskException a corresponding task cannot be located
+	 */
+	public AbstractTask retrieveTask(String taskIdentifier) {
+		final Executable task = this.executableRegistry.getTask(taskIdentifier);
+		return new LocalJvmTask(task);
+	}
 }

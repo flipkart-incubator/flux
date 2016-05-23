@@ -1,5 +1,5 @@
 # flux
-Flux is an asynchronous, scalable, multi-tenant, distributed and reliable state machine based orchestrator. Flux intends to cater the needs of both a traditional state machine and also an advanced workflow orchestrator.
+Flux is an asynchronous, scalable, multi-tenant, distributed and reliable state machine based orchestrator. Flux intends to cater to the needs of both a traditional state machine and also an advanced workflow orchestrator.
 
 Flux provides capabilities like state management, audit, tracing through configurable constructs.
 
