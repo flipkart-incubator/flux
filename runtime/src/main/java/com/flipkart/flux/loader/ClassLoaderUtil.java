@@ -13,35 +13,41 @@
 
 package com.flipkart.flux.loader;
 
-import org.reflections.Reflections;
-import org.reflections.scanners.MethodAnnotationsScanner;
+import com.flipkart.flux.client.model.Workflow;
+import com.flipkart.polyguice.config.YamlConfiguration;
 
 import javax.inject.Singleton;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
- * <code>ClassLoaderUtil</code> provides methods to do operations on {@link URLClassLoader}.
- * Operations
- * 1. to build and provide {@link URLClassLoader} instance for a provided directory.
- * 2. get methods annotated with a particular annotation.
+ * <code>ClassLoaderUtil</code> provides {@link URLClassLoader} for a particular client provided directory.
+ * The constructed class loader won't be having any relation with System class loader.
  * @author shyam.akirala
  */
 @Singleton
 public class ClassLoaderUtil {
+
+    private static final String CONFIG_FILE = "flux_config.yml";
+
+    /** Key in the config file, which has list of workflow class FQNs*/
+    private static final String WORKFLOWS = "workflows";
 
     /**
      * Builds and returns URLClassLoader for a provided directory.
      * This assumes the provided directory has the following structure.
      *
      * directory
-     * |_____ jar   //contains main jar
-     * |_____ lib   //contains libraries on which main jar is depending
-     * |_____ *.yml //properties files
+     * |_____ main              //contains main jar
+     * |_____ lib               //contains libraries on which main jar is depending
+     * |_____ flux_config.yml   //properties file
      *
      * @param directory
      * @return URLClassLoader
@@ -52,11 +58,11 @@ public class ClassLoaderUtil {
         if(!directory.endsWith("/"))
             directory = directory + "/";
 
-        File[] mainJars = new File(directory+"jar").listFiles();
+        File[] mainJars = new File(directory+"main").listFiles();
         File[] libJars = new File(directory+"lib").listFiles();
 
         if(mainJars == null)
-            throw new RuntimeException("Unable to build class loader. Required directory <state_machine_path>/jar is empty.");
+            throw new RuntimeException("Unable to build class loader. Required directory "+directory+"main is empty.");
 
         URL[] urls = new URL[mainJars.length + (libJars != null ? libJars.length : 0) + 1];
         int urlIndex = 0;
@@ -81,14 +87,33 @@ public class ClassLoaderUtil {
     }
 
     /**
-     * Searches and returns all the methods which are annotated with annotationClass in the provided class loader.
-     * @param classLoader
-     * @param annotationClass
-     * @return Set of methods annotated with annotationClass
+     * Given a class loader and set of class names, returns methods which are annotated with {@link com.flipkart.flux.client.model.Workflow} annotation.
+     * @param urlClassLoader
+     * @return set of Classes
+     * @throws ClassNotFoundException
      */
-    public Set<Method> getMethodsAnnotatedWithWorkflow(URLClassLoader classLoader, Class annotationClass) {
-        Reflections reflections = new Reflections(new MethodAnnotationsScanner(), classLoader);
-        return reflections.getMethodsAnnotatedWith(annotationClass);
+    public Set<Method> getWorkflowMethods(URLClassLoader urlClassLoader) throws ClassNotFoundException, IOException {
+
+        YamlConfiguration yamlConfiguration = new YamlConfiguration(urlClassLoader.getResource(CONFIG_FILE));
+        List<String> classNames = (List<String>) yamlConfiguration.getProperty(WORKFLOWS);
+        Set<Class> classes = new HashSet<>();
+        Set<Method> methods = new HashSet<>();
+
+        //loading this class separately in this class loader as the following isAnnotationPresent check returns false,
+        //if we use default class loader's Workflow, as both class loaders don't have any relation between them.
+        Class workflowClass = urlClassLoader.loadClass(Workflow.class.getCanonicalName());
+
+        for(String name : classNames) {
+            Class clazz = urlClassLoader.loadClass(name);
+            classes.add(clazz);
+
+            for(Method method : clazz.getMethods()) {
+                if(method.isAnnotationPresent(workflowClass))
+                    methods.add(method);
+            }
+        }
+
+        return methods;
     }
 
 }
