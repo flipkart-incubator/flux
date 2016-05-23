@@ -55,11 +55,10 @@ public class ClassLoaderUtil {
         File[] mainJars = new File(directory+"jar").listFiles();
         File[] libJars = new File(directory+"lib").listFiles();
 
-        if(mainJars == null ||
-                libJars == null)
-            throw new RuntimeException("Unable to build class loader. Required directory(ies) not found.");
+        if(mainJars == null)
+            throw new RuntimeException("Unable to build class loader. Required directory <state_machine_path>/jar is empty.");
 
-        URL[] urls = new URL[mainJars.length + libJars.length + 1];
+        URL[] urls = new URL[mainJars.length + (libJars != null ? libJars.length : 0) + 1];
         int urlIndex = 0;
 
         for (File mainJar : mainJars) {
@@ -68,9 +67,11 @@ public class ClassLoaderUtil {
             }
         }
 
-        for (File libJar : libJars) {
-            if (libJar.isFile()) {
-                urls[urlIndex++] = libJar.toURI().toURL();
+        if(libJars != null) {
+            for (File libJar : libJars) {
+                if (libJar.isFile()) {
+                    urls[urlIndex++] = libJar.toURI().toURL();
+                }
             }
         }
 
