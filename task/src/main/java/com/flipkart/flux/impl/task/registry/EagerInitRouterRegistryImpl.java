@@ -1,6 +1,11 @@
 package com.flipkart.flux.impl.task.registry;
 
-import akka.actor.*;
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Address;
+import akka.actor.AddressFromURIString;
+import akka.actor.PoisonPill;
+import akka.actor.Props;
 import akka.cluster.routing.ClusterRouterPool;
 import akka.cluster.routing.ClusterRouterPoolSettings;
 import akka.cluster.singleton.ClusterSingletonManager;
@@ -10,6 +15,7 @@ import akka.cluster.singleton.ClusterSingletonProxySettings;
 import akka.remote.routing.RemoteRouterConfig;
 import akka.routing.RoundRobinPool;
 import com.flipkart.flux.impl.boot.ActorSystemManager;
+import com.flipkart.flux.impl.task.CustomSuperviseStrategy;
 import com.flipkart.flux.impl.temp.Worker;
 import com.flipkart.polyguice.core.Initializable;
 import javafx.util.Pair;
@@ -17,7 +23,6 @@ import javafx.util.Pair;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  * Eagerly creates and maintains references to all the required routers of the system
@@ -29,16 +34,22 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
 
     private ActorSystemManager actorSystemManager;
 
+    private final CustomSuperviseStrategy superviseStrategy;
+
     RouterConfigurationRegistry routerConfigurationRegistry;
 
     private final HashMap<String, ActorRef> proxyMap;
 
 
+
+
     @Inject
-    public EagerInitRouterRegistryImpl(ActorSystemManager actorSystemManager, RouterConfigurationRegistry routerConfigurationRegistry) {
+    public EagerInitRouterRegistryImpl(ActorSystemManager actorSystemManager, RouterConfigurationRegistry routerConfigurationRegistry,
+                                       CustomSuperviseStrategy superviseStrategy) {
         this.proxyMap = new HashMap<>();
         this.actorSystemManager = actorSystemManager;
         this.routerConfigurationRegistry = routerConfigurationRegistry;
+        this.superviseStrategy = superviseStrategy;
     }
 
     /**
@@ -64,13 +75,15 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
             AddressFromURIString.parse("akka.tcp://" + actorSystem.name() + "@localhost:2551"),
         };
         final Iterable<Pair<String, ClusterRouterPoolSettings>> configurations = routerConfigurationRegistry.getConfigurations();
+
         for (Pair<String, ClusterRouterPoolSettings> next : configurations) {
             actorSystem.actorOf(
-                ClusterSingletonManager.props(new ClusterRouterPool(new RoundRobinPool(2), next.getValue()).props(
+                ClusterSingletonManager.props(new ClusterRouterPool(new RoundRobinPool(2).withSupervisorStrategy(superviseStrategy.getStrategy()), next.getValue()).props(
                     new RemoteRouterConfig(new RoundRobinPool(6), addresses1).props(
                         Props.create(Worker.class))), PoisonPill.getInstance(), settings), next.getKey());
-            ClusterSingletonProxySettings proxySettings =
-                ClusterSingletonProxySettings.create(actorSystem);
+
+            ClusterSingletonProxySettings proxySettings = ClusterSingletonProxySettings.create(actorSystem);
+
             this.proxyMap.put(next.getKey(), actorSystem.actorOf(ClusterSingletonProxy.props("/user/" + next.getKey(),
                 proxySettings), next.getKey() + "_routerProxy"));
         }

@@ -13,17 +13,6 @@
 
 package com.flipkart.flux.impl.task;
 
-import java.util.List;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.Task;
-import com.flipkart.flux.impl.message.HookAndEvents;
-import com.flipkart.flux.impl.message.TaskAndEvents;
-import com.netflix.hystrix.HystrixCommand;
-
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.Terminated;
@@ -32,6 +21,15 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.routing.ActorRefRoutee;
 import akka.routing.Router;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.Task;
+import com.flipkart.flux.impl.message.HookAndEvents;
+import com.flipkart.flux.impl.message.TaskAndEvents;
+import com.netflix.hystrix.HystrixCommand;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import java.util.List;
 
 /**
  * <code>AkkaTask</code> is an Akka {@link UntypedActor} that executes {@link Task} instances concurrently. Tasks are executed using a {@link TaskExecutor} where 
@@ -62,6 +60,7 @@ public class AkkaTask extends UntypedActor {
 	@SuppressWarnings("unchecked")
 	public void onReceive(Object message) throws Exception {
 
+		//todo actor can take a call when to throw TaskResumableException
 		if (TaskAndEvents.class.isAssignableFrom(message.getClass())) {
 			TaskAndEvents taskAndEvent = (TaskAndEvents)message;
 		 	AbstractTask task = this.taskRegistry.retrieveTask(taskAndEvent.getTaskIdentifier());
