@@ -36,7 +36,7 @@
                     <#if appName?? >
                         <a href="/admin" title= "Site Name" rel="home"> ${appName} </a>
                     <#else>
-					    <a href="/admin" title= "Site Name" rel="home"> Phantom </a>
+					    <a href="/admin" title= "Site Name" rel="home"> Flux </a>
                     </#if>
 				</div>
 			</div>

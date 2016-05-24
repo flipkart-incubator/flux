@@ -38,7 +38,6 @@
 
     <!-- Properties local to this module only -->
     <properties>
-        <org.springframework.version>4.2.0.RELEASE</org.springframework.version>
         <jersey.version>2.19</jersey.version>
         <jetty.version>9.2.10.v20150310</jetty.version>
     </properties>
