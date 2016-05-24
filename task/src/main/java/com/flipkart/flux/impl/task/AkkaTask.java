@@ -53,6 +53,11 @@ public class AkkaTask extends UntypedActor {
     @Named("HookRouter")
     private Router hookRouter;
 
+	//todo to be removed when we have figured out the way to inject registry in actor. And corresponding unit test can be changed accordingly.
+	public void setTaskRegistry(TaskRegistry taskRegistry) {
+		this.taskRegistry = taskRegistry;
+	}
+
 	/**
 	 * The Akka Actor callback method for processing the Task
 	 * @see akka.actor.UntypedActor#onReceive(java.lang.Object)
@@ -101,5 +106,6 @@ public class AkkaTask extends UntypedActor {
 			}
 		}
 	}
+
 
 }

@@ -25,9 +25,9 @@ import java.lang.reflect.Method;
  * */
 public interface ExecutableRegistry {
     /* Retrieve an executable corresponding to a task given the taskIdentifier */
-    public Executable getTask(String taskIdentifier);
+    Executable getTask(String taskIdentifier);
     /* Retrieve an executable hook given the hookIdentifier */
-    public Method getHook(String hookIdentifier);
+    Method getHook(String hookIdentifier);
     /* register a task executable against a given identifier. This operation must be idempotent */
-    public void registerTask(String taskIdentifier, Executable method);
+    void registerTask(String taskIdentifier, Executable method);
 }
