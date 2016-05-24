@@ -76,7 +76,7 @@ public class WorkFlowExecutionController {
         event.setStatus(Event.EventStatus.triggered);
         event.setEventData(eventData.getData());
         event.setEventSource(eventData.getEventSource());
-        eventsDAO.update(event);
+        eventsDAO.updateEvent(event);
 
         //create context and dependency graph
         Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine); //TODO: set context id, should we need it ?
