@@ -22,6 +22,7 @@ import java.util.Iterator;
 /**
  * Eagerly creates and maintains references to all the required routers of the system
  * @see RouterRegistry
+ * @author yogesh.nachnani
  */
 @Singleton
 public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializable {
@@ -40,6 +41,11 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
         this.routerConfigurationRegistry = routerConfigurationRegistry;
     }
 
+    /**
+     * This implementation looks up the local hashmap and returns the appropriate router
+     * @param forWorker the (convention based) name for the router
+     * @return ActorRef for the router or null if the router does not exist
+     */
     @Override
     public ActorRef getRouter(String forWorker) {
         return this.proxyMap.get(forWorker);

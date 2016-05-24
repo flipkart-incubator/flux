@@ -1,7 +1,6 @@
 package com.flipkart.flux.impl.boot;
 
 import akka.actor.ActorSystem;
-import com.flipkart.polyguice.core.Configuration;
 import com.flipkart.polyguice.core.Disposable;
 import com.flipkart.polyguice.core.Initializable;
 import com.typesafe.config.Config;
@@ -14,6 +13,7 @@ import javax.inject.Singleton;
 
 /**
  * Responsible for bringing up the entire akka runtime
+ * Lifecycle of this class is managed using polyguice
  * @author yogesh.nachnani
  */
 //TODO the lifecycle will be managed by the polyguice container

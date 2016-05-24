@@ -63,6 +63,10 @@ public class FluxInitializer {
         }
     }
 
+    /**
+     * 1. Register all relavent modules with the Polyguice container
+     * 2. Boot the polyguice container
+     */
     private void loadFluxRuntimeContainer() {
         logger.debug("loading flux runtime container");
         final ConfigModule configModule = new ConfigModule(configUrl);
@@ -74,16 +78,22 @@ public class FluxInitializer {
     private void start() throws Exception {
         //load flux runtime container
         loadFluxRuntimeContainer();
+        /*
+            The following piece of code should ideally be replaced using PolyTrooper or a similar construct.
+            We're just making do for now
+         */
         initialiseAkkaRuntime(fluxRuntimeContainer);
+        /* Bring up the API server */
         logger.debug("loading API server");
         final Server apiJettyServer = fluxRuntimeContainer.getComponentContext().getInstance("APIJettyServer", Server.class);
         apiJettyServer.start();
         logger.debug("API server started. Say Hello!");
-
+        /* Bring up the Dashboard server */
         logger.debug("Loading Dashboard Server");
         final Server dashboardJettyServer = fluxRuntimeContainer.getComponentContext().getInstance("DashboardJettyServer", Server.class);
         dashboardJettyServer.start();
         logger.debug("Dashboard server has started. Say Hello!");
+        // TODO - remove this call
         testOut();
     }
 
@@ -99,7 +109,8 @@ public class FluxInitializer {
     }
 
     private void initialiseAkkaRuntime(Polyguice polyguice) throws InterruptedException {
-        final EagerInitRouterRegistryImpl routerRegistry = polyguice.getComponentContext().getInstance(EagerInitRouterRegistryImpl.class); // This basically "inits" the system. Will be handled by PolyTrooper
+        // This basically "inits" the system. Will be handled by PolyTrooper
+        final EagerInitRouterRegistryImpl routerRegistry = polyguice.getComponentContext().getInstance(EagerInitRouterRegistryImpl.class);
         Thread.sleep(1000l); // TODO Booo, do something about this
     }
 

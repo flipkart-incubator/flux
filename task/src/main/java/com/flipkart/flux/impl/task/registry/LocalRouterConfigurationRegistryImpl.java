@@ -18,6 +18,7 @@ import java.util.Set;
 /**
  * Retrieves router configurations from local config
  * Uses the default configurations for routers whose config is not explicitly given
+ * @author yogesh.nachnani
  */
 @Singleton
 public class LocalRouterConfigurationRegistryImpl implements RouterConfigurationRegistry,Initializable {

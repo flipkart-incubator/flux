@@ -7,12 +7,13 @@ import javafx.util.Pair;
  * Provides configurations needed for creating routers in the system
  *
  * @see RouterRegistry
+ * @author yogesh.nachnani
  */
 public interface RouterConfigurationRegistry {
 
     /**
-     * Get an iterator that provided (Router Name, Config) pairs
-     * @return
+     *
+     * @return an iterable that provides (Router Name, ClusterRouterPoolSettings) pairs
      */
     Iterable<Pair<String,ClusterRouterPoolSettings>> getConfigurations();
 }

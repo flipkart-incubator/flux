@@ -3,7 +3,8 @@ package com.flipkart.flux.impl.task.registry;
 import akka.actor.ActorRef;
 
 /**
- * Looks up and/or provides akka routers
+ * Interface that allows for akka router lookups
+ * @author yogesh.nachnani
  */
 public interface RouterRegistry {
     ActorRef getRouter(String forWorker);
