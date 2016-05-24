@@ -14,14 +14,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class LocalRouterConfigurationRegistryImplTest {
-
-    ConfigurationProvider configurationProvider;
-
-    @Before
-    public void setUp() throws Exception {
-
-    }
-
     @Test
     public void testGetConfigurations_shouldReadConfigsFromConfigProvider() throws Exception {
         final LocalRouterConfigurationRegistryImpl localRouterConfigurationRegistry = new LocalRouterConfigurationRegistryImpl(
