@@ -51,6 +51,7 @@
         <javax.inject.version>1</javax.inject.version>
         <hystrix.version>1.5.1</hystrix.version>
         <akka.version>2.4.1</akka.version>
+        <org.springframework.version>4.2.2.RELEASE</org.springframework.version>
         <akka.cluster.metrics.version>2.4.4</akka.cluster.metrics.version>
         <kamon.version>0.6.0</kamon.version>
         <log4j.version>2.5</log4j.version>
