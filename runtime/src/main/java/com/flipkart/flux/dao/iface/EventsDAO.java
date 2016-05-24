@@ -28,7 +28,7 @@ public interface EventsDAO {
     Event create(Event event);
 
     /** Updates the event */
-    void update(Event event);
+    void updateEvent(Event event);
 
     /** Retrieves all the events which belongs to a particular state machine instance*/
     List<Event> findBySMInstanceId(Long stateMachineInstanceId);
