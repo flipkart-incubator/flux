@@ -44,7 +44,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    public void update(Event event) {
+    public void updateEvent(Event event) {
         super.update(event);
     }
 

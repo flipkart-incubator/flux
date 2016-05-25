@@ -14,6 +14,7 @@
 package com.flipkart.flux.initializer;
 
 import akka.actor.ActorRef;
+import com.flipkart.flux.MigrationUtil.MigrationsRunner;
 import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.HibernateModule;
@@ -21,9 +22,9 @@ import com.flipkart.flux.impl.boot.TaskModule;
 import com.flipkart.flux.impl.task.registry.EagerInitRouterRegistryImpl;
 import com.flipkart.flux.impl.temp.Work;
 import com.flipkart.polyguice.core.support.Polyguice;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Server;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 
@@ -35,7 +36,7 @@ import static com.flipkart.flux.constant.RuntimeConstants.CONFIGURATION_YML;
  */
 public class FluxInitializer {
 
-    private static final Logger logger = LogManager.getLogger(FluxInitializer.class);
+    private static final Logger logger = LoggerFactory.getLogger(FluxInitializer.class);
 
     private Polyguice fluxRuntimeContainer;
     private final URL configUrl;
@@ -115,8 +116,7 @@ public class FluxInitializer {
 
     private void migrate() {
         loadFluxRuntimeContainer();
-//        MigrationsRunner migrationsRunner = (MigrationsRunner) fluxRuntimeContainer.getInstanceOfClass(MigrationsRunner.class);
-//        migrationsRunner.migrate();
-        // TODO needs to be fixed
+        MigrationsRunner migrationsRunner = fluxRuntimeContainer.getComponentContext().getInstance(MigrationsRunner.class);
+        migrationsRunner.migrate();
     }
 }
