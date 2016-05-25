@@ -87,7 +87,8 @@ public class ClassLoaderUtil {
     }
 
     /**
-     * Given a class loader and set of class names, returns methods which are annotated with {@link com.flipkart.flux.client.model.Workflow} annotation.
+     * Given a class loader, retrieves workflow classes names from config file, and returns methods
+     * which are annotated with {@link com.flipkart.flux.client.model.Workflow} annotation in those classes.
      * @param urlClassLoader
      * @return set of Classes
      * @throws ClassNotFoundException
