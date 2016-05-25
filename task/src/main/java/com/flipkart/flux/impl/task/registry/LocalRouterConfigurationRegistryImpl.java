@@ -1,19 +1,21 @@
 package com.flipkart.flux.impl.task.registry;
 
-import akka.cluster.routing.ClusterRouterPoolSettings;
-import com.flipkart.polyguice.core.ConfigurationProvider;
-import com.flipkart.polyguice.core.Initializable;
-import javafx.util.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import scala.Option;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.flipkart.polyguice.core.ConfigurationProvider;
+import com.flipkart.polyguice.core.Initializable;
+
+import akka.cluster.routing.ClusterRouterPoolSettings;
+import javafx.util.Pair;
+import scala.Option;
 
 /**
  * Retrieves router configurations from local config

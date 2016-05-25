@@ -20,10 +20,6 @@ import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
 
 import java.io.File;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import javax.inject.Named;
@@ -42,21 +38,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.flipkart.flux.config.FileLocator;
 import com.flipkart.flux.constant.RuntimeConstants;
-import com.flipkart.flux.impl.task.AkkaHook;
-import com.flipkart.flux.impl.task.AkkaTask;
 import com.flipkart.flux.resource.FluxResource;
 import com.flipkart.flux.resource.StateMachineResource;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-
-import akka.actor.Actor;
-import akka.actor.ActorRef;
-import akka.actor.Props;
-import akka.actor.UntypedActor;
-import akka.routing.ActorRefRoutee;
-import akka.routing.RoundRobinRoutingLogic;
-import akka.routing.Routee;
-import akka.routing.Router;
 
 /**
  * <code>ContainerModule</code> is a Guice {@link AbstractModule} implementation used for wiring Flux container components.
