@@ -15,7 +15,9 @@
  */
 package com.flipkart.flux.config;
 
-import static com.flipkart.flux.constant.RuntimeConstants.CONFIG_ROOT;
+import com.flipkart.flux.constant.RuntimeConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,10 +25,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import com.flipkart.flux.constant.RuntimeConstants;
+import static com.flipkart.flux.constant.RuntimeConstants.CONFIG_ROOT;
 
 /**
 *
@@ -41,7 +40,7 @@ public class FileLocator {
 	/**
 	 * The Log instance for this class
 	 */
-	private static final Logger LOGGER = LogManager.getLogger(FileLocator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileLocator.class);
 
 	// TODO: Keep this injectable config
 	/** The config root folder of Flux */

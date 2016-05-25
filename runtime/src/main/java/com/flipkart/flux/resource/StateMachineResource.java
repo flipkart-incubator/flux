@@ -22,8 +22,8 @@ import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.google.inject.Inject;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -49,7 +49,7 @@ public class StateMachineResource {
     @Inject
     WorkFlowExecutionController workFlowExecutionController;
 
-    private static final Logger logger = LogManager.getLogger(StateMachineResource.class);
+    private static final Logger logger = LoggerFactory.getLogger(StateMachineResource.class);
 
     /**
      * Will instantiate a state machine in the flux execution engine

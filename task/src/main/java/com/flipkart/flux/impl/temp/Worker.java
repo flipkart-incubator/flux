@@ -18,6 +18,11 @@ import akka.remote.routing.RemoteRouterConfig;
 import akka.routing.RoundRobinPool;
 import scala.collection.mutable.ArraySeq;
 
+/**
+ * //TODO - this class needs to go
+ * Prints the received message. If the message is of type work, then this also calculates the factorial of
+ * a number that is close to Regu's heart
+ */
 public class Worker extends UntypedActor {
 	
 	String systemPort;
@@ -29,11 +34,11 @@ public class Worker extends UntypedActor {
 	@Override
 	public void onReceive(Object message) {
 		System.out.println("Received Work " +message);
+		if (Work.class.isAssignableFrom(message.getClass())) {
+			new TaskExecutor(this).execute();
+		}
 	}
 
-	public static Props createWorker() {
-		return Props.create(Worker.class);
-	}
 	
 	class TaskExecutor extends HystrixCommand<BigInteger> {
 
@@ -47,8 +52,10 @@ public class Worker extends UntypedActor {
 
 		@Override
 		protected BigInteger run() throws Exception {
-			return new CalculateFactorial().calculate();
+			BigInteger fact = BigInteger.valueOf(1);
+			for (int i = 1; i <= 739; i++)
+				fact = fact.multiply(BigInteger.valueOf(i));
+			return fact;
 		}
-		
 	}
 }

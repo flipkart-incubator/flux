@@ -47,16 +47,18 @@
         <junit.version>4.12</junit.version>
         <hibernate.version>5.1.0.Final</hibernate.version>
         <guice.version>4.0</guice.version>
-        <polyguice.version>1.0</polyguice.version>
+        <polyguice.version>1.0.2-SNAPSHOT</polyguice.version>
         <javax.inject.version>1</javax.inject.version>
         <hystrix.version>1.5.1</hystrix.version>
         <akka.version>2.4.1</akka.version>
+        <org.springframework.version>4.2.2.RELEASE</org.springframework.version>
         <akka.cluster.metrics.version>2.4.4</akka.cluster.metrics.version>
         <kamon.version>0.6.0</kamon.version>
         <log4j.version>2.5</log4j.version>
         <assertj-core.version>2.0.0</assertj-core.version>
         <jackson.version>2.7.3</jackson.version>
         <mockito-all.version>1.9.0</mockito-all.version>
+        <slf4j-api.version>1.7.12</slf4j-api.version>
     </properties>
 
     <modules>
