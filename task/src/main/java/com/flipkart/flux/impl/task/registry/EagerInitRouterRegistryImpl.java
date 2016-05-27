@@ -14,21 +14,6 @@
 
 package com.flipkart.flux.impl.task.registry;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.flipkart.flux.domain.FluxError;
-import com.flipkart.flux.impl.boot.ActorSystemManager;
-import com.flipkart.flux.impl.temp.Worker;
-import com.flipkart.polyguice.core.Initializable;
-
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Address;
@@ -42,15 +27,20 @@ import akka.cluster.singleton.ClusterSingletonProxy;
 import akka.cluster.singleton.ClusterSingletonProxySettings;
 import akka.remote.routing.RemoteRouterConfig;
 import akka.routing.RoundRobinPool;
+import com.flipkart.flux.domain.FluxError;
 import com.flipkart.flux.impl.boot.ActorSystemManager;
 import com.flipkart.flux.impl.task.CustomSuperviseStrategy;
 import com.flipkart.flux.impl.temp.Worker;
 import com.flipkart.polyguice.core.Initializable;
 import javafx.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Eagerly creates and maintains references to all the required routers of the system
@@ -68,15 +58,14 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
 
     /** Configuration access for Router setup*/
     private RouterConfigurationRegistry routerConfigurationRegistry;
-    private final CustomSuperviseStrategy superviseStrategy;
 
-    RouterConfigurationRegistry routerConfigurationRegistry;
+    private final CustomSuperviseStrategy superviseStrategy;
 
     /** Local Map of initialized Router instances*/
     private final HashMap<String, ActorRef> proxyMap;
 
     /** Mutating list of Akka cluster members. Using an expensive list implementation for concurrent access but with low update rate */
-    private List<Address> memberAddresses = new CopyOnWriteArrayList<Address>();
+    private List<Address> memberAddresses = new CopyOnWriteArrayList<>();
 
     @Inject
     public EagerInitRouterRegistryImpl(ActorSystemManager actorSystemManager, RouterConfigurationRegistry routerConfigurationRegistry,
@@ -120,7 +109,7 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
         for (Pair<String, ClusterRouterPoolSettings> next : configurations) {
             actorSystem.actorOf(
                 ClusterSingletonManager.props(new ClusterRouterPool(new RoundRobinPool(2).withSupervisorStrategy(superviseStrategy.getStrategy()), next.getValue()).props(
-                    new RemoteRouterConfig(new RoundRobinPool(6), addresses1).props(
+                    new RemoteRouterConfig(new RoundRobinPool(6), this.memberAddresses).props(
                         Props.create(Worker.class))), PoisonPill.getInstance(), settings), next.getKey());
 
             ClusterSingletonProxySettings proxySettings = ClusterSingletonProxySettings.create(actorSystem);
