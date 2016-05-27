@@ -16,6 +16,7 @@
 package com.flipkart.flux.controller;
 
 import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
+import static com.flipkart.flux.constant.RuntimeConstants.FSM_VIEW;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -32,11 +33,21 @@ import org.springframework.web.bind.annotation.RequestMethod;
  */
 @Controller
 public class DashboardController {
+	
     /**
-     * Controller for dashboard
+     * Dashboard page
      */
     @RequestMapping(value = {"/dashboard"}, method = RequestMethod.GET)
     public String dashboard(ModelMap model, HttpServletRequest request) {
         return DASHBOARD_VIEW;
     }
+    
+    /**
+     * FSM visualization page
+     */
+    @RequestMapping(value = {"/fsmview"}, method = RequestMethod.GET)
+    public String fsmview(ModelMap model, HttpServletRequest request) {
+        return FSM_VIEW;
+    }
+    
 }
