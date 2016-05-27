@@ -58,6 +58,7 @@ public class E2EWorkflowTest {
     @Inject
     ExecutableRegistry executableRegistry;
 
+
     @Test
     public void test_e2eSubmissionOfAWorkflow() throws Exception {
         simpleWorkflowForTest.simpleDummyWorkflow("String one",2);

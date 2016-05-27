@@ -14,11 +14,11 @@
 
 package com.flipkart.flux.impl.boot;
 
+import com.flipkart.flux.impl.task.CustomSuperviseStrategy;
 import com.flipkart.flux.impl.task.registry.EagerInitRouterRegistryImpl;
 import com.flipkart.flux.impl.task.registry.LocalRouterConfigurationRegistryImpl;
 import com.flipkart.flux.impl.task.registry.RouterConfigurationRegistry;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
-import com.flipkart.polyguice.core.ConfigurationProvider;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 
@@ -50,5 +50,12 @@ public class TaskModule extends AbstractModule {
     public Set<String> getRouterNames() {
         // TODO - this needs to be Provided by the boot util that loads all deployment units
         return new HashSet<String>(){{add("someRouter");add("someRouterWithoutConfig");}};
+    }
+
+    @Provides
+    @Singleton
+    public CustomSuperviseStrategy getSupervisorStrategy() {
+        //todo re-tries to come from config
+        return new CustomSuperviseStrategy(2);
     }
 }

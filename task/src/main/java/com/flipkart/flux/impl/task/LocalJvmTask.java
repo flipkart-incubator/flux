@@ -19,8 +19,6 @@ import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.FluxError;
 import javafx.util.Pair;
 
-import java.lang.reflect.Method;
-
 /**
  * A task that can be executed locally within the same JVM
  * @author yogesh.nachnani
