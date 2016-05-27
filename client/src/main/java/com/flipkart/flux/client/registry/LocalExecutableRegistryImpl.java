@@ -39,7 +39,7 @@ public class LocalExecutableRegistryImpl implements ExecutableRegistry {
         this(new ConcurrentHashMap<>(),injector);
     }
 
-    public LocalExecutableRegistryImpl(Map<String, Executable> identifierToMethodMap,Injector injector) {
+    public LocalExecutableRegistryImpl(Map<String, Executable> identifierToMethodMap, Injector injector) {
         this.identifierToMethodMap = identifierToMethodMap  ;
         this.injector = injector;
     }
@@ -60,7 +60,7 @@ public class LocalExecutableRegistryImpl implements ExecutableRegistry {
                 final Object classInstance = this.injector.getInstance(Class.forName(methodId.getClassName()));
                 final Method methodToInvoke = classInstance.getClass().getDeclaredMethod(methodId.getMethodName(), methodId.getParameterTypes());
                 final Task taskAnnotation = methodToInvoke.getAnnotationsByType(Task.class)[0];
-                return new Executable(classInstance, methodToInvoke, taskAnnotation.timeout());
+                return new ExecutableImpl(classInstance, methodToInvoke, taskAnnotation.timeout());
             } catch (ClassNotFoundException | NoSuchMethodException e) {
                 throw new UnknownIdentifierException("Could not load method corresponding to the given task identifier:" + taskIdentifier);
             }
