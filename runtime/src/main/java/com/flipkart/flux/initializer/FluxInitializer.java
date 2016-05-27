@@ -36,7 +36,7 @@ import com.flipkart.polyguice.core.support.Polyguice;
 import akka.actor.ActorRef;
 
 /**
- * <code>FluxInitializer</code> is the initializer class which starts jetty server and loads polyguice container.
+ * <code>FluxInitializer</code> initializes the Flux runtime using the various Guice modules via Polyguice
  * @author shyam.akirala
  * @author regunath.balasubramanian
  */
@@ -66,6 +66,10 @@ public class FluxInitializer {
     /** THe URL for configuring Polyguice*/
     private final URL configUrl;
 
+    /**
+     * Constructor for this class
+     * @param config the Config resource for initializing Flux
+     */
     public FluxInitializer(String config) {
     	try {
     		this.hostName = InetAddress.getLocalHost().getHostName();
@@ -76,7 +80,9 @@ public class FluxInitializer {
         this.fluxRuntimeContainer = new Polyguice();
     }
 
-
+    /**
+     * Startup entry method 
+     */
     public static void main(String[] args) throws Exception {
         String command = "start";
         String config  = CONFIGURATION_YML;
@@ -137,6 +143,19 @@ public class FluxInitializer {
         testOut();
     }
 
+    /** Helper method to initialize the Akka runtime*/
+    private void initialiseAkkaRuntime(Polyguice polyguice) throws InterruptedException {
+        // This basically "inits" the system. Will be handled by PolyTrooper
+        final EagerInitRouterRegistryImpl routerRegistry = polyguice.getComponentContext().getInstance(EagerInitRouterRegistryImpl.class);
+    }
+
+    /** Helper method to perform migrations*/
+    private void migrate() {
+        loadFluxRuntimeContainer();
+        MigrationsRunner migrationsRunner = fluxRuntimeContainer.getComponentContext().getInstance(MigrationsRunner.class);
+        migrationsRunner.migrate();
+    }
+
     // TODO (Temporary) - For Mr Regunath to play with :)
     private void testOut() throws InterruptedException {
         final EagerInitRouterRegistryImpl routerRegistry = fluxRuntimeContainer.getComponentContext().getInstance(EagerInitRouterRegistryImpl.class);
@@ -148,14 +167,4 @@ public class FluxInitializer {
         }
     }
 
-    private void initialiseAkkaRuntime(Polyguice polyguice) throws InterruptedException {
-        // This basically "inits" the system. Will be handled by PolyTrooper
-        final EagerInitRouterRegistryImpl routerRegistry = polyguice.getComponentContext().getInstance(EagerInitRouterRegistryImpl.class);
-    }
-
-    private void migrate() {
-        loadFluxRuntimeContainer();
-        MigrationsRunner migrationsRunner = fluxRuntimeContainer.getComponentContext().getInstance(MigrationsRunner.class);
-        migrationsRunner.migrate();
-    }
 }
