@@ -11,5 +11,8 @@
 
 	<bean class="com.flipkart.flux.controller.DashboardController">
 	</bean>
+
+	<bean class="com.flipkart.flux.controller.FSMVisualizationController">
+	</bean>
 	
 </beans>

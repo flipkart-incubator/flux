@@ -90,19 +90,7 @@
 		    
 		    // Function to draw the DAG
 		    function layout() {
-		        try {
-		        	// TODO : Get this adjacency list from the Flux MVC controller
-		            var adjacencyList = {
-						'Order created': ['Payment Received:Payment Pending', 'Order Packed:Order Confirmed'],
-						'Payment Received': ['Order Packed:Order Confirmed', 'Order Delivered:Ready For Delivery'],
-						'Order Packed': ['Order Shipped:Package Ready'],
-						'Order Shipped': ['Payment Received:Payment Pending','Order Delivered:Ready For Delivery'],
-						'Order Delivered': []
-            		}
-		        } catch (e) {
-		            alert(e);
-		        }
-		        var cells = buildGraphFromAdjacencyList(adjacencyList);
+		        var cells = buildGraphFromAdjacencyList(${adjacencyList});
 		        graph.resetCells(cells);
 		        joint.layout.DirectedGraph.layout(graph, {
 		        	nodeSep: 100,
@@ -110,8 +98,10 @@
 		            rankDir: "LR"
 		        });
 		    }
+		    
 		    // now draw the DAG
 		    layout();
+		    
 		}())		
 	</script>
 	

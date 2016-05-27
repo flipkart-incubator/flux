@@ -15,7 +15,7 @@
  */
 package com.flipkart.flux.controller;
 
-import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
+import static com.flipkart.flux.constant.RuntimeConstants.FSM_VIEW;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -25,20 +25,28 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
- * <code>DashboardController</code> is a Spring MVC Controller for the Dashboard
+ * <code>FSMVisualizationController</code> is a Spring MVC Controller for FSM visualization
  * 
  * @author regunath.balasubramanian
- * @author kartik.bommepally
  */
 @Controller
-public class DashboardController {
-	
+public class FSMVisualizationController {
+
     /**
-     * Dashboard page
+     * FSM visualization page
      */
-    @RequestMapping(value = {"/dashboard"}, method = RequestMethod.GET)
-    public String dashboard(ModelMap model, HttpServletRequest request) {
-        return DASHBOARD_VIEW;
+    @RequestMapping(value = {"/fsmview"}, method = RequestMethod.GET)
+    public String getFSMViewData(ModelMap model, HttpServletRequest request) {
+    	// TODO : Get this data from the Flux API
+    	model.addAttribute("adjacencyList", "{" +
+				"'Order created': ['Payment Received:Payment Pending', 'Order Packed:Order Confirmed']," +
+				"'Payment Received': ['Order Packed:Order Confirmed', 'Order Delivered:Ready For Delivery'],"+
+				"'Order Packed': ['Order Shipped:Package Ready'],"+
+				"'Order Shipped': ['Payment Received:Payment Pending','Order Delivered:Ready For Delivery'],"+
+				"'Order Delivered': []"+
+    			"}");
+    	return FSM_VIEW;
+
     }
     
 }
