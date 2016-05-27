@@ -14,7 +14,26 @@
 
 package com.flipkart.flux.impl.task.registry;
 
-import akka.actor.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.flipkart.flux.domain.FluxError;
+import com.flipkart.flux.impl.boot.ActorSystemManager;
+import com.flipkart.flux.impl.temp.Worker;
+import com.flipkart.polyguice.core.Initializable;
+
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Address;
+import akka.actor.PoisonPill;
+import akka.actor.Props;
 import akka.cluster.routing.ClusterRouterPool;
 import akka.cluster.routing.ClusterRouterPoolSettings;
 import akka.cluster.singleton.ClusterSingletonManager;
@@ -23,15 +42,7 @@ import akka.cluster.singleton.ClusterSingletonProxy;
 import akka.cluster.singleton.ClusterSingletonProxySettings;
 import akka.remote.routing.RemoteRouterConfig;
 import akka.routing.RoundRobinPool;
-import com.flipkart.flux.impl.boot.ActorSystemManager;
-import com.flipkart.flux.impl.temp.Worker;
-import com.flipkart.polyguice.core.Initializable;
 import javafx.util.Pair;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  * Eagerly creates and maintains references to all the required routers of the system
@@ -40,13 +51,21 @@ import java.util.Iterator;
  */
 @Singleton
 public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializable {
+	
+	/** Logger for this class*/
+	private static final Logger LOGGER = LoggerFactory.getLogger(EagerInitRouterRegistryImpl.class);
 
+	/** Access to the Actor system initialized by Flux*/
     private ActorSystemManager actorSystemManager;
 
-    RouterConfigurationRegistry routerConfigurationRegistry;
+    /** Configuration access for Router setup*/
+    private RouterConfigurationRegistry routerConfigurationRegistry;
 
+    /** Local Map of initialized Router instances*/
     private final HashMap<String, ActorRef> proxyMap;
 
+    /** Mutating list of Akka cluster members. Using an expensive list implementation for concurrent access but with low update rate */
+    private List<Address> memberAddresses = new CopyOnWriteArrayList<Address>();
 
     @Inject
     public EagerInitRouterRegistryImpl(ActorSystemManager actorSystemManager, RouterConfigurationRegistry routerConfigurationRegistry) {
@@ -73,15 +92,21 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
     public void initialize() {
         final ActorSystem actorSystem = actorSystemManager.retrieveActorSystem();
         ClusterSingletonManagerSettings settings = ClusterSingletonManagerSettings.create(actorSystem);
-        // TODO - read addresses from the network
-        Address[] addresses1 = {
-            AddressFromURIString.parse("akka.tcp://" + actorSystem.name() + "@localhost:2551"),
-        };
+        // setup the ClusterListener Actor
+        actorSystem.actorOf(Props.create(ClusterListener.class, this.memberAddresses), "clusterListener");
+        while (this.memberAddresses.isEmpty()) {
+        	LOGGER.info("Router init waiting 1000ms for cluster members to join..." );
+        	try {
+				Thread.sleep(1000L);
+			} catch (InterruptedException e) {
+				throw new FluxError(FluxError.ErrorType.runtime, "All Router(s) initialization failed.", e);
+			}
+        }
         final Iterable<Pair<String, ClusterRouterPoolSettings>> configurations = routerConfigurationRegistry.getConfigurations();
         for (Pair<String, ClusterRouterPoolSettings> next : configurations) {
             actorSystem.actorOf(
                 ClusterSingletonManager.props(new ClusterRouterPool(new RoundRobinPool(2), next.getValue()).props(
-                    new RemoteRouterConfig(new RoundRobinPool(6), addresses1).props(
+                    new RemoteRouterConfig(new RoundRobinPool(6), this.memberAddresses).props(
                         Props.create(Worker.class))), PoisonPill.getInstance(), settings), next.getKey());
             ClusterSingletonProxySettings proxySettings =
                 ClusterSingletonProxySettings.create(actorSystem);

@@ -14,6 +14,7 @@
 package com.flipkart.flux.initializer;
 
 import akka.actor.ActorRef;
+import com.flipkart.flux.MigrationUtil.MigrationsRunner;
 import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.HibernateModule;
@@ -111,13 +112,11 @@ public class FluxInitializer {
     private void initialiseAkkaRuntime(Polyguice polyguice) throws InterruptedException {
         // This basically "inits" the system. Will be handled by PolyTrooper
         final EagerInitRouterRegistryImpl routerRegistry = polyguice.getComponentContext().getInstance(EagerInitRouterRegistryImpl.class);
-        Thread.sleep(1000l); // TODO Booo, do something about this
     }
 
     private void migrate() {
         loadFluxRuntimeContainer();
-//        MigrationsRunner migrationsRunner = (MigrationsRunner) fluxRuntimeContainer.getInstanceOfClass(MigrationsRunner.class);
-//        migrationsRunner.migrate();
-        // TODO needs to be fixed
+        MigrationsRunner migrationsRunner = fluxRuntimeContainer.getComponentContext().getInstance(MigrationsRunner.class);
+        migrationsRunner.migrate();
     }
 }
