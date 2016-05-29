@@ -15,7 +15,9 @@
 package com.flipkart.flux.client.runtime;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.StateMachineDefinition;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -65,13 +67,22 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     }
 
     @Override
-    public void submitNewWorkflow(StateMachineDefinition stateMachineDef) throws IOException {
+    public void submitNewWorkflow(StateMachineDefinition stateMachineDef) {
+        CloseableHttpResponse httpResponse = null;
+        try {
+            httpResponse = postOverHttp(stateMachineDef, null);
+        } finally {
+            HttpClientUtils.closeQuietly(httpResponse);
+        }
+    }
+
+    private CloseableHttpResponse postOverHttp(Object dataToPost, String pathSuffix)  {
         CloseableHttpResponse httpResponse = null;
         HttpPost httpPostRequest;
+        httpPostRequest = new HttpPost(fluxEndpoint + pathSuffix);
+        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try {
-            httpPostRequest = new HttpPost(fluxEndpoint);
-            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            objectMapper.writeValue(byteArrayOutputStream, stateMachineDef);
+            objectMapper.writeValue(byteArrayOutputStream, dataToPost);
             httpPostRequest.setEntity(new ByteArrayEntity(byteArrayOutputStream.toByteArray(), ContentType.APPLICATION_JSON));
             httpResponse = closeableHttpClient.execute(httpPostRequest);
             final int statusCode = httpResponse.getStatusLine().getStatusCode();
@@ -81,6 +92,18 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
                 // TODO: log status line here
                 throw new RuntimeCommunicationException("Did not receive a valid response from Flux core");
             }
+        } catch (IOException e) {
+            // TODO log exception here
+            throw new RuntimeCommunicationException("Could not communicate with Flux runtime");
+        }
+        return httpResponse;
+    }
+
+    @Override
+    public void submitEvent(EventData eventData, Long stateMachineId) {
+        CloseableHttpResponse httpResponse = null;
+        try {
+            httpResponse = postOverHttp(eventData, "/" + stateMachineId + "/context/events");
         } finally {
             HttpClientUtils.closeQuietly(httpResponse);
         }
