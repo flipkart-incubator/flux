@@ -18,6 +18,8 @@ import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.Task;
 import com.flipkart.flux.impl.task.AkkaTask;
 
+import java.util.Arrays;
+
 /**
  * <code>HookAndEvents</code> is a message that composes a {@link Task} identifier and the {@link Event}S that it processes.
  * Used in invoking the {@link AkkaTask} Actor in akka.
@@ -42,5 +44,33 @@ public class TaskAndEvents {
 
     public Event[] getEvents() {
         return this.events;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TaskAndEvents that = (TaskAndEvents) o;
+
+        if (!taskIdentifier.equals(that.taskIdentifier)) return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        return Arrays.equals(events, that.events);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = taskIdentifier.hashCode();
+        result = 31 * result + (events != null ? Arrays.hashCode(events) : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "TaskAndEvents{" +
+            "events=" + Arrays.toString(events) +
+            ", taskIdentifier='" + taskIdentifier + '\'' +
+            '}';
     }
 }

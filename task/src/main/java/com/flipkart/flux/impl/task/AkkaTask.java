@@ -45,8 +45,8 @@ public class AkkaTask extends UntypedActor {
     private LoggingAdapter logger = Logging.getLogger(getContext().system(), this);
     
     /** TaskRegistry instance to look up Task instances from */
-    // TODO : Need a way to inject/lookup this registry
-    private TaskRegistry taskRegistry;
+	@Inject
+    private static TaskRegistry taskRegistry;
     
     /** Router instance for the Hook actors*/
     @Inject

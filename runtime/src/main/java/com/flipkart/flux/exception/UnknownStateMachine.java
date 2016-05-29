@@ -9,13 +9,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-package com.flipkart.flux.impl.temp;
+package com.flipkart.flux.exception;
 
-import java.io.Serializable;
-
-public class Work implements Serializable {
-
+/**
+ * <code>UnknownStateMachine</code> used to denote an illegal state machine.
+ * @author shyam.akirala
+ */
+public class UnknownStateMachine extends RuntimeException {
+    public UnknownStateMachine(String message) {
+        super(message);
+    }
 }

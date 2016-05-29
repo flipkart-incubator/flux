@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.controller;
 
+import akka.actor.ActorRef;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
@@ -21,10 +22,13 @@ import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.exception.IllegalEventException;
-import com.flipkart.flux.exception.IllegalStateMachineException;
+import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
+import com.flipkart.flux.impl.message.TaskAndEvents;
+import com.flipkart.flux.impl.task.registry.RouterRegistry;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -32,13 +36,21 @@ import java.util.Set;
  * <code>WorkFlowExecutionController</code> controls the execution flow of a given state machine
  * @author shyam.akirala
  */
+@Singleton
 public class WorkFlowExecutionController {
 
-    @Inject
-    StateMachinesDAO stateMachinesDAO;
+    private StateMachinesDAO stateMachinesDAO;
+
+    private EventsDAO eventsDAO;
+
+    private RouterRegistry routerRegistry;
 
     @Inject
-    EventsDAO eventsDAO;
+    public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO, RouterRegistry routerRegistry) {
+        this.eventsDAO = eventsDAO;
+        this.stateMachinesDAO = stateMachinesDAO;
+        this.routerRegistry = routerRegistry;
+    }
 
     /**
      * Perform init operations on a state machine and starts execution of states which are not dependant on any events.
@@ -64,10 +76,7 @@ public class WorkFlowExecutionController {
      */
     public Set<State> postEvent(EventData eventData, Long stateMachineInstanceId) {
 
-        //retrieve the state machine
-        StateMachine stateMachine = stateMachinesDAO.findById(stateMachineInstanceId);
-        if(stateMachine == null)
-            throw new IllegalStateMachineException("State machine with id: "+stateMachineInstanceId+ " not found");
+        StateMachine stateMachine = retrieveStateMachine(stateMachineInstanceId);
 
         //update event's data and status
         Event event = eventsDAO.findBySMIdAndName(stateMachineInstanceId, eventData.getName());
@@ -84,10 +93,18 @@ public class WorkFlowExecutionController {
         //get the states whose dependencies are met
         Set<State> executableStates = getExecutableStates(context.getDependantStates(eventData.getName()), stateMachineInstanceId);
 
-        //start execution of the above states
-        //TODO: Start execution of executableStates
+        //start execution of the above states // TODO - this always uses someRouter for now
+        executableStates.forEach((state -> this.routerRegistry.getRouter("someRouter").tell(
+            new TaskAndEvents(state.getTask(), eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId).toArray(new Event[]{})), ActorRef.noSender())));
 
         return executableStates;
+    }
+
+    private StateMachine retrieveStateMachine(Long stateMachineInstanceId) {
+        StateMachine stateMachine = stateMachinesDAO.findById(stateMachineInstanceId);
+        if(stateMachine == null)
+            throw new UnknownStateMachine("State machine with id: "+stateMachineInstanceId+ " not found");
+        return stateMachine;
     }
 
     /**

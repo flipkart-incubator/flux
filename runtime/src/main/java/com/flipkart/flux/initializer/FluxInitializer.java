@@ -30,7 +30,6 @@ import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.HibernateModule;
 import com.flipkart.flux.impl.boot.TaskModule;
 import com.flipkart.flux.impl.task.registry.EagerInitRouterRegistryImpl;
-import com.flipkart.flux.impl.temp.Work;
 import com.flipkart.polyguice.core.support.Polyguice;
 
 import akka.actor.ActorRef;
@@ -162,9 +161,6 @@ public class FluxInitializer {
         routerRegistry.getRouter("someRouter").tell("Message for some router", ActorRef.noSender());
         routerRegistry.getRouter("someRouterWithoutConfig").tell("Message for some router with no config", ActorRef.noSender());
         Thread.sleep(1000l);
-        for (int i = 0 ; i < 10 ; i++) {
-            routerRegistry.getRouter("someRouter").tell(new Work(),ActorRef.noSender());
-        }
     }
 
 }

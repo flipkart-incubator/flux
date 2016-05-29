@@ -16,11 +16,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TestUtils {
 
     public static StateMachine getStandardTestMachine() {
-        Set<String> events = new HashSet<String>(){{ add("event2"); add("event3"); }};
-        State state1 = new State(1l, "test_state1", "test_state_desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.DummyTask", "com.flipkart.flux.dao.DummyOnExitHook", null, 5l, 100l);
+        Set<String> state4Events = new HashSet<String>(){{ add("event2"); add("event3"); }};
+        State state1 = new State(1l, "test_state1", "test_state_desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.DummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.emptySet(), 5l, 100l);
         State state2 = new State(1l, "test_state2", "test_state_desc2", "com.flipkart.flux.dao.TestOnEntryHook", "com.flipkart.flux.dao.TestTask", "com.flipkart.flux.dao.TestOnExitHook", Collections.singleton("event1"), 3l, 100l);
         State state3 = new State(1l, "test_state3", "test_state_desc3", "com.flipkart.flux.dao.TestOnEntryHook", "com.flipkart.flux.dao.TestTask", "com.flipkart.flux.dao.TestOnExitHook", Collections.singleton("event1"), 3l, 100l);
-        State state4 = new State(1l, "test_state4", "test_state_desc4", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.DummyTask", "com.flipkart.flux.dao.DummyOnExitHook", events, 5l, 100l);
+        State state4 = new State(1l, "test_state4", "test_state_desc4", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.DummyTask", "com.flipkart.flux.dao.DummyOnExitHook", state4Events, 5l, 100l);
         Set<State> states = new HashSet<State>(){{
             add(state1);
             add(state2);
