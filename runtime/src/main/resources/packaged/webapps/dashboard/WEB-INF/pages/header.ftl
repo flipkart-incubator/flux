@@ -9,10 +9,14 @@
 	<link rel="stylesheet" href="/admin/resources/styles/colors.css" type="text/css"></link>
 	<link rel="stylesheet" href="/admin/resources/styles/local.css" type="text/css"></link>
 	<link rel="stylesheet" href="/admin/resources/styles/print.css" type="text/css" media="print"></link>
+    <link rel="stylesheet" href="/admin/resources/bootstrap/css/bootstrap.min.css" type="text/css"></link>
 
 	<!-- jquery -->
 	<script src="/admin/resources/js/jquery-1.4.2.min.js" type="text/javascript"></script>
 	<script src="/admin/resources/js/jquery.validate-1.7.0.min.js" type="text/javascript"></script>
+
+    <!--bootstrap-->
+    <script src="/admin/resources/bootstrap/js/bootstrap.min.js"></script>
 
 	<!-- codemirror includes -->
 	<link rel="stylesheet" href="/admin/resources/codemirror/lib/codemirror.css">
@@ -30,17 +34,13 @@
 
 <body class="main">
 	<div id="page">
-		<div id="header">
-            <div id='site-logo'>
-                <img src="resources/images/flux.png" alt="Flux" height="70" width="75"/>
-            </div>
-            <div id="primary-navigation">
-                <div id="primary-left">
-                    <ul>
-                        <li><a href="/admin/dashboard">Dashboard</a></li>
-                        <li><a href="/admin/fsmview">FSM Visualization</a></li>
-                    </ul>
-                </div>
+		<div class="navbar navbar-inverse">
+            <div>
+                <ul class="nav navbar-nav">
+                    <li><img src="resources/images/flux.png" alt="Flux" height="70" width="75"/></li>
+                    <li><a href="/admin/dashboard" style="text-decoration: none">Dashboard</a></li>
+                    <li><a href="/admin/fsmview" style="text-decoration: none">FSM Visualization</a></li>
+                </ul>
             </div>
         </div>
 		<!-- /primary-navigation -->
