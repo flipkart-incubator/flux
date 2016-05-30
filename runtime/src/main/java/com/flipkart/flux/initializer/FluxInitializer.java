@@ -50,15 +50,18 @@ public class FluxInitializer {
 	
 	/** The Flux startup display contents*/
 	private static final MessageFormat STARTUP_DISPLAY = new MessageFormat( 
-	    "\n*************************************************************************\n" +
-        " Flux   _\n" +
-        "      _| |_  \n"+  
-        "     /     \\ "+"         Startup Time : {0}" + " ms\n" +
-        "    ( (| |) ) "+"        Host Name: {1}" + "\n" +
-        "     \\_   _/\n"+ 
-        "       |-|\n"+
-	    "*************************************************************************"
-		);	
+		    "\n*************************************************************************\n" +
+		    " Flux             ___\n" +
+		    "          ___    /   \\\n" +
+		    "         /   \\__| ( ) |" + "     Startup Time : {0}" + " ms\n" +  
+		    "   ___  | ( ) |  \\___/" + "      Host Name: {1} \n " + 
+		    " /   \\/ \\___/    \\\n" +
+		    " | ( ) |   \\___    \\ ___\n" +
+		    "  \\___/    /   \\    /   \\\n" +
+		    "          | ( ) |__| ( ) |\n" +
+		    "           \\___/    \\___/\n" +	
+		    "*************************************************************************"
+	);	
 	
 	/** The Polyguice DI container */
     private Polyguice fluxRuntimeContainer;
@@ -132,13 +135,14 @@ public class FluxInitializer {
         final Server dashboardJettyServer = fluxRuntimeContainer.getComponentContext().getInstance("DashboardJettyServer", Server.class);
         dashboardJettyServer.start();
         logger.debug("Dashboard server has started. Say Hello!");
-        
+
         final Object[] displayArgs = {
 				(System.currentTimeMillis() - start),
 				this.hostName,
         };
 		logger.info(STARTUP_DISPLAY.format(displayArgs));
-		logger.info("** Flux startup complete **");        
+		logger.info("** Flux startup complete **");
+        
         // TODO - remove this call
         testOut();
     }

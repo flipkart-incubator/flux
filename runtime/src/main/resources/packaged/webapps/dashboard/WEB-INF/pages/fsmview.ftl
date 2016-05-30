@@ -20,8 +20,8 @@
 		    var graph = new joint.dia.Graph;
 		    var paper = new joint.dia.Paper({
 		        el: $('#paper-holder'),
-		        width: 640,
-		        height: 520,
+		        width: 1200,
+		        height: 580,
 		        gridSize: 1,
 		        model: graph
 		    });
