@@ -31,26 +31,18 @@
 <body class="main">
 	<div id="page">
 		<div id="header">
-			<div id="name-and-company">
-				<div id='site-name'>
-                    <#if appName?? >
-                        <a href="/admin" title= "Site Name" rel="home"> ${appName} </a>
-                    <#else>
-					    <a href="/admin" title= "Site Name" rel="home"> Flux </a>
-                    </#if>
-				</div>
-			</div>
-			<!-- /name-and-company -->
-		</div>
-		<!-- /header -->
-		<div id="primary-navigation">
-			<div id="primary-left">
-				<ul>
-					<li><a href="/admin/dashboard">Dashboard</a></li>
-					<li><a href="/admin/fsmview">FSM Visualization</a></li>
-				</ul>
-			</div>
-		</div>
+            <div id='site-logo'>
+                <img src="resources/images/flux.png" alt="Flux" height="70" width="75"/>
+            </div>
+            <div id="primary-navigation">
+                <div id="primary-left">
+                    <ul>
+                        <li><a href="/admin/dashboard">Dashboard</a></li>
+                        <li><a href="/admin/fsmview">FSM Visualization</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 		<!-- /primary-navigation -->
 		<div id="container">
 			<div id="content" class="no-side-nav">
