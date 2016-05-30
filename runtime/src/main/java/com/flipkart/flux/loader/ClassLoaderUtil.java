@@ -29,7 +29,7 @@ import java.util.Set;
 
 /**
  * <code>ClassLoaderUtil</code> provides {@link URLClassLoader} for a particular client provided directory.
- * The constructed class loader won't be having any relation with System class loader.
+ * The constructed class loader is independent and doesn't share anything with System class loader.
  * @author shyam.akirala
  */
 @Singleton
@@ -100,8 +100,8 @@ public class ClassLoaderUtil {
         Set<Class> classes = new HashSet<>();
         Set<Method> methods = new HashSet<>();
 
-        //loading this class separately in this class loader as the following isAnnotationPresent check returns false,
-        //if we use default class loader's Workflow, as both class loaders don't have any relation between them.
+        //loading this class separately in this class loader as the following isAnnotationPresent check returns false, if
+        //we use default class loader's Workflow, as both class loaders don't have any relation between them.
         Class workflowClass = urlClassLoader.loadClass(Workflow.class.getCanonicalName());
 
         for(String name : classNames) {
