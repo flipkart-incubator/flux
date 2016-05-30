@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Singleton;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Workflow used in <code>WorkflowInterceptorTest</code> to test e2e interception
@@ -28,6 +29,8 @@ import javax.inject.Singleton;
 public class SimpleWorkflow {
 
     private static final Logger logger = LoggerFactory.getLogger(SimpleWorkflow.class);
+    private CountDownLatch countDownLatchForSimpleStringReturnTask = new CountDownLatch(1);
+    private CountDownLatch countDownLatchForSimpleIntegerReturnTask = new CountDownLatch(1);
 
     /* A simple workflow that goes about creating tasks and making merry */
     @Workflow(version = 1)
@@ -40,12 +43,14 @@ public class SimpleWorkflow {
     @Task(version = 2,retries = 2,timeout = 2000l)
     public String simpleStringReturningTask() {
         logger.info("In Simple String returning task");
+        countDownLatchForSimpleStringReturnTask.countDown();
         return "randomBs";
     }
 
     @Task(version = 1, retries = 2, timeout = 3000l)
     public Integer simpleIntegerReturningTask() {
         logger.info("In Simple Integer returning task");
+        countDownLatchForSimpleIntegerReturnTask.countDown();
         return 2;
     }
 
@@ -55,4 +60,11 @@ public class SimpleWorkflow {
         logger.info("In some task with integer and string");
     }
 
+    public CountDownLatch getCountDownLatchForSimpleIntegerReturnTask() {
+        return countDownLatchForSimpleIntegerReturnTask;
+    }
+
+    public CountDownLatch getCountDownLatchForSimpleStringReturnTask() {
+        return countDownLatchForSimpleStringReturnTask;
+    }
 }
