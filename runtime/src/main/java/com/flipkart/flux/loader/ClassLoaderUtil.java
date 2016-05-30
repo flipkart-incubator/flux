@@ -97,7 +97,6 @@ public class ClassLoaderUtil {
 
         YamlConfiguration yamlConfiguration = new YamlConfiguration(urlClassLoader.getResource(CONFIG_FILE));
         List<String> classNames = (List<String>) yamlConfiguration.getProperty(WORKFLOWS);
-        Set<Class> classes = new HashSet<>();
         Set<Method> methods = new HashSet<>();
 
         //loading this class separately in this class loader as the following isAnnotationPresent check returns false, if
@@ -106,7 +105,6 @@ public class ClassLoaderUtil {
 
         for(String name : classNames) {
             Class clazz = urlClassLoader.loadClass(name);
-            classes.add(clazz);
 
             for(Method method : clazz.getMethods()) {
                 if(method.isAnnotationPresent(workflowClass))
