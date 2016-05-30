@@ -64,7 +64,7 @@ public class WorkFlowExecutionController {
 
         Set<State> initialStates = context.getInitialStates();
 
-        //TODO: Start execution of initialStates
+        executeStates(stateMachine.getId(),initialStates);
 
         return initialStates;
     }
@@ -93,11 +93,18 @@ public class WorkFlowExecutionController {
         //get the states whose dependencies are met
         Set<State> executableStates = getExecutableStates(context.getDependantStates(eventData.getName()), stateMachineInstanceId);
 
-        //start execution of the above states // TODO - this always uses someRouter for now
-        executableStates.forEach((state -> this.routerRegistry.getRouter("someRouter").tell(
-            new TaskAndEvents(state.getTask(), eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId).toArray(new Event[]{})), ActorRef.noSender())));
+        //start execution of the above states
+        executeStates(stateMachineInstanceId, executableStates);
 
         return executableStates;
+    }
+
+    private void executeStates(Long stateMachineInstanceId, Set<State> executableStates) {
+        // TODO - this always uses someRouter for now
+        executableStates.forEach((state ->  {
+            this.routerRegistry.getRouter("someRouter").tell(
+                new TaskAndEvents(state.getTask(), eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId).toArray(new Event[]{}), stateMachineInstanceId), ActorRef.noSender());
+        }));
     }
 
     private StateMachine retrieveStateMachine(Long stateMachineInstanceId) {

@@ -20,19 +20,23 @@ import com.flipkart.flux.client.registry.ExecutableImpl;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.client.runtime.LocalContext;
 import com.flipkart.flux.client.utils.TestUtil;
+import org.aopalliance.intercept.MethodInvocation;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TaskInterceptorTest {
@@ -49,6 +53,7 @@ public class TaskInterceptorTest {
     public void setUp() throws Exception {
         taskInterceptor = new TaskInterceptor(localContext,executableRegistry);
         simpleWorkflowForTest = new SimpleWorkflowForTest();
+        when(localContext.isWorkflowInterception()).thenReturn(true);
     }
 
     @Test
@@ -87,5 +92,16 @@ public class TaskInterceptorTest {
         taskInterceptor.invoke(TestUtil.dummyInvocation(simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class), simpleWorkflowForTest));
         final Executable expectedExecutable = new ExecutableImpl(simpleWorkflowForTest,simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class), 2000l);
         verify(executableRegistry,times(1)).registerTask("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_java.lang.String",expectedExecutable);
+    }
+
+    @Test
+    public void shouldPassThroughIfItsNotPartOfWorkflowInterception() throws Throwable {
+        when(localContext.isWorkflowInterception()).thenReturn(false);
+        final MethodInvocation dummyInvocation = TestUtil.dummyInvocation(simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class), simpleWorkflowForTest);
+        taskInterceptor.invoke(dummyInvocation);
+        verify(localContext,times(1)).isWorkflowInterception();
+        verifyNoMoreInteractions(localContext);
+        verifyZeroInteractions(executableRegistry);
+        assertThat(((MutableInt) ReflectionTestUtils.getField(dummyInvocation, "numProceedInvoctions")).getValue()).isEqualTo(1);
     }
 }

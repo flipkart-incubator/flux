@@ -51,6 +51,9 @@ public class TaskInterceptor implements MethodInterceptor {
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
+        if (!localContext.isWorkflowInterception()) {
+            return invocation.proceed();
+        }
         final Method method = invocation.getMethod();
         final Task taskAnnotation = method.getAnnotationsByType(Task.class)[0];
         final String taskIdentifier = generateTaskIdentifier(method);

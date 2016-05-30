@@ -17,6 +17,7 @@ package com.flipkart.flux.client.runtime;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.StateMachineDefinition;
+import org.apache.commons.codec.binary.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -70,7 +71,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     public void submitNewWorkflow(StateMachineDefinition stateMachineDef) {
         CloseableHttpResponse httpResponse = null;
         try {
-            httpResponse = postOverHttp(stateMachineDef, null);
+            httpResponse = postOverHttp(stateMachineDef, "");
         } finally {
             HttpClientUtils.closeQuietly(httpResponse);
         }
@@ -94,6 +95,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
             }
         } catch (IOException e) {
             // TODO log exception here
+            e.printStackTrace();
             throw new RuntimeCommunicationException("Could not communicate with Flux runtime");
         }
         return httpResponse;

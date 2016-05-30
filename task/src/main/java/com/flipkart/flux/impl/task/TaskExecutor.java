@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.impl.task;
 
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.FluxError;
 import com.flipkart.flux.domain.Task;
@@ -39,12 +41,16 @@ public class TaskExecutor extends HystrixCommand<Event> {
 	
 	/** The events used in Task execution*/
 	private Event[] events;
+	private final FluxRuntimeConnector fluxRuntimeConnector;
+	private final Long stateMachineId;
 
 	/**
 	 * Constructor for this class
 	 * @param task the task to execute
+	 * @param fluxRuntimeConnector
+	 * @param stateMachineId
 	 */
-	public TaskExecutor(AbstractTask task, Event[] events) {
+	public TaskExecutor(AbstractTask task, Event[] events, FluxRuntimeConnector fluxRuntimeConnector, Long stateMachineId) {
         super(Setter
         		.withGroupKey(HystrixCommandGroupKey.Factory.asKey(task.getTaskGroupName()))
                 .andCommandKey(HystrixCommandKey.Factory.asKey(task.getName()))
@@ -55,6 +61,8 @@ public class TaskExecutor extends HystrixCommand<Event> {
                 		.withExecutionTimeoutInMilliseconds(task.getExecutionTimeout())));
 		this.task = task;
 		this.events = events;
+		this.fluxRuntimeConnector = fluxRuntimeConnector;
+		this.stateMachineId = stateMachineId;
 	}
 	
 	/**
@@ -62,11 +70,14 @@ public class TaskExecutor extends HystrixCommand<Event> {
 	 * @see com.netflix.hystrix.HystrixCommand#run()
 	 */
 	protected Event run() throws Exception {
-		Pair<Event,FluxError> result = this.task.execute(events);
+		Pair<Object,FluxError> result = this.task.execute(events);
 		if (result.getValue() != null) {
 			throw result.getValue();
 		}
-		return result.getKey();
+		final Object returnObject = result.getKey();
+		final Event returnedEvent = new Event("foo",returnObject.getClass().getCanonicalName(), Event.EventStatus.triggered,stateMachineId,returnObject,"managedRuntime");
+		fluxRuntimeConnector.submitEvent(new EventData(returnedEvent.getName(),returnedEvent.getType(),returnedEvent.getEventData(),returnedEvent.getEventSource()),returnedEvent.getStateMachineInstanceId());
+		return returnedEvent;
 	}
 	
 }

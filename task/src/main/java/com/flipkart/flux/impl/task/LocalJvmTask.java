@@ -54,14 +54,17 @@ public class LocalJvmTask extends AbstractTask {
     }
 
     @Override
-    public Pair<Event, FluxError> execute(Event[] events) {
+    public Pair<Object, FluxError> execute(Event[] events) {
         Object[] parameters = new Object[events.length];
         for (int i = 0 ; i < events.length ; i++) {
             parameters[i] = events[i].getEventData();
         }
-        final Object returnObject = toInvoke.execute(parameters);
-        // TODO - fix this
-        return new Pair<>(new Event("foo",returnObject.getClass().getCanonicalName(), Event.EventStatus.triggered,events[0].getStateMachineInstanceId(),returnObject,"managedRuntime"),null);
+        try {
+            final Object returnObject = toInvoke.execute(parameters);
+            return new Pair<>(returnObject,null);
+        } catch (Exception e) {
+            return new Pair<>(null,new FluxError(FluxError.ErrorType.runtime,e.getMessage(),e));
+        }
     }
 
     @Override

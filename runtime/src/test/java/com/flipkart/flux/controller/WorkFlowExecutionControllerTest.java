@@ -25,6 +25,7 @@ import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.flipkart.flux.MockActorRef;
 import com.flipkart.flux.util.TestUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,13 +53,21 @@ public class WorkFlowExecutionControllerTest {
     TestActorRef<MockActorRef> mockActor;
 
     private WorkFlowExecutionController workFlowExecutionController;
+    private ActorSystem actorSystem;
 
     @Before
     public void setUp() throws Exception {
         workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, routerRegistry);
         when(stateMachinesDAO.findById(anyLong())).thenReturn(TestUtils.getStandardTestMachine());
-        mockActor = TestActorRef.create(ActorSystem.create(), Props.create(MockActorRef.class));
+        actorSystem = ActorSystem.create();
+        mockActor = TestActorRef.create(actorSystem, Props.create(MockActorRef.class));
         when(routerRegistry.getRouter(anyString())).thenReturn(mockActor);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        mockActor.stop();
+        actorSystem.shutdown();
     }
 
     @Test
@@ -70,7 +79,7 @@ public class WorkFlowExecutionControllerTest {
         workFlowExecutionController.postEvent(testEventData, 1l);
 
         verify(routerRegistry, times(2)).getRouter("someRouter"); // For 2 unblocked states
-        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("com.flipkart.flux.dao.TestTask", expectedEvents), 2);
+        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("com.flipkart.flux.dao.TestTask", expectedEvents, 1l), 2);
         verifyNoMoreInteractions(routerRegistry);
     }
 }

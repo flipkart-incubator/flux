@@ -17,6 +17,7 @@ package com.flipkart.flux.client.registry;
 
 import com.flipkart.flux.client.intercept.MethodId;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -73,6 +74,10 @@ public class ExecutableImpl implements Executable {
 
     @Override
     public Object execute(Object[] parameters) {
-        throw new UnsupportedOperationException("not implemented yet");
+        try {
+            return toInvoke.invoke(singletonMethodOwner,parameters);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

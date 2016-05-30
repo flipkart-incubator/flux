@@ -94,7 +94,7 @@ public abstract class Context {
     public void buildDependencyMap(Set<State> states) {
         eventToStateDependencyGraph = new HashMap<>();
         for(State state : states) {
-            if (state.getDependencies() != null) {
+            if (!state.getDependencies().isEmpty()) {
                 for (String eventName : state.getDependencies()) {
                     if (!eventToStateDependencyGraph.containsKey(eventName))
                         eventToStateDependencyGraph.put(eventName, new HashSet<State>());

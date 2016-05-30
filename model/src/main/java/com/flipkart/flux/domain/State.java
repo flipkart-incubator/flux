@@ -17,6 +17,7 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -59,7 +60,7 @@ public class State {
     private Long timeout;
     /** Set of event names this state is dependent on*/
     @Type(type = "SetJsonType")
-    private Set<String> dependencies;
+    private Set<String> dependencies = new HashSet<>();
 
     /* Maintained by the execution engine */
     /** List of errors during state transition*/

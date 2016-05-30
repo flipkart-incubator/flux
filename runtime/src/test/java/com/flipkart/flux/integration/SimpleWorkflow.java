@@ -16,6 +16,8 @@ package com.flipkart.flux.integration;
 
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.model.Workflow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Singleton;
 
@@ -25,27 +27,32 @@ import javax.inject.Singleton;
 @Singleton
 public class SimpleWorkflow {
 
+    private static final Logger logger = LoggerFactory.getLogger(SimpleWorkflow.class);
+
     /* A simple workflow that goes about creating tasks and making merry */
     @Workflow(version = 1)
     public void simpleDummyWorkflow() {
-        final String newString = simpleStringModifyingTask("foo");
-        final Integer someNewInteger = simpleAdditionTask(1);
+        final String newString = simpleStringReturningTask();
+        final Integer someNewInteger = simpleIntegerReturningTask();
         someTaskWithIntegerAndString(newString, someNewInteger);
     }
 
     @Task(version = 2,retries = 2,timeout = 2000l)
-    public String simpleStringModifyingTask(String someString) {
-        return "randomBs" + someString;
+    public String simpleStringReturningTask() {
+        logger.info("In Simple String returning task");
+        return "randomBs";
     }
 
     @Task(version = 1, retries = 2, timeout = 3000l)
-    public Integer simpleAdditionTask(Integer i) {
-        return i+2;
+    public Integer simpleIntegerReturningTask() {
+        logger.info("In Simple Integer returning task");
+        return 2;
     }
 
     @Task(version = 3, retries = 0, timeout = 1000l)
     public void someTaskWithIntegerAndString(String someString, Integer someInteger) {
         //blah
+        logger.info("In some task with integer and string");
     }
 
 }

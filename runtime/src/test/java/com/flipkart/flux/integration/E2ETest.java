@@ -17,8 +17,10 @@ package com.flipkart.flux.integration;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.initializer.OrderedComponentBooter;
 import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,6 +47,9 @@ public class E2ETest {
     @Inject
     SimpleWorkflow simpleWorkflow;
 
+    @Inject
+    OrderedComponentBooter orderedComponentBooter;
+
     @Test
     public void testSimpleWorkflowE2E() throws Exception {
         /* Invocation */
@@ -54,8 +59,9 @@ public class E2ETest {
         final Set<StateMachine> smInDb = stateMachinesDAO.findByNameAndVersion("com.flipkart.flux.integration.SimpleWorkflow_simpleDummyWorkflow_void", 1l);
         final Long smId = smInDb.stream().findFirst().get().getId();
         assertThat(smInDb).hasSize(1);
-        assertThat(eventsDAO.findBySMInstanceId(smId)).containsExactly(/* TODO */);
+        assertThat(eventsDAO.findBySMInstanceId(smId)).hasSize(2);
         /* Capture threads in each task and ensure they are different from this thread */
         /* See if Akka Test suite can be used to verify akka interactions, not needed though */
+        Thread.sleep(5000l);
     }
 }

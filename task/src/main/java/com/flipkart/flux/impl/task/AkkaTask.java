@@ -21,6 +21,7 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.routing.ActorRefRoutee;
 import akka.routing.Router;
+import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.Task;
 import com.flipkart.flux.impl.message.HookAndEvents;
@@ -47,6 +48,9 @@ public class AkkaTask extends UntypedActor {
     /** TaskRegistry instance to look up Task instances from */
 	@Inject
     private static TaskRegistry taskRegistry;
+
+	@Inject
+	private static FluxRuntimeConnector fluxRuntimeConnector;
     
     /** Router instance for the Hook actors*/
     @Inject
@@ -72,7 +76,7 @@ public class AkkaTask extends UntypedActor {
 			if (task != null) {
 				// Execute any pre-exec HookS
 				this.executeHooks(this.taskRegistry.getPreExecHooks(task), taskAndEvent.getEvents());
-				getSender().tell(new TaskExecutor(task, taskAndEvent.getEvents()).execute(), getSelf());
+				getSender().tell(new TaskExecutor(task, taskAndEvent.getEvents(),fluxRuntimeConnector,taskAndEvent.getStateMachineId()).execute(), getSelf());
 				// Execute any post-exec HookS 
 				this.executeHooks(this.taskRegistry.getPostExecHooks(task), taskAndEvent.getEvents());
 			} else {

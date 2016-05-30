@@ -79,4 +79,14 @@ public class LocalContext {
     public StateMachineDefinition getStateMachineDef() {
         return this.stateMachineDefinition.get();
     }
+
+    /**
+     * This is used to determine if the LocalContext had been called before to register a new Workflow (which would
+     * happen as part of Workflow interception). If the current thread has not been called by the <code>WorkflowInterceptor</code>
+     * then it is being called by the client runtime to execute actual user code.
+     * @return
+     */
+    public boolean isWorkflowInterception() {
+        return this.getStateMachineDef() != null;
+    }
 }

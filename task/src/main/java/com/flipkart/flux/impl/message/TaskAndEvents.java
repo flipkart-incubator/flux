@@ -32,10 +32,13 @@ public class TaskAndEvents {
     private String taskIdentifier;
     /* The set of events that have presently unblocked the task and whose data will be utilised during task execution */
     private Event[] events;
+    /* The state machine id for which this execution message is raised */
+    private Long stateMachineId;
 
-    public TaskAndEvents(String taskIdentifier, Event[] events) {
+    public TaskAndEvents(String taskIdentifier, Event[] events, Long stateMachineId) {
         this.taskIdentifier = taskIdentifier;
         this.events = events;
+        this.stateMachineId = stateMachineId;
     }
 
     public String getTaskIdentifier() {
@@ -44,6 +47,10 @@ public class TaskAndEvents {
 
     public Event[] getEvents() {
         return this.events;
+    }
+
+    public Long getStateMachineId() {
+        return stateMachineId;
     }
 
     @Override

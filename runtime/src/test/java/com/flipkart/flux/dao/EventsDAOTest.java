@@ -14,10 +14,13 @@
 package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.EventsDAO;
+import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.impl.TestUtil;
 import com.flipkart.flux.rule.DbClearWithTestSMRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
+import com.flipkart.flux.util.TestUtils;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -25,6 +28,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
+import java.util.Collections;
+import java.util.HashSet;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * <code>EventsDAOTest</code> class tests the functionality of {@link EventsDAO} using JUnit tests.
@@ -41,6 +48,9 @@ public class EventsDAOTest {
     @Rule
     public DbClearWithTestSMRule dbClearWithTestSMRule;
 
+    @Inject
+    StateMachinesDAO stateMachinesDAO;
+
     @Before
     public void setup() {}
 
@@ -53,5 +63,34 @@ public class EventsDAOTest {
 
         Event event1 = eventsDAO.findById(eventId);
         Assert.assertEquals(event, event1);
+    }
+
+    @Test
+    public void testRetrieveByEventNamesAndSmId() throws Exception {
+        final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
+        stateMachinesDAO.create(standardTestMachine);
+        final Event event1 = new Event("event1", "someType", Event.EventStatus.pending, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event1);
+        final Event event3 = new Event("event3", "someType", Event.EventStatus.pending, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event3);
+
+        assertThat(eventsDAO.findByEventNamesAndSMId(new HashSet<String>() {{
+            add("event1");
+            add("event3");
+        }}, standardTestMachine.getId())).containsExactly(event1, event3);
+    }
+
+    @Test
+    public void testRetrieveByEventNamesAndSmId_forEmptyEventNameSet() throws Exception {
+        /* Doesn't matter, but still setting it up */
+        final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
+        stateMachinesDAO.create(standardTestMachine);
+        final Event event1 = new Event("event1", "someType", Event.EventStatus.pending, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event1);
+        final Event event3 = new Event("event3", "someType", Event.EventStatus.pending, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event3);
+
+        /* Actual test */
+        assertThat(eventsDAO.findByEventNamesAndSMId(Collections.<String>emptySet(), standardTestMachine.getId())).isEmpty();
     }
 }

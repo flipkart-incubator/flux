@@ -30,7 +30,6 @@ import javax.inject.Singleton;
  * Lifecycle of this class is managed using polyguice
  * @author yogesh.nachnani
  */
-//TODO the lifecycle will be managed by the polyguice container
 @Singleton
 public class ActorSystemManager implements Disposable, Initializable {
 
@@ -85,5 +84,9 @@ public class ActorSystemManager implements Disposable, Initializable {
         if (system != null) {
             system.shutdown();
         }
+    }
+
+    public boolean isInitialised() {
+        return isInitialised;
     }
 }
