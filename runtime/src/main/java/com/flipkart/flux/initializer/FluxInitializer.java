@@ -21,6 +21,7 @@ import com.flipkart.flux.guice.module.HibernateModule;
 import com.flipkart.flux.impl.boot.TaskModule;
 import com.flipkart.flux.impl.task.registry.EagerInitRouterRegistryImpl;
 import com.flipkart.flux.impl.temp.Work;
+import com.flipkart.flux.loader.ReflectionsHelper;
 import com.flipkart.polyguice.core.support.Polyguice;
 import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
@@ -109,6 +110,8 @@ public class FluxInitializer {
     private void loadFluxRuntimeContainer() {
         logger.debug("loading flux runtime container");
         final ConfigModule configModule = new ConfigModule(configUrl);
+        //Register URLs with Reflections to suppress the warnings
+        ReflectionsHelper.registerUrlTypes();
         fluxRuntimeContainer.modules(configModule, new HibernateModule(), new ContainerModule(), new TaskModule());
         fluxRuntimeContainer.registerConfigurationProvider(configModule.getConfigProvider());
         fluxRuntimeContainer.prepare();
