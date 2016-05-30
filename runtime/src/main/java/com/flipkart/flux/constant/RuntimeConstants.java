@@ -36,6 +36,7 @@ public class RuntimeConstants {
      * Root for dashboard webapp configs.
      */
     public static final String DASHBOARD_VIEW = "dashboard";
+    public static final String FSM_VIEW = "fsmview";
 
     /**
      * Configuration yml resource path.

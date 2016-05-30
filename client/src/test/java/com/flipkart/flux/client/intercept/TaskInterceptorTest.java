@@ -16,6 +16,7 @@ package com.flipkart.flux.client.intercept;
 
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.client.registry.Executable;
+import com.flipkart.flux.client.registry.ExecutableImpl;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.client.runtime.LocalContext;
 import com.flipkart.flux.client.utils.TestUtil;
@@ -30,7 +31,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -85,7 +85,7 @@ public class TaskInterceptorTest {
     @Test
     public void shouldRegisterTaskMethodsWithRegistry() throws Throwable {
         taskInterceptor.invoke(TestUtil.dummyInvocation(simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class), simpleWorkflowForTest));
-        final Executable expectedExecutable = new Executable(simpleWorkflowForTest,simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class), 2000l);
+        final Executable expectedExecutable = new ExecutableImpl(simpleWorkflowForTest,simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class), 2000l);
         verify(executableRegistry,times(1)).registerTask("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_java.lang.String",expectedExecutable);
     }
 }

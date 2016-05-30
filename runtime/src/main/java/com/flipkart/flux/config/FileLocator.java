@@ -62,7 +62,6 @@ public class FileLocator {
 	/**
 	 * Finds the unique instance of config file with name as the specified string.
 	 * @param fileName name of the file
-	 * @param  narrow search to specific path within project root.
 	 * @return the unique file occurrence
 	 * @throws ConfigurationException in case multiple files are found with the specified name
 	 */

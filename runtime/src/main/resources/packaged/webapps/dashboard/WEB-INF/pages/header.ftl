@@ -47,7 +47,7 @@
 			<div id="primary-left">
 				<ul>
 					<li><a href="/admin/dashboard">Dashboard</a></li>
-					<li><a href="/admin/configuration">Configuration</a></li>
+					<li><a href="/admin/fsmview">FSM Visualization</a></li>
 				</ul>
 			</div>
 		</div>

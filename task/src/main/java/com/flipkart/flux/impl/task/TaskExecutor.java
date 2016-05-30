@@ -54,6 +54,7 @@ public class TaskExecutor extends HystrixCommand<Event> {
                 		.withExecutionIsolationStrategy(ExecutionIsolationStrategy.THREAD)
                 		.withExecutionTimeoutInMilliseconds(task.getExecutionTimeout())));
 		this.task = task;
+		this.events = events;
 	}
 	
 	/**

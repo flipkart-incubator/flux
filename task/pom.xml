@@ -138,6 +138,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-testkit_2.11</artifactId>
+            <version>2.4.6</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.flipkart.polyguice</groupId>
             <artifactId>polyguice-core</artifactId>
             <version>${polyguice.version}</version>

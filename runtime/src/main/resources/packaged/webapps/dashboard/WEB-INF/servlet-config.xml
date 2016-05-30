@@ -35,6 +35,8 @@ http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 	<mvc:resources location="WEB-INF/hystrix-dashboard/" mapping="dashboard/**" /> <!-- Hystrix dashboard -->
  	<mvc:resources location="WEB-INF/hystrix-dashboard/" mapping="hystrix-dashboard/**" /> <!--  Hystrix dashboard -->
 	<mvc:resources location="WEB-INF/hystrix-dashboard/components/" mapping="components/**" /> <!--Hystrix dashboard  -->
+	<mvc:resources location="WEB-INF/fsm-dashboard/" mapping="fsm-dashboard/**" /> <!-- FSM dashboard -->
+	<mvc:resources location="WEB-INF/fsm-dashboard/" mapping="fsmview/**" /> <!-- FSM dashboard -->
 	<mvc:resources mapping="/favicon.ico" location="/WEB-INF/pages/resources/images/favicon.ico" />
 	<mvc:annotation-driven />
 	

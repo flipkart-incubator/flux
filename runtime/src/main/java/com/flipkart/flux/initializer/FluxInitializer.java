@@ -13,7 +13,17 @@
 
 package com.flipkart.flux.initializer;
 
-import akka.actor.ActorRef;
+import static com.flipkart.flux.constant.RuntimeConstants.CONFIGURATION_YML;
+
+import java.net.InetAddress;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.text.MessageFormat;
+
+import org.eclipse.jetty.server.Server;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.flipkart.flux.MigrationUtil.MigrationsRunner;
 import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.flux.guice.module.ContainerModule;
@@ -22,31 +32,60 @@ import com.flipkart.flux.impl.boot.TaskModule;
 import com.flipkart.flux.impl.task.registry.EagerInitRouterRegistryImpl;
 import com.flipkart.flux.impl.temp.Work;
 import com.flipkart.polyguice.core.support.Polyguice;
-import org.eclipse.jetty.server.Server;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.net.URL;
-
-import static com.flipkart.flux.constant.RuntimeConstants.CONFIGURATION_YML;
+import akka.actor.ActorRef;
 
 /**
- * <code>FluxInitializer</code> is the initializer class which starts jetty server and loads polyguice container.
+ * <code>FluxInitializer</code> initializes the Flux runtime using the various Guice modules via Polyguice
  * @author shyam.akirala
+ * @author regunath.balasubramanian
  */
 public class FluxInitializer {
 
+	/** Logger for this class */
     private static final Logger logger = LoggerFactory.getLogger(FluxInitializer.class);
-
+	
+	/** The machine name where this Flux instance is running */
+	private String hostName;
+	
+	/** The Flux startup display contents*/
+	private static final MessageFormat STARTUP_DISPLAY = new MessageFormat( 
+		    "\n*************************************************************************\n" +
+		    " Flux             ___\n" +
+		    "          ___    /   \\\n" +
+		    "         /   \\__| ( ) |" + "     Startup Time : {0}" + " ms\n" +  
+		    "   ___  | ( ) |  \\___/" + "      Host Name: {1} \n " + 
+		    " /   \\/ \\___/    \\\n" +
+		    " | ( ) |   \\___    \\ ___\n" +
+		    "  \\___/    /   \\    /   \\\n" +
+		    "          | ( ) |__| ( ) |\n" +
+		    "           \\___/    \\___/\n" +	
+		    "*************************************************************************"
+	);	
+	
+	/** The Polyguice DI container */
     private Polyguice fluxRuntimeContainer;
+    
+    /** THe URL for configuring Polyguice*/
     private final URL configUrl;
 
+    /**
+     * Constructor for this class
+     * @param config the Config resource for initializing Flux
+     */
     public FluxInitializer(String config) {
-        configUrl = this.getClass().getClassLoader().getResource(config);
+    	try {
+    		this.hostName = InetAddress.getLocalHost().getHostName();
+    	} catch (UnknownHostException e) {
+    		//ignore the exception, not critical information
+    	}        
+    	configUrl = this.getClass().getClassLoader().getResource(config);
         this.fluxRuntimeContainer = new Polyguice();
     }
 
-
+    /**
+     * Startup entry method 
+     */
     public static void main(String[] args) throws Exception {
         String command = "start";
         String config  = CONFIGURATION_YML;
@@ -77,6 +116,8 @@ public class FluxInitializer {
     }
 
     private void start() throws Exception {
+    	logger.info("** Flux starting up... **");
+    	long start = System.currentTimeMillis();
         //load flux runtime container
         loadFluxRuntimeContainer();
         /*
@@ -94,8 +135,29 @@ public class FluxInitializer {
         final Server dashboardJettyServer = fluxRuntimeContainer.getComponentContext().getInstance("DashboardJettyServer", Server.class);
         dashboardJettyServer.start();
         logger.debug("Dashboard server has started. Say Hello!");
+
+        final Object[] displayArgs = {
+				(System.currentTimeMillis() - start),
+				this.hostName,
+        };
+		logger.info(STARTUP_DISPLAY.format(displayArgs));
+		logger.info("** Flux startup complete **");
+        
         // TODO - remove this call
         testOut();
+    }
+
+    /** Helper method to initialize the Akka runtime*/
+    private void initialiseAkkaRuntime(Polyguice polyguice) throws InterruptedException {
+        // This basically "inits" the system. Will be handled by PolyTrooper
+        final EagerInitRouterRegistryImpl routerRegistry = polyguice.getComponentContext().getInstance(EagerInitRouterRegistryImpl.class);
+    }
+
+    /** Helper method to perform migrations*/
+    private void migrate() {
+        loadFluxRuntimeContainer();
+        MigrationsRunner migrationsRunner = fluxRuntimeContainer.getComponentContext().getInstance(MigrationsRunner.class);
+        migrationsRunner.migrate();
     }
 
     // TODO (Temporary) - For Mr Regunath to play with :)
@@ -104,19 +166,9 @@ public class FluxInitializer {
         routerRegistry.getRouter("someRouter").tell("Message for some router", ActorRef.noSender());
         routerRegistry.getRouter("someRouterWithoutConfig").tell("Message for some router with no config", ActorRef.noSender());
         Thread.sleep(1000l);
-        for (int i = 0 ; i < 10000 ; i++) {
+        for (int i = 0 ; i < 10 ; i++) {
             routerRegistry.getRouter("someRouter").tell(new Work(),ActorRef.noSender());
         }
     }
 
-    private void initialiseAkkaRuntime(Polyguice polyguice) throws InterruptedException {
-        // This basically "inits" the system. Will be handled by PolyTrooper
-        final EagerInitRouterRegistryImpl routerRegistry = polyguice.getComponentContext().getInstance(EagerInitRouterRegistryImpl.class);
-    }
-
-    private void migrate() {
-        loadFluxRuntimeContainer();
-        MigrationsRunner migrationsRunner = fluxRuntimeContainer.getComponentContext().getInstance(MigrationsRunner.class);
-        migrationsRunner.migrate();
-    }
 }
