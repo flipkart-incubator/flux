@@ -483,3 +483,35 @@ tr.dep > td {
   background-color: #d4ffaa;
   width: 33%;
 }
+.Table
+{
+    display: table;
+}
+.Title
+{
+    display: table-caption;
+    text-align: center;
+    font-weight: bold;
+    font-size: larger;
+}
+.Heading
+{
+    display: table-row;
+    font-weight: bold;
+    text-align: center;
+}
+.Row
+{
+    display: table-row;
+}
+.Cell
+{
+    display: table-cell;
+    padding-left: 5px;
+    padding-right: 10px;
+    vertical-align: middle;
+    font-size: medium;
+}
+a.on-hover-white:hover {
+    color: white;
+}

@@ -30,20 +30,20 @@
 
 <body class="main">
 	<div id="page">
-		<div id="header">
-            <div id='site-logo'>
-                <img src="resources/images/flux.png" alt="Flux" height="70" width="75"/>
-            </div>
-            <div id="primary-navigation">
-                <div id="primary-left">
-                    <ul>
-                        <li><a href="/admin/dashboard">Dashboard</a></li>
-                        <li><a href="/admin/fsmview">FSM Visualization</a></li>
-                    </ul>
+		<div id="header" class="Table">
+            <div class="Row">
+                <div class="Cell" style="width: 70px;">
+                    <img src="resources/images/flux.png" alt="Flux" height="70" width="75"/>
+                </div>
+                <div class="Cell">
+                    <div class="Row">
+                        <div class="Cell"><a class="on-hover-white" href="/admin/dashboard" style="text-decoration: none">Dashboard</a></div>
+                        <div class="Cell"><a class="on-hover-white" href="/admin/fsmview" style="text-decoration: none;">FSM Visualization</a></div>
+                    </div>
                 </div>
             </div>
         </div>
-		<!-- /primary-navigation -->
+		<!-- /header table -->
 		<div id="container">
 			<div id="content" class="no-side-nav">
 				<div id="body">
