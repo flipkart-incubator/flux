@@ -20,8 +20,8 @@
 		    var graph = new joint.dia.Graph;
 		    var paper = new joint.dia.Paper({
 		        el: $('#paper-holder'),
-		        width: 3000,
-		        height: 1500,
+		        width: 6000,
+		        height: 4000,
 		        gridSize: 1,
 		        model: graph
 		    });
@@ -94,7 +94,7 @@
 		        graph.resetCells(cells);
 		        joint.layout.DirectedGraph.layout(graph, {
 		        	nodeSep: 100,
-		            edgeSep: 100,		        	
+		            edgeSep: 20,		        	
 		            rankDir: "LR"
 		        });
 		    }
