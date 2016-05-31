@@ -11,15 +11,15 @@ Hibernate:
 
 Dashboard:
   service.port: 9999
-  service.acceptors: 3
-  service.selectors: 6
-  service.workers: 12
+  service.acceptors: 5
+  service.selectors: 10
+  service.workers: 25
 
 Api:
   service.port: 9998
-  service.acceptors: 3
-  service.selectors: 6
-  service.workers: 12
+  service.acceptors: 5
+  service.selectors: 10
+  service.workers: 25
   service.baseURL: "http://localhost"
 
 routers:

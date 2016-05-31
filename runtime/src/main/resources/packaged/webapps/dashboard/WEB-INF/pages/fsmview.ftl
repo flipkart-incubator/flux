@@ -12,14 +12,14 @@
 	<script type="text/javascript" src="/admin/fsm-dashboard/js/dagre.core.js"></script>
 	<script type="text/javascript" src="/admin/fsm-dashboard/js/joint.layout.DirectedGraph.js"></script>
 
-	<div class="paper" id="paper-holder"></div>
+	<div class="paper" id="fsmcanvas" style="width: 1300px; height: 600px; overflow: scroll;"></div>
 	
 		<script type="text/javascript">
 		(function() {
 
 		    var graph = new joint.dia.Graph;
 		    var paper = new joint.dia.Paper({
-		        el: $('#paper-holder'),
+		        el: $('#fsmcanvas'),
 		        width: 6000,
 		        height: 4000,
 		        gridSize: 1,
