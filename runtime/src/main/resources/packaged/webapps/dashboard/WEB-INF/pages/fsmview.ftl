@@ -15,13 +15,10 @@
 	<script type="text/javascript" src="/admin/fsm-dashboard/js/dagre.core.js"></script>
 	<script type="text/javascript" src="/admin/fsm-dashboard/js/joint.layout.DirectedGraph.js"></script>
 
-	<!-- Keep this Div containment structure for correct layouting, consistent with the Hystrix dashboard -->
-	<div class="container">
-		<div>
-			<div class="paper" id="fsmcanvas" style="width: 1300px; height: 600px; overflow: scroll;"></div>
-		</div>
-	</div>
-	
+    <div>
+	    <div class="paper" id="fsmcanvas" style="width: 1300px; height: 600px; overflow: scroll;"></div>
+    </div>
+
 	<script type="text/javascript">
 		(function() {
 
