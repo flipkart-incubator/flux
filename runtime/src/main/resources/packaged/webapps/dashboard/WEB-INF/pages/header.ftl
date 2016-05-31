@@ -32,13 +32,13 @@
 	<div id="page">
 		<div id="header" class="Table">
             <div class="Row">
-                <div class="Cell" style="width: 70px;">
-                    <img src="resources/images/flux.png" alt="Flux" height="70" width="75"/>
+                <div class="Cell" style="width: 60px;">
+                    <img src="resources/images/flux.png" alt="Flux" height="50" width="55"/>
                 </div>
                 <div class="Cell">
                     <div class="Row">
-                        <div class="Cell"><a class="on-hover-white" href="/admin/dashboard" style="text-decoration: none">Dashboard</a></div>
-                        <div class="Cell"><a class="on-hover-white" href="/admin/fsmview" style="text-decoration: none;">FSM Visualization</a></div>
+                        <div class="Cell"><a href="/admin/dashboard" style="text-decoration: none; color: white;"">Dashboard</a></div>
+                        <div class="Cell"><a href="/admin/fsmview" style="text-decoration: none; color: white;"">FSM Visualization</a></div>
                     </div>
                 </div>
             </div>
