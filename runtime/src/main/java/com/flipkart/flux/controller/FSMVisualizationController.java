@@ -37,14 +37,14 @@ public class FSMVisualizationController {
 
     private static final Logger logger = LoggerFactory.getLogger(FSMVisualizationController.class);
 
-    /**
-     * Constructs and returns fsm data to display based on fsm id.
-     */
     @RequestMapping(value = {"/fsmviewmenu"}, method = RequestMethod.GET)
     public String fsmviewmenu(HttpServletRequest request) {
         return "fsmviewmenu";
     }
 
+    /**
+     * Constructs and returns fsm data to display based on fsm id.
+     */
     @RequestMapping(value = {"/fsmview/{fsmId}"}, method = RequestMethod.GET)
     public String getFSMViewData(ModelMap model, HttpServletRequest request, @PathVariable("fsmId") long fsmId) {
 
