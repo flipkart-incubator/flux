@@ -18,8 +18,5 @@
         <Logger name="com.flipkart.polyguice.*" level="info" additivity="false">
             <AppenderRef ref="console-log"/>
         </Logger>
-        <Logger name="org.reflections.Reflections" level="error" additivity="false" >
-            <AppenderRef ref="console-log"/>
-        </Logger>        
     </Loggers>
 </Configuration>
