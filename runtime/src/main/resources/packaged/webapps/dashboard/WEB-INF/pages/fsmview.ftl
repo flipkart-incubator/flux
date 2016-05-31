@@ -3,6 +3,9 @@
 	<!-- The JoinJS CSS -->
 	<link rel="stylesheet" type="text/css" href="/admin/fsm-dashboard/css/joint.css" />
 	
+	<!-- Keeping the Hystrix global stylesheet for some useful CSS types -->
+	<link rel="stylesheet" type="text/css" href="/admin/hystrix-dashboard/css/global.css" />
+	
 	<!-- JointJS and Diagre JS files and their dependencies -->
 	<script type="text/javascript" src="/admin/fsm-dashboard/js/jquery.min.js"></script>
 	<script type="text/javascript" src="/admin/fsm-dashboard/js/lodash.min.js"></script>
@@ -12,9 +15,14 @@
 	<script type="text/javascript" src="/admin/fsm-dashboard/js/dagre.core.js"></script>
 	<script type="text/javascript" src="/admin/fsm-dashboard/js/joint.layout.DirectedGraph.js"></script>
 
-	<div class="paper" id="fsmcanvas" style="width: 1300px; height: 600px; overflow: scroll;"></div>
+	<!-- Keep this Div containment structure for correct layouting, consistent with the Hystrix dashboard -->
+	<div class="container">
+		<div>
+			<div class="paper" id="fsmcanvas" style="width: 1300px; height: 600px; overflow: scroll;"></div>
+		</div>
+	</div>
 	
-		<script type="text/javascript">
+	<script type="text/javascript">
 		(function() {
 
 		    var graph = new joint.dia.Graph;
