@@ -3,6 +3,9 @@
 	<!-- The JoinJS CSS -->
 	<link rel="stylesheet" type="text/css" href="/admin/fsm-dashboard/css/joint.css" />
 	
+	<!-- Keeping the Hystrix global stylesheet for some useful CSS types -->
+	<link rel="stylesheet" type="text/css" href="/admin/hystrix-dashboard/css/global.css" />
+	
 	<!-- JointJS and Diagre JS files and their dependencies -->
 	<script type="text/javascript" src="/admin/fsm-dashboard/js/jquery.min.js"></script>
 	<script type="text/javascript" src="/admin/fsm-dashboard/js/lodash.min.js"></script>
@@ -12,16 +15,18 @@
 	<script type="text/javascript" src="/admin/fsm-dashboard/js/dagre.core.js"></script>
 	<script type="text/javascript" src="/admin/fsm-dashboard/js/joint.layout.DirectedGraph.js"></script>
 
-	<div class="paper" id="paper-holder"></div>
-	
-		<script type="text/javascript">
+    <div>
+	    <div class="paper" id="fsmcanvas" style="width: 1300px; height: 600px; overflow: scroll;"></div>
+    </div>
+
+	<script type="text/javascript">
 		(function() {
 
 		    var graph = new joint.dia.Graph;
 		    var paper = new joint.dia.Paper({
-		        el: $('#paper-holder'),
-		        width: 1200,
-		        height: 580,
+		        el: $('#fsmcanvas'),
+		        width: 6000,
+		        height: 4000,
 		        gridSize: 1,
 		        model: graph
 		    });
@@ -94,7 +99,7 @@
 		        graph.resetCells(cells);
 		        joint.layout.DirectedGraph.layout(graph, {
 		        	nodeSep: 100,
-		            edgeSep: 100,		        	
+		            edgeSep: 20,		        	
 		            rankDir: "LR"
 		        });
 		    }

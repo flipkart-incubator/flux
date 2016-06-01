@@ -15,14 +15,17 @@
  */
 package com.flipkart.flux.controller;
 
-import static com.flipkart.flux.constant.RuntimeConstants.FSM_VIEW;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import static com.flipkart.flux.constant.RuntimeConstants.FSM_VIEW;
 
 /**
  * <code>FSMVisualizationController</code> is a Spring MVC Controller for FSM visualization
@@ -32,11 +35,22 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Controller
 public class FSMVisualizationController {
 
+    private static final Logger logger = LoggerFactory.getLogger(FSMVisualizationController.class);
+
+    @RequestMapping(value = {"/fsmviewmenu"}, method = RequestMethod.GET)
+    public String fsmviewmenu(HttpServletRequest request) {
+        return "fsmviewmenu";
+    }
+
     /**
-     * FSM visualization page
+     * Constructs and returns fsm data to display based on fsm id.
      */
-    @RequestMapping(value = {"/fsmview"}, method = RequestMethod.GET)
-    public String getFSMViewData(ModelMap model, HttpServletRequest request) {
+    @RequestMapping(value = {"/fsmview/{fsmId}"}, method = RequestMethod.GET)
+    public String getFSMViewData(ModelMap model, HttpServletRequest request, @PathVariable("fsmId") long fsmId) {
+
+        //TODO: REMOVE LOG
+        logger.info("Constructing model data for fsmId: "+fsmId);
+
     	// TODO : Get this data from the Flux API
     	model.addAttribute("adjacencyList", "{" +
 				"'Order created': ['Payment Received:Payment Pending', 'Order Packed:Order Confirmed']," +
@@ -46,7 +60,6 @@ public class FSMVisualizationController {
 				"'Order Delivered': []"+
     			"}");
     	return FSM_VIEW;
-
     }
-    
+
 }

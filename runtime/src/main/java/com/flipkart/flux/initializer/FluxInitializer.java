@@ -47,20 +47,21 @@ public class FluxInitializer {
 	private String hostName;
 	
 	/** The Flux startup display contents*/
-	private static final MessageFormat STARTUP_DISPLAY = new MessageFormat( 
-		    "\n*************************************************************************\n" +
-		    " Flux             ___\n" +
-		    "          ___    /   \\\n" +
-		    "         /   \\__| ( ) |" + "     Startup Time : {0}" + " ms\n" +  
-		    "   ___  | ( ) |  \\___/" + "      Host Name: {1} \n " + 
-		    " /   \\/ \\___/    \\\n" +
-		    " | ( ) |   \\___    \\ ___\n" +
-		    "  \\___/    /   \\    /   \\\n" +
-		    "          | ( ) |__| ( ) |\n" +
-		    "           \\___/    \\___/\n" +	
-		    "*************************************************************************"
-	);	
-	
+	private static final MessageFormat STARTUP_DISPLAY = new MessageFormat(
+            "\n*************************************************************************\n" +
+                    " Flux             ___          \n" +
+                    "          ___    /   \\        \n" +
+                    "         /   \\__| ( ) |       " + "     Startup Time : {0}" + " ms\n" +
+                    "   ___  | ( ) |  \\___/        " + "     Host Name: {1} \n " +
+                    " /   \\/ \\___/     \\___         \n" +
+                    " | ( ) |   \\___    /   \\   \n" +
+                    "  \\___/    /   \\__| ( ) |      \n" +
+                    "          | ( ) |  \\___/     \n" +
+                    "           \\___/        \n" +
+                    "*************************************************************************"
+    );
+
+
 	/** The Polyguice DI container */
     private Polyguice fluxRuntimeContainer;
     
@@ -108,6 +109,7 @@ public class FluxInitializer {
     private void loadFluxRuntimeContainer() {
         logger.debug("loading flux runtime container");
         final ConfigModule configModule = new ConfigModule(configUrl);
+        fluxRuntimeContainer.scanPackage("com.flipkart.flux");
         fluxRuntimeContainer.modules(configModule, new HibernateModule(), new ContainerModule(), new TaskModule());
         fluxRuntimeContainer.registerConfigurationProvider(configModule.getConfigProvider());
         fluxRuntimeContainer.prepare();
