@@ -17,18 +17,24 @@
 
     <div class="Table">
         <div class="Row">
-            <div class="Cell">
-                <label> Enter FSM Id </label>
+            <div class="Cell" style="margin-left: -5px; width: 110px; float: left;">
+                <label class="label"> Enter FSM Id </label>
             </div>
             <div class="Cell">
-                <input type="text" placeholder="FSM Id" id="fsm-id"/>
+                <input class="form-control" type="text" placeholder="FSM Id" id="fsm-id"/>
             </div>
-            <div class="Cell"><button onclick="getFSMData()">Get fsm visual</button></div>
+            <div class="Cell"><button class="btn btn-sm btn-primary" onclick="getFSMData()">Get fsm visual</button></div>
         </div>
     </div>
-
     <div>
-        <div class="paper" id="fsmcanvas" style="width: 1300px; height: 600px; overflow: scroll;"></div>
+        &nbsp;
+    </div>
+
+    <div id="graph-div">
+        <div>
+            <label class="label" style="width: 100px; font-size: 11px;">FSM visual</label>
+        </div>
+        <div class="paper" id="fsmcanvas" style="width: 1300px; height: 600px; overflow: auto;"></div>
     </div>
 
     <script type="text/javascript">
@@ -122,6 +128,7 @@
                 success: function(data, status, jqXHR) {
                     var json = JSON.parse(data);
                     if(json != null && Object.keys(json).length > 0) {
+                        document.getElementById("graph-div").style.display = 'block';
                         layout(json);
                     } else {
                         alert("State machine with Id: "+document.getElementById("fsm-id").value+" not found.")
@@ -132,6 +139,8 @@
                 }
             });
         }
+
+        document.getElementById("graph-div").style.display = 'none';
 
     </script>
 
