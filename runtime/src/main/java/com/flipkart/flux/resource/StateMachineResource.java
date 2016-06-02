@@ -13,10 +13,14 @@
 
 package com.flipkart.flux.resource;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
+import com.flipkart.flux.dao.iface.EventsDAO;
+import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.representation.IllegalRepresentationException;
@@ -31,7 +35,7 @@ import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -48,6 +52,12 @@ public class StateMachineResource {
 
     @Inject
     WorkFlowExecutionController workFlowExecutionController;
+
+    @Inject
+    StateMachinesDAO stateMachinesDAO;
+
+    @Inject
+    EventsDAO eventsDAO;
 
     private static final Logger logger = LoggerFactory.getLogger(StateMachineResource.class);
 
@@ -103,4 +113,65 @@ public class StateMachineResource {
     public void cancelExecution(@PathParam("machineId") Long machineId) {
         // Trigger cancellation on all currently executing states
     }
+
+    /**
+     * Provides json data to build fsm status graph.
+     * @param machineId
+     * @return json representation of fsm
+     * @throws JsonProcessingException
+     */
+    @GET
+    @Path("/{machineId}/fsmdata")
+    public Response getFsmGraphData(@PathParam("machineId") Long machineId) throws JsonProcessingException {
+        return Response.status(200).entity(getGraphData(machineId))
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT")
+                .header("Access-Control-Allow-Credentials", "true")
+                .header("Access-Control-Allow-Headers", "Content-Type, Accept")
+                .build();
+    }
+
+    /**
+     * Provides json data to build fsm status graph.
+     */
+    private String getGraphData(Long fsmId) throws JsonProcessingException {
+        StateMachine stateMachine = stateMachinesDAO.findById(fsmId);
+
+        if(stateMachine != null) {
+            Map<String, Set<State>> stateToEventDependencyGraph = new HashMap<>();
+            for (State state : stateMachine.getStates()) {
+                if (state.getDependencies() != null) {
+                    for (String eventName : state.getDependencies()) {
+                        if (!stateToEventDependencyGraph.containsKey(eventName))
+                            stateToEventDependencyGraph.put(eventName, new HashSet<State>());
+                        stateToEventDependencyGraph.get(eventName).add(state);
+                    }
+                } else {
+                    if (!stateToEventDependencyGraph.containsKey(null))
+                        stateToEventDependencyGraph.put(null, new HashSet<State>());
+                    stateToEventDependencyGraph.get(null).add(state);
+                }
+            }
+
+            Set<Event> triggeredEvents = new HashSet<>(eventsDAO.findTriggeredEventsBySMId(fsmId));
+
+            Map<String, List<String>> fsmDataMap = new HashMap<>();
+            for (Event event : triggeredEvents) {
+                Set<State> states = stateToEventDependencyGraph.get(event.getName());
+                for (State state : states) {
+                    if (fsmDataMap.get(event.getEventSource()) == null)
+                        fsmDataMap.put(event.getEventSource(), new ArrayList<>());
+                    if (fsmDataMap.get(state.getName()) == null)
+                        fsmDataMap.put(state.getName(), new ArrayList<>());
+                    List<String> stateData = fsmDataMap.get(event.getEventSource());
+                    stateData.add( state.getName() + ":" + (event.getName()));
+                }
+            }
+
+            return new ObjectMapper().writeValueAsString(fsmDataMap);
+        } else {
+            return "{}";
+        }
+    }
+
 }
