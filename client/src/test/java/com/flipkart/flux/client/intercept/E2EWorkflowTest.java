@@ -14,6 +14,8 @@
 
 package com.flipkart.flux.client.intercept;
 
+import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.IntegerEvent;
+import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEvent;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.client.runner.GuiceJunit4Runner;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
@@ -61,15 +63,15 @@ public class E2EWorkflowTest {
 
     @Test
     public void test_e2eSubmissionOfAWorkflow() throws Exception {
-        simpleWorkflowForTest.simpleDummyWorkflow("String one",2);
+        simpleWorkflowForTest.simpleDummyWorkflow(new StringEvent("String one"),new IntegerEvent(2));
         /* verify submission to flux runtime */
         dummyFluxRuntimeResource.assertStateMachineReceived(simpleWorkflowForTest.getEquivalentStateMachineDefintion(), 1);
         /* verify registration in executable registry */
         final Map<String,Method> identifierToMethodMap = (Map<String, Method>) ReflectionTestUtils.getField(executableRegistry, "identifierToMethodMap");
         assertThat(identifierToMethodMap.keySet()).containsOnly(
-            "com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_java.lang.String",
-            "com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleAdditionTask_java.lang.Integer_java.lang.Integer",
-            "com.flipkart.flux.client.intercept.SimpleWorkflowForTest_someTaskWithIntegerAndString_void_java.lang.String_java.lang.Integer"
+            new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleStringModifyingTask", StringEvent.class)).toString(),
+            new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("someTaskWithIntegerAndString", StringEvent.class, IntegerEvent.class)).toString(),
+            new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleAdditionTask", IntegerEvent.class)).toString()
         );
     }
 }

@@ -15,6 +15,7 @@
 package com.flipkart.flux.client.intercept;
 
 import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.client.model.Event;
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.registry.ExecutableImpl;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
@@ -51,6 +52,7 @@ public class TaskInterceptor implements MethodInterceptor {
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
+        checkForBadSignatures(invocation);
         if (!localContext.isWorkflowInterception()) {
             return invocation.proceed();
         }
@@ -60,6 +62,17 @@ public class TaskInterceptor implements MethodInterceptor {
         localContext.registerNewState(taskAnnotation.version(), generateStateIdentifier(method) ,null,null, taskIdentifier,taskAnnotation.retries(),taskAnnotation.timeout(),generateEventDefs(method));
         executableRegistry.registerTask(taskIdentifier,new ExecutableImpl(invocation.getThis(),invocation.getMethod(), taskAnnotation.timeout()));
         return null;
+    }
+
+    private void checkForBadSignatures(MethodInvocation invocation) {
+        final Method method = invocation.getMethod();
+        final Class<?>[] parameterTypes = method.getParameterTypes();
+        for (Class<?> parameterType : parameterTypes) {
+            if (!Event.class.isAssignableFrom(parameterType)) {
+                throw new IllegalSignatureException(new MethodId(method),"Task parameters need to implement the com.flipkart.flux.client.model.Event interface. Found parameter of type"+parameterType + " which does not");
+            }
+        }
+
     }
 
     private Set<EventDefinition> generateEventDefs(Method method) {

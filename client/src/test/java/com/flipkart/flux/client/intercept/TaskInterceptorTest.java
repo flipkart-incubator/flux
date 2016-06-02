@@ -15,6 +15,8 @@
 package com.flipkart.flux.client.intercept;
 
 import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.IntegerEvent;
+import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEvent;
 import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.client.registry.ExecutableImpl;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
@@ -31,6 +33,7 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -58,26 +61,28 @@ public class TaskInterceptorTest {
 
     @Test
     public void testInterception_shouldSubmitNewState_methodWithOneParam() throws Throwable {
-        taskInterceptor.invoke(TestUtil.dummyInvocation(simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class)));
+        final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", StringEvent.class);
+        taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod));
 
         final Set<EventDefinition> expectedEventDef =
-            Collections.singleton(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_arg0","")); //TODO: CHANGE IT
+            Collections.singleton(new EventDefinition(new MethodId(invokedMethod).getPrefix() + "_com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEvent_arg0","")); //TODO: CHANGE IT
         verify(localContext, times(1)).
             registerNewState(2l, "simpleStringModifyingTask", null, null,
-                "com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_java.lang.String", 2l, 2000l, expectedEventDef);
+                new MethodId(invokedMethod).toString(), 2l, 2000l, expectedEventDef);
 
     }
 
     @Test
     public void testInterception_shouldSubmitNewState_methodWithTwoParam() throws Throwable {
-        taskInterceptor.invoke(TestUtil.dummyInvocation(simpleWorkflowForTest.getClass().getDeclaredMethod("someTaskWithIntegerAndString", String.class,Integer.class)));
+        final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("someTaskWithIntegerAndString", StringEvent.class, IntegerEvent.class);
+        taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod));
         /* Third task intercepted */
         final Set<EventDefinition> expectedEventDefs = new HashSet<>();
-        expectedEventDefs.add(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_someTaskWithIntegerAndString_java.lang.String_arg0","")); //TODO: CHANGE IT
-        expectedEventDefs.add(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_someTaskWithIntegerAndString_java.lang.Integer_arg1","")); //TODO: CHANGE IT
+        expectedEventDefs.add(new EventDefinition(new MethodId(invokedMethod).getPrefix() + "_com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEvent_arg0","")); //TODO: CHANGE IT
+        expectedEventDefs.add(new EventDefinition(new MethodId(invokedMethod).getPrefix() + "_com.flipkart.flux.client.intercept.SimpleWorkflowForTest.IntegerEvent_arg1","")); //TODO: CHANGE IT
         verify(localContext, times(1)).
             registerNewState(3l, "someTaskWithIntegerAndString", null, null,
-                "com.flipkart.flux.client.intercept.SimpleWorkflowForTest_someTaskWithIntegerAndString_void_java.lang.String_java.lang.Integer", 0l, 1000l, expectedEventDefs);
+                 new MethodId(invokedMethod).toString(), 0l, 1000l, expectedEventDefs);
 
     }
 
@@ -89,19 +94,26 @@ public class TaskInterceptorTest {
 
     @Test
     public void shouldRegisterTaskMethodsWithRegistry() throws Throwable {
-        taskInterceptor.invoke(TestUtil.dummyInvocation(simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class), simpleWorkflowForTest));
-        final Executable expectedExecutable = new ExecutableImpl(simpleWorkflowForTest,simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class), 2000l);
-        verify(executableRegistry,times(1)).registerTask("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_java.lang.String",expectedExecutable);
+        final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", StringEvent.class);
+        taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod, simpleWorkflowForTest));
+        final Executable expectedExecutable = new ExecutableImpl(simpleWorkflowForTest, invokedMethod, 2000l);
+        verify(executableRegistry,times(1)).registerTask(new MethodId(invokedMethod).toString(),expectedExecutable);
     }
 
     @Test
     public void shouldPassThroughIfItsNotPartOfWorkflowInterception() throws Throwable {
         when(localContext.isWorkflowInterception()).thenReturn(false);
-        final MethodInvocation dummyInvocation = TestUtil.dummyInvocation(simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", String.class), simpleWorkflowForTest);
+        final MethodInvocation dummyInvocation = TestUtil.dummyInvocation(simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", StringEvent.class), simpleWorkflowForTest);
         taskInterceptor.invoke(dummyInvocation);
         verify(localContext,times(1)).isWorkflowInterception();
         verifyNoMoreInteractions(localContext);
         verifyZeroInteractions(executableRegistry);
         assertThat(((MutableInt) ReflectionTestUtils.getField(dummyInvocation, "numProceedInvoctions")).getValue()).isEqualTo(1);
+    }
+
+    @Test(expected = IllegalSignatureException.class)
+    public void testTaskInterception_BarkIfParametersDontExtendEvent() throws Throwable {
+        final MethodInvocation dummyInvocation = TestUtil.dummyInvocation(simpleWorkflowForTest.getClass().getDeclaredMethod("badWorkflowWithNonEventParams", String.class), simpleWorkflowForTest);
+        taskInterceptor.invoke(dummyInvocation);
     }
 }
