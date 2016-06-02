@@ -26,15 +26,15 @@
             <div class="Cell"><button class="btn btn-sm btn-primary" onclick="getFSMData()">Get fsm visual</button></div>
         </div>
     </div>
-    <div>
-        &nbsp;
-    </div>
-
+    <div>&nbsp;</div>
+    <div>&nbsp;</div>
+    <div id="alert-msg" class="alert alert-danger fade in" style="margin-left: 130px;"></div>
+    <div>&nbsp;</div>
     <div id="graph-div">
         <div>
             <label class="label" style="width: 100px; font-size: 11px;">FSM visual</label>
         </div>
-        <div class="paper" id="fsmcanvas" style="width: 1300px; height: 600px; overflow: auto;"></div>
+        <div class="paper" id="fsmcanvas" style="width: 1200px; height: 600px; overflow: auto;"></div>
     </div>
 
     <script type="text/javascript">
@@ -129,9 +129,12 @@
                     var json = JSON.parse(data);
                     if(json != null && Object.keys(json).length > 0) {
                         document.getElementById("graph-div").style.display = 'block';
+                        document.getElementById("alert-msg").style.display = 'none';
                         layout(json);
                     } else {
-                        alert("State machine with Id: "+document.getElementById("fsm-id").value+" not found.")
+                        document.getElementById("alert-msg").innerHTML = "State machine with Id: "+document.getElementById("fsm-id").value+" not found.";
+                        document.getElementById("graph-div").style.display = 'none';
+                        document.getElementById("alert-msg").style.display = 'inline';
                     }
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -141,6 +144,7 @@
         }
 
         document.getElementById("graph-div").style.display = 'none';
+        document.getElementById("alert-msg").style.display = 'none';
 
     </script>
 
