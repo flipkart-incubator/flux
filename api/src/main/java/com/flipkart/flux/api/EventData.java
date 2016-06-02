@@ -69,4 +69,36 @@ public class EventData {
         this.eventSource = eventSource;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        EventData eventData = (EventData) o;
+
+        if (!name.equals(eventData.name)) return false;
+        if (!type.equals(eventData.type)) return false;
+        if (data != null ? !data.equals(eventData.data) : eventData.data != null) return false;
+        return eventSource.equals(eventData.eventSource);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + type.hashCode();
+        result = 31 * result + (data != null ? data.hashCode() : 0);
+        result = 31 * result + eventSource.hashCode();
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "EventData{" +
+            "data=" + data +
+            ", name='" + name + '\'' +
+            ", type='" + type + '\'' +
+            ", eventSource='" + eventSource + '\'' +
+            '}';
+    }
 }

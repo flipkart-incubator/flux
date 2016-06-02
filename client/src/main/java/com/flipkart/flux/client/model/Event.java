@@ -14,4 +14,5 @@
 package com.flipkart.flux.client.model;
 
 public interface Event {
+    public String getName();
 }

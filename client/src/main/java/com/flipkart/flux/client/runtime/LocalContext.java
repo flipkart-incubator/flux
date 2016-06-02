@@ -14,11 +14,15 @@
 
 package com.flipkart.flux.client.runtime;
 
+import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.client.model.Event;
+import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Set;
 
 /**
@@ -27,13 +31,17 @@ import java.util.Set;
  */
 public class LocalContext {
     private ThreadLocal<StateMachineDefinition> stateMachineDefinition;
+    private ThreadLocal<MutableInt> tlUniqueEventCount;
+    private ThreadLocal<IdentityHashMap<Event,String>> eventNames;
 
     public LocalContext() {
-        this(new ThreadLocal<>());
+        this(new ThreadLocal<>(), new ThreadLocal<>(), new ThreadLocal<>());
     }
 
-    LocalContext(ThreadLocal<StateMachineDefinition> stateMachineDefinition) {
+    LocalContext(ThreadLocal<StateMachineDefinition> stateMachineDefinition, ThreadLocal<MutableInt> tlUniqueEventCount, ThreadLocal<IdentityHashMap<Event, String>> eventNames) {
         this.stateMachineDefinition = stateMachineDefinition;
+        this.tlUniqueEventCount = tlUniqueEventCount;
+        this.eventNames = eventNames;
     }
 
     /**
@@ -48,7 +56,9 @@ public class LocalContext {
             /* This ensures we don't compose workflows within workflows */
             throw new IllegalStateException("A single thread cannot execute more than one workflow");
         }
-        stateMachineDefinition.set(new StateMachineDefinition(description,methodIdentifier, version, new HashSet<StateDefinition>()));
+        stateMachineDefinition.set(new StateMachineDefinition(description,methodIdentifier, version, new HashSet<>()));
+        tlUniqueEventCount.set(new MutableInt(0));
+        this.eventNames.set(new IdentityHashMap<>());
     }
 
     public void registerNewState(Long version,
@@ -68,13 +78,15 @@ public class LocalContext {
      */
     public void reset() {
         this.stateMachineDefinition.remove();
+        this.tlUniqueEventCount.remove();
+        this.eventNames.remove();
     }
 
     /**
      * Returns the state machine definition created for the current thread.
      * Ideally, we should prevent any modifications to the state machine definition after this method is called.
      * TODO Will implement safety features later
-     * @return
+     * @return Thread local state machine definition
      */
     public StateMachineDefinition getStateMachineDef() {
         return this.stateMachineDefinition.get();
@@ -88,5 +100,23 @@ public class LocalContext {
      */
     public boolean isWorkflowInterception() {
         return this.getStateMachineDef() != null;
+    }
+
+    public void addEvents(EventData ...events) {
+        //NOP. TODO
+    }
+
+    public String generateEventName(Event event) {
+        final IdentityHashMap<Event, String> eventNamesMap = this.eventNames.get();
+        if (!eventNamesMap.containsKey(event)) {
+            eventNamesMap.put(event, generateName(event));
+        }
+        return eventNamesMap.get(event);
+    }
+
+    private String generateName(Event event) {
+        final int currentEventNumber = this.tlUniqueEventCount.get().intValue();
+        this.tlUniqueEventCount.get().increment();
+        return event.getName() + currentEventNumber;
     }
 }

@@ -33,6 +33,9 @@ import java.util.Set;
 @Singleton
 public class SimpleWorkflowForTest {
 
+    public static final String STRING_EVENT_NAME = "Some String Event";
+    public static final String INTEGER_EVENT_NAME = "Some Integer Event";
+
     /* A simple workflow that goes about creating tasks and making merry */
     @Workflow(version = 1)
     public void simpleDummyWorkflow(StringEvent someString, IntegerEvent someInteger) {
@@ -40,20 +43,6 @@ public class SimpleWorkflowForTest {
         final IntegerEvent someNewInteger = simpleAdditionTask(someInteger);
         someTaskWithIntegerAndString(newString, someNewInteger);
     }
-
-    public static class StringEvent implements Event {
-        private String aString;
-        public StringEvent(String aString) {
-            this.aString = aString;
-        }
-    }
-    public static class IntegerEvent implements Event {
-        private Integer anInteger;
-        public IntegerEvent(Integer anInteger) {
-            this.anInteger = anInteger;
-        }
-    }
-
 
     /*
         This is a bad workflow. Good workflows don't return anything.
@@ -63,11 +52,11 @@ public class SimpleWorkflowForTest {
     public int badWorkflow() {
         return 1;
     }
-
     @Task(version = 2,retries = 2,timeout = 2000l)
     public StringEvent simpleStringModifyingTask(StringEvent someString) {
         return new StringEvent("randomBs" + someString);
     }
+
 
     @Task(version = 1, retries = 2, timeout = 3000l)
     public IntegerEvent simpleAdditionTask(IntegerEvent i) {
@@ -84,6 +73,7 @@ public class SimpleWorkflowForTest {
         // Doesn't matter. This is a bad workflow that works on strings as parameters. Basically we don't allow
         // any parameters that are not some Subtypes of Event
     }
+
     /**
      * Needed a place to derive the above workflow's expected definition (<code>StateMachineDefinition</code>)
      * What better place to get the same than from the horse's mouth, eh?
@@ -119,4 +109,73 @@ public class SimpleWorkflowForTest {
 
     }
 
+    public static class StringEvent implements Event {
+        private String aString;
+        public StringEvent(String aString) {
+            this.aString = aString;
+        }
+
+        @Override
+        public String getName() {
+            return STRING_EVENT_NAME;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            StringEvent that = (StringEvent) o;
+
+            return aString.equals(that.aString);
+
+        }
+
+        @Override
+        public int hashCode() {
+            return aString.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "StringEvent{" +
+                "aString='" + aString + '\'' +
+                '}';
+        }
+    }
+
+    public static class IntegerEvent implements Event {
+        private Integer anInteger;
+        public IntegerEvent(Integer anInteger) {
+            this.anInteger = anInteger;
+        }
+
+        @Override
+        public String getName() {
+            return INTEGER_EVENT_NAME;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            IntegerEvent that = (IntegerEvent) o;
+
+            return anInteger.equals(that.anInteger);
+
+        }
+
+        @Override
+        public int hashCode() {
+            return anInteger.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "IntegerEvent{" +
+                "anInteger=" + anInteger +
+                '}';
+        }
+    }
 }
