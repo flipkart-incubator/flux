@@ -18,12 +18,12 @@
     <div class="Table">
         <div class="Row">
             <div class="Cell" style="margin-left: -5px; width: 110px; float: left;">
-                <label class="label"> Enter FSM Id </label>
+                <label class="label"> Enter FSM ID </label>
             </div>
             <div class="Cell">
                 <input class="form-control" type="text" placeholder="FSM Id" id="fsm-id"/>
             </div>
-            <div class="Cell"><button class="btn btn-sm btn-primary" onclick="getFSMData()">Get fsm visual</button></div>
+            <div class="Cell"><button class="btn btn-sm btn-primary" onclick="getFSMData()">Show FSM</button></div>
         </div>
     </div>
     <div>&nbsp;</div>
