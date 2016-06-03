@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.deploymentunit;
 
+import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.model.Workflow;
 import com.flipkart.polyguice.config.YamlConfiguration;
 
@@ -41,6 +42,10 @@ public class DeploymentUnitUtil {
     /** Key in the config file, which has list of workflow class FQNs*/
     private static final String WORKFLOWS = "workflows";
 
+    public static List<String> getAllDeploymentUnits() {
+        //TODO: IMPLEMENT IT.  Probably get the list from config service or scan the directory structure
+        throw new UnsupportedOperationException("Implement me");
+    }
 
     /**
      * Provides {@link java.net.URLClassLoader} for the given directory.
@@ -61,7 +66,7 @@ public class DeploymentUnitUtil {
      */
     public static Set<Method> getWorkflowMethods(URLClassLoader urlClassLoader) throws ClassNotFoundException, IOException {
 
-        YamlConfiguration yamlConfiguration = new YamlConfiguration(urlClassLoader.getResource(CONFIG_FILE));
+        YamlConfiguration yamlConfiguration = getProperties(urlClassLoader);
         List<String> classNames = (List<String>) yamlConfiguration.getProperty(WORKFLOWS);
         Set<Method> methods = new HashSet<>();
 
@@ -74,6 +79,35 @@ public class DeploymentUnitUtil {
 
             for(Method method : clazz.getMethods()) {
                 if(method.isAnnotationPresent(workflowClass))
+                    methods.add(method);
+            }
+        }
+
+        return methods;
+    }
+
+    /**
+     * Given a class loader, retrieves workflow classes names from config file, and returns methods
+     * which are annotated with {@link com.flipkart.flux.client.model.Task} annotation in those classes.
+     * @param urlClassLoader
+     * @return set of Methods
+     * @throws ClassNotFoundException
+     */
+    public static Set<Method> getTaskMethods(URLClassLoader urlClassLoader) throws ClassNotFoundException, IOException {
+
+        YamlConfiguration yamlConfiguration = getProperties(urlClassLoader);
+        List<String> classNames = (List<String>) yamlConfiguration.getProperty(WORKFLOWS);
+        Set<Method> methods = new HashSet<>();
+
+        //loading this class separately in this class loader as the following isAnnotationPresent check returns false, if
+        //we use default class loader's Task, as both class loaders don't have any relation between them.
+        Class taskClass = urlClassLoader.loadClass(Task.class.getCanonicalName());
+
+        for(String name : classNames) {
+            Class clazz = urlClassLoader.loadClass(name);
+
+            for(Method method : clazz.getMethods()) {
+                if(method.isAnnotationPresent(taskClass))
                     methods.add(method);
             }
         }

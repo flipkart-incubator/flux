@@ -14,18 +14,26 @@
 package com.flipkart.flux.deploymentunit;
 
 import akka.cluster.routing.ClusterRouterPoolSettings;
+import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.impl.task.registry.ConfigurationException;
 import com.flipkart.flux.impl.task.registry.RouterConfigurationRegistry;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import com.flipkart.polyguice.core.ConfigurationProvider;
 import com.flipkart.polyguice.core.Initializable;
 import javafx.util.Pair;
+import scala.Option;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URLClassLoader;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
+ * Creates {@link akka.routing.Router} for deployment units.
  * @author shyam.akirala
  */
 @Singleton
@@ -49,54 +57,74 @@ public class DeploymentUnitRouterProvider implements RouterConfigurationRegistry
 
     @Override
     public Iterable<Pair<String, ClusterRouterPoolSettings>> getConfigurations() {
+
+        Set<Pair<String,ClusterRouterPoolSettings>> routerSettings = new HashSet<>();
+
         try {
-            //TODO: GET DEPLOYMENT UNIT NAME
-            String deploymentUnitName = "foo";
-
-            URLClassLoader classLoader = DeploymentUnitUtil.getClassLoader(deploymentUnitName);
-            YamlConfiguration configuration = DeploymentUnitUtil.getProperties(classLoader);
-
-            Integer totalWFInstances = (Integer) configuration.getProperty("AkkaConfig.totalWFInstances");
-            if(totalWFInstances == null) {
-                totalWFInstances = this.defaultTotalWFInstances;
+            List<String> deploymentUnitNames = DeploymentUnitUtil.getAllDeploymentUnits();
+            if (deploymentUnitNames != null) {
+                for(String deploymentUnitName : deploymentUnitNames) {
+                    routerSettings.addAll(getDURouterConfig(deploymentUnitName));
+                }
             }
-
-            Integer maxWFInstancesPerNode = (Integer) configuration.getProperty("AkkaConfig.maxWFInstancesPerNode");
-            if(maxWFInstancesPerNode == null) {
-                maxWFInstancesPerNode = this.defaultMaxWFInstancesPerNode;
-            }
-
-            Integer totalTaskInstances = (Integer) configuration.getProperty("AkkaConfig.totalTaskInstances");
-            if(totalTaskInstances == null) {
-                totalTaskInstances = this.defaultTotalTaskInstances;
-            }
-
-            Integer maxTaskInstancesPerNode = (Integer) configuration.getProperty("AkkaConfig.maxTaskInstancesPerNode");
-            if(maxTaskInstancesPerNode == null) {
-                maxTaskInstancesPerNode = this.defaultMaxTaskInstancesPerNode;
-            }
-
-            Integer totalHookInstances = (Integer) configuration.getProperty("AkkaConfig.totalHookInstances");
-            if(totalHookInstances == null) {
-                totalHookInstances = this.defaultTotalHookInstances;
-            }
-
-            Integer maxHookInstancesPerNode = (Integer) configuration.getProperty("AkkaConfig.maxHookInstancesPerNode");
-            if(maxHookInstancesPerNode == null) {
-                maxHookInstancesPerNode = this.defaultMaxHookInstancesPerNode;
-            }
-
-            //TODO:
-            //get workflow methods and create routers
-
-            //get task methods and create routers
-
-            //create routers for hooks
-
         } catch (Exception e) {
             throw new RuntimeException("Unable to create deployment unit routers. Exception: "+e.getMessage());
         }
-        return null;
+
+        return routerSettings;
+    }
+
+    public Set<Pair<String, ClusterRouterPoolSettings>> getDURouterConfig(String deploymentUnitName) throws IOException, ClassNotFoundException {
+
+        Set<Pair<String,ClusterRouterPoolSettings>> routerSettings = new HashSet<>();
+
+        URLClassLoader classLoader = DeploymentUnitUtil.getClassLoader(RuntimeConstants.DEPLOYMENT_UNIT_PATH + deploymentUnitName);
+        YamlConfiguration configuration = DeploymentUnitUtil.getProperties(classLoader);
+
+        Integer totalWFInstances = (Integer) configuration.getProperty("AkkaConfig.totalWFInstances");
+        if (totalWFInstances == null) {
+            totalWFInstances = this.defaultTotalWFInstances;
+        }
+
+        Integer maxWFInstancesPerNode = (Integer) configuration.getProperty("AkkaConfig.maxWFInstancesPerNode");
+        if (maxWFInstancesPerNode == null) {
+            maxWFInstancesPerNode = this.defaultMaxWFInstancesPerNode;
+        }
+
+        Integer totalTaskInstances = (Integer) configuration.getProperty("AkkaConfig.totalTaskInstances");
+        if (totalTaskInstances == null) {
+            totalTaskInstances = this.defaultTotalTaskInstances;
+        }
+
+        Integer maxTaskInstancesPerNode = (Integer) configuration.getProperty("AkkaConfig.maxTaskInstancesPerNode");
+        if (maxTaskInstancesPerNode == null) {
+            maxTaskInstancesPerNode = this.defaultMaxTaskInstancesPerNode;
+        }
+
+        Integer totalHookInstances = (Integer) configuration.getProperty("AkkaConfig.totalHookInstances");
+        if (totalHookInstances == null) {
+            totalHookInstances = this.defaultTotalHookInstances;
+        }
+
+        Integer maxHookInstancesPerNode = (Integer) configuration.getProperty("AkkaConfig.maxHookInstancesPerNode");
+        if (maxHookInstancesPerNode == null) {
+            maxHookInstancesPerNode = this.defaultMaxHookInstancesPerNode;
+        }
+
+        //get workflow methods and create routers for workflows and hooks
+        Set<Method> workflowMethods = DeploymentUnitUtil.getWorkflowMethods(classLoader);
+        for (Method method : workflowMethods) {
+            routerSettings.add(new Pair<>(method.getName() + RuntimeConstants.ROUTER_SUFFIX, new ClusterRouterPoolSettings(totalWFInstances, maxWFInstancesPerNode, true, Option.empty())));
+            routerSettings.add(new Pair<>(method.getName() + RuntimeConstants.HOOK_ROUTER_SUFFIX, new ClusterRouterPoolSettings(totalHookInstances, maxHookInstancesPerNode, true, Option.empty())));
+        }
+
+        //get task methods and create routers //TODO: add SM name as prefix
+        Set<Method> taskMethods = DeploymentUnitUtil.getTaskMethods(classLoader);
+        for (Method method : taskMethods) {
+            routerSettings.add(new Pair<>(method.getName() + RuntimeConstants.ROUTER_SUFFIX, new ClusterRouterPoolSettings(totalTaskInstances, maxTaskInstancesPerNode, true, Option.empty())));
+        }
+
+        return routerSettings;
     }
 
     @Override
