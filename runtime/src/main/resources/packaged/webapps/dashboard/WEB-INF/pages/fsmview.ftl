@@ -31,9 +31,6 @@
     <div id="alert-msg" class="alert alert-danger fade in" style="margin-left: 130px;"></div>
     <div>&nbsp;</div>
     <div id="graph-div">
-        <div>
-            <label class="label" style="width: 100px; font-size: 11px;">FSM visual</label>
-        </div>
         <div class="paper" id="fsmcanvas" style="width: 1200px; height: 600px; overflow: auto;"></div>
     </div>
 
