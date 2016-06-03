@@ -17,6 +17,7 @@ package com.flipkart.flux.client.intercept;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.IntegerEvent;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEvent;
+import com.flipkart.flux.client.model.Event;
 import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.client.registry.ExecutableImpl;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
@@ -29,15 +30,19 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
 
+import static com.flipkart.flux.client.intercept.SimpleWorkflowForTest.INTEGER_EVENT_NAME;
+import static com.flipkart.flux.client.intercept.SimpleWorkflowForTest.STRING_EVENT_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -61,29 +66,59 @@ public class TaskInterceptorTest {
 
     @Test
     public void testInterception_shouldSubmitNewState_methodWithOneParam() throws Throwable {
+        when(localContext.generateEventName(any(Event.class))).thenReturn(STRING_EVENT_NAME);
         final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", StringEvent.class);
-        taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod));
+        taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod, new Object[]{new StringEvent("someEvent")}));
 
         final Set<EventDefinition> expectedEventDef =
-            Collections.singleton(new EventDefinition(new MethodId(invokedMethod).getPrefix() + "_com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEvent_arg0","")); //TODO: CHANGE IT
+            Collections.singleton(new EventDefinition(STRING_EVENT_NAME,"com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
         verify(localContext, times(1)).
             registerNewState(2l, "simpleStringModifyingTask", null, null,
                 new MethodId(invokedMethod).toString(), 2l, 2000l, expectedEventDef);
-
     }
 
     @Test
     public void testInterception_shouldSubmitNewState_methodWithTwoParam() throws Throwable {
+        doAnswer(invocation -> {
+            if (invocation.getArguments()[0] instanceof IntegerEvent) return INTEGER_EVENT_NAME;
+            return STRING_EVENT_NAME;
+        }).when(localContext).generateEventName(any(Event.class));
         final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("someTaskWithIntegerAndString", StringEvent.class, IntegerEvent.class);
-        taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod));
+        taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod,new Object[]{new StringEvent("someEvent"),new IntegerEvent(1)}));
         /* Third task intercepted */
         final Set<EventDefinition> expectedEventDefs = new HashSet<>();
-        expectedEventDefs.add(new EventDefinition(new MethodId(invokedMethod).getPrefix() + "_com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEvent_arg0","")); //TODO: CHANGE IT
-        expectedEventDefs.add(new EventDefinition(new MethodId(invokedMethod).getPrefix() + "_com.flipkart.flux.client.intercept.SimpleWorkflowForTest.IntegerEvent_arg1","")); //TODO: CHANGE IT
+        expectedEventDefs.add(new EventDefinition(STRING_EVENT_NAME , "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
+        expectedEventDefs.add(new EventDefinition(INTEGER_EVENT_NAME, "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent"));
         verify(localContext, times(1)).
             registerNewState(3l, "someTaskWithIntegerAndString", null, null,
-                 new MethodId(invokedMethod).toString(), 0l, 1000l, expectedEventDefs);
+                new MethodId(invokedMethod).toString(), 0l, 1000l, expectedEventDefs);
 
+    }
+
+    @Test
+    public void testInterception_shouldReturnSubclassOfGivenReturnType() throws Throwable {
+        when(localContext.generateEventName(any(Event.class))).thenReturn("generatedEventName");
+        final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", StringEvent.class);
+        final Object returnedObject = taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod));
+        assertThat(returnedObject).isNotNull();
+        assertThat(StringEvent.class.isAssignableFrom(returnedObject.getClass())).isTrue();
+        assertThat(((Event)returnedObject).name()).isEqualTo("generatedEventName");
+    }
+
+    @Test
+    public void testInterception_returnedObjectShouldImplementInterceptedInterface() throws Throwable {
+        when(localContext.generateEventName(any(Event.class))).thenReturn("generatedEventName");
+        final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", StringEvent.class);
+        final Object returnedObject = taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod));
+        assertThat(returnedObject).isNotNull();
+        assertThat(Intercepted.class.isAssignableFrom(returnedObject.getClass())).isTrue();
+    }
+
+    @Test
+    public void testInterception_shouldReturnNothingIfMethodReturnsVoid() throws Throwable {
+        final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("someTaskWithIntegerAndString", StringEvent.class, IntegerEvent.class);
+        final Object invoke = taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod));
+        assertThat(invoke).isNull();
     }
 
     @Test

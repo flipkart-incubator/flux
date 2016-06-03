@@ -11,17 +11,11 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.client.model;
+package com.flipkart.flux.client.intercept;
 
 /**
- * All parameters used in and returned from <code>Task</code>s need to implement this marker interface
- * This acts as a deterrent for teams to use "Strings" or "Integers" as parameters and push them in the direction of
- * using meaningful business entities
- * @author yogesh.nachnani
+ * This is used to indicate that a given object has been intercepted by our client
  */
-public interface Event {
-    static final String EMPTY="";
-    default String name() {
-        return EMPTY;
-    }
+public interface Intercepted {
+    String getRealClassName();
 }

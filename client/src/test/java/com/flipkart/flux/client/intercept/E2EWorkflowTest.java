@@ -65,7 +65,7 @@ public class E2EWorkflowTest {
     public void test_e2eSubmissionOfAWorkflow() throws Exception {
         simpleWorkflowForTest.simpleDummyWorkflow(new StringEvent("String one"),new IntegerEvent(2));
         /* verify submission to flux runtime */
-        dummyFluxRuntimeResource.assertStateMachineReceived(simpleWorkflowForTest.getEquivalentStateMachineDefintion(), 1);
+        dummyFluxRuntimeResource.assertStateMachineReceived(simpleWorkflowForTest.getEquivalentStateMachineDefintion(new StringEvent("String one"),new IntegerEvent(2)), 1);
         /* verify registration in executable registry */
         final Map<String,Method> identifierToMethodMap = (Map<String, Method>) ReflectionTestUtils.getField(executableRegistry, "identifierToMethodMap");
         assertThat(identifierToMethodMap.keySet()).containsOnly(

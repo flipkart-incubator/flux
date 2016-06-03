@@ -14,6 +14,7 @@
 
 package com.flipkart.flux.client.intercept;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.IntegerEvent;
@@ -27,9 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 
 import java.lang.reflect.Method;
 
@@ -52,10 +51,12 @@ public class WorkflowInterceptorTest {
     FluxRuntimeConnector fluxRuntimeConnector;
 
     WorkflowInterceptor workflowInterceptor;
+    private ObjectMapper objectMapper;
 
     @Before
     public void setUp() throws Exception {
         workflowInterceptor = new WorkflowInterceptor(localContext,fluxRuntimeConnector);
+        objectMapper = new ObjectMapper();
     }
 
     @Test
@@ -95,7 +96,7 @@ public class WorkflowInterceptorTest {
             Event argument = (Event) invocation.getArguments()[0];
             final int currentValue = getEventNameCall.intValue();
             getEventNameCall.increment();
-            return argument.getName() + currentValue;
+            return argument.name() + currentValue;
         }).when(localContext).generateEventName(any(Event.class));
 
         final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("simpleDummyWorkflow", StringEvent.class, IntegerEvent.class);
@@ -105,8 +106,8 @@ public class WorkflowInterceptorTest {
         workflowInterceptor.invoke(dummyInvocation(invokedMethod,new Object[]{testStringEvent,testIntegerEvent}));
         /* verifications */
         verify(localContext,times(1)).addEvents(
-            new EventData(SimpleWorkflowForTest.STRING_EVENT_NAME + "0", StringEvent.class.getName(), testStringEvent, WorkflowInterceptor.CLIENT),
-            new EventData(SimpleWorkflowForTest.INTEGER_EVENT_NAME + "1", IntegerEvent.class.getName(), testIntegerEvent, WorkflowInterceptor.CLIENT)
+            new EventData(SimpleWorkflowForTest.STRING_EVENT_NAME + "0", StringEvent.class.getName(), objectMapper.writeValueAsString(testStringEvent), WorkflowInterceptor.CLIENT),
+            new EventData(SimpleWorkflowForTest.INTEGER_EVENT_NAME + "1", IntegerEvent.class.getName(), objectMapper.writeValueAsString(testIntegerEvent), WorkflowInterceptor.CLIENT)
         );
     }
 }

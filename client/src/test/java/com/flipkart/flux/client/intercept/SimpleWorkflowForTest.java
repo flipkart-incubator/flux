@@ -14,6 +14,10 @@
 
 package com.flipkart.flux.client.intercept;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
@@ -78,19 +82,21 @@ public class SimpleWorkflowForTest {
      * Needed a place to derive the above workflow's expected definition (<code>StateMachineDefinition</code>)
      * What better place to get the same than from the horse's mouth, eh?
      *
+     * @param stringEvent
+     * @param integerEvent
      */
-    protected StateMachineDefinition getEquivalentStateMachineDefintion() throws NoSuchMethodException {
+    protected StateMachineDefinition getEquivalentStateMachineDefintion(StringEvent stringEvent, IntegerEvent integerEvent) throws NoSuchMethodException, JsonProcessingException {
 
         Set<StateDefinition> expectedStateDefs = new HashSet<>();
 
         final Method simpleStringModifyingTaskMethod = SimpleWorkflowForTest.class.getDeclaredMethod("simpleStringModifyingTask", StringEvent.class);
-        final EventDefinition stringModifyingTaskEventDef = new EventDefinition(new MethodId(simpleStringModifyingTaskMethod).getPrefix()+ "_com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEvent_arg0",""); //TODO: CHANGE IT
+        final EventDefinition stringModifyingTaskEventDef = new EventDefinition(STRING_EVENT_NAME+"0","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
         expectedStateDefs.add(new StateDefinition(2l, "simpleStringModifyingTask", null, null,
             new MethodId(simpleStringModifyingTaskMethod).toString(), null,
             2l, 2000l, Collections.singleton(stringModifyingTaskEventDef)));
 
         final Method simpleAdditionTaskMethod = SimpleWorkflowForTest.class.getDeclaredMethod("simpleAdditionTask", IntegerEvent.class);
-        final EventDefinition simpleAdditionTaskEventDef = new EventDefinition(new MethodId(simpleAdditionTaskMethod).getPrefix() + "_com.flipkart.flux.client.intercept.SimpleWorkflowForTest.IntegerEvent_arg0", ""); //TODO: CHANGE IT
+        final EventDefinition simpleAdditionTaskEventDef = new EventDefinition(INTEGER_EVENT_NAME+"1", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent");
         expectedStateDefs.add(new StateDefinition(1l, "simpleAdditionTask", null, null,
             new MethodId(simpleAdditionTaskMethod).toString(), null,
             2l, 3000l, Collections.singleton(simpleAdditionTaskEventDef)));
@@ -98,25 +104,34 @@ public class SimpleWorkflowForTest {
 
         final Method someTaskWithIntegerAndStringMethod = SimpleWorkflowForTest.class.getDeclaredMethod("someTaskWithIntegerAndString", StringEvent.class, IntegerEvent.class);
         final Set<EventDefinition> expectedEventDefsForIntStringTask = new HashSet<>();
-        expectedEventDefsForIntStringTask.add(new EventDefinition(new MethodId(someTaskWithIntegerAndStringMethod).getPrefix() + "_com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEvent_arg0", "")); //TODO: CHANGE IT
-        expectedEventDefsForIntStringTask.add(new EventDefinition(new MethodId(someTaskWithIntegerAndStringMethod).getPrefix() + "_com.flipkart.flux.client.intercept.SimpleWorkflowForTest.IntegerEvent_arg1", "")); //TODO: CHANGE IT
+        expectedEventDefsForIntStringTask.add(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent2","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
+        expectedEventDefsForIntStringTask.add(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent3", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent"));
         expectedStateDefs.add(new StateDefinition(3l, "someTaskWithIntegerAndString", null,
             null, new MethodId(someTaskWithIntegerAndStringMethod).toString(), null,
             0l, 1000l, expectedEventDefsForIntStringTask));
 
-
-        return new StateMachineDefinition("",new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleDummyWorkflow", StringEvent.class, IntegerEvent.class)).toString(),1l,expectedStateDefs);
+        final ObjectMapper objectMapper = new ObjectMapper();
+        Set<EventData> expectedEventData = new HashSet<EventData>() {{
+            add(new EventData(STRING_EVENT_NAME+"0","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent",objectMapper.writeValueAsString(stringEvent),WorkflowInterceptor.CLIENT));
+            add(new EventData(INTEGER_EVENT_NAME+"1","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent",objectMapper.writeValueAsString(integerEvent),WorkflowInterceptor.CLIENT));
+        }};
+        return new StateMachineDefinition("",new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleDummyWorkflow", StringEvent.class, IntegerEvent.class)).toString(),1l,expectedStateDefs, expectedEventData);
 
     }
 
     public static class StringEvent implements Event {
+        @JsonProperty
         private String aString;
+
+        StringEvent() {
+        }
+
         public StringEvent(String aString) {
             this.aString = aString;
         }
 
         @Override
-        public String getName() {
+        public String name() {
             return STRING_EVENT_NAME;
         }
 
@@ -145,13 +160,17 @@ public class SimpleWorkflowForTest {
     }
 
     public static class IntegerEvent implements Event {
+        @JsonProperty
         private Integer anInteger;
+        IntegerEvent(){
+
+        }
         public IntegerEvent(Integer anInteger) {
             this.anInteger = anInteger;
         }
 
         @Override
-        public String getName() {
+        public String name() {
             return INTEGER_EVENT_NAME;
         }
 

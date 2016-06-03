@@ -56,7 +56,7 @@ public class LocalContext {
             /* This ensures we don't compose workflows within workflows */
             throw new IllegalStateException("A single thread cannot execute more than one workflow");
         }
-        stateMachineDefinition.set(new StateMachineDefinition(description,methodIdentifier, version, new HashSet<>()));
+        stateMachineDefinition.set(new StateMachineDefinition(description,methodIdentifier, version, new HashSet<>(), new HashSet<>()));
         tlUniqueEventCount.set(new MutableInt(0));
         this.eventNames.set(new IdentityHashMap<>());
     }
@@ -103,7 +103,7 @@ public class LocalContext {
     }
 
     public void addEvents(EventData ...events) {
-        //NOP. TODO
+        this.stateMachineDefinition.get().addEventDatas(events);
     }
 
     public String generateEventName(Event event) {
@@ -117,6 +117,6 @@ public class LocalContext {
     private String generateName(Event event) {
         final int currentEventNumber = this.tlUniqueEventCount.get().intValue();
         this.tlUniqueEventCount.get().increment();
-        return event.getName() + currentEventNumber;
+        return event.name() + currentEventNumber;
     }
 }

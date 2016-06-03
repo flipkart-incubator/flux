@@ -124,6 +124,12 @@
             <version>${org.springframework.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib-nodep</artifactId>
+            <version>3.1</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -159,6 +165,30 @@
                 <configuration>
                     <source>${jdk.version}</source>
                     <target>${jdk.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>jarjar-maven-plugin</artifactId>
+                <version>1.9</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>jarjar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <overwrite>true</overwrite>
+                    <includes>
+                        <include>cglib:*</include>
+                    </includes>
+                    <rules>
+                        <rule>
+                            <pattern>net.sf.cglib.**</pattern>
+                            <result>com.flipkart.flux.internal.$@1</result>
+                        </rule>
+                    </rules>
                 </configuration>
             </plugin>
         </plugins>
