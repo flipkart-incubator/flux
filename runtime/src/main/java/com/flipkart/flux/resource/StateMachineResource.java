@@ -168,6 +168,13 @@ public class StateMachineResource {
                 }
             }
 
+            if(fsmDataMap.size() == 0) {
+                Set<State> states = stateToEventDependencyGraph.get(null);
+                for(State state : states) {
+                    fsmDataMap.put(state.getName(), null);
+                }
+            }
+
             return new ObjectMapper().writeValueAsString(fsmDataMap);
         } else {
             return "{}";
