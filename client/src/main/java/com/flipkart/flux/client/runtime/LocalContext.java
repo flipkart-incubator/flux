@@ -45,7 +45,7 @@ public class LocalContext {
     }
 
     /**
-     * Creates a new, local Workflow Definition instance
+     * Creates a new, local StateMachineDefinition instance
      * @return
      * @param methodIdentifier
      * @param version
@@ -65,11 +65,11 @@ public class LocalContext {
                                  String name, String description,
                                  String hookIdentifier, String taskIdentifier,
                                  Long retryCount, Long timeout,
-                                 Set<EventDefinition> eventDefinitionSet
-                                 ) {
+                                 Set<EventDefinition> dependencySet, EventDefinition outputEvent
+    ) {
         final StateDefinition stateDefinition = new StateDefinition(version, name, description,
             hookIdentifier, taskIdentifier, hookIdentifier,
-            retryCount, timeout, eventDefinitionSet);
+            retryCount, timeout, dependencySet, outputEvent);
         this.stateMachineDefinition.get().addState(stateDefinition);
     }
 

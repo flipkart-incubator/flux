@@ -90,25 +90,28 @@ public class SimpleWorkflowForTest {
         Set<StateDefinition> expectedStateDefs = new HashSet<>();
 
         final Method simpleStringModifyingTaskMethod = SimpleWorkflowForTest.class.getDeclaredMethod("simpleStringModifyingTask", StringEvent.class);
-        final EventDefinition stringModifyingTaskEventDef = new EventDefinition(STRING_EVENT_NAME+"0","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
+        final EventDefinition expectedInputForStringModifyingTask = new EventDefinition(STRING_EVENT_NAME+"0","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
+        final EventDefinition outputOfStringModifyingTask = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent2", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
         expectedStateDefs.add(new StateDefinition(2l, "simpleStringModifyingTask", null, null,
             new MethodId(simpleStringModifyingTaskMethod).toString(), null,
-            2l, 2000l, Collections.singleton(stringModifyingTaskEventDef)));
+            2l, 2000l, Collections.singleton(expectedInputForStringModifyingTask), outputOfStringModifyingTask));
 
         final Method simpleAdditionTaskMethod = SimpleWorkflowForTest.class.getDeclaredMethod("simpleAdditionTask", IntegerEvent.class);
-        final EventDefinition simpleAdditionTaskEventDef = new EventDefinition(INTEGER_EVENT_NAME+"1", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent");
+        final EventDefinition expectedInputForSimpleAdditionTask = new EventDefinition(INTEGER_EVENT_NAME+"1", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent");
+        final EventDefinition outputOfSimpleAdditionTask = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent3", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent");
         expectedStateDefs.add(new StateDefinition(1l, "simpleAdditionTask", null, null,
             new MethodId(simpleAdditionTaskMethod).toString(), null,
-            2l, 3000l, Collections.singleton(simpleAdditionTaskEventDef)));
+            2l, 3000l, Collections.singleton(expectedInputForSimpleAdditionTask), outputOfSimpleAdditionTask));
 
 
         final Method someTaskWithIntegerAndStringMethod = SimpleWorkflowForTest.class.getDeclaredMethod("someTaskWithIntegerAndString", StringEvent.class, IntegerEvent.class);
         final Set<EventDefinition> expectedEventDefsForIntStringTask = new HashSet<>();
-        expectedEventDefsForIntStringTask.add(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent2","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
-        expectedEventDefsForIntStringTask.add(new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent3", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent"));
+
+        expectedEventDefsForIntStringTask.add(outputOfStringModifyingTask);
+        expectedEventDefsForIntStringTask.add(outputOfSimpleAdditionTask);
         expectedStateDefs.add(new StateDefinition(3l, "someTaskWithIntegerAndString", null,
             null, new MethodId(someTaskWithIntegerAndStringMethod).toString(), null,
-            0l, 1000l, expectedEventDefsForIntStringTask));
+            0l, 1000l, expectedEventDefsForIntStringTask, null));
 
         final ObjectMapper objectMapper = new ObjectMapper();
         Set<EventData> expectedEventData = new HashSet<EventData>() {{

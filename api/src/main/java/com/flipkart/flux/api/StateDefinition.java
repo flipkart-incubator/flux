@@ -54,13 +54,15 @@ public class StateDefinition {
     /** The list of EventDefinitionS that this state definition is dependent on for a transition into*/
     private Set<EventDefinition> dependencies;
 
+	private EventDefinition outputEvent;
+
 	/* Used only by Jackson */
 	StateDefinition() {
 	}
 
 	/** Constructor*/
 	public StateDefinition(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
-                           Long retryCount, Long timeout, Set<EventDefinition> dependencies) {
+						   Long retryCount, Long timeout, Set<EventDefinition> dependencies, EventDefinition outputEvent) {
 		super();
 		this.version = version;
 		this.name = name;
@@ -71,6 +73,7 @@ public class StateDefinition {
 		this.retryCount = retryCount;
 		this.timeout = timeout;
 		this.dependencies = dependencies;
+		this.outputEvent = outputEvent;
 	}
 
     /** Accessors/Mutators for member variables*/
@@ -128,7 +131,15 @@ public class StateDefinition {
 	public void setDependencies(Set<EventDefinition> dependencies) {
 		this.dependencies = dependencies;
 	}
-	
+
+	public EventDefinition getOutputEvent() {
+		return outputEvent;
+	}
+
+	public void setOutputEvent(EventDefinition outputEvent) {
+		this.outputEvent = outputEvent;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -142,6 +153,7 @@ public class StateDefinition {
 		if (onEntryHook != null ? !onEntryHook.equals(that.onEntryHook) : that.onEntryHook != null) return false;
 		if (task != null ? !task.equals(that.task) : that.task != null) return false;
 		if (onExitHook != null ? !onExitHook.equals(that.onExitHook) : that.onExitHook != null) return false;
+		if (outputEvent != null ? !outputEvent.equals(that.outputEvent) : that.outputEvent != null) return false;
 		if (retryCount != null ? !retryCount.equals(that.retryCount) : that.retryCount != null) return false;
 		if (timeout != null ? !timeout.equals(that.timeout) : that.timeout != null) return false;
 		return !(dependencies != null ? !dependencies.equals(that.dependencies) : that.dependencies != null);
@@ -156,6 +168,7 @@ public class StateDefinition {
 		result = 31 * result + (onEntryHook != null ? onEntryHook.hashCode() : 0);
 		result = 31 * result + (task != null ? task.hashCode() : 0);
 		result = 31 * result + (onExitHook != null ? onExitHook.hashCode() : 0);
+		result = 31 * result + (outputEvent != null ? outputEvent.hashCode() : 0);
 		result = 31 * result + (retryCount != null ? retryCount.hashCode() : 0);
 		result = 31 * result + (timeout != null ? timeout.hashCode() : 0);
 		result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
@@ -172,6 +185,7 @@ public class StateDefinition {
 			", onEntryHook='" + onEntryHook + '\'' +
 			", task='" + task + '\'' +
 			", onExitHook='" + onExitHook + '\'' +
+			", outputEvent='" + outputEvent + '\'' +
 			", retryCount=" + retryCount +
 			", timeout=" + timeout +
 			'}';

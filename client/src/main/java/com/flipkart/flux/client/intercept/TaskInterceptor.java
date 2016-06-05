@@ -62,11 +62,31 @@ public class TaskInterceptor implements MethodInterceptor {
         final Method method = invocation.getMethod();
         final Task taskAnnotation = method.getAnnotationsByType(Task.class)[0];
         final String taskIdentifier = generateTaskIdentifier(method);
-        localContext.registerNewState(taskAnnotation.version(), generateStateIdentifier(method), null, null, taskIdentifier, taskAnnotation.retries(), taskAnnotation.timeout(), generateEventDefs(invocation.getArguments()));
+        final Set<EventDefinition> dependencySet = generateDependencySet(invocation.getArguments());
+        final Object proxyReturnObject = createProxyReturnObject(method);
+        final EventDefinition outputEventDefintion = generateOutputEventDefintion(proxyReturnObject);
+        /* Contribute to the ongoing state machine definition */
+        localContext.registerNewState(taskAnnotation.version(), generateStateIdentifier(method), null, null, taskIdentifier, taskAnnotation.retries(), taskAnnotation.timeout(), dependencySet, outputEventDefintion);
+        /* Register the task with the executable registry on this jvm */
         executableRegistry.registerTask(taskIdentifier, new ExecutableImpl(invocation.getThis(), invocation.getMethod(), taskAnnotation.timeout()));
+
+        return proxyReturnObject;
+    }
+
+    private EventDefinition generateOutputEventDefintion(Object proxyReturnObject) {
+        if (proxyReturnObject == null) {
+            return  null;
+        }
+        String eventName = ((Event) proxyReturnObject).name();
+        String eventType = ((Intercepted) proxyReturnObject).getRealClassName();
+        return new EventDefinition(eventName,eventType);
+    }
+
+    private Object createProxyReturnObject(final Method method) {
         if (method.getReturnType() == void.class) {
             return null;
         }
+        /* The method is expected to return _something_, so we create a proxy for it */
         final String eventName = localContext.generateEventName(new Event() {
             @Override
             public String name() {
@@ -86,7 +106,7 @@ public class TaskInterceptor implements MethodInterceptor {
                 return eventNameCallback;
             }
         };
-        return Enhancer.create(method.getReturnType(),new Class[]{Intercepted.class}, filter,filter.getCallbacks());
+        return Enhancer.create(method.getReturnType(), new Class[]{Intercepted.class}, filter, filter.getCallbacks());
     }
 
     private void checkForBadSignatures(MethodInvocation invocation) {
@@ -99,7 +119,7 @@ public class TaskInterceptor implements MethodInterceptor {
         }
     }
 
-    private Set<EventDefinition> generateEventDefs(Object[] arguments) {
+    private Set<EventDefinition> generateDependencySet(Object[] arguments) {
         Set<EventDefinition> eventDefinitions = new HashSet<>();
         for (Object argument : arguments) {
             if (argument instanceof Intercepted) {

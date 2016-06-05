@@ -39,7 +39,7 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Predicate;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.flipkart.flux.client.intercept.SimpleWorkflowForTest.INTEGER_EVENT_NAME;
 import static com.flipkart.flux.client.intercept.SimpleWorkflowForTest.STRING_EVENT_NAME;
@@ -66,32 +66,37 @@ public class TaskInterceptorTest {
 
     @Test
     public void testInterception_shouldSubmitNewState_methodWithOneParam() throws Throwable {
-        when(localContext.generateEventName(any(Event.class))).thenReturn(STRING_EVENT_NAME);
+        final AtomicInteger eventCounter = new AtomicInteger(0);
+        doAnswer(invocation -> (((Event)invocation.getArguments()[0]).name())+eventCounter.getAndIncrement()).when(localContext).generateEventName(any(Event.class));
+
         final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", StringEvent.class);
         taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod, new Object[]{new StringEvent("someEvent")}));
 
-        final Set<EventDefinition> expectedEventDef =
-            Collections.singleton(new EventDefinition(STRING_EVENT_NAME,"com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
+        final Set<EventDefinition> expectedDependency =
+            Collections.singleton(new EventDefinition(STRING_EVENT_NAME+"0","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
+        final EventDefinition expectedOutput = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent1","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
         verify(localContext, times(1)).
             registerNewState(2l, "simpleStringModifyingTask", null, null,
-                new MethodId(invokedMethod).toString(), 2l, 2000l, expectedEventDef);
+                new MethodId(invokedMethod).toString(), 2l, 2000l, expectedDependency, expectedOutput);
     }
 
     @Test
     public void testInterception_shouldSubmitNewState_methodWithTwoParam() throws Throwable {
-        doAnswer(invocation -> {
-            if (invocation.getArguments()[0] instanceof IntegerEvent) return INTEGER_EVENT_NAME;
-            return STRING_EVENT_NAME;
-        }).when(localContext).generateEventName(any(Event.class));
+        final AtomicInteger eventCounter = new AtomicInteger(0);
+        doAnswer(invocation -> (((Event)invocation.getArguments()[0]).name())+eventCounter.getAndIncrement()).when(localContext).generateEventName(any(Event.class));
+
         final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("someTaskWithIntegerAndString", StringEvent.class, IntegerEvent.class);
-        taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod,new Object[]{new StringEvent("someEvent"),new IntegerEvent(1)}));
         /* Third task intercepted */
-        final Set<EventDefinition> expectedEventDefs = new HashSet<>();
-        expectedEventDefs.add(new EventDefinition(STRING_EVENT_NAME , "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
-        expectedEventDefs.add(new EventDefinition(INTEGER_EVENT_NAME, "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent"));
+        taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod,new Object[]{new StringEvent("someEvent"),new IntegerEvent(1)}));
+        /* Verifications */
+        final Set<EventDefinition> expectedDependencies = new HashSet<EventDefinition>() {{
+            add(new EventDefinition(STRING_EVENT_NAME+"0", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
+            add(new EventDefinition(INTEGER_EVENT_NAME+"1", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent"));
+        }};
+        EventDefinition expectedOutput = null; // Since the method returns void
         verify(localContext, times(1)).
             registerNewState(3l, "someTaskWithIntegerAndString", null, null,
-                new MethodId(invokedMethod).toString(), 0l, 1000l, expectedEventDefs);
+                new MethodId(invokedMethod).toString(), 0l, 1000l, expectedDependencies, expectedOutput);
 
     }
 
