@@ -21,6 +21,8 @@ import com.flipkart.polyguice.config.YamlConfiguration;
 import com.flipkart.polyguice.core.ConfigurationProvider;
 import com.flipkart.polyguice.core.Initializable;
 import javafx.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scala.Option;
 
 import javax.inject.Inject;
@@ -38,6 +40,8 @@ import java.util.Set;
  */
 @Singleton
 public class DeploymentUnitRouterProvider implements RouterConfigurationRegistry, Initializable {
+
+    private final static Logger logger = LoggerFactory.getLogger(DeploymentUnitRouterProvider.class);
 
     ConfigurationProvider configurationProvider;
 
@@ -82,32 +86,26 @@ public class DeploymentUnitRouterProvider implements RouterConfigurationRegistry
         YamlConfiguration configuration = DeploymentUnitUtil.getProperties(classLoader);
 
         Integer totalWFInstances = (Integer) configuration.getProperty("AkkaConfig.totalWFInstances");
-        if (totalWFInstances == null) {
-            totalWFInstances = this.defaultTotalWFInstances;
-        }
-
         Integer maxWFInstancesPerNode = (Integer) configuration.getProperty("AkkaConfig.maxWFInstancesPerNode");
-        if (maxWFInstancesPerNode == null) {
+        if (totalWFInstances == null || maxWFInstancesPerNode == null) {
+            logger.debug("Could not find settings for deployment unit {} workflow router, going with default settings", deploymentUnitName);
+            totalWFInstances = this.defaultTotalWFInstances;
             maxWFInstancesPerNode = this.defaultMaxWFInstancesPerNode;
         }
 
         Integer totalTaskInstances = (Integer) configuration.getProperty("AkkaConfig.totalTaskInstances");
-        if (totalTaskInstances == null) {
-            totalTaskInstances = this.defaultTotalTaskInstances;
-        }
-
         Integer maxTaskInstancesPerNode = (Integer) configuration.getProperty("AkkaConfig.maxTaskInstancesPerNode");
-        if (maxTaskInstancesPerNode == null) {
+        if (totalTaskInstances == null || maxTaskInstancesPerNode == null) {
+            logger.debug("Could not find settings for deployment unit {} task router, going with default settings", deploymentUnitName);
+            totalTaskInstances = this.defaultTotalTaskInstances;
             maxTaskInstancesPerNode = this.defaultMaxTaskInstancesPerNode;
         }
 
         Integer totalHookInstances = (Integer) configuration.getProperty("AkkaConfig.totalHookInstances");
-        if (totalHookInstances == null) {
-            totalHookInstances = this.defaultTotalHookInstances;
-        }
-
         Integer maxHookInstancesPerNode = (Integer) configuration.getProperty("AkkaConfig.maxHookInstancesPerNode");
-        if (maxHookInstancesPerNode == null) {
+        if (totalHookInstances == null || maxHookInstancesPerNode == null) {
+            logger.debug("Could not find settings for deployment unit {} hook router, going with default settings", deploymentUnitName);
+            totalHookInstances = this.defaultTotalHookInstances;
             maxHookInstancesPerNode = this.defaultMaxHookInstancesPerNode;
         }
 
