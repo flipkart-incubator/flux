@@ -13,11 +13,14 @@
 
 package com.flipkart.flux.dao;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.impl.TestUtil;
+import com.flipkart.flux.integration.StringEvent;
 import com.flipkart.flux.rule.DbClearWithTestSMRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.util.TestUtils;
@@ -51,14 +54,18 @@ public class EventsDAOTest {
     @Inject
     StateMachinesDAO stateMachinesDAO;
 
+    ObjectMapper objectMapper;
+
     @Before
-    public void setup() {}
+    public void setup() {
+        objectMapper = new ObjectMapper();
+    }
 
     @Test
-    public void createEventTest() {
+    public void createEventTest() throws JsonProcessingException {
         StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
-        DummyEventData data = new DummyEventData("event_dat");
-        Event event = new Event("test_event_name","Internal", Event.EventStatus.pending,stateMachine.getId(), data,"state1");
+        StringEvent data = new StringEvent("event_dat");
+        Event event = new Event("test_event_name","Internal", Event.EventStatus.pending,stateMachine.getId(), objectMapper.writeValueAsString(data),"state1");
         Long eventId = eventsDAO.create(event).getId();
 
         Event event1 = eventsDAO.findById(eventId);

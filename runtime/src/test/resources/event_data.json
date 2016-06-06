@@ -1,8 +1,6 @@
 {
   "name": "event1",
   "type": "foo",
-  "data": {
-    "key" : "value"
-  },
+  "data": "{\"key\":\"value\"}",
   "eventSource": "test_state1"
 }

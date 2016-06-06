@@ -31,33 +31,34 @@ public class SimpleWorkflow {
     private static final Logger logger = LoggerFactory.getLogger(SimpleWorkflow.class);
     private CountDownLatch countDownLatchForSimpleStringReturnTask = new CountDownLatch(1);
     private CountDownLatch countDownLatchForSimpleIntegerReturnTask = new CountDownLatch(1);
+    private CountDownLatch countDownLatchForSimpleIntegerAndStringTask = new CountDownLatch(1);
 
     /* A simple workflow that goes about creating tasks and making merry */
     @Workflow(version = 1)
-    public void simpleDummyWorkflow() {
-        final String newString = simpleStringReturningTask();
-        final Integer someNewInteger = simpleIntegerReturningTask();
+    public void simpleDummyWorkflow(StringEvent startingEvent) {
+        final StringEvent newString = simpleStringReturningTask(startingEvent);
+        final IntegerEvent someNewInteger = simpleIntegerReturningTask();
         someTaskWithIntegerAndString(newString, someNewInteger);
     }
 
     @Task(version = 2,retries = 2,timeout = 2000l)
-    public String simpleStringReturningTask() {
-        logger.info("In Simple String returning task");
+    public StringEvent simpleStringReturningTask(StringEvent stringEvent) {
+        logger.info("In Simple String returning task {}, received",stringEvent);
         countDownLatchForSimpleStringReturnTask.countDown();
-        return "randomBs";
+        return new StringEvent("randomString");
     }
 
     @Task(version = 1, retries = 2, timeout = 3000l)
-    public Integer simpleIntegerReturningTask() {
+    public IntegerEvent simpleIntegerReturningTask() {
         logger.info("In Simple Integer returning task");
         countDownLatchForSimpleIntegerReturnTask.countDown();
-        return 2;
+        return new IntegerEvent(2);
     }
 
     @Task(version = 3, retries = 0, timeout = 1000l)
-    public void someTaskWithIntegerAndString(String someString, Integer someInteger) {
-        //blah
-        logger.info("In some task with integer and string");
+    public void someTaskWithIntegerAndString(StringEvent someString, IntegerEvent someInteger) {
+        logger.info("In someTaskWithIntegerAndString with integer {} and string {}",someInteger,someString);
+        countDownLatchForSimpleIntegerAndStringTask.countDown();
     }
 
     public CountDownLatch getCountDownLatchForSimpleIntegerReturnTask() {
@@ -66,5 +67,9 @@ public class SimpleWorkflow {
 
     public CountDownLatch getCountDownLatchForSimpleStringReturnTask() {
         return countDownLatchForSimpleStringReturnTask;
+    }
+
+    public CountDownLatch getCountDownLatchForSimpleIntegerAndStringTask() {
+        return countDownLatchForSimpleIntegerAndStringTask;
     }
 }

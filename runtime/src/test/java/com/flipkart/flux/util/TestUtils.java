@@ -1,5 +1,6 @@
 package com.flipkart.flux.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.domain.Event;
@@ -45,7 +46,7 @@ public class TestUtils {
         assertThat(actual.getStates()).usingElementComparatorIgnoringFields("id","createdAt","updatedAt","stateMachineId").containsOnlyElementsOf(expected.getStates());
     }
 
-    public static Event getStandardTestEvent() {
-        return new Event("event1", "foo", Event.EventStatus.triggered, null, Collections.singletonMap("key", "value"), "test_state1");
+    public static Event getStandardTestEvent() throws JsonProcessingException {
+        return new Event("event1", "foo", Event.EventStatus.triggered, null, objectMapper.writeValueAsString(Collections.singletonMap("key", "value")), "test_state1");
     }
 }

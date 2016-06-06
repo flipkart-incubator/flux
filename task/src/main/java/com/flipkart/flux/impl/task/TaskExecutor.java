@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.impl.task;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.domain.Event;
@@ -35,7 +36,8 @@ import com.netflix.hystrix.HystrixThreadPoolProperties;
  *
  */
 public class TaskExecutor extends HystrixCommand<Event> {
-	
+
+	public static final String MANAGED_RUNTIME = "managedRuntime";
 	/** The task to execute*/
 	private Task task;
 	
@@ -43,6 +45,9 @@ public class TaskExecutor extends HystrixCommand<Event> {
 	private Event[] events;
 	private final FluxRuntimeConnector fluxRuntimeConnector;
 	private final Long stateMachineId;
+	private final String outputeEventName;
+	// TODO - use a singleton instead
+	private static final ObjectMapper objectMapper = new ObjectMapper();
 
 	/**
 	 * Constructor for this class
@@ -50,7 +55,7 @@ public class TaskExecutor extends HystrixCommand<Event> {
 	 * @param fluxRuntimeConnector
 	 * @param stateMachineId
 	 */
-	public TaskExecutor(AbstractTask task, Event[] events, FluxRuntimeConnector fluxRuntimeConnector, Long stateMachineId) {
+	public TaskExecutor(AbstractTask task, Event[] events, FluxRuntimeConnector fluxRuntimeConnector, Long stateMachineId,String outputeEventName) {
         super(Setter
         		.withGroupKey(HystrixCommandGroupKey.Factory.asKey(task.getTaskGroupName()))
                 .andCommandKey(HystrixCommandKey.Factory.asKey(task.getName()))
@@ -63,6 +68,7 @@ public class TaskExecutor extends HystrixCommand<Event> {
 		this.events = events;
 		this.fluxRuntimeConnector = fluxRuntimeConnector;
 		this.stateMachineId = stateMachineId;
+		this.outputeEventName = outputeEventName;
 	}
 	
 	/**
@@ -75,9 +81,12 @@ public class TaskExecutor extends HystrixCommand<Event> {
 			throw result.getValue();
 		}
 		final Object returnObject = result.getKey();
-		final Event returnedEvent = new Event("foo",returnObject.getClass().getCanonicalName(), Event.EventStatus.triggered,stateMachineId,returnObject,"managedRuntime");
-		fluxRuntimeConnector.submitEvent(new EventData(returnedEvent.getName(),returnedEvent.getType(),returnedEvent.getEventData(),returnedEvent.getEventSource()),returnedEvent.getStateMachineInstanceId());
-		return returnedEvent;
+		if (returnObject != null) {
+			final Event returnedEvent = new Event(outputeEventName, returnObject.getClass().getCanonicalName(), Event.EventStatus.triggered, stateMachineId, objectMapper.writeValueAsString(returnObject), MANAGED_RUNTIME);
+			fluxRuntimeConnector.submitEvent(new EventData(returnedEvent.getName(), returnedEvent.getType(), returnedEvent.getEventData(), returnedEvent.getEventSource()), returnedEvent.getStateMachineInstanceId());
+			return returnedEvent;
+		}
+		return null;
 	}
 	
 }

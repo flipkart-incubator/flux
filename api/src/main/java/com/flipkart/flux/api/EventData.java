@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.api;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * <code>EventData</code> represents the event which would be submitted to flux runtime from inside/outside world.
  * This is useful for data transfer purpose only.
@@ -26,8 +28,8 @@ public class EventData {
     /** Type of the event */
     private String type;
 
-    /** Data the event is carrying */
-    private Object data;
+    /** Serialised Data for the event */
+    private String data;
 
     /** Source who generated this event, might be state name or external */
     private String eventSource;
@@ -36,7 +38,7 @@ public class EventData {
     EventData() {}
 
     /** constructor */
-    public EventData(String name, String type, Object data, String eventSource) {
+    public EventData(String name, String type, String data, String eventSource) {
         this.name = name;
         this.type = type;
         this.data = data;
@@ -56,10 +58,10 @@ public class EventData {
     public void setType(String type) {
         this.type = type;
     }
-    public Object getData() {
+    public String getData() {
         return data;
     }
-    public void setData(Object data) {
+    public void setData(String data) {
         this.data = data;
     }
     public String getEventSource() {
@@ -100,5 +102,17 @@ public class EventData {
             ", type='" + type + '\'' +
             ", eventSource='" + eventSource + '\'' +
             '}';
+    }
+
+    /**
+     * This event data object validates if it is carrying data for the given event definition
+     * We should ideally change eventData objects to have eventDefinitions instead of redundant name & type.
+     * When we do, only the impl of this method changes
+     * @param eventDefinition the event definition we want to check for
+     * @return true if this data is corresponding to the given definition, false if not
+     */
+    @JsonIgnore
+    public boolean isFor(EventDefinition eventDefinition) {
+        return this.name.equals(eventDefinition.getName()) && this.type.equals(eventDefinition.getType());
     }
 }

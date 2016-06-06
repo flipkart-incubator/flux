@@ -21,6 +21,8 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.routing.ActorRefRoutee;
 import akka.routing.Router;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.Task;
@@ -57,10 +59,7 @@ public class AkkaTask extends UntypedActor {
     @Named("HookRouter")
     private Router hookRouter;
 
-	//todo this setter to be removed when we have figured out the way to inject registry in actor. And corresponding unit test can be changed accordingly.
-	public void setTaskRegistry(TaskRegistry taskRegistry) {
-		this.taskRegistry = taskRegistry;
-	}
+	private static final ObjectMapper objectMapper = new ObjectMapper();
 
 	/**
 	 * The Akka Actor callback method for processing the Task
@@ -72,12 +71,17 @@ public class AkkaTask extends UntypedActor {
 		//todo actor can take a call when to throw TaskResumableException
 		if (TaskAndEvents.class.isAssignableFrom(message.getClass())) {
 			TaskAndEvents taskAndEvent = (TaskAndEvents)message;
+			logger.debug("Received directive {}",taskAndEvent);
 		 	AbstractTask task = this.taskRegistry.retrieveTask(taskAndEvent.getTaskIdentifier());
 			if (task != null) {
 				// Execute any pre-exec HookS
 				this.executeHooks(this.taskRegistry.getPreExecHooks(task), taskAndEvent.getEvents());
-				getSender().tell(new TaskExecutor(task, taskAndEvent.getEvents(),fluxRuntimeConnector,taskAndEvent.getStateMachineId()).execute(), getSelf());
-				// Execute any post-exec HookS 
+				final String outputEventName = getOutputEventName(taskAndEvent);
+				final Event outputEvent = new TaskExecutor(task, taskAndEvent.getEvents(), fluxRuntimeConnector, taskAndEvent.getStateMachineId(), outputEventName).execute();
+				if (outputEvent != null) {
+					getSender().tell(outputEvent, getSelf());
+				}
+				// Execute any post-exec HookS
 				this.executeHooks(this.taskRegistry.getPostExecHooks(task), taskAndEvent.getEvents());
 			} else {
 				logger.error("Task received EventS that it cannot process. Events received are : {}",TaskRegistry.getEventsKey(taskAndEvent.getEvents()));
@@ -98,7 +102,12 @@ public class AkkaTask extends UntypedActor {
 			unhandled(message);
 		}
 	}
-	
+
+	private String getOutputEventName(TaskAndEvents taskAndEvent) throws java.io.IOException {
+		final String outputEvent = taskAndEvent.getOutputEvent();
+		return outputEvent != null ? objectMapper.readValue(outputEvent, EventDefinition.class).getName() : null;
+	}
+
 	/**
 	 * Helper method to execute pre and post Task execution Hooks as independent Actor invocations
 	 */

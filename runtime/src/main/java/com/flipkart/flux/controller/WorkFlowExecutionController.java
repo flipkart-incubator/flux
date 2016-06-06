@@ -26,10 +26,13 @@ import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -44,6 +47,8 @@ public class WorkFlowExecutionController {
     private EventsDAO eventsDAO;
 
     private RouterRegistry routerRegistry;
+
+    private static final Logger logger = LoggerFactory.getLogger(WorkFlowExecutionController.class);
 
     @Inject
     public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO, RouterRegistry routerRegistry) {
@@ -62,9 +67,9 @@ public class WorkFlowExecutionController {
         //create context and dependency graph
         Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine); //TODO: set context id, should we need it ?
 
-        Set<State> initialStates = context.getInitialStates();
-
-        executeStates(stateMachine.getId(),initialStates);
+        final List<String> triggeredEvents = eventsDAO.findTriggeredEventsNamesBySMId(stateMachine.getId());
+        Set<State> initialStates = context.getInitialStates(new HashSet<>(triggeredEvents));
+        executeStates(stateMachine.getId(), initialStates);
 
         return initialStates;
     }
@@ -91,8 +96,10 @@ public class WorkFlowExecutionController {
         Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine); //TODO: set context id, should we need it ?
 
         //get the states whose dependencies are met
-        Set<State> executableStates = getExecutableStates(context.getDependantStates(eventData.getName()), stateMachineInstanceId);
-
+        final Set<State> dependantStates = context.getDependantStates(eventData.getName());
+        logger.debug("These states {} depend on event {}", dependantStates, eventData.getName());
+        Set<State> executableStates = getExecutableStates(dependantStates, stateMachineInstanceId);
+        logger.debug("These states {} are now unblocked after event {}", executableStates, eventData.getName());
         //start execution of the above states
         executeStates(stateMachineInstanceId, executableStates);
 
@@ -102,8 +109,13 @@ public class WorkFlowExecutionController {
     private void executeStates(Long stateMachineInstanceId, Set<State> executableStates) {
         // TODO - this always uses someRouter for now
         executableStates.forEach((state ->  {
+            final TaskAndEvents msg = new TaskAndEvents(state.getTask(),
+                eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId).toArray(new Event[]{}),
+                stateMachineInstanceId,
+                state.getOutputEvent());
+            logger.debug("Sending msg {} for state machine {}", msg, stateMachineInstanceId);
             this.routerRegistry.getRouter("someRouter").tell(
-                new TaskAndEvents(state.getTask(), eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId).toArray(new Event[]{}), stateMachineInstanceId, state.getOutputEvent()), ActorRef.noSender());
+                msg, ActorRef.noSender());
         }));
     }
 
@@ -121,35 +133,15 @@ public class WorkFlowExecutionController {
      * @return executableStates
      */
     private Set<State> getExecutableStates(Set<State> dependantStates, Long stateMachineInstanceId) {
-
-        Set<State> executableStates = new HashSet<State>();
-
-        //received events of a particular state machine by system so far
-        Set<String> receivedEvents = null;
+        // TODO : states can get triggered twice if we receive all their dependent events at roughly the same time.
+        Set<State> executableStates = new HashSet<>();
+        Set<String> receivedEvents = new HashSet<>(eventsDAO.findTriggeredEventsNamesBySMId(stateMachineInstanceId));
 
 //      for each state
 //        1. get the dependencies (events)
 //        2. check whether all events are in triggered state
 //        3. if all events are in triggered status, then add this state to executableStates
-        for(State state : dependantStates) {
-            Set<String> dependantEvents = state.getDependencies();
-            if(dependantEvents.size() == 1) { //If state is dependant on only one event then that would be the current event
-                executableStates.add(state);
-            } else {
-                if (receivedEvents == null)
-                    receivedEvents = new HashSet<>(eventsDAO.findTriggeredEventsNamesBySMId(stateMachineInstanceId));
-                boolean areAllEventsReceived = true;
-                for(String dependantEvent : dependantEvents) {
-                    if(!receivedEvents.contains(dependantEvent)) {
-                        areAllEventsReceived = false;
-                        break;
-                    }
-                }
-                if(areAllEventsReceived)
-                    executableStates.add(state);
-            }
-        }
-
+        dependantStates.stream().filter(state1 -> state1.isDependencySatisfied(receivedEvents)).forEach(executableStates::add);
         return executableStates;
     }
 

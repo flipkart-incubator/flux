@@ -13,9 +13,9 @@
 
 package com.flipkart.flux.api;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.*;
 
 /**
  * <Code>StateMachineDefinition</Code> defines a template for State machine instances on Flux. Defines the states that the state machine can transition through 
@@ -90,6 +90,27 @@ public class StateMachineDefinition {
 
     public void setEventData(Set<EventData> eventData) {
         this.eventData = eventData;
+    }
+
+    @JsonIgnore
+    public Map<EventDefinition,EventData> getEventDataMap() {
+        Map<EventDefinition,EventData> eventDataMap = new HashMap<>();
+        for (StateDefinition aState : this.states) {
+            final Set<EventDefinition> dependenciesForCurrentState = aState.getDependencies();
+            for (EventDefinition anEventDefinition : dependenciesForCurrentState) {
+                eventDataMap.putIfAbsent(anEventDefinition, retrieveEventDataFor(anEventDefinition));
+            }
+        }
+        return eventDataMap;
+    }
+
+    private EventData retrieveEventDataFor(EventDefinition anEventDefinition) {
+        for (EventData someData : this.eventData) {
+            if (someData.isFor(anEventDefinition)) {
+                return someData;
+            }
+        }
+        return null;
     }
 
     @Override

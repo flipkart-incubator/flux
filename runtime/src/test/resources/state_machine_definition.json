@@ -10,7 +10,7 @@
       "onEntryHook": "com.flipkart.flux.dao.DummyOnEntryHook",
       "task": "com.flipkart.flux.dao.DummyTask",
       "onExitHook": "com.flipkart.flux.dao.DummyOnExitHook",
-      "dependencies": null,
+      "dependencies": [],
       "retryCount": "5",
       "timeout": "100",
       "outputEvent":null

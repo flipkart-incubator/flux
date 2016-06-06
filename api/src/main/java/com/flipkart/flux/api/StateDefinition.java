@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.api;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -58,12 +59,14 @@ public class StateDefinition {
 
 	/* Used only by Jackson */
 	StateDefinition() {
+		super();
+		this.dependencies = new HashSet<>();
 	}
 
 	/** Constructor*/
 	public StateDefinition(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
 						   Long retryCount, Long timeout, Set<EventDefinition> dependencies, EventDefinition outputEvent) {
-		super();
+		this();
 		this.version = version;
 		this.name = name;
         this.description = description;

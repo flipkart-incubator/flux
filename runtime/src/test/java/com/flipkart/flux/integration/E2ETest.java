@@ -54,16 +54,17 @@ public class E2ETest {
     @Test
     public void testSimpleWorkflowE2E() throws Exception {
         /* Invocation */
-        simpleWorkflow.simpleDummyWorkflow();
+        simpleWorkflow.simpleDummyWorkflow(new StringEvent("startingEvent"));
 
         /* Asserts*/
-        final Set<StateMachine> smInDb = stateMachinesDAO.findByNameAndVersion("com.flipkart.flux.integration.SimpleWorkflow_simpleDummyWorkflow_void", 1l);
+        final Set<StateMachine> smInDb = stateMachinesDAO.findByNameAndVersion("com.flipkart.flux.integration.SimpleWorkflow_simpleDummyWorkflow_void_com.flipkart.flux.integration.StringEvent", 1l);
         final Long smId = smInDb.stream().findFirst().get().getId();
         assertThat(smInDb).hasSize(1);
-        assertThat(eventsDAO.findBySMInstanceId(smId)).hasSize(2);
+        assertThat(eventsDAO.findBySMInstanceId(smId)).hasSize(3);
         /* The following will return true only if the latch has been counted down as part of execution in another thread */
         assertThat(simpleWorkflow.getCountDownLatchForSimpleIntegerReturnTask().await(1, TimeUnit.SECONDS)).isTrue();
         assertThat(simpleWorkflow.getCountDownLatchForSimpleStringReturnTask().await(1, TimeUnit.SECONDS)).isTrue();
+        assertThat(simpleWorkflow.getCountDownLatchForSimpleIntegerAndStringTask().await(1, TimeUnit.SECONDS)).isTrue();
 
         /* See if Akka Test suite can be used to verify akka interactions, not needed though */
     }

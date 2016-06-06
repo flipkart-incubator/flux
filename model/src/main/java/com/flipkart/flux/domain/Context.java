@@ -76,11 +76,17 @@ public abstract class Context {
     }
 
     /**
-     * Returns set of states which can be started when state machine starts.
+     * Returns set of states which can be started when state machine starts for the first time.
      * @return initial states
+     * @param triggeredEventNames Names of events that have already been received during the state machine definition
      */
-    public Set<State> getInitialStates() {
-        return eventToStateDependencyGraph.get(START);
+    public Set<State> getInitialStates(HashSet<String> triggeredEventNames) {
+        final Set<State> initialStates = eventToStateDependencyGraph.get(START);
+        for (String aTriggeredEventName : triggeredEventNames) {
+            final Set<State> statesDependentOnThisEvent = eventToStateDependencyGraph.get(aTriggeredEventName);
+            statesDependentOnThisEvent.stream().filter(state1 -> state1.isDependencySatisfied(triggeredEventNames)).forEach(initialStates::add);
+        }
+        return initialStates;
     }
 
     public boolean isExecutionCancelled() {

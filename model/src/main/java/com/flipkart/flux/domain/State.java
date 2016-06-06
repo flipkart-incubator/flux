@@ -109,14 +109,12 @@ public class State {
     }
 
     /**
-     * The entry method to state transition. Executes the {@link Task} associated with this State and signals a transition to the next state on successful execution.
-     * @param context the Task execution context
+     * Used to check whether the state has all its dependencies met based on the input set of event names
+     * @param receivedEvents - Input set containing event names of all events received so far
+     * @return true if dependency is completely satisfied
      */
-    public void enter(Context context) {
-        // 1. Begin execution of the task
-        // 2. Set next state
-        // The return value of the task can either be returned from here, or if we go truly async then
-        // the worker executing the task can "Post" it back to the WF engine.
+    public boolean isDependencySatisfied(Set<String> receivedEvents) {
+       return receivedEvents.containsAll(this.dependencies);
     }
 
     /** Accessor/Mutator methods*/

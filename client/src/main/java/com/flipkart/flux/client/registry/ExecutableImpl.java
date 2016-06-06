@@ -80,4 +80,9 @@ public class ExecutableImpl implements Executable {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public Class<?>[] getParameterTypes() {
+        return toInvoke.getParameterTypes();
+    }
 }
