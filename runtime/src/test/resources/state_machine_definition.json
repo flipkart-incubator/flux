@@ -30,7 +30,10 @@
       ],
       "retryCount": "3",
       "timeout": "100",
-      "outputEvent":null
+      "outputEvent":{
+        "name":"event2",
+        "type":"someType"
+      }
     },
     {
       "version": 1,
@@ -69,10 +72,7 @@
       ],
       "retryCount": "5",
       "timeout": "100",
-      "outputEvent":{
-        "name":"someEvent",
-        "type":"someType"
-      }
+      "outputEvent":null
     }
   ]
 }

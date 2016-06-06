@@ -18,27 +18,31 @@ import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.Task;
 import com.flipkart.flux.impl.task.AkkaTask;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 /**
- * <code>HookAndEvents</code> is a message that composes a {@link Task} identifier and the {@link Event}S that it processes.
+ * <code>TaskAndEvents</code> is a message that composes a {@link Task} identifier and the {@link Event}S that it processes.
  * Used in invoking the {@link AkkaTask} Actor in akka.
  *
  * @author yogesh.nachnani
  *
  */
-public class TaskAndEvents {
+public class TaskAndEvents implements Serializable {
     /* The string that uniquely identifies a client task to be executed */
     private String taskIdentifier;
     /* The set of events that have presently unblocked the task and whose data will be utilised during task execution */
     private Event[] events;
     /* The state machine id for which this execution message is raised */
     private Long stateMachineId;
+    /* Serialised output event definition */
+    private String outputEvent;
 
-    public TaskAndEvents(String taskIdentifier, Event[] events, Long stateMachineId) {
+    public TaskAndEvents(String taskIdentifier, Event[] events, Long stateMachineId, String outputEvent) {
         this.taskIdentifier = taskIdentifier;
         this.events = events;
         this.stateMachineId = stateMachineId;
+        this.outputEvent = outputEvent;
     }
 
     public String getTaskIdentifier() {
@@ -53,6 +57,10 @@ public class TaskAndEvents {
         return stateMachineId;
     }
 
+    public String getOutputEvent() {
+        return outputEvent;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -62,7 +70,9 @@ public class TaskAndEvents {
 
         if (!taskIdentifier.equals(that.taskIdentifier)) return false;
         // Probably incorrect - comparing Object[] arrays with Arrays.equals
-        return Arrays.equals(events, that.events);
+        if (!Arrays.equals(events, that.events)) return false;
+        if (!stateMachineId.equals(that.stateMachineId)) return false;
+        return !(outputEvent != null ? !outputEvent.equals(that.outputEvent) : that.outputEvent != null);
 
     }
 
@@ -70,6 +80,8 @@ public class TaskAndEvents {
     public int hashCode() {
         int result = taskIdentifier.hashCode();
         result = 31 * result + (events != null ? Arrays.hashCode(events) : 0);
+        result = 31 * result + stateMachineId.hashCode();
+        result = 31 * result + (outputEvent != null ? outputEvent.hashCode() : 0);
         return result;
     }
 
@@ -78,6 +90,8 @@ public class TaskAndEvents {
         return "TaskAndEvents{" +
             "events=" + Arrays.toString(events) +
             ", taskIdentifier='" + taskIdentifier + '\'' +
+            ", stateMachineId=" + stateMachineId +
+            ", outputEvent='" + outputEvent + '\'' +
             '}';
     }
 }

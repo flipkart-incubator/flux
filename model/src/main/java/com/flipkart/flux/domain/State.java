@@ -208,6 +208,10 @@ public class State {
         this.numRetries = numRetries;
     }
 
+    public String getOutputEvent() {
+        return outputEvent;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -17,6 +17,7 @@ package com.flipkart.flux.controller;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.testkit.TestActorRef;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
@@ -54,6 +55,8 @@ public class WorkFlowExecutionControllerTest {
 
     private WorkFlowExecutionController workFlowExecutionController;
     private ActorSystem actorSystem;
+    private ObjectMapper objectMapper;
+
 
     @Before
     public void setUp() throws Exception {
@@ -62,6 +65,7 @@ public class WorkFlowExecutionControllerTest {
         actorSystem = ActorSystem.create();
         mockActor = TestActorRef.create(actorSystem, Props.create(MockActorRef.class));
         when(routerRegistry.getRouter(anyString())).thenReturn(mockActor);
+        objectMapper = new ObjectMapper();
     }
 
     @After
@@ -79,7 +83,8 @@ public class WorkFlowExecutionControllerTest {
         workFlowExecutionController.postEvent(testEventData, 1l);
 
         verify(routerRegistry, times(2)).getRouter("someRouter"); // For 2 unblocked states
-        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("com.flipkart.flux.dao.TestTask", expectedEvents, 1l), 2);
+        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("com.flipkart.flux.dao.TestTask", expectedEvents, 1l, objectMapper.writeValueAsString(TestUtils.standardStateMachineOutputEvent())), 1);
+        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("com.flipkart.flux.dao.TestTask", expectedEvents, 1l, null), 1);
         verifyNoMoreInteractions(routerRegistry);
     }
 }

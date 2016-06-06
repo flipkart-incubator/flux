@@ -103,7 +103,7 @@ public class WorkFlowExecutionController {
         // TODO - this always uses someRouter for now
         executableStates.forEach((state ->  {
             this.routerRegistry.getRouter("someRouter").tell(
-                new TaskAndEvents(state.getTask(), eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId).toArray(new Event[]{}), stateMachineInstanceId), ActorRef.noSender());
+                new TaskAndEvents(state.getTask(), eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId).toArray(new Event[]{}), stateMachineInstanceId, state.getOutputEvent()), ActorRef.noSender());
         }));
     }
 
