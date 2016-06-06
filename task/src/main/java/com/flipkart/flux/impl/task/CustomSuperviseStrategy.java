@@ -14,17 +14,18 @@
 
 package com.flipkart.flux.impl.task;
 
-import akka.actor.OneForOneStrategy;
-import akka.actor.SupervisorStrategy;
-import akka.japi.Function;
-import com.flipkart.flux.impl.excpetion.TaskResumableException;
-import com.google.inject.Inject;
-import scala.concurrent.duration.Duration;
-
 import static akka.actor.SupervisorStrategy.escalate;
 import static akka.actor.SupervisorStrategy.restart;
 import static akka.actor.SupervisorStrategy.resume;
 import static akka.actor.SupervisorStrategy.stop;
+
+import com.flipkart.flux.impl.exception.TaskResumableException;
+import com.google.inject.Inject;
+
+import akka.actor.OneForOneStrategy;
+import akka.actor.SupervisorStrategy;
+import akka.japi.Function;
+import scala.concurrent.duration.Duration;
 
 /**
  * Default strategy of Akka is to restart all the actors when some excpetion happens.
