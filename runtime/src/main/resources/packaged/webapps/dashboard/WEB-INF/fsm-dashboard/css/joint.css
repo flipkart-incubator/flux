@@ -142,22 +142,34 @@ Vertex markers are `<circle>` elements that appear at connection vertex position
 /*   display: none;   */   /* setting `display: none` on .marker-arrowheads effectivelly switches of links reconnecting */
 }
 .link-tools {
+   /*	
    opacity: 0;
    cursor: pointer;
+   */
+   display: none; /* Don't want to show link tools*/
 }
 .link-tools .tool-options {
    display: none;       /* by default, we don't display link options tool */
 }
 .link-tools .tool-remove circle {
+   /*	
    fill: red;
+   */
+   display: none; /* Don't want to show link tools options*/
 }
 .link-tools .tool-remove path {
+   /*	
    fill: white;
+   */
+   display: none; /* Don't want to show link tools options*/
 }
 .link:hover .marker-vertices,
 .link:hover .marker-arrowheads,
 .link:hover .link-tools {
+   /*	
    opacity: 1;
+   */
+   display: none; /* Don't want to show link hover options*/
 }
 
 /* <circle> element inside .marker-vertex-group <g> element */

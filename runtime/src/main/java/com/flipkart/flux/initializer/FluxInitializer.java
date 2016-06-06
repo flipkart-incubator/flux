@@ -22,6 +22,7 @@ import com.flipkart.flux.guice.module.HibernateModule;
 import com.flipkart.flux.impl.boot.TaskModule;
 import com.flipkart.flux.impl.task.registry.EagerInitRouterRegistryImpl;
 import com.flipkart.polyguice.core.support.Polyguice;
+import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,17 +47,21 @@ public class FluxInitializer {
 	private String hostName;
 	
 	/** The Flux startup display contents*/
-	private static final MessageFormat STARTUP_DISPLAY = new MessageFormat( 
-	    "\n*************************************************************************\n" +
-        " Flux   _\n" +
-        "      _| |_  \n"+  
-        "     /     \\ "+"         Startup Time : {0}" + " ms\n" +
-        "    ( (| |) ) "+"        Host Name: {1}" + "\n" +
-        "     \\_   _/\n"+ 
-        "       |-|\n"+
-	    "*************************************************************************"
-		);	
-	
+	private static final MessageFormat STARTUP_DISPLAY = new MessageFormat(
+            "\n*************************************************************************\n" +
+                    " Flux             ___          \n" +
+                    "          ___    /   \\        \n" +
+                    "         /   \\__| ( ) |       " + "     Startup Time : {0}" + " ms\n" +
+                    "   ___  | ( ) |  \\___/        " + "     Host Name: {1} \n " +
+                    " /   \\/ \\___/     \\___         \n" +
+                    " | ( ) |   \\___    /   \\   \n" +
+                    "  \\___/    /   \\__| ( ) |      \n" +
+                    "          | ( ) |  \\___/     \n" +
+                    "           \\___/        \n" +
+                    "*************************************************************************"
+    );
+
+
 	/** The Polyguice DI container */
     private Polyguice fluxRuntimeContainer;
     

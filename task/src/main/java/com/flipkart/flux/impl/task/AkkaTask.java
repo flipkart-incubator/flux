@@ -34,6 +34,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.List;
 
+
 /**
  * <code>AkkaTask</code> is an Akka {@link UntypedActor} that executes {@link Task} instances concurrently. Tasks are executed using a {@link TaskExecutor} where 
  * the execution of {@link Task#execute(com.flipkart.flux.domain.Event...)} is wrapped with a {@link HystrixCommand} to provide isolation and fault tolerance to 
@@ -65,13 +66,12 @@ public class AkkaTask extends UntypedActor {
 	 * The Akka Actor callback method for processing the Task
 	 * @see akka.actor.UntypedActor#onReceive(java.lang.Object)
 	 */
-	@SuppressWarnings("unchecked")
 	public void onReceive(Object message) throws Exception {
 
 		//todo actor can take a call when to throw TaskResumableException
 		if (TaskAndEvents.class.isAssignableFrom(message.getClass())) {
 			TaskAndEvents taskAndEvent = (TaskAndEvents)message;
-			logger.debug("Received directive {}",taskAndEvent);
+			logger.debug("Received directive {}", taskAndEvent);
 		 	AbstractTask task = this.taskRegistry.retrieveTask(taskAndEvent.getTaskIdentifier());
 			if (task != null) {
 				// Execute any pre-exec HookS

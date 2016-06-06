@@ -42,6 +42,9 @@ public interface EventsDAO {
     /** Retrieves list of event names which are in triggered state and belongs to provided state machine */
     public List<String> findTriggeredEventsNamesBySMId(Long stateMachineInstanceId);
 
+    /** Retrieves list of events which are in triggered state and belongs to provided state machine */
+    public List<Event> findTriggeredEventsBySMId(Long stateMachineInstanceId);
+
     /** Retrieves list of events by their names and state machine id */
     public List<Event> findByEventNamesAndSMId(Set<String> eventNames, Long stateMachineInstanceId);
 }
