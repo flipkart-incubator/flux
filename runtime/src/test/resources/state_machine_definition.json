@@ -10,9 +10,10 @@
       "onEntryHook": "com.flipkart.flux.dao.DummyOnEntryHook",
       "task": "com.flipkart.flux.dao.DummyTask",
       "onExitHook": "com.flipkart.flux.dao.DummyOnExitHook",
-      "dependencies": null,
+      "dependencies": [],
       "retryCount": "5",
-      "timeout": "100"
+      "timeout": "100",
+      "outputEvent":null
     },
     {
       "version": 1,
@@ -28,7 +29,11 @@
         }
       ],
       "retryCount": "3",
-      "timeout": "100"
+      "timeout": "100",
+      "outputEvent":{
+        "name":"event2",
+        "type":"someType"
+      }
     },
     {
       "version": 1,
@@ -44,7 +49,8 @@
         }
       ],
       "retryCount": "3",
-      "timeout": "100"
+      "timeout": "100",
+      "outputEvent":null
     },
     {
       "version": 1,
@@ -65,7 +71,8 @@
 
       ],
       "retryCount": "5",
-      "timeout": "100"
+      "timeout": "100",
+      "outputEvent":null
     }
   ]
 }

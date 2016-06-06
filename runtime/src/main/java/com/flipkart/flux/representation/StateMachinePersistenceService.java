@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.representation;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
@@ -23,7 +25,9 @@ import com.flipkart.flux.domain.StateMachine;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -36,11 +40,13 @@ public class StateMachinePersistenceService {
     private StateMachinesDAO stateMachinesDAO;
 
     private EventPersistenceService eventPersistenceService;
+    private final ObjectMapper objectMapper;
 
     @Inject
     public StateMachinePersistenceService(StateMachinesDAO stateMachinesDAO, EventPersistenceService eventPersistenceService) {
         this.stateMachinesDAO = stateMachinesDAO;
         this.eventPersistenceService = eventPersistenceService;
+        objectMapper = new ObjectMapper();
     }
 
     /**
@@ -49,12 +55,14 @@ public class StateMachinePersistenceService {
      * @return saved state machine object
      */
     public StateMachine createStateMachine(StateMachineDefinition stateMachineDefinition) {
+        final Map<EventDefinition, EventData> eventDataMap = stateMachineDefinition.getEventDataMap();
+        Set<Event> allEvents = createAllEvents(eventDataMap);
         Set<StateDefinition> stateDefinitions = stateMachineDefinition.getStates();
         Set<State> states = new HashSet<>();
-        Set<Event> eventSet = new HashSet<>();
+
 
         for(StateDefinition stateDefinition : stateDefinitions) {
-            State state = convertStateDefinitionToState(stateDefinition, eventSet);
+            State state = convertStateDefinitionToState(stateDefinition);
             states.add(state);
         }
 
@@ -65,7 +73,7 @@ public class StateMachinePersistenceService {
 
         stateMachinesDAO.create(stateMachine);
 
-        for(Event event: eventSet) {
+        for(Event event: allEvents) {
             event.setStateMachineInstanceId(stateMachine.getId());
             eventPersistenceService.persistEvent(event);
         }
@@ -73,21 +81,32 @@ public class StateMachinePersistenceService {
         return stateMachine;
     }
 
+    private Set<Event> createAllEvents(Map<EventDefinition, EventData> eventDataMap) {
+        Set<Event> allEvents = new HashSet<>();
+        for (Map.Entry<EventDefinition, EventData> currentEventDefinitionAndData : eventDataMap.entrySet()) {
+            final Event currentEvent = eventPersistenceService.convertEventDefinitionToEvent(currentEventDefinitionAndData.getKey());
+            if (currentEventDefinitionAndData.getValue() != null) {
+                currentEvent.setEventData(currentEventDefinitionAndData.getValue().getData());
+                currentEvent.setEventSource(currentEventDefinitionAndData.getValue().getEventSource());
+                currentEvent.setStatus(Event.EventStatus.triggered);
+            }
+            allEvents.add(currentEvent);
+        }
+        return allEvents;
+    }
+
     /**
      * Converts state definition to state domain object.
      * @param stateDefinition
      * @return state
      */
-    private State convertStateDefinitionToState(StateDefinition stateDefinition, Set<Event> eventSet) {
-
+    private State convertStateDefinitionToState(StateDefinition stateDefinition)    {
         try {
             Set<EventDefinition> eventDefinitions = stateDefinition.getDependencies();
-            HashSet<String> events = null;
+            HashSet<String> events = new HashSet<>();
             if(eventDefinitions != null) {
-                events = new HashSet<>();
                 for(EventDefinition e : eventDefinitions) {
                     events.add(e.getName());
-                    eventSet.add(eventPersistenceService.convertEventDefinitionToEvent(e));
                 }
             }
             State state = new State(stateDefinition.getVersion(),
@@ -98,7 +117,7 @@ public class StateMachinePersistenceService {
                     stateDefinition.getOnExitHook(),
                     events,
                     stateDefinition.getRetryCount(),
-                    stateDefinition.getTimeout());
+                    stateDefinition.getTimeout(), stateDefinition.getOutputEvent() != null? objectMapper.writeValueAsString(stateDefinition.getOutputEvent()) : null);
             return state;
         } catch (Exception e) {
             throw new IllegalRepresentationException("Unable to create state domain object", e);

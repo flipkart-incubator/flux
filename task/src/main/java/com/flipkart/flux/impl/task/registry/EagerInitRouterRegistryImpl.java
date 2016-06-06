@@ -29,8 +29,8 @@ import akka.remote.routing.RemoteRouterConfig;
 import akka.routing.RoundRobinPool;
 import com.flipkart.flux.domain.FluxError;
 import com.flipkart.flux.impl.boot.ActorSystemManager;
+import com.flipkart.flux.impl.task.AkkaTask;
 import com.flipkart.flux.impl.task.CustomSuperviseStrategy;
-import com.flipkart.flux.impl.temp.Worker;
 import com.flipkart.polyguice.core.Initializable;
 import javafx.util.Pair;
 import org.slf4j.Logger;
@@ -110,7 +110,7 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
             actorSystem.actorOf(
                 ClusterSingletonManager.props(new ClusterRouterPool(new RoundRobinPool(2).withSupervisorStrategy(superviseStrategy.getStrategy()), next.getValue()).props(
                     new RemoteRouterConfig(new RoundRobinPool(6), this.memberAddresses).props(
-                        Props.create(Worker.class))), PoisonPill.getInstance(), settings), next.getKey());
+                        Props.create(AkkaTask.class))), PoisonPill.getInstance(), settings), next.getKey());
 
             ClusterSingletonProxySettings proxySettings = ClusterSingletonProxySettings.create(actorSystem);
 

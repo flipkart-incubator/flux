@@ -63,6 +63,12 @@
 	        <groupId>com.netflix.hystrix</groupId>
 	        <artifactId>hystrix-metrics-event-stream</artifactId>
 	        <version>${hystrix.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-core</artifactId>
+                </exclusion>
+            </exclusions>
 	    </dependency>
 		<dependency>
 		  <groupId>com.typesafe.akka</groupId>
@@ -140,7 +146,7 @@
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-testkit_2.11</artifactId>
-            <version>2.4.6</version>
+            <version>${akka.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -182,6 +188,14 @@
                         <include>packaged/**/*</include>
                     </includes>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>

@@ -11,21 +11,17 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.dao;
-
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.FluxError;
-import com.flipkart.flux.domain.Task;
-import javafx.util.Pair;
+package com.flipkart.flux.client.model;
 
 /**
- * @author shyam.akirala
+ * All parameters used in and returned from <code>Task</code>s need to implement this marker interface
+ * This acts as a deterrent for teams to use "Strings" or "Integers" as parameters and push them in the direction of
+ * using meaningful business entities
+ * @author yogesh.nachnani
  */
-public class DummyTask implements Task {
-
-    @Override
-    public Pair<Object, FluxError> execute(Event[] events) {
-        //DO SOMETHING
-        return null;
+public interface Event {
+    static final String EMPTY="";
+    default String name() {
+        return EMPTY;
     }
 }

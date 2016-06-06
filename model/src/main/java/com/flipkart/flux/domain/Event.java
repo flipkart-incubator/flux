@@ -52,9 +52,8 @@ public class Event implements Serializable {
     /** Instance Id of state machine with which this event is associated */
     private Long stateMachineInstanceId;
 
-    /** Data associated with this Event, must have public getters and setters and be serializable */
-    @Type(type = "BlobType")
-    private Object eventData;
+    /** Data associated with this Event, stored as serialised json */
+    private String eventData;
 
     /** The source who generated this Event */
     private String eventSource;
@@ -72,7 +71,7 @@ public class Event implements Serializable {
 
     /** Constructors */
     protected Event() {}
-    public Event(String name, String type, EventStatus status, Long stateMachineInstanceId, Object eventData, String eventSource) {
+    public Event(String name, String type, EventStatus status, Long stateMachineInstanceId, String eventData, String eventSource) {
         this.name = name;
         this.type = type;
         this.status = status;
@@ -97,10 +96,10 @@ public class Event implements Serializable {
     public void setStateMachineInstanceId(Long stateMachineInstanceId) {
         this.stateMachineInstanceId = stateMachineInstanceId;
     }
-    public Object getEventData() {
+    public String getEventData() {
         return eventData;
     }
-    public void setEventData(Object eventData) {
+    public void setEventData(String eventData) {
         this.eventData = eventData;
     }
     public String getEventSource() {

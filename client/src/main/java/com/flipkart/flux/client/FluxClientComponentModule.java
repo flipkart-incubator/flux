@@ -9,43 +9,34 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package com.flipkart.flux.client;
 
-import com.flipkart.flux.client.intercept.SimpleWorkflowForTest;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.client.registry.LocalExecutableRegistryImpl;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
 import com.flipkart.flux.client.runtime.LocalContext;
-import com.flipkart.flux.client.utils.TestResourceModule;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import org.mockito.Mockito;
 
 import javax.inject.Singleton;
 
-public class FluxClientSpyModuleForTests extends AbstractModule {
-
+public class FluxClientComponentModule extends AbstractModule {
     @Override
     protected void configure() {
-        install(new FluxClientInterceptorModule());
         bind(ExecutableRegistry.class).to(LocalExecutableRegistryImpl.class);
-        bind(SimpleWorkflowForTest.class);
-        install(new TestResourceModule());
     }
-
-    @Provides
-    @Singleton
-    public LocalContext provideLocalContext( ) {
-        return Mockito.spy(new LocalContext());
-    }
-
     @Provides
     @Singleton
     public FluxRuntimeConnector provideFluxRuntimeConnector( ){
-        return Mockito.spy(new FluxRuntimeConnectorHttpImpl(1000l,1000l,"http://localhost:9091/flux/machines"));
+        return new FluxRuntimeConnectorHttpImpl(1000l,1000l,"http://localhost:9998/api/machines");
+    }
+
+    @Provides
+    @Singleton
+    public LocalContext getLocalContext() {
+        return new LocalContext();
     }
 }
