@@ -13,6 +13,10 @@
 
 package com.flipkart.flux.representation;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.DeserializationConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationConfig;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
@@ -36,11 +40,13 @@ public class StateMachinePersistenceService {
     private StateMachinesDAO stateMachinesDAO;
 
     private EventPersistenceService eventPersistenceService;
+    private final ObjectMapper objectMapper;
 
     @Inject
     public StateMachinePersistenceService(StateMachinesDAO stateMachinesDAO, EventPersistenceService eventPersistenceService) {
         this.stateMachinesDAO = stateMachinesDAO;
         this.eventPersistenceService = eventPersistenceService;
+        objectMapper = new ObjectMapper();
     }
 
     /**
@@ -79,12 +85,10 @@ public class StateMachinePersistenceService {
      * @return state
      */
     private State convertStateDefinitionToState(StateDefinition stateDefinition, Set<Event> eventSet) {
-
         try {
             Set<EventDefinition> eventDefinitions = stateDefinition.getDependencies();
-            HashSet<String> events = null;
+            HashSet<String> events = new HashSet<>();;
             if(eventDefinitions != null) {
-                events = new HashSet<>();
                 for(EventDefinition e : eventDefinitions) {
                     events.add(e.getName());
                     eventSet.add(eventPersistenceService.convertEventDefinitionToEvent(e));
@@ -98,7 +102,7 @@ public class StateMachinePersistenceService {
                     stateDefinition.getOnExitHook(),
                     events,
                     stateDefinition.getRetryCount(),
-                    stateDefinition.getTimeout());
+                    stateDefinition.getTimeout(), stateDefinition.getOutputEvent() != null? objectMapper.writeValueAsString(stateDefinition.getOutputEvent()) : null);
             return state;
         } catch (Exception e) {
             throw new IllegalRepresentationException("Unable to create state domain object", e);

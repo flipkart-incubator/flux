@@ -12,7 +12,8 @@
       "onExitHook": "com.flipkart.flux.dao.DummyOnExitHook",
       "dependencies": null,
       "retryCount": "5",
-      "timeout": "100"
+      "timeout": "100",
+      "outputEvent":null
     },
     {
       "version": 1,
@@ -28,7 +29,8 @@
         }
       ],
       "retryCount": "3",
-      "timeout": "100"
+      "timeout": "100",
+      "outputEvent":null
     },
     {
       "version": 1,
@@ -44,7 +46,8 @@
         }
       ],
       "retryCount": "3",
-      "timeout": "100"
+      "timeout": "100",
+      "outputEvent":null
     },
     {
       "version": 1,
@@ -65,7 +68,11 @@
 
       ],
       "retryCount": "5",
-      "timeout": "100"
+      "timeout": "100",
+      "outputEvent":{
+        "name":"someEvent",
+        "type":"someType"
+      }
     }
   ]
 }

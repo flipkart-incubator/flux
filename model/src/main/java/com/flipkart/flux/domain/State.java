@@ -60,7 +60,9 @@ public class State {
     private Long timeout;
     /** Set of event names this state is dependent on*/
     @Type(type = "SetJsonType")
-    private Set<String> dependencies = new HashSet<>();
+    private Set<String> dependencies;
+
+    private String outputEvent;
 
     /* Maintained by the execution engine */
     /** List of errors during state transition*/
@@ -87,10 +89,13 @@ public class State {
 
 
     /** Constructors */
-    protected State() {}
-    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, Set<String> dependencies,
-                 Long retryCount, Long timeout) {
+    protected State() {
         super();
+        dependencies = new HashSet<>();
+    }
+    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, Set<String> dependencies,
+                 Long retryCount, Long timeout, String outputEvent) {
+        this();
         this.version = version;
         this.name = name;
         this.description = description;
@@ -100,6 +105,7 @@ public class State {
         this.dependencies = dependencies;
         this.retryCount = retryCount;
         this.timeout = timeout;
+        this.outputEvent = outputEvent;
     }
 
     /**
@@ -216,6 +222,7 @@ public class State {
         if (numRetries != null ? !numRetries.equals(state.numRetries) : state.numRetries != null) return false;
         if (onEntryHook != null ? !onEntryHook.equals(state.onEntryHook) : state.onEntryHook != null) return false;
         if (onExitHook != null ? !onExitHook.equals(state.onExitHook) : state.onExitHook != null) return false;
+        if (outputEvent != null ? !outputEvent.equals(state.outputEvent) : state.outputEvent != null) return false;
         if (retryCount != null ? !retryCount.equals(state.retryCount) : state.retryCount != null) return false;
         if (rollbackStatus != state.rollbackStatus) return false;
         if (stateMachineId != null ? !stateMachineId.equals(state.stateMachineId) : state.stateMachineId != null)
@@ -238,6 +245,7 @@ public class State {
         result = 31 * result + (onEntryHook != null ? onEntryHook.hashCode() : 0);
         result = 31 * result + (task != null ? task.hashCode() : 0);
         result = 31 * result + (onExitHook != null ? onExitHook.hashCode() : 0);
+        result = 31 * result + (outputEvent != null ? outputEvent.hashCode() : 0);
         result = 31 * result + (retryCount != null ? retryCount.hashCode() : 0);
         result = 31 * result + (timeout != null ? timeout.hashCode() : 0);
         result = 31 * result + (errors != null ? errors.hashCode() : 0);
@@ -260,6 +268,7 @@ public class State {
                 ", onEntryHook='" + onEntryHook + '\'' +
                 ", task='" + task + '\'' +
                 ", onExitHook='" + onExitHook + '\'' +
+                ", outputEvent='" + outputEvent + '\'' +
                 ", retryCount=" + retryCount +
                 ", timeout=" + timeout +
                 ", dependencies=" + dependencies +
