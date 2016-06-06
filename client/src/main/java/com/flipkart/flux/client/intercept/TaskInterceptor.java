@@ -15,16 +15,17 @@
 package com.flipkart.flux.client.intercept;
 
 import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.client.model.Event;
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.registry.ExecutableImpl;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.client.runtime.LocalContext;
+import net.sf.cglib.proxy.Enhancer;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 import javax.inject.Inject;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -41,9 +42,12 @@ public class TaskInterceptor implements MethodInterceptor {
     @Inject
     private ExecutableRegistry executableRegistry;
 
+    /* Used to create an empty interceptor in the Guice module. The private members are injected later.
+      Guice takes care of creating a complete object
+    */
     public TaskInterceptor() {
     }
-
+    /* Protected - since it makes sense to use this constructor only in tests */
     TaskInterceptor(LocalContext localContext,ExecutableRegistry executableRegistry) {
         this.localContext = localContext;
         this.executableRegistry = executableRegistry;
@@ -51,20 +55,78 @@ public class TaskInterceptor implements MethodInterceptor {
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
+        checkForBadSignatures(invocation);
+        if (!localContext.isWorkflowInterception()) {
+            return invocation.proceed();
+        }
         final Method method = invocation.getMethod();
         final Task taskAnnotation = method.getAnnotationsByType(Task.class)[0];
         final String taskIdentifier = generateTaskIdentifier(method);
-        localContext.registerNewState(taskAnnotation.version(), generateStateIdentifier(method) ,null,null, taskIdentifier,taskAnnotation.retries(),taskAnnotation.timeout(),generateEventDefs(method));
-        executableRegistry.registerTask(taskIdentifier,new ExecutableImpl(invocation.getThis(),invocation.getMethod(), taskAnnotation.timeout()));
-        return null;
+        final Set<EventDefinition> dependencySet = generateDependencySet(invocation.getArguments());
+        final Object proxyReturnObject = createProxyReturnObject(method);
+        final EventDefinition outputEventDefintion = generateOutputEventDefintion(proxyReturnObject);
+        /* Contribute to the ongoing state machine definition */
+        localContext.registerNewState(taskAnnotation.version(), generateStateIdentifier(method), null, null, taskIdentifier, taskAnnotation.retries(), taskAnnotation.timeout(), dependencySet, outputEventDefintion);
+        /* Register the task with the executable registry on this jvm */
+        executableRegistry.registerTask(taskIdentifier, new ExecutableImpl(invocation.getThis(), invocation.getMethod(), taskAnnotation.timeout()));
+
+        return proxyReturnObject;
     }
 
-    private Set<EventDefinition> generateEventDefs(Method method) {
+    private EventDefinition generateOutputEventDefintion(Object proxyReturnObject) {
+        if (proxyReturnObject == null) {
+            return  null;
+        }
+        String eventName = ((Event) proxyReturnObject).name();
+        String eventType = ((Intercepted) proxyReturnObject).getRealClassName();
+        return new EventDefinition(eventName,eventType);
+    }
+
+    private Object createProxyReturnObject(final Method method) {
+        if (method.getReturnType() == void.class) {
+            return null;
+        }
+        /* The method is expected to return _something_, so we create a proxy for it */
+        final String eventName = localContext.generateEventName(new Event() {
+            @Override
+            public String name() {
+                return method.getReturnType().getName();
+            }
+        });
+        final ReturnGivenStringCallback eventNameCallback = new ReturnGivenStringCallback(eventName);
+        final ReturnGivenStringCallback realClassNameCallback = new ReturnGivenStringCallback(method.getReturnType().getName());
+        final ProxyEventCallbackFilter filter = new ProxyEventCallbackFilter(method.getReturnType(),new Class[]{Intercepted.class}) {
+            @Override
+            protected ReturnGivenStringCallback getRealClassName() {
+                return realClassNameCallback;
+            }
+
+            @Override
+            public ReturnGivenStringCallback getNameCallback() {
+                return eventNameCallback;
+            }
+        };
+        return Enhancer.create(method.getReturnType(), new Class[]{Intercepted.class}, filter, filter.getCallbacks());
+    }
+
+    private void checkForBadSignatures(MethodInvocation invocation) {
+        final Method method = invocation.getMethod();
+        final Class<?>[] parameterTypes = method.getParameterTypes();
+        for (Class<?> parameterType : parameterTypes) {
+            if (!Event.class.isAssignableFrom(parameterType)) {
+                throw new IllegalSignatureException(new MethodId(method),"Task parameters need to implement the com.flipkart.flux.client.model.Event interface. Found parameter of type"+parameterType + " which does not");
+            }
+        }
+    }
+
+    private Set<EventDefinition> generateDependencySet(Object[] arguments) {
         Set<EventDefinition> eventDefinitions = new HashSet<>();
-        final Parameter[] parameters = method.getParameters();
-        final String methodIdPrefix = new MethodId(method).getPrefix();
-        for (Parameter parameter : parameters) {
-            eventDefinitions.add(new EventDefinition(methodIdPrefix+MethodId.UNDERSCORE+parameter.getType().getCanonicalName()+MethodId.UNDERSCORE+parameter.getName(),""));//TODO: CHANGE IT
+        for (Object argument : arguments) {
+            if (argument instanceof Intercepted) {
+                eventDefinitions.add(new EventDefinition(((Event) argument).name(), ((Intercepted)argument).getRealClassName() ));
+            } else {
+                eventDefinitions.add(new EventDefinition(localContext.generateEventName((Event)argument), argument.getClass().getName()));
+            }
         }
         return eventDefinitions;
 

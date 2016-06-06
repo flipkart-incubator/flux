@@ -22,6 +22,7 @@ import org.hibernate.criterion.Restrictions;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -88,6 +89,9 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     @Override
     @Transactional
     public List<Event> findByEventNamesAndSMId(Set<String> eventNames, Long stateMachineInstanceId) {
+        if (eventNames.isEmpty()) {
+            return new ArrayList<>();
+        }
         Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.in("name", eventNames));
         return criteria.list();

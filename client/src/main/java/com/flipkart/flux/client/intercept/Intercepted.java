@@ -11,14 +11,11 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.exception;
+package com.flipkart.flux.client.intercept;
 
 /**
- * <code>IllegalStateMachineException</code> used to denote an illegal state machine.
- * @author shyam.akirala
+ * This is used to indicate that a given object has been intercepted by our client
  */
-public class IllegalStateMachineException extends RuntimeException {
-    public IllegalStateMachineException(String message) {
-        super(message);
-    }
+public interface Intercepted {
+    String getRealClassName();
 }

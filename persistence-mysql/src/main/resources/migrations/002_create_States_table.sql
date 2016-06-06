@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS `States` (
   `onEntryHook` varchar(500) DEFAULT NULL,
   `task` VARCHAR(500) DEFAULT NULL,
   `onExitHook` varchar(500) DEFAULT NULL,
+  `outputEvent` varchar(500) DEFAULT NULL,
   `retryCount` TINYINT UNSIGNED DEFAULT NULL,
   `timeout` SMALLINT UNSIGNED DEFAULT NULL,
   `createdAt` TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3),

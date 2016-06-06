@@ -27,6 +27,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -75,7 +77,7 @@ public class SetJsonType implements UserType, Serializable {
         String value = rs.getString(names[0]);
 
         if (value == null) {
-            return null;
+            return new HashSet<String>();
         }
 
         try {

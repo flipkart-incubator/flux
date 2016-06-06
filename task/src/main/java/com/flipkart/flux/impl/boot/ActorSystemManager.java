@@ -43,7 +43,6 @@ import scala.concurrent.duration.Duration;
  * @author yogesh.nachnani
  * @author regunath.balasubramanian
  */
-//TODO the lifecycle will be managed by the polyguice container
 @Singleton
 public class ActorSystemManager implements Disposable, Initializable {
 
@@ -109,5 +108,9 @@ public class ActorSystemManager implements Disposable, Initializable {
 				LOGGER.error("Error shutting down Actor system", e);
 			}
         }
+    }
+
+    public boolean isInitialised() {
+        return isInitialised;
     }
 }

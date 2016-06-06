@@ -17,6 +17,7 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -61,6 +62,8 @@ public class State {
     @Type(type = "SetJsonType")
     private Set<String> dependencies;
 
+    private String outputEvent;
+
     /* Maintained by the execution engine */
     /** List of errors during state transition*/
     @Transient
@@ -86,10 +89,13 @@ public class State {
 
 
     /** Constructors */
-    protected State() {}
-    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, Set<String> dependencies,
-                 Long retryCount, Long timeout) {
+    protected State() {
         super();
+        dependencies = new HashSet<>();
+    }
+    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, Set<String> dependencies,
+                 Long retryCount, Long timeout, String outputEvent) {
+        this();
         this.version = version;
         this.name = name;
         this.description = description;
@@ -99,17 +105,16 @@ public class State {
         this.dependencies = dependencies;
         this.retryCount = retryCount;
         this.timeout = timeout;
+        this.outputEvent = outputEvent;
     }
 
     /**
-     * The entry method to state transition. Executes the {@link Task} associated with this State and signals a transition to the next state on successful execution.
-     * @param context the Task execution context
+     * Used to check whether the state has all its dependencies met based on the input set of event names
+     * @param receivedEvents - Input set containing event names of all events received so far
+     * @return true if dependency is completely satisfied
      */
-    public void enter(Context context) {
-        // 1. Begin execution of the task
-        // 2. Set next state
-        // The return value of the task can either be returned from here, or if we go truly async then
-        // the worker executing the task can "Post" it back to the WF engine.
+    public boolean isDependencySatisfied(Set<String> receivedEvents) {
+       return receivedEvents.containsAll(this.dependencies);
     }
 
     /** Accessor/Mutator methods*/
@@ -201,6 +206,10 @@ public class State {
         this.numRetries = numRetries;
     }
 
+    public String getOutputEvent() {
+        return outputEvent;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -215,6 +224,7 @@ public class State {
         if (numRetries != null ? !numRetries.equals(state.numRetries) : state.numRetries != null) return false;
         if (onEntryHook != null ? !onEntryHook.equals(state.onEntryHook) : state.onEntryHook != null) return false;
         if (onExitHook != null ? !onExitHook.equals(state.onExitHook) : state.onExitHook != null) return false;
+        if (outputEvent != null ? !outputEvent.equals(state.outputEvent) : state.outputEvent != null) return false;
         if (retryCount != null ? !retryCount.equals(state.retryCount) : state.retryCount != null) return false;
         if (rollbackStatus != state.rollbackStatus) return false;
         if (stateMachineId != null ? !stateMachineId.equals(state.stateMachineId) : state.stateMachineId != null)
@@ -237,6 +247,7 @@ public class State {
         result = 31 * result + (onEntryHook != null ? onEntryHook.hashCode() : 0);
         result = 31 * result + (task != null ? task.hashCode() : 0);
         result = 31 * result + (onExitHook != null ? onExitHook.hashCode() : 0);
+        result = 31 * result + (outputEvent != null ? outputEvent.hashCode() : 0);
         result = 31 * result + (retryCount != null ? retryCount.hashCode() : 0);
         result = 31 * result + (timeout != null ? timeout.hashCode() : 0);
         result = 31 * result + (errors != null ? errors.hashCode() : 0);
@@ -259,6 +270,7 @@ public class State {
                 ", onEntryHook='" + onEntryHook + '\'' +
                 ", task='" + task + '\'' +
                 ", onExitHook='" + onExitHook + '\'' +
+                ", outputEvent='" + outputEvent + '\'' +
                 ", retryCount=" + retryCount +
                 ", timeout=" + timeout +
                 ", dependencies=" + dependencies +

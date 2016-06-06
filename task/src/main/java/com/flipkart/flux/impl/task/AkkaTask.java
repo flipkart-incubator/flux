@@ -13,17 +13,6 @@
 
 package com.flipkart.flux.impl.task;
 
-import java.util.List;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.Task;
-import com.flipkart.flux.impl.message.HookAndEvents;
-import com.flipkart.flux.impl.message.TaskAndEvents;
-import com.netflix.hystrix.HystrixCommand;
-
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.Terminated;
@@ -32,6 +21,19 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.routing.ActorRefRoutee;
 import akka.routing.Router;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.Task;
+import com.flipkart.flux.impl.message.HookAndEvents;
+import com.flipkart.flux.impl.message.TaskAndEvents;
+import com.netflix.hystrix.HystrixCommand;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import java.util.List;
+
 
 /**
  * <code>AkkaTask</code> is an Akka {@link UntypedActor} that executes {@link Task} instances concurrently. Tasks are executed using a {@link TaskExecutor} where 
@@ -47,19 +49,19 @@ public class AkkaTask extends UntypedActor {
     private LoggingAdapter logger = Logging.getLogger(getContext().system(), this);
     
     /** TaskRegistry instance to look up Task instances from */
-    // TODO : Need a way to inject/lookup this registry
-    private TaskRegistry taskRegistry;
+	@Inject
+    private static TaskRegistry taskRegistry;
+
+	@Inject
+	private static FluxRuntimeConnector fluxRuntimeConnector;
     
     /** Router instance for the Hook actors*/
     @Inject
     @Named("HookRouter")
     private Router hookRouter;
 
-	//todo this setter to be removed when we have figured out the way to inject registry in actor. And corresponding unit test can be changed accordingly.
-	public void setTaskRegistry(TaskRegistry taskRegistry) {
-		this.taskRegistry = taskRegistry;
-	}
-	
+	private static final ObjectMapper objectMapper = new ObjectMapper();
+
 	/**
 	 * The Akka Actor callback method for processing the Task
 	 * @see akka.actor.UntypedActor#onReceive(java.lang.Object)
@@ -69,12 +71,17 @@ public class AkkaTask extends UntypedActor {
 		//todo actor can take a call when to throw TaskResumableException
 		if (TaskAndEvents.class.isAssignableFrom(message.getClass())) {
 			TaskAndEvents taskAndEvent = (TaskAndEvents)message;
+			logger.debug("Received directive {}", taskAndEvent);
 		 	AbstractTask task = this.taskRegistry.retrieveTask(taskAndEvent.getTaskIdentifier());
 			if (task != null) {
 				// Execute any pre-exec HookS
 				this.executeHooks(this.taskRegistry.getPreExecHooks(task), taskAndEvent.getEvents());
-				getSender().tell(new TaskExecutor(task, taskAndEvent.getEvents()).execute(), getSelf());
-				// Execute any post-exec HookS 
+				final String outputEventName = getOutputEventName(taskAndEvent);
+				final Event outputEvent = new TaskExecutor(task, taskAndEvent.getEvents(), fluxRuntimeConnector, taskAndEvent.getStateMachineId(), outputEventName).execute();
+				if (outputEvent != null) {
+					getSender().tell(outputEvent, getSelf());
+				}
+				// Execute any post-exec HookS
 				this.executeHooks(this.taskRegistry.getPostExecHooks(task), taskAndEvent.getEvents());
 			} else {
 				logger.error("Task received EventS that it cannot process. Events received are : {}",TaskRegistry.getEventsKey(taskAndEvent.getEvents()));
@@ -95,7 +102,12 @@ public class AkkaTask extends UntypedActor {
 			unhandled(message);
 		}
 	}
-	
+
+	private String getOutputEventName(TaskAndEvents taskAndEvent) throws java.io.IOException {
+		final String outputEvent = taskAndEvent.getOutputEvent();
+		return outputEvent != null ? objectMapper.readValue(outputEvent, EventDefinition.class).getName() : null;
+	}
+
 	/**
 	 * Helper method to execute pre and post Task execution Hooks as independent Actor invocations
 	 */

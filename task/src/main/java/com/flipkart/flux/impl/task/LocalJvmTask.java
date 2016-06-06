@@ -14,10 +14,13 @@
 
 package com.flipkart.flux.impl.task;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.FluxError;
 import javafx.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A task that can be executed locally within the same JVM
@@ -26,6 +29,10 @@ import javafx.util.Pair;
 public class LocalJvmTask extends AbstractTask {
 
     private final Executable toInvoke;
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final Logger logger = LoggerFactory.getLogger(LocalJvmTask.class);
 
     public LocalJvmTask(Executable toInvoke) {
         this.toInvoke = toInvoke;
@@ -54,14 +61,31 @@ public class LocalJvmTask extends AbstractTask {
     }
 
     @Override
-    public Pair<Event, FluxError> execute(Event[] events) {
+    public Pair<Object, FluxError> execute(Event[] events) {
         Object[] parameters = new Object[events.length];
-        for (int i = 0 ; i < events.length ; i++) {
-            parameters[i] = events[i].getEventData();
+        Class<?>[] parameterTypes = toInvoke.getParameterTypes();
+        try {
+            /* TODO
+            While this works for methods with all unique param types, it
+            will fail for methods where we have mutliple params of the same type.
+             */
+            for (int i = 0 ; i < parameterTypes.length ; i++) {
+                for (Event anEvent : events) {
+                    if(Class.forName(anEvent.getType()).equals(parameterTypes[i])) {
+                        parameters[i] = objectMapper.readValue(anEvent.getEventData(), Class.forName(anEvent.getType()));
+                    }
+                }
+                if (parameters[i] == null) {
+                    logger.warn("Could not find a paramter of type {} in event list {}",parameterTypes[i],events);
+                    throw new RuntimeException("Could not find a paramter of type " + parameterTypes[i]);
+                }
+            }
+            final Object returnObject = toInvoke.execute(parameters);
+            return new Pair<>(returnObject,null);
+        } catch (Exception e) {
+            logger.warn("Bad things happened while trying to execute {}",toInvoke,e);
+            return new Pair<>(null,new FluxError(FluxError.ErrorType.runtime,e.getMessage(),e));
         }
-        final Object returnObject = toInvoke.execute(parameters);
-        // TODO - fix this
-        return new Pair<>(new Event("foo",returnObject.getClass().getCanonicalName(), Event.EventStatus.triggered,events[0].getStateMachineInstanceId(),returnObject,"managedRuntime"),null);
     }
 
     @Override

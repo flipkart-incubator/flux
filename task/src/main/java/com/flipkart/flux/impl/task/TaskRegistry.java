@@ -17,6 +17,7 @@ import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.Task;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +50,7 @@ public class TaskRegistry {
 	 * Constructor for this class.
 	 * @param executableRegistry the ExecutableRegistry containing all executable client code
 	 */
+	@Inject
 	public TaskRegistry(ExecutableRegistry executableRegistry) {
 		this.executableRegistry = executableRegistry;
 	}

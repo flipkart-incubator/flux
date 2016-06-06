@@ -14,6 +14,9 @@
 
 package com.flipkart.flux.impl.boot;
 
+import com.flipkart.flux.client.FluxClientComponentModule;
+import com.flipkart.flux.client.registry.ExecutableRegistry;
+import com.flipkart.flux.impl.task.AkkaTask;
 import com.flipkart.flux.impl.task.CustomSuperviseStrategy;
 import com.flipkart.flux.impl.task.registry.EagerInitRouterRegistryImpl;
 import com.flipkart.flux.impl.task.registry.LocalRouterConfigurationRegistryImpl;
@@ -41,6 +44,9 @@ public class TaskModule extends AbstractModule {
     protected void configure() {
         bind(RouterConfigurationRegistry.class).to(LocalRouterConfigurationRegistryImpl.class);
         bind(RouterRegistry.class).to(EagerInitRouterRegistryImpl.class);
+        install(new FluxClientComponentModule());
+        requestStaticInjection(AkkaTask.class);
+        requireBinding(ExecutableRegistry.class);
     }
 
     /* Following are hacks that need to go away soon */
