@@ -19,7 +19,7 @@ import com.flipkart.flux.domain.Task;
 import com.flipkart.flux.impl.task.AkkaTask;
 
 /**
- * <code>HookAndEvents</code> is a message that composes a {@link Task} identifier and the {@link Event}S that it processes.
+ * <code>TaskAndEvents</code> is a message that composes a {@link Task} identifier and the {@link Event}S that it processes.
  * Used in invoking the {@link AkkaTask} Actor in akka.
  *
  * @author yogesh.nachnani
