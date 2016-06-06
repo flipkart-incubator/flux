@@ -91,7 +91,7 @@ public class AkkaTask extends UntypedActor {
 			getContext().watch(r);
 			hookRouter = hookRouter.addRoutee(new ActorRefRoutee(r));			
 		} else {
-			logger.error("Task received a message that it cannot process. Only com.flipkart.flux.domain.Event[] is supported. Message type received is : {}", message.getClass().getName());
+			logger.error("Task received a message that it cannot process. Only com.flipkart.flux.impl.message.TaskAndEvents is supported. Message type received is : {}", message.getClass().getName());
 			unhandled(message);
 		}
 	}

@@ -42,9 +42,13 @@ public class TaskRegistry {
     /** Map storing the mapping of a Task to post execution HookS */
 	private Map<String,List<AbstractHook>> taskToPostExecHookMap = new ConcurrentHashMap<String, List<AbstractHook>>();
 	
-
+	/** The Executables Registry*/
 	private final ExecutableRegistry executableRegistry;
 
+	/**
+	 * Constructor for this class.
+	 * @param executableRegistry the ExecutableRegistry containing all executable client code
+	 */
 	public TaskRegistry(ExecutableRegistry executableRegistry) {
 		this.executableRegistry = executableRegistry;
 	}
