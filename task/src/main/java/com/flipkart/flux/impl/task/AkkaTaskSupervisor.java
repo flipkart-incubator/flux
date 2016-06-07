@@ -44,7 +44,7 @@ public class AkkaTaskSupervisor {
 	
 	/** Constants for retry interval and backoff */
 	private static final FiniteDuration MIN_BACKOFF = FiniteDuration.create(2, TimeUnit.SECONDS);
-	private static final FiniteDuration MAX_BACKOFF = FiniteDuration.create(10, TimeUnit.SECONDS);
+	private static final FiniteDuration MAX_BACKOFF = FiniteDuration.create(Long.MAX_VALUE, TimeUnit.SECONDS);
 	
 	/**
 	 * Creates supervisor {@link Props} for {@link AkkaTask} with backoff strategy
@@ -52,7 +52,7 @@ public class AkkaTaskSupervisor {
 	 * @param maxRetries no. of max retries
 	 * @return supervisor creation Props
 	 */
-	public static Props getTaskSupervisorProps (String taskActorName, int maxRetries) {
+	public static Props getTaskSupervisorProps (String taskActorName, long maxRetries) {
 		final Props childProps = Props.create(AkkaTask.class);
 		final Props supervisorProps = 
 				BackoffSupervisor.props(Backoff.onFailure(
@@ -60,7 +60,7 @@ public class AkkaTaskSupervisor {
 						    taskActorName + "-" + INSTANCE_COUNTER.incrementAndGet(),
 						    MIN_BACKOFF, MAX_BACKOFF, 0.2) // adds 20% "noise" to vary the intervals slightly
 				.withSupervisorStrategy(
-						new OneForOneStrategy(maxRetries, Duration.Inf(), t -> {
+						new OneForOneStrategy((int)maxRetries, Duration.Inf(), t -> {
 					        if (t instanceof FluxError) {
 					        	FluxError fe = (FluxError)t;
 					        	if (fe.getType().equals(FluxError.ErrorType.timeout)) {
