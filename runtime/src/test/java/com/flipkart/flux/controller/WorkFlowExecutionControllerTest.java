@@ -35,6 +35,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.function.Function;
 
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
@@ -80,6 +81,7 @@ public class WorkFlowExecutionControllerTest {
         when(eventsDAO.findBySMIdAndName(1l, "event1")).thenReturn(new Event("event1", "foo", Event.EventStatus.pending, 1l, null, null));
         Event[] expectedEvents = new Event[]{new Event("event1","someType", Event.EventStatus.triggered,1l,"someStringData","runtime")};
         when(eventsDAO.findByEventNamesAndSMId(Collections.singleton("event1"),1l)).thenReturn(Arrays.asList(expectedEvents));
+        when(eventsDAO.findTriggeredEventsNamesBySMId(1l)).thenReturn(Collections.singletonList("event1"));
         workFlowExecutionController.postEvent(testEventData, 1l);
 
         verify(routerRegistry, times(2)).getRouter("someRouter"); // For 2 unblocked states
