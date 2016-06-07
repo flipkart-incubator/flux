@@ -16,11 +16,11 @@ package com.flipkart.flux.resource;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.representation.IllegalRepresentationException;
@@ -35,6 +35,7 @@ import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.util.*;
 
 
@@ -122,7 +123,7 @@ public class StateMachineResource {
      */
     @GET
     @Path("/{machineId}/fsmdata")
-    public Response getFsmGraphData(@PathParam("machineId") Long machineId) throws JsonProcessingException {
+    public Response getFsmGraphData(@PathParam("machineId") Long machineId) throws IOException {
         return Response.status(200).entity(getGraphData(machineId))
                 .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT")
@@ -134,48 +135,48 @@ public class StateMachineResource {
     /**
      * Provides json data to build fsm status graph.
      */
-    private String getGraphData(Long fsmId) throws JsonProcessingException {
+    private String getGraphData(Long fsmId) throws IOException {
         StateMachine stateMachine = stateMachinesDAO.findById(fsmId);
 
         if(stateMachine != null) {
-            Map<String, Set<State>> stateToEventDependencyGraph = new HashMap<>();
-            for (State state : stateMachine.getStates()) {
-                if (state.getDependencies() != null) {
-                    for (String eventName : state.getDependencies()) {
-                        if (!stateToEventDependencyGraph.containsKey(eventName))
-                            stateToEventDependencyGraph.put(eventName, new HashSet<State>());
-                        stateToEventDependencyGraph.get(eventName).add(state);
-                    }
-                } else {
-                    if (!stateToEventDependencyGraph.containsKey(null))
-                        stateToEventDependencyGraph.put(null, new HashSet<State>());
-                    stateToEventDependencyGraph.get(null).add(state);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, String> eventSourceMap = new HashMap<>();
+            Map<String, List<String>> fsmDataMap = new HashMap<>();
+            Set<String> initialStates = new HashSet<>();
+
+            Set<String> triggeredEvents = new HashSet<>(eventsDAO.findTriggeredEventsNamesBySMId(fsmId));
+            for(State state : stateMachine.getStates()) {
+                if(state.getOutputEvent() != null) {
+                    EventDefinition eventDefinition = objectMapper.readValue(state.getOutputEvent(), EventDefinition.class);
+                    eventSourceMap.put(eventDefinition.getName(), state.getName());
                 }
             }
 
-            Set<Event> triggeredEvents = new HashSet<>(eventsDAO.findTriggeredEventsBySMId(fsmId));
-
-            Map<String, List<String>> fsmDataMap = new HashMap<>();
-            for (Event event : triggeredEvents) {
-                Set<State> states = stateToEventDependencyGraph.get(event.getName());
-                for (State state : states) {
-                    if (fsmDataMap.get(event.getEventSource()) == null)
-                        fsmDataMap.put(event.getEventSource(), new ArrayList<>());
-                    if (fsmDataMap.get(state.getName()) == null)
-                        fsmDataMap.put(state.getName(), new ArrayList<>());
-                    List<String> stateData = fsmDataMap.get(event.getEventSource());
-                    stateData.add( state.getName() + ":" + (event.getName()));
+            for(State state: stateMachine.getStates()) {
+                if(state.getDependencies() != null && state.getDependencies().size() > 0) {
+                    for(String eventName : state.getDependencies()) {
+                        if(triggeredEvents.contains(eventName)) {
+                            if(fsmDataMap.get(eventSourceMap.get(eventName)) == null)
+                                fsmDataMap.put(eventSourceMap.get(eventName), new ArrayList<>());
+                            if(fsmDataMap.get(state.getName()) == null)
+                                fsmDataMap.put(state.getName(), new ArrayList<>());
+                            fsmDataMap.get(eventSourceMap.get(eventName)).add(state.getName() + ":" + (eventName));
+                        }
+                    }
+                } else {
+                    initialStates.add(state.getName());
                 }
             }
 
             if(fsmDataMap.size() == 0) {
-                Set<State> states = stateToEventDependencyGraph.get(null);
-                for(State state : states) {
-                    fsmDataMap.put(state.getName(), null);
+                for(String stateName : initialStates) {
+                    fsmDataMap.put(stateName, null);
                 }
             }
 
             return new ObjectMapper().writeValueAsString(fsmDataMap);
+
         } else {
             return "{}";
         }
