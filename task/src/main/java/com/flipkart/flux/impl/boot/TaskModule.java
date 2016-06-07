@@ -14,10 +14,15 @@
 
 package com.flipkart.flux.impl.boot;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.impl.task.AkkaTask;
-import com.flipkart.flux.impl.task.CustomSuperviseStrategy;
 import com.flipkart.flux.impl.task.registry.EagerInitRouterRegistryImpl;
 import com.flipkart.flux.impl.task.registry.LocalRouterConfigurationRegistryImpl;
 import com.flipkart.flux.impl.task.registry.RouterConfigurationRegistry;
@@ -25,17 +30,11 @@ import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * Guice module for the Task Runtime
  * @author yogesh.nachnani
  */
 public class TaskModule extends AbstractModule {
-
 
     public TaskModule() {
     }
@@ -58,10 +57,4 @@ public class TaskModule extends AbstractModule {
         return new HashSet<String>(){{add("someRouter");add("someRouterWithoutConfig");}};
     }
 
-    @Provides
-    @Singleton
-    public CustomSuperviseStrategy getSupervisorStrategy() {
-        //todo re-tries to come from config
-        return new CustomSuperviseStrategy(2);
-    }
 }

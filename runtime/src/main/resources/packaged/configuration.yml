@@ -35,3 +35,4 @@ runtime:
     metrics: false
     name: FluxSystem
     configname: application.conf
+    maxGatewayActorCreateRetries : 10
