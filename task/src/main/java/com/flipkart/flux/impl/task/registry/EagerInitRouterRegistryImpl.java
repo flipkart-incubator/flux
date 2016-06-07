@@ -14,6 +14,22 @@
 
 package com.flipkart.flux.impl.task.registry;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.flipkart.flux.domain.FluxError;
+import com.flipkart.flux.impl.boot.ActorSystemManager;
+import com.flipkart.flux.impl.task.AkkaGatewayTask;
+import com.flipkart.flux.impl.task.CustomSuperviseStrategy;
+import com.flipkart.polyguice.core.Initializable;
+
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Address;
@@ -27,20 +43,7 @@ import akka.cluster.singleton.ClusterSingletonProxy;
 import akka.cluster.singleton.ClusterSingletonProxySettings;
 import akka.remote.routing.RemoteRouterConfig;
 import akka.routing.RoundRobinPool;
-import com.flipkart.flux.domain.FluxError;
-import com.flipkart.flux.impl.boot.ActorSystemManager;
-import com.flipkart.flux.impl.task.AkkaTask;
-import com.flipkart.flux.impl.task.CustomSuperviseStrategy;
-import com.flipkart.polyguice.core.Initializable;
 import javafx.util.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Eagerly creates and maintains references to all the required routers of the system
@@ -110,7 +113,7 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
             actorSystem.actorOf(
                 ClusterSingletonManager.props(new ClusterRouterPool(new RoundRobinPool(2).withSupervisorStrategy(superviseStrategy.getStrategy()), next.getValue()).props(
                     new RemoteRouterConfig(new RoundRobinPool(6), this.memberAddresses).props(
-                        Props.create(AkkaTask.class))), PoisonPill.getInstance(), settings), next.getKey());
+                        Props.create(AkkaGatewayTask.class))), PoisonPill.getInstance(), settings), next.getKey());
 
             ClusterSingletonProxySettings proxySettings = ClusterSingletonProxySettings.create(actorSystem);
 

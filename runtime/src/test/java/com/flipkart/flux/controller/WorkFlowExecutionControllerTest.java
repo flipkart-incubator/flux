@@ -85,8 +85,8 @@ public class WorkFlowExecutionControllerTest {
         workFlowExecutionController.postEvent(testEventData, 1l);
 
         verify(routerRegistry, times(2)).getRouter("someRouter"); // For 2 unblocked states
-        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("com.flipkart.flux.dao.TestTask", expectedEvents, 1l, objectMapper.writeValueAsString(TestUtils.standardStateMachineOutputEvent())), 1);
-        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("com.flipkart.flux.dao.TestTask", expectedEvents, 1l, null), 1);
+        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("com.flipkart.flux.dao.TestTask", expectedEvents, 1l, objectMapper.writeValueAsString(TestUtils.standardStateMachineOutputEvent()),2), 1);
+        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("com.flipkart.flux.dao.TestTask", expectedEvents, 1l, null,2), 1);
         verifyNoMoreInteractions(routerRegistry);
     }
 }

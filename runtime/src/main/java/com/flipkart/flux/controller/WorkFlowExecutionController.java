@@ -112,7 +112,7 @@ public class WorkFlowExecutionController {
             final TaskAndEvents msg = new TaskAndEvents(state.getTask(),
                 eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId).toArray(new Event[]{}),
                 stateMachineInstanceId,
-                state.getOutputEvent());
+                state.getOutputEvent(), state.getRetryCount());
             logger.debug("Sending msg {} for state machine {}", msg, stateMachineInstanceId);
             this.routerRegistry.getRouter("someRouter").tell(
                 msg, ActorRef.noSender());
