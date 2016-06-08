@@ -175,6 +175,7 @@ public class StateMachineResource {
                 }
             }
 
+            fsmDataMap.remove(null);
             return new ObjectMapper().writeValueAsString(fsmDataMap);
 
         } else {
