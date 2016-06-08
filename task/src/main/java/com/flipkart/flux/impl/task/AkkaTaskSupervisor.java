@@ -44,7 +44,7 @@ public class AkkaTaskSupervisor {
 	
 	/** Constants for retry interval and backoff */
 	private static final FiniteDuration MIN_BACKOFF = FiniteDuration.create(2, TimeUnit.SECONDS);
-	private static final FiniteDuration MAX_BACKOFF = FiniteDuration.create(Long.MAX_VALUE, TimeUnit.SECONDS);
+	private static final FiniteDuration MAX_BACKOFF = FiniteDuration.create(600, TimeUnit.SECONDS);
 	
 	/**
 	 * Creates supervisor {@link Props} for {@link AkkaTask} with backoff strategy

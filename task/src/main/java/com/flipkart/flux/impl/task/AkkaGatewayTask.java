@@ -12,6 +12,8 @@
  */
 package com.flipkart.flux.impl.task;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.Task;
 import com.flipkart.flux.impl.message.TaskAndEvents;
@@ -34,6 +36,9 @@ public class AkkaGatewayTask extends UntypedActor {
 	/** Logger instance for this class*/
     private LoggingAdapter logger = Logging.getLogger(getContext().system(), this);
     
+	/** Counter to help create unique actor names*/
+	private static final AtomicLong INSTANCE_COUNTER = new AtomicLong();
+    
     /**
 	 * The Akka Actor callback method for processing the Task
 	 * @see akka.actor.UntypedActor#onReceive(java.lang.Object)
@@ -42,10 +47,12 @@ public class AkkaGatewayTask extends UntypedActor {
 		if (TaskAndEvents.class.isAssignableFrom(message.getClass())) {
 			TaskAndEvents taskAndEvent = (TaskAndEvents)message;
 			final Props supervisorProps = AkkaTaskSupervisor.getTaskSupervisorProps(taskAndEvent.getTaskIdentifier(), taskAndEvent.getRetryCount());
-			final ActorRef taskSupervisor = getContext().system().actorOf(supervisorProps, taskAndEvent.getTaskIdentifier()+"Supervisor");
-			taskSupervisor.tell(taskAndEvent, getSelf());
+			String supName = taskAndEvent.getTaskName() + "-Supervisor-" + INSTANCE_COUNTER.incrementAndGet();
+			ActorRef sup = getContext().system().actorOf(supervisorProps, supName);
+			sup.tell(taskAndEvent, getSelf());
 		} else if (Event.class.isAssignableFrom(message.getClass())) {
-			getContext().parent().tell(message, getSelf()); // relay the Event output from Task execution to the caller
+			// relay the Event output from Task execution to the caller ONLY if a Workflow task Actor has been created, which we dont have currently
+			// getContext().parent().tell(message, getSelf()); 
 			getContext().stop(getSender()); // Stop the supervisor actor and its children 
 		} else {
 			logger.error("Task received a message that it cannot process. Only com.flipkart.flux.impl.message.TaskAndEvents is supported. Message type received is : {}", message.getClass().getName());

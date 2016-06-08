@@ -109,7 +109,7 @@ public class WorkFlowExecutionController {
     private void executeStates(Long stateMachineInstanceId, Set<State> executableStates) {
         // TODO - this always uses someRouter for now
         executableStates.forEach((state ->  {
-            final TaskAndEvents msg = new TaskAndEvents(state.getTask(),
+            final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(),
                 eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId).toArray(new Event[]{}),
                 stateMachineInstanceId,
                 state.getOutputEvent(), state.getRetryCount());
