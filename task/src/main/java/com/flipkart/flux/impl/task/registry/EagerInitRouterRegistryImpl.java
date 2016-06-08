@@ -80,7 +80,7 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
     
     @Inject
     public EagerInitRouterRegistryImpl(ActorSystemManager actorSystemManager, RouterConfigurationRegistry routerConfigurationRegistry,
-                                       SupervisorStrategy gatewayTasksuperviseStrategy, @Named("runtime.actorsystem.maxGatewayActorCreateRetries") int maxGatewayActorCreateRetries) {
+                                       @Named("runtime.actorsystem.maxGatewayActorCreateRetries") int maxGatewayActorCreateRetries) {
         this.proxyMap = new HashMap<>();
         this.actorSystemManager = actorSystemManager;
         this.routerConfigurationRegistry = routerConfigurationRegistry;
