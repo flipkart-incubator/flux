@@ -175,7 +175,10 @@ public class StateMachineResource {
                 }
             }
 
-            fsmDataMap.remove(null);
+            if(fsmDataMap.containsKey(null)) {
+                fsmDataMap.put("ON START", fsmDataMap.get(null));
+                fsmDataMap.remove(null);
+            }
             return new ObjectMapper().writeValueAsString(fsmDataMap);
 
         } else {
