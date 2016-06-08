@@ -176,7 +176,7 @@ public class StateMachineResource {
             }
 
             if(fsmDataMap.containsKey(null)) {
-                fsmDataMap.put("ON START", fsmDataMap.get(null));
+                fsmDataMap.put("External", fsmDataMap.get(null));
                 fsmDataMap.remove(null);
             }
             return new ObjectMapper().writeValueAsString(fsmDataMap);
