@@ -183,10 +183,6 @@
                             <addClasspath>true</addClasspath>
                         </manifest>
                     </archive>
-                    <includes>
-                        <include>com/**/*</include>
-                        <include>packaged/**/*</include>
-                    </includes>
                 </configuration>
                 <executions>
                     <execution>
