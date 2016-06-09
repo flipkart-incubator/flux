@@ -30,7 +30,6 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -151,7 +150,6 @@ public class ContainerModule extends AbstractModule {
 		ResourceConfig resourceConfig = new ResourceConfig();
 		resourceConfig.register(fluxUIResource);
 		resourceConfig.register(stateMachineResource);
-		resourceConfig.register(new LoggingFilter(Logger.getLogger("main"),false));
 		return resourceConfig;
 	}
 

@@ -79,7 +79,7 @@ public class AkkaTask extends UntypedActor {
 				final String outputEventName = getOutputEventName(taskAndEvent);
 				final Event outputEvent = new TaskExecutor(task, taskAndEvent.getEvents(), fluxRuntimeConnector, taskAndEvent.getStateMachineId(), outputEventName).execute();
 				if (outputEvent != null) {
-					getSender().tell(outputEvent, getSelf());
+					getSender().tell(outputEvent, getContext().parent()); // we send back the parent Supervisor Actor as the sender
 				}
 				// Execute any post-exec HookS
 				this.executeHooks(this.taskRegistry.getPostExecHooks(task), taskAndEvent.getEvents());

@@ -29,6 +29,8 @@ import java.util.Arrays;
  *
  */
 public class TaskAndEvents implements Serializable {
+	/* The task name*/
+	private String taskName;
     /* The string that uniquely identifies a client task to be executed */
     private String taskIdentifier;
     /* The set of events that have presently unblocked the task and whose data will be utilised during task execution */
@@ -37,31 +39,38 @@ public class TaskAndEvents implements Serializable {
     private Long stateMachineId;
     /* Serialised output event definition */
     private String outputEvent;
+    /* The max retry count*/
+    private long retryCount;
 
-    public TaskAndEvents(String taskIdentifier, Event[] events, Long stateMachineId, String outputEvent) {
+    public TaskAndEvents(String taskName, String taskIdentifier, Event[] events, Long stateMachineId, String outputEvent, long retryCount) {
+    	this.taskName = taskName;
         this.taskIdentifier = taskIdentifier;
         this.events = events;
         this.stateMachineId = stateMachineId;
         this.outputEvent = outputEvent;
+        this.retryCount = retryCount;
     }
 
-    public String getTaskIdentifier() {
+    public String getTaskName() {
+		return taskName;
+	}
+	public String getTaskIdentifier() {
         return taskIdentifier;
     }
-
     public Event[] getEvents() {
         return this.events;
     }
-
     public Long getStateMachineId() {
         return stateMachineId;
     }
-
     public String getOutputEvent() {
         return outputEvent;
     }
+    public long getRetryCount() {
+		return retryCount;
+	}
 
-    @Override
+	@Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
