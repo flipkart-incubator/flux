@@ -96,7 +96,7 @@ public class AkkaTask extends UntypedActor {
 					taskExecutor.execute();
 				} catch (HystrixRuntimeException hre) {
 					if (taskExecutor.isResponseTimedOut()) {
-						throw new FluxError(FluxError.ErrorType.timeout, "Execution timeout for : " + task.getName(), null);
+						throw new FluxError(FluxError.ErrorType.timeout, "Execution timeout for : " + task.getName(), null, false);
 					}
 				} finally {
 					if (outputEvent != null) {
