@@ -14,6 +14,10 @@
 
 package com.flipkart.flux.client.intercept;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.client.model.Event;
 import com.flipkart.flux.client.model.Workflow;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.LocalContext;
@@ -33,15 +37,20 @@ import java.lang.reflect.Method;
 @Singleton
 public class WorkflowInterceptor implements MethodInterceptor {
 
+    public static final String CLIENT = "client";
     @Inject
     private LocalContext localContext;
     @Inject
     private FluxRuntimeConnector connector;
 
+    private final ObjectMapper objectMapper;
+
     public WorkflowInterceptor() {
+        this.objectMapper = new ObjectMapper();
     }
 
     public WorkflowInterceptor(LocalContext localContext, FluxRuntimeConnector connector) {
+        this();
         this.localContext = localContext;
         this.connector = connector;
     }
@@ -53,6 +62,7 @@ public class WorkflowInterceptor implements MethodInterceptor {
             final Workflow[] workFlowAnnotations = method.getAnnotationsByType(Workflow.class);
             checkForBadSignatures(method);
             localContext.registerNew(new MethodId(method).toString(), workFlowAnnotations[0].version(), workFlowAnnotations[0].description());
+            registerEventsForArguments(invocation.getArguments());
             invocation.proceed();
             connector.submitNewWorkflow(localContext.getStateMachineDef());
             return null ; // TODO, return a proxy object
@@ -60,6 +70,20 @@ public class WorkflowInterceptor implements MethodInterceptor {
         finally {
             this.localContext.reset();
         }
+    }
+
+    private void registerEventsForArguments(Object[] arguments) throws JsonProcessingException {
+        if (arguments.length == 0) {
+            return;
+        }
+        EventData[] eventDatas = new EventData[arguments.length];
+        for (int i = 0; i < arguments.length ; i++) {
+            final Object anArgument = arguments[i];
+            Event anArgumentAsEvent = (Event) anArgument; // This is safe since we have already checked for bad signatures
+            final String eventName = localContext.generateEventName(anArgumentAsEvent);
+            eventDatas[i] = new EventData(eventName, anArgument.getClass().getName(), objectMapper.writeValueAsString(anArgument),CLIENT);
+        }
+        localContext.addEvents(eventDatas);
     }
 
     private void checkForBadSignatures(Method method) {

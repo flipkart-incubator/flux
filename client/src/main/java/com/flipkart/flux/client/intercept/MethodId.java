@@ -106,7 +106,7 @@ public class MethodId {
         stringBuilder.append(this.returnType);
         for (Class<?> parameterType : parameterTypes) {
             stringBuilder.append(UNDERSCORE);
-            stringBuilder.append(parameterType.getCanonicalName());
+            stringBuilder.append(parameterType.getName());
         }
         return stringBuilder.toString();
     }

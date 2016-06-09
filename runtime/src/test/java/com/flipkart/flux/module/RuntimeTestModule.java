@@ -13,14 +13,7 @@
 
 package com.flipkart.flux.module;
 
-import com.flipkart.flux.constant.RuntimeConstants;
-import com.flipkart.flux.guice.module.ConfigModule;
-import com.flipkart.flux.guice.module.ContainerModule;
-import com.flipkart.flux.guice.module.HibernateModule;
-import com.flipkart.polyguice.config.ApacheCommonsConfigProvider;
 import com.google.inject.AbstractModule;
-
-import java.net.URL;
 
 /**
  * <code>RuntimeTestModule</code> is a Guice module binds modules which are required to run tests.
@@ -29,9 +22,6 @@ import java.net.URL;
 public class RuntimeTestModule extends AbstractModule{
     @Override
     protected void configure() {
-        final URL url = this.getClass().getClassLoader().getResource(RuntimeConstants.CONFIGURATION_YML);
-        install(new ConfigModule(url));
-        install(new HibernateModule());
-        install(new ContainerModule());
+        // Placeholder for any other module we want to install only in tests
     }
 }

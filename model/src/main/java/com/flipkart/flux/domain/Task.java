@@ -15,6 +15,8 @@ package com.flipkart.flux.domain;
 
 import javafx.util.Pair;
 
+import java.util.Objects;
+
 /**
  * <code>Task</code> defines the user code that is executed when a {@link State} transition happens.
  * The task is eligible for execution once all the dependent Triggers are received.
@@ -31,5 +33,5 @@ public interface Task {
      * @param events Dependencies that need to be satisfied for this task to be executed
      * @return The event produced by a worker on successful execution OR an error object representing the error.
      */
-	public Pair<Event,FluxError> execute(Event[] events);
+	public Pair<Object,FluxError> execute(Event[] events);
 }

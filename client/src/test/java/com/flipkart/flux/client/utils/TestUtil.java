@@ -14,8 +14,8 @@
 
 package com.flipkart.flux.client.utils;
 
-import com.flipkart.flux.client.intercept.SimpleWorkflowForTest;
 import org.aopalliance.intercept.MethodInvocation;
+import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Method;
@@ -26,7 +26,11 @@ import java.lang.reflect.Method;
  * @author yogesh.nachnani
  */
 public class TestUtil {
-    public static MethodInvocation dummyInvocation(Method methodToReturn){
+    public static MethodInvocation dummyInvocation(Method methodToReturn) {
+        return dummyInvocation(methodToReturn, new Object[0]);
+    }
+
+    public static MethodInvocation dummyInvocation(Method methodToReturn, final Object[] params){
         return new MethodInvocation(){
             @Override
             public Object proceed() throws Throwable {
@@ -45,7 +49,7 @@ public class TestUtil {
 
             @Override
             public Object[] getArguments() {
-                return new Object[0];
+                return params;
             }
 
             @Override
@@ -58,6 +62,7 @@ public class TestUtil {
 
     public static MethodInvocation dummyInvocation(Method methodToReturn, Object methodOwner) {
         return new MethodInvocation() {
+            private final MutableInt numProceedInvoctions = new MutableInt(0);
             @Override
             public Method getMethod() {
                 return methodToReturn;
@@ -70,6 +75,7 @@ public class TestUtil {
 
             @Override
             public Object proceed() throws Throwable {
+                numProceedInvoctions.increment();
                 return null;
             }
 

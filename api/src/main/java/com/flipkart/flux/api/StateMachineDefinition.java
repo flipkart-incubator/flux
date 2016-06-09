@@ -13,8 +13,9 @@
 
 package com.flipkart.flux.api;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.*;
 
 /**
  * <Code>StateMachineDefinition</Code> defines a template for State machine instances on Flux. Defines the states that the state machine can transition through 
@@ -36,16 +37,21 @@ public class StateMachineDefinition {
     /** Possible states that this state machine can transition to*/
     private Set<StateDefinition> states;
 
+    /* All Event Data that has been passed on as part of state machine execution */
+    private Set<EventData> eventData;
+
     /* For Jackson */
     StateMachineDefinition() {
+        this(null,null,null, Collections.emptySet(),Collections.emptySet());
     }
 
     /** Constructor */
-    public StateMachineDefinition(String description, String name, long version, Set<StateDefinition> stateDefinitions) {
+    public StateMachineDefinition(String description, String name, Long version, Set<StateDefinition> stateDefinitions, Set<EventData> eventData) {
         this.description = description;
         this.name = name;
         this.states = stateDefinitions;
         this.version = version;
+        this.eventData = eventData;
     }
 
     public void addState(StateDefinition stateDefinition) {
@@ -78,6 +84,35 @@ public class StateMachineDefinition {
 		this.states = states;
 	}
 
+    public Set<EventData> getEventData() {
+        return eventData;
+    }
+
+    public void setEventData(Set<EventData> eventData) {
+        this.eventData = eventData;
+    }
+
+    @JsonIgnore
+    public Map<EventDefinition,EventData> getEventDataMap() {
+        Map<EventDefinition,EventData> eventDataMap = new HashMap<>();
+        for (StateDefinition aState : this.states) {
+            final Set<EventDefinition> dependenciesForCurrentState = aState.getDependencies();
+            for (EventDefinition anEventDefinition : dependenciesForCurrentState) {
+                eventDataMap.putIfAbsent(anEventDefinition, retrieveEventDataFor(anEventDefinition));
+            }
+        }
+        return eventDataMap;
+    }
+
+    private EventData retrieveEventDataFor(EventDefinition anEventDefinition) {
+        for (EventData someData : this.eventData) {
+            if (someData.isFor(anEventDefinition)) {
+                return someData;
+            }
+        }
+        return null;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -85,19 +120,21 @@ public class StateMachineDefinition {
 
         StateMachineDefinition that = (StateMachineDefinition) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (version != null ? !version.equals(that.version) : that.version != null) return false;
+        if (!name.equals(that.name)) return false;
+        if (!version.equals(that.version)) return false;
         if (description != null ? !description.equals(that.description) : that.description != null) return false;
-        return !(states != null ? !states.equals(that.states) : that.states != null);
+        if (!states.equals(that.states)) return false;
+        return eventData.equals(that.eventData);
 
     }
 
     @Override
     public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + (version != null ? version.hashCode() : 0);
+        int result = name.hashCode();
+        result = 31 * result + version.hashCode();
         result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (states != null ? states.hashCode() : 0);
+        result = 31 * result + states.hashCode();
+        result = 31 * result + eventData.hashCode();
         return result;
     }
 
@@ -108,6 +145,11 @@ public class StateMachineDefinition {
             ", name='" + name + '\'' +
             ", version=" + version +
             ", states=" + states +
+            ", eventData=" + eventData +
             '}';
+    }
+
+    public void addEventDatas(EventData[] events) {
+        Collections.addAll(this.eventData, events);
     }
 }

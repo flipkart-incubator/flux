@@ -23,4 +23,6 @@ public interface Executable {
     String getName();
     long getTimeout();
     Object execute(Object[] parameters);
+
+    Class<?>[] getParameterTypes();
 }

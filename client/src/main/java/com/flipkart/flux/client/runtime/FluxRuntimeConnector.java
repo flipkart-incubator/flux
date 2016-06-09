@@ -15,6 +15,7 @@
 package com.flipkart.flux.client.runtime;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
+import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.StateMachineDefinition;
 
 import java.io.IOException;
@@ -26,5 +27,8 @@ import java.io.IOException;
  * @author yogesh.nachnani
  */
 public interface FluxRuntimeConnector {
-    void submitNewWorkflow(StateMachineDefinition stateMachineDef) throws IOException;
+    /** Used to submit a new workflow to the core runtime */
+    void submitNewWorkflow(StateMachineDefinition stateMachineDef);
+    /* Post the event generated as a result of task execution back to the core runtime */
+    void submitEvent(EventData eventData, Long stateMachineId);
 }

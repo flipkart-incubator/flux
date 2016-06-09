@@ -21,9 +21,31 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MethodIdTest {
     @Test
     public void testCreationFromGivenIdentifier() throws Exception {
-        final MethodId generated = MethodId.fromIdentifier("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_java.lang.String");
-        final MethodId expected = new MethodId(new SimpleWorkflowForTest().getClass().getDeclaredMethod("simpleStringModifyingTask", String.class));
+        final MethodId generated = MethodId.fromIdentifier("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEvent_com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
+        final MethodId expected = new MethodId(new SimpleWorkflowForTest().getClass().getDeclaredMethod("simpleStringModifyingTask", SimpleWorkflowForTest.StringEvent.class));
         assertThat(generated).isEqualTo(expected);
+    }
+
+    @Test
+    public void testToString_withInnerClassAsParameter() throws Exception {
+        final MethodId methodId = new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleStringModifyingTask", SimpleWorkflowForTest.StringEvent.class));
+        assertThat(methodId.toString()).isEqualTo("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEvent_com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
+    }
+
+    @Test
+    public void testToString_withPublicClassAsParameter() throws Exception {
+        final MethodId methodId = new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("badWorkflowWithNonEventParams", String.class));
+        assertThat(methodId.toString()).isEqualTo("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_badWorkflowWithNonEventParams_void_java.lang.String");
+    }
+
+    @Test
+    public void testCreationFromGivenMethodId() throws Exception {
+        /* For class with simple public classes as params */
+        final MethodId methodId = new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("badWorkflowWithNonEventParams", String.class));
+        assertThat(MethodId.fromIdentifier(methodId.toString())).isEqualTo(methodId);
+        /* For class with inner class as params */
+        final MethodId methodIdWithInnerClassParams = new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleStringModifyingTask", SimpleWorkflowForTest.StringEvent.class));
+        assertThat(MethodId.fromIdentifier(methodIdWithInnerClassParams.toString())).isEqualTo(methodIdWithInnerClassParams);
     }
 
     @Test(expected = MalformedIdentifierException.class)

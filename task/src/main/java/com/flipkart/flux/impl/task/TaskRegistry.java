@@ -17,6 +17,7 @@ import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.Task;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.List;
 import java.util.Map;
@@ -42,9 +43,14 @@ public class TaskRegistry {
     /** Map storing the mapping of a Task to post execution HookS */
 	private Map<String,List<AbstractHook>> taskToPostExecHookMap = new ConcurrentHashMap<String, List<AbstractHook>>();
 	
-
+	/** The Executables Registry*/
 	private final ExecutableRegistry executableRegistry;
 
+	/**
+	 * Constructor for this class.
+	 * @param executableRegistry the ExecutableRegistry containing all executable client code
+	 */
+	@Inject
 	public TaskRegistry(ExecutableRegistry executableRegistry) {
 		this.executableRegistry = executableRegistry;
 	}

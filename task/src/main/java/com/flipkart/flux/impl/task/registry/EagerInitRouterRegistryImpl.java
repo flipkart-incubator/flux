@@ -14,11 +14,33 @@
 
 package com.flipkart.flux.impl.task.registry;
 
+import static akka.actor.SupervisorStrategy.escalate;
+import static akka.actor.SupervisorStrategy.restart;
+import static akka.actor.SupervisorStrategy.resume;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.flipkart.flux.domain.FluxError;
+import com.flipkart.flux.impl.boot.ActorSystemManager;
+import com.flipkart.flux.impl.task.AkkaGatewayTask;
+import com.flipkart.polyguice.core.Initializable;
+
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Address;
+import akka.actor.OneForOneStrategy;
 import akka.actor.PoisonPill;
 import akka.actor.Props;
+import akka.actor.SupervisorStrategy;
 import akka.cluster.routing.ClusterRouterPool;
 import akka.cluster.routing.ClusterRouterPoolSettings;
 import akka.cluster.singleton.ClusterSingletonManager;
@@ -27,20 +49,8 @@ import akka.cluster.singleton.ClusterSingletonProxy;
 import akka.cluster.singleton.ClusterSingletonProxySettings;
 import akka.remote.routing.RemoteRouterConfig;
 import akka.routing.RoundRobinPool;
-import com.flipkart.flux.domain.FluxError;
-import com.flipkart.flux.impl.boot.ActorSystemManager;
-import com.flipkart.flux.impl.task.CustomSuperviseStrategy;
-import com.flipkart.flux.impl.temp.Worker;
-import com.flipkart.polyguice.core.Initializable;
 import javafx.util.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import scala.concurrent.duration.Duration;
 
 /**
  * Eagerly creates and maintains references to all the required routers of the system
@@ -59,21 +69,22 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
     /** Configuration access for Router setup*/
     private RouterConfigurationRegistry routerConfigurationRegistry;
 
-    private final CustomSuperviseStrategy superviseStrategy;
-
     /** Local Map of initialized Router instances*/
     private final HashMap<String, ActorRef> proxyMap;
 
     /** Mutating list of Akka cluster members. Using an expensive list implementation for concurrent access but with low update rate */
     private List<Address> memberAddresses = new CopyOnWriteArrayList<>();
-
+    
+    /** The global max retries for creating gateway Actors*/
+    private int maxGatewayActorCreateRetries;
+    
     @Inject
     public EagerInitRouterRegistryImpl(ActorSystemManager actorSystemManager, RouterConfigurationRegistry routerConfigurationRegistry,
-                                       CustomSuperviseStrategy superviseStrategy) {
+                                       @Named("runtime.actorsystem.maxGatewayActorCreateRetries") int maxGatewayActorCreateRetries) {
         this.proxyMap = new HashMap<>();
         this.actorSystemManager = actorSystemManager;
         this.routerConfigurationRegistry = routerConfigurationRegistry;
-        this.superviseStrategy = superviseStrategy;
+        this.maxGatewayActorCreateRetries = maxGatewayActorCreateRetries;
     }
 
     /**
@@ -105,18 +116,37 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
 			}
         }
         final Iterable<Pair<String, ClusterRouterPoolSettings>> configurations = routerConfigurationRegistry.getConfigurations();
-
         for (Pair<String, ClusterRouterPoolSettings> next : configurations) {
             actorSystem.actorOf(
-                ClusterSingletonManager.props(new ClusterRouterPool(new RoundRobinPool(2).withSupervisorStrategy(superviseStrategy.getStrategy()), next.getValue()).props(
+                ClusterSingletonManager.props(new ClusterRouterPool(new RoundRobinPool(2).withSupervisorStrategy(getGatewayTasksuperviseStrategy()), next.getValue()).props(
                     new RemoteRouterConfig(new RoundRobinPool(6), this.memberAddresses).props(
-                        Props.create(Worker.class))), PoisonPill.getInstance(), settings), next.getKey());
+                        Props.create(AkkaGatewayTask.class))), PoisonPill.getInstance(), settings), next.getKey());
 
             ClusterSingletonProxySettings proxySettings = ClusterSingletonProxySettings.create(actorSystem);
 
             this.proxyMap.put(next.getKey(), actorSystem.actorOf(ClusterSingletonProxy.props("/user/" + next.getKey(),
                 proxySettings), next.getKey() + "_routerProxy"));
         }
-
+    }
+    
+    /**
+     * Helper method to create supervision strategy for every gateway Task Actor {@link AkkaGatewayTask} loaded into Flux
+     * @return SupervisorStrategy for gateway Task actor {@link AkkaGatewayTask}
+     */
+    private SupervisorStrategy getGatewayTasksuperviseStrategy() {
+    	return new OneForOneStrategy(this.maxGatewayActorCreateRetries, Duration.Inf(), t -> {
+	        if (t instanceof FluxError) {
+	        	FluxError fe = (FluxError)t;
+	        	if (fe.getType().equals(FluxError.ErrorType.timeout)) {
+	        		return resume();
+	        	} else { 
+	        		return restart();
+	        	}
+	        } else if (t instanceof RuntimeException) {
+	            return restart();
+	        } else {
+	            return escalate();
+	        }
+    	});
     }
 }

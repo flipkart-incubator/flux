@@ -13,7 +13,14 @@
 
 package com.flipkart.flux.runner;
 
+import com.flipkart.flux.client.FluxClientInterceptorModule;
+import com.flipkart.flux.constant.RuntimeConstants;
+import com.flipkart.flux.guice.module.ConfigModule;
+import com.flipkart.flux.guice.module.ContainerModule;
+import com.flipkart.flux.guice.module.HibernateModule;
+import com.flipkart.flux.impl.boot.TaskModule;
 import com.flipkart.flux.module.RuntimeTestModule;
+import com.flipkart.polyguice.core.support.Polyguice;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Stage;
@@ -21,6 +28,7 @@ import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.InitializationError;
 
 import java.io.IOException;
+import java.net.URL;
 
 /**
  * <code>GuiceJunit4Runner</code> provides guice injection capabilities to a test class instance
@@ -28,7 +36,15 @@ import java.io.IOException;
  */
 public class GuiceJunit4Runner extends BlockJUnit4ClassRunner {
 
-    private static final Injector injector = Guice.createInjector(Stage.PRODUCTION, new RuntimeTestModule());;
+    private static Polyguice polyguice;
+    static {
+        URL configUrl = GuiceJunit4Runner.class.getClassLoader().getResource(RuntimeConstants.CONFIGURATION_YML);
+        polyguice = new Polyguice();
+        final ConfigModule configModule = new ConfigModule(configUrl);
+        polyguice.modules(configModule, new HibernateModule(), new ContainerModule(), new TaskModule(), new FluxClientInterceptorModule(), new RuntimeTestModule());
+        polyguice.registerConfigurationProvider(configModule.getConfigProvider());
+        polyguice.prepare();
+    }
 
     /**
      * Creates a BlockJUnit4ClassRunner to run {@code klass}
@@ -43,7 +59,7 @@ public class GuiceJunit4Runner extends BlockJUnit4ClassRunner {
     @Override
     protected Object createTest() throws Exception {
         final Object testInstance = super.createTest();
-        injector.injectMembers(testInstance);
+        polyguice.getComponentContext().inject(testInstance);
         return testInstance;
     }
 }

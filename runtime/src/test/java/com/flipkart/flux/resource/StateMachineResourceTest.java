@@ -7,6 +7,7 @@ import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
+import com.flipkart.flux.initializer.OrderedComponentBooter;
 import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.util.TestUtils;
@@ -37,6 +38,9 @@ public class StateMachineResourceTest {
 
     @Inject
     private EventsDAO eventsDAO;
+
+    @Inject
+    OrderedComponentBooter orderedComponentBooter;
 
     public static final String STATE_MACHINE_RESOURCE_URL = "http://localhost:9998" + RuntimeConstants.API_CONTEXT_PATH + RuntimeConstants.STATE_MACHINE_RESOURCE_RELATIVE_PATH;
     private static final String SLASH = "/";
