@@ -13,6 +13,22 @@
 
 package com.flipkart.flux.impl.task;
 
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.FluxError;
+import com.flipkart.flux.domain.Task;
+import com.flipkart.flux.impl.message.HookAndEvents;
+import com.flipkart.flux.impl.message.TaskAndEvents;
+import com.netflix.hystrix.HystrixCommand;
+import com.netflix.hystrix.exception.HystrixRuntimeException;
+
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.Terminated;
@@ -21,18 +37,7 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.routing.ActorRefRoutee;
 import akka.routing.Router;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.EventDefinition;
-import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.Task;
-import com.flipkart.flux.impl.message.HookAndEvents;
-import com.flipkart.flux.impl.message.TaskAndEvents;
-import com.netflix.hystrix.HystrixCommand;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.List;
+import scala.Option;
 
 
 /**
@@ -61,6 +66,14 @@ public class AkkaTask extends UntypedActor {
     private Router hookRouter;
 
 	private static final ObjectMapper objectMapper = new ObjectMapper();
+	
+	/**
+	 * Callback method when this Actor is restarted by the Supervisor actor. This happens only when this Actor throws FluxError.ErrorType.timeout.
+	 * @see akka.actor.UntypedActor#preRestart(java.lang.Throwable, scala.Option)
+	 */
+	public void preRestart(Throwable reason, Option<Object> message) {
+		 getSelf().tell(message.get(), getSender()); // we reschedule the message back on this Actor to see if it goes through when retried
+	}
 
 	/**
 	 * The Akka Actor callback method for processing the Task
@@ -77,9 +90,18 @@ public class AkkaTask extends UntypedActor {
 				// Execute any pre-exec HookS
 				this.executeHooks(this.taskRegistry.getPreExecHooks(task), taskAndEvent.getEvents());
 				final String outputEventName = getOutputEventName(taskAndEvent);
-				final Event outputEvent = new TaskExecutor(task, taskAndEvent.getEvents(), fluxRuntimeConnector, taskAndEvent.getStateMachineId(), outputEventName).execute();
-				if (outputEvent != null) {
-					getSender().tell(outputEvent, getContext().parent()); // we send back the parent Supervisor Actor as the sender
+				final TaskExecutor taskExecutor = new TaskExecutor(task, taskAndEvent.getEvents(), fluxRuntimeConnector, taskAndEvent.getStateMachineId(), outputEventName);
+				Event outputEvent = null;
+				try {
+					taskExecutor.execute();
+				} catch (HystrixRuntimeException hre) {
+					if (taskExecutor.isResponseTimedOut()) {
+						throw new FluxError(FluxError.ErrorType.timeout, "Execution timeout for : " + task.getName(), null);
+					}
+				} finally {
+					if (outputEvent != null) {
+						getSender().tell(outputEvent, getContext().parent()); // we send back the parent Supervisor Actor as the sender
+					}
 				}
 				// Execute any post-exec HookS
 				this.executeHooks(this.taskRegistry.getPostExecHooks(task), taskAndEvent.getEvents());
