@@ -13,18 +13,23 @@
 
 package com.flipkart.flux.guice.module;
 
-import static com.flipkart.flux.constant.RuntimeConstants.CONFIGURATION_YML;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.Iterator;
-
+import com.flipkart.flux.deploymentunit.DeploymentUnitUtil;
 import com.flipkart.polyguice.config.ApacheCommonsConfigProvider;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import com.flipkart.polyguice.core.ConfigurationProvider;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 import com.google.inject.binder.LinkedBindingBuilder;
 import com.google.inject.name.Names;
+import org.apache.commons.configuration.Configuration;
+
+import javax.inject.Named;
+import javax.inject.Singleton;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * <code>ConfigModule</code> is a Guice {@link AbstractModule} implementation used for wiring flux configuration.
@@ -34,16 +39,22 @@ public class ConfigModule extends AbstractModule {
 
     private URL configUrl;
     private final ConfigurationProvider configProvider;
+    private final YamlConfiguration yamlConfiguration;
 
     public ConfigModule(URL configUrl) {
-        this.configUrl =configUrl;
-        configProvider = new ApacheCommonsConfigProvider().location(configUrl.getPath());
+        try {
+            this.configUrl = configUrl;
+            configProvider = new ApacheCommonsConfigProvider().location(configUrl.getPath());
+            yamlConfiguration = new YamlConfiguration(configUrl);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     protected void configure() {
         bind(ConfigurationProvider.class).toInstance(configProvider);
-        bindConfigProperties(configUrl);
+        bindConfigProperties();
     }
 
     /**
@@ -53,23 +64,41 @@ public class ConfigModule extends AbstractModule {
      * @Named("Dashboard.service.port") int port
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private void bindConfigProperties(URL url) {
-        try {
-            YamlConfiguration yamlConfiguration = new YamlConfiguration(url);
-            bind(YamlConfiguration.class).toInstance(yamlConfiguration);
-            Iterator<String> propertyKeys = yamlConfiguration.getKeys();
-            while (propertyKeys.hasNext()) {
-                String propertyKey = propertyKeys.next();
-                Object propertyValue = yamlConfiguration.getProperty(propertyKey);
-                LinkedBindingBuilder annotatedWith = bind(propertyValue.getClass()).annotatedWith(Names.named(propertyKey));
-                annotatedWith.toInstance(propertyValue);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    private void bindConfigProperties() {
+        bind(YamlConfiguration.class).toInstance(yamlConfiguration);
+        Iterator<String> propertyKeys = yamlConfiguration.getKeys();
+        while (propertyKeys.hasNext()) {
+            String propertyKey = propertyKeys.next();
+            Object propertyValue = yamlConfiguration.getProperty(propertyKey);
+            LinkedBindingBuilder annotatedWith = bind(propertyValue.getClass()).annotatedWith(Names.named(propertyKey));
+            annotatedWith.toInstance(propertyValue);
         }
     }
 
     public ConfigurationProvider getConfigProvider() {
         return configProvider;
     }
+
+    @Provides
+    @Singleton
+    @Named("router.names")
+    public Set<String> getRouterNames() {
+        // TODO - this needs to be Provided by the boot util that loads all deployment units
+        Configuration routerConfig = yamlConfiguration.subset("routers");
+        Set<String> routerNames = new HashSet<>();
+        Iterator<String> propertyKeys = routerConfig.getKeys();
+        while(propertyKeys.hasNext()) {
+            String propertyKey = propertyKeys.next();
+            String routerName = propertyKey.substring(0, propertyKey.lastIndexOf('.'));
+            routerNames.add(routerName);
+        }
+
+        routerNames.addAll(DeploymentUnitUtil.getAllDeploymentUnits());
+
+        //'default' is not a router name, it's a placeholder for router default settings
+        routerNames.remove("default");
+
+        return routerNames;
+    }
+
 }

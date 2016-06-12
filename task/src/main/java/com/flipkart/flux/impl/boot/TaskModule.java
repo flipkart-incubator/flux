@@ -14,12 +14,6 @@
 
 package com.flipkart.flux.impl.boot;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
-
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.impl.task.AkkaTask;
@@ -28,7 +22,6 @@ import com.flipkart.flux.impl.task.registry.LocalRouterConfigurationRegistryImpl
 import com.flipkart.flux.impl.task.registry.RouterConfigurationRegistry;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
 
 /**
  * Guice module for the Task Runtime
@@ -46,15 +39,6 @@ public class TaskModule extends AbstractModule {
         install(new FluxClientComponentModule());
         requestStaticInjection(AkkaTask.class);
         requireBinding(ExecutableRegistry.class);
-    }
-
-    /* Following are hacks that need to go away soon */
-    @Provides
-    @Singleton
-    @Named("router.names")
-    public Set<String> getRouterNames() {
-        // TODO - this needs to be Provided by the boot util that loads all deployment units
-        return new HashSet<String>(){{add("someRouter");add("someRouterWithoutConfig");}};
     }
 
 }

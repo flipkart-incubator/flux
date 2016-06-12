@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,7 +45,8 @@ public class DeploymentUnitUtil {
 
     public static List<String> getAllDeploymentUnits() {
         //TODO: IMPLEMENT IT.  Probably get the list from config service or scan the directory structure
-        throw new UnsupportedOperationException("Implement me");
+//        throw new UnsupportedOperationException("Implement me");
+        return new ArrayList<String>();
     }
 
     /**
