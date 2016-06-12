@@ -13,18 +13,17 @@
  */
 package com.flipkart.flux.impl.task;
 
-import static akka.actor.SupervisorStrategy.escalate;
-import static akka.actor.SupervisorStrategy.restart;
-import static akka.actor.SupervisorStrategy.resume;
-import static akka.actor.SupervisorStrategy.stop;
-
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.flipkart.flux.domain.FluxError;
 
 import akka.actor.OneForOneStrategy;
 import akka.actor.Props;
+import akka.actor.SupervisorStrategy;
 import akka.pattern.Backoff;
 import akka.pattern.BackoffSupervisor;
 import scala.concurrent.duration.Duration;
@@ -46,6 +45,10 @@ public class AkkaTaskSupervisor {
 	private static final FiniteDuration MIN_BACKOFF = FiniteDuration.create(2, TimeUnit.SECONDS);
 	private static final FiniteDuration MAX_BACKOFF = FiniteDuration.create(600, TimeUnit.SECONDS);
 	
+	/** Logger instance for this class*/
+	/** Logger for this class*/
+	private static final Logger LOGGER = LoggerFactory.getLogger(AkkaTaskSupervisor.class);
+    
 	/**
 	 * Creates supervisor {@link Props} for {@link AkkaTask} with backoff strategy
 	 * @param taskActorName name that identifies the Task of the AkkaTask
@@ -55,7 +58,7 @@ public class AkkaTaskSupervisor {
 	public static Props getTaskSupervisorProps (String taskActorName, long maxRetries) {
 		final Props childProps = Props.create(AkkaTask.class);
 		final Props supervisorProps = 
-				BackoffSupervisor.props(Backoff.onFailure(
+				BackoffSupervisor.props(Backoff.onStop(
 						    childProps,
 						    taskActorName + "-" + INSTANCE_COUNTER.incrementAndGet(),
 						    MIN_BACKOFF, MAX_BACKOFF, 0.2) // adds 20% "noise" to vary the intervals slightly
@@ -64,14 +67,15 @@ public class AkkaTaskSupervisor {
 					        if (t instanceof FluxError) {
 					        	FluxError fe = (FluxError)t;
 					        	if (fe.getType().equals(FluxError.ErrorType.timeout)) {
-					        		return resume();
+					        		LOGGER.info("Retrying execution of Task. Cause - " + fe.getMessage());
+					        		return SupervisorStrategy.restart();
 					        	} else { 
-					        		return restart();
+					        		return SupervisorStrategy.stop();
 					        	}
 					        } else if (t instanceof RuntimeException) {
-					            return stop();
+					            return SupervisorStrategy.stop();
 					        } else {
-					            return escalate();
+					            return SupervisorStrategy.escalate();
 					        }
 						})));
 		return supervisorProps;

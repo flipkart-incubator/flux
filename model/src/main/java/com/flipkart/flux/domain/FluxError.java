@@ -26,24 +26,42 @@ public class FluxError extends RuntimeException {
 	/** Default serial version UID */
 	private static final long serialVersionUID = 1L;
 	
+	/** Default Fill in stack trace setting*/
+	private static final boolean DEFAULT_FILL_IN_STACK_TRACE = true;
+	
 	/** The type of error*/
     private ErrorType type;
-    /** The error message*/
-    private String errorMessage;
-    /** The root cause Throwable, if any*/
-    private Throwable rootCause;
+    
+    /** The flag for filling in the stack trace*/
+    private boolean fillInStackTrace = DEFAULT_FILL_IN_STACK_TRACE;
+    
     /** Enum of errro types*/
     public enum ErrorType {
         runtime,timeout
     }
     
-    /** Constructor */
+    /** Constructors */
 	public FluxError(ErrorType type, String errorMessage, Throwable rootCause) {
-		super();
+		super(errorMessage, rootCause);
 		this.type = type;
-		this.errorMessage = errorMessage;
-		this.rootCause = rootCause;
 	}
+	public FluxError(ErrorType type, String errorMessage, Throwable rootCause, boolean fillInStackTrace) {
+		super(errorMessage, rootCause);
+		this.type = type;
+		this.fillInStackTrace = fillInStackTrace;
+	}
+	
+	/**
+	 * Fills in the stack trace based on how this Exception was created
+	 * @see java.lang.Throwable#fillInStackTrace()
+	 */
+    public Throwable fillInStackTrace() {
+    	if (!fillInStackTrace) {
+    		return null;
+    	} else {
+    		return super.fillInStackTrace();
+    	}
+    }
 
 	/** Accessor/Mutator methods*/
 	public ErrorType getType() {
@@ -51,18 +69,6 @@ public class FluxError extends RuntimeException {
 	}
 	public void setType(ErrorType type) {
 		this.type = type;
-	}
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-	public void setErrorMessage(String errorMessage) {
-		this.errorMessage = errorMessage;
-	}
-	public Throwable getRootCause() {
-		return rootCause;
-	}
-	public void setRootCause(Throwable rootCause) {
-		this.rootCause = rootCause;
 	}
     
 }

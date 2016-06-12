@@ -42,7 +42,13 @@
             width: 6000,
             height: 4000,
             gridSize: 1,
-            model: graph
+            model: graph,
+	        interactive: function(cellView) { 
+	        	if (cellView.model.isLink()) { // we dont want links to be interactive
+	        		return false;
+	        	} 
+	        	return true;
+	        }		        
         });
 
         // Build the DAG from the specified adjacency list
