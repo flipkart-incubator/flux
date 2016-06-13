@@ -22,7 +22,7 @@ import javax.inject.Inject;
  * This workflow demonstrates the use of Dynamically injected components within a Workflow
  *
  * Situation: We need to store the message received in the database and then notifyCustomerSupport another customer via HTTP
- *
+ * // TODO : This will work only after we integrate with deployment unit
  */
 public class SimpleStoreAndNotifyWorkflow {
     /**
