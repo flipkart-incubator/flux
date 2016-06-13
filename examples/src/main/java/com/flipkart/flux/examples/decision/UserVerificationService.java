@@ -13,15 +13,19 @@
 
 package com.flipkart.flux.examples.decision;
 
-import com.flipkart.flux.client.model.Promise;
 import com.flipkart.flux.client.model.Task;
 
+import java.util.Random;
+
 /**
- * Dummy Interface for simple task execution.
- * Since the Flux client supports Dependency Injection, we can continue to use the interface in <code>SimpleDecisionWorkflow</code>
- * The class's implementation will be injected by the DI framework within Flux.
+ * Used to verify a given user.
+ * Current implementation is not an inspiring one
  */
-public interface SimpleTaskExecutor {
+public class UserVerificationService {
+
     @Task(version = 1, timeout = 1000l)
-    public Promise<TaskData> performSimpleTask();
+    public UserVerificationStatus verifyUser(UserData userData) {
+        final boolean resultOfRigorousVerification = new Random(System.currentTimeMillis()).nextBoolean();
+        return new UserVerificationStatus(userData.getUserId(), resultOfRigorousVerification);
+    }
 }

@@ -13,21 +13,34 @@
 
 package com.flipkart.flux.examples.decision;
 
-import com.flipkart.flux.client.model.Promise;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.flipkart.flux.client.model.Event;
 
 /**
- * Dummy Task Data that is produced as a result of performing a simple task
- *
+ * Represents a given user's current stats
  */
-public class TaskData {
+public class UserData implements Event {
 
-    private Promise<Long> id;
+    @JsonProperty
+    private String name;
 
-    public boolean isGood() {
-        return false;
+    @JsonProperty
+    private String email;
+
+    private UserId userId;
+
+    /* For Jackson & cglib */
+    UserData() {
     }
 
-    public Promise<Long> getId() {
-        return id;
+    public UserData(String email, String name, UserId userId) {
+        this.email = email;
+        this.name = name;
+        this.userId = userId;
+    }
+
+    public UserId getUserId() {
+        return userId;
     }
 }

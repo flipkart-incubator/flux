@@ -17,7 +17,6 @@ import com.flipkart.flux.client.model.Workflow;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.List;
 
 /**
  * A workflow designed to send emails to a given set of recepients
