@@ -14,11 +14,8 @@
 
 package com.flipkart.flux.client.runtime;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.StateMachineDefinition;
-
-import java.io.IOException;
 
 /**
  * Used to connect with the core Flux Runtime

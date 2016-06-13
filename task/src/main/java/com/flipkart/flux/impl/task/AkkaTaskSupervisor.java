@@ -58,7 +58,7 @@ public class AkkaTaskSupervisor {
 	public static Props getTaskSupervisorProps (String taskActorName, long maxRetries) {
 		final Props childProps = Props.create(AkkaTask.class);
 		final Props supervisorProps = 
-				BackoffSupervisor.props(Backoff.onStop(
+				BackoffSupervisor.props(Backoff.onStop(   // TODO : Backoff is not working as expected. Retries work fine.
 						    childProps,
 						    taskActorName + "-" + INSTANCE_COUNTER.incrementAndGet(),
 						    MIN_BACKOFF, MAX_BACKOFF, 0.2) // adds 20% "noise" to vary the intervals slightly

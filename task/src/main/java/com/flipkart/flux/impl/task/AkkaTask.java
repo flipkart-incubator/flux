@@ -14,13 +14,13 @@
 package com.flipkart.flux.impl.task;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventDefinition;
-import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.FluxError;
 import com.flipkart.flux.domain.Task;
@@ -38,6 +38,7 @@ import akka.event.LoggingAdapter;
 import akka.routing.ActorRefRoutee;
 import akka.routing.Router;
 import scala.Option;
+import scala.concurrent.duration.FiniteDuration;
 
 
 /**
@@ -57,9 +58,6 @@ public class AkkaTask extends UntypedActor {
 	@Inject
     private static TaskRegistry taskRegistry;
 
-	@Inject
-	private static FluxRuntimeConnector fluxRuntimeConnector;
-    
     /** Router instance for the Hook actors*/
     @Inject
     @Named("HookRouter")
@@ -72,7 +70,12 @@ public class AkkaTask extends UntypedActor {
 	 * @see akka.actor.UntypedActor#preRestart(java.lang.Throwable, scala.Option)
 	 */
 	public void preRestart(Throwable reason, Option<Object> message) {
-		 getSelf().tell(message.get(), getSender()); // we reschedule the message back on this Actor to see if it goes through when retried
+		// we reschedule the message back on this Actor to see if it goes through when retried. TODO : Uses a fixed 1 second time delay and no exponential backoff for now
+		getContext().system().scheduler().scheduleOnce(
+				FiniteDuration.create(1, TimeUnit.SECONDS),
+				getSelf(),
+				message.get(), 
+				getContext().system().dispatcher(), null);
 	}
 
 	/**
@@ -80,7 +83,6 @@ public class AkkaTask extends UntypedActor {
 	 * @see akka.actor.UntypedActor#onReceive(java.lang.Object)
 	 */
 	public void onReceive(Object message) throws Exception {
-
 		//todo actor can take a call when to throw TaskResumableException
 		if (TaskAndEvents.class.isAssignableFrom(message.getClass())) {
 			TaskAndEvents taskAndEvent = (TaskAndEvents)message;
@@ -90,10 +92,10 @@ public class AkkaTask extends UntypedActor {
 				// Execute any pre-exec HookS
 				this.executeHooks(this.taskRegistry.getPreExecHooks(task), taskAndEvent.getEvents());
 				final String outputEventName = getOutputEventName(taskAndEvent);
-				final TaskExecutor taskExecutor = new TaskExecutor(task, taskAndEvent.getEvents(), fluxRuntimeConnector, taskAndEvent.getStateMachineId(), outputEventName);
+				final TaskExecutor taskExecutor = new TaskExecutor(task, taskAndEvent.getEvents(), taskAndEvent.getStateMachineId(), outputEventName);
 				Event outputEvent = null;
 				try {
-					taskExecutor.execute();
+					outputEvent = taskExecutor.execute();
 				} catch (HystrixRuntimeException hre) {
 					if (taskExecutor.isResponseTimedOut()) {
 						throw new FluxError(FluxError.ErrorType.timeout, "Execution timeout for : " + task.getName(), null, false);
