@@ -63,6 +63,7 @@ public class AkkaTask extends UntypedActor {
     @Named("HookRouter")
     private Router hookRouter;
 
+    /** ObjectMapper instance for JSON serialization*/
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 	
 	/**
@@ -127,11 +128,6 @@ public class AkkaTask extends UntypedActor {
 		}
 	}
 
-	private String getOutputEventName(TaskAndEvents taskAndEvent) throws java.io.IOException {
-		final String outputEvent = taskAndEvent.getOutputEvent();
-		return outputEvent != null ? objectMapper.readValue(outputEvent, EventDefinition.class).getName() : null;
-	}
-
 	/**
 	 * Helper method to execute pre and post Task execution Hooks as independent Actor invocations
 	 */
@@ -144,5 +140,10 @@ public class AkkaTask extends UntypedActor {
 		}
 	}
 
+	/** Helper method to JSON serialize the output event*/
+	private String getOutputEventName(TaskAndEvents taskAndEvent) throws java.io.IOException {
+		final String outputEvent = taskAndEvent.getOutputEvent();
+		return outputEvent != null ? objectMapper.readValue(outputEvent, EventDefinition.class).getName() : null;
+	}
 
 }

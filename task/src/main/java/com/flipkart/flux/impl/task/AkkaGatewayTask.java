@@ -56,7 +56,7 @@ public class AkkaGatewayTask extends UntypedActor {
 			TaskAndEvents taskAndEvent = (TaskAndEvents)message;
 			final Props supervisorProps = AkkaTaskSupervisor.getTaskSupervisorProps(taskAndEvent.getTaskIdentifier(), taskAndEvent.getRetryCount());
 			String supName = taskAndEvent.getTaskName() + "-Supervisor-" + INSTANCE_COUNTER.incrementAndGet();
-			ActorRef sup = getContext().system().actorOf(supervisorProps, supName);
+			ActorRef sup = getContext().actorOf(supervisorProps, supName);
 			sup.tell(taskAndEvent, getSelf());
 		} else if (Event.class.isAssignableFrom(message.getClass())) {
 			Event returnedEvent = (Event)message;
