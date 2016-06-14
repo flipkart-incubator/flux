@@ -11,22 +11,20 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.examples.decision;
+package com.flipkart.flux.examples.concurrent;
 
-import com.flipkart.flux.client.model.Task;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.flipkart.flux.client.model.Event;
 
-/**
- * Used to communicate with customers or with customer support
- */
-public class NotificationService {
+public class EmailAcknowledgement implements Event {
+    @JsonProperty
+    private Boolean sent;
 
-    @Task(version = 1, timeout = 1000l)
-    void sendWelcomeEmail(UserId userId) {
-        System.out.println("Warm welcomes to you, " + userId);
+    /* For Jackson */
+    EmailAcknowledgement() {
     }
 
-    @Task(version = 1, timeout = 1000l)
-    void notifyCustomerSupport(UserId userIdId) {
-        System.out.println("Please manually verify user " + userIdId);
+    public EmailAcknowledgement(Boolean sent) {
+        this.sent = sent;
     }
 }

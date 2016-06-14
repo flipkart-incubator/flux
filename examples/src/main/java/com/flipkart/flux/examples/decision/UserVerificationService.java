@@ -15,18 +15,17 @@ package com.flipkart.flux.examples.decision;
 
 import com.flipkart.flux.client.model.Task;
 
+import java.util.Random;
+
 /**
- * Used to communicate with customers or with customer support
+ * Used to verify a given user.
+ * Current implementation is not an inspiring one
  */
-public class NotificationService {
+public class UserVerificationService {
 
     @Task(version = 1, timeout = 1000l)
-    void sendWelcomeEmail(UserId userId) {
-        System.out.println("Warm welcomes to you, " + userId);
-    }
-
-    @Task(version = 1, timeout = 1000l)
-    void notifyCustomerSupport(UserId userIdId) {
-        System.out.println("Please manually verify user " + userIdId);
+    public UserVerificationStatus verifyUser(UserData userData) {
+        final boolean resultOfRigorousVerification = new Random(System.currentTimeMillis()).nextBoolean();
+        return new UserVerificationStatus(userData.getUserId(), resultOfRigorousVerification);
     }
 }

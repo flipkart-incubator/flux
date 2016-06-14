@@ -11,17 +11,32 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.examples.decision;
+package com.flipkart.flux.examples.concurrent;
 
-import com.flipkart.flux.client.model.Promise;
 import com.flipkart.flux.client.model.Task;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Singleton;
+import java.util.Random;
 
 /**
- * Dummy Interface for simple task execution.
- * Since the Flux client supports Dependency Injection, we can continue to use the interface in <code>SimpleDecisionWorkflow</code>
- * The class's implementation will be injected by the DI framework within Flux.
+ * Used to dispatch emails
  */
-public interface SimpleTaskExecutor {
+@Singleton
+public class EmailDispatcher {
+
+    private static Logger logger = LoggerFactory.getLogger(EmailDispatcher.class);
+    private Random random;
+
+    public EmailDispatcher() {
+        random = new Random();
+    }
+
     @Task(version = 1, timeout = 1000l)
-    public Promise<TaskData> performSimpleTask();
+    public EmailAcknowledgement sendEmail(Email email) {
+        logger.info("Sending email {} ",email);
+        return new EmailAcknowledgement(random.nextBoolean());
+    }
+
 }

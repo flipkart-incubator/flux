@@ -16,17 +16,12 @@ package com.flipkart.flux.examples.decision;
 import com.flipkart.flux.client.model.Task;
 
 /**
- * Used to communicate with customers or with customer support
+ * In a real case, this may talk to a database to perform CRUD operations on user data
  */
-public class NotificationService {
+public class UserDataService {
 
     @Task(version = 1, timeout = 1000l)
-    void sendWelcomeEmail(UserId userId) {
-        System.out.println("Warm welcomes to you, " + userId);
-    }
-
-    @Task(version = 1, timeout = 1000l)
-    void notifyCustomerSupport(UserId userIdId) {
-        System.out.println("Please manually verify user " + userIdId);
+    public UserData retrieveUserData(UserId userId) {
+        return new UserData("someEmail@gmail.com","someName", userId);
     }
 }

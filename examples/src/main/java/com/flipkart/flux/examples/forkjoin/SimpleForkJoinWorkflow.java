@@ -26,6 +26,7 @@ import java.util.List;
  * The result of these N operations needs to be collected and then acted upon.
  * This is called a dynamic fork-join & this class demonstrates how a workflow with a dynamic fork-join can be implemented
  * @author yogesh.nachnani
+ * // TODO : Need to incorporate support for "list of events" for this to work
  */
 public class SimpleForkJoinWorkflow {
 

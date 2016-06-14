@@ -13,20 +13,27 @@
 
 package com.flipkart.flux.examples.decision;
 
-import com.flipkart.flux.client.model.Task;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.flipkart.flux.client.model.Event;
 
 /**
- * Used to communicate with customers or with customer support
+ * Carries the key for a unique user.
+ * Notice how a simple Long is encapsulated in a class that implements Flux's <code>Event</code> interface
  */
-public class NotificationService {
+public class UserId implements Event {
 
-    @Task(version = 1, timeout = 1000l)
-    void sendWelcomeEmail(UserId userId) {
-        System.out.println("Warm welcomes to you, " + userId);
+    @JsonProperty
+    private Long id;
+
+    /* For Jackson */
+    UserId() {
     }
 
-    @Task(version = 1, timeout = 1000l)
-    void notifyCustomerSupport(UserId userIdId) {
-        System.out.println("Please manually verify user " + userIdId);
+    public UserId(Long id) {
+        this.id = id;
+    }
+
+    public Long getId() {
+        return id;
     }
 }
