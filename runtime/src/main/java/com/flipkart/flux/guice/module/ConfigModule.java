@@ -37,7 +37,7 @@ public class ConfigModule extends AbstractModule {
 
     public ConfigModule(URL configUrl) {
         this.configUrl =configUrl;
-        configProvider = new ApacheCommonsConfigProvider().location(configUrl.getPath());
+        configProvider = new ApacheCommonsConfigProvider().location(configUrl);
     }
 
     @Override

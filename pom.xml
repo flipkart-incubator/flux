@@ -47,7 +47,7 @@
         <junit.version>4.12</junit.version>
         <hibernate.version>5.1.0.Final</hibernate.version>
         <guice.version>4.0</guice.version>
-        <polyguice.version>1.0.2-SNAPSHOT</polyguice.version>
+        <polyguice.version>1.0.2-SNAPSHOT.patched</polyguice.version>
         <javax.inject.version>1</javax.inject.version>
         <hystrix.version>1.5.1</hystrix.version>
         <akka.version>2.4.6</akka.version>
