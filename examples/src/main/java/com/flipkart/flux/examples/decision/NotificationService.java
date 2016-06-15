@@ -22,11 +22,11 @@ public class NotificationService {
 
     @Task(version = 1, timeout = 1000l)
     void sendWelcomeEmail(UserId userId) {
-        System.out.println("Warm welcomes to you, " + userId);
+        System.out.println("[NotificationService] Warm welcomes to you, " + userId);
     }
 
     @Task(version = 1, timeout = 1000l)
     void notifyCustomerSupport(UserId userIdId) {
-        System.out.println("Please manually verify user " + userIdId);
+        System.out.println("[NotificationService] Please manually verify user " + userIdId);
     }
 }

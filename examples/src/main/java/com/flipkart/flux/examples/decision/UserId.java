@@ -36,4 +36,9 @@ public class UserId implements Event {
     public Long getId() {
         return id;
     }
+
+    @Override
+    public String toString() {
+        return "User" + id;
+    }
 }
