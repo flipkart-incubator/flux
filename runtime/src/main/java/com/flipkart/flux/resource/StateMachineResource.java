@@ -181,6 +181,14 @@ public class StateMachineResource {
                 fsmDataMap.put("Trigger", fsmDataMap.get(null));
                 fsmDataMap.remove(null);
             }
+
+            if(initialStates.size() > 0) {
+                if (fsmDataMap.get("Trigger") == null)
+                    fsmDataMap.put("Trigger", new ArrayList<>());
+                for (String initialState : initialStates) {
+                    fsmDataMap.get("Trigger").add(initialState+":");
+                }
+            }
             return objectMapper.writeValueAsString(fsmDataMap);
 
         } else {
