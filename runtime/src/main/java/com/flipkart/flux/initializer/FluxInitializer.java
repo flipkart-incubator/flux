@@ -133,8 +133,6 @@ public class FluxInitializer {
         };
 		logger.info(STARTUP_DISPLAY.format(displayArgs));
         logger.info("** Flux startup complete **");
-        // TODO - remove this call
-        testOut();
     }
 
     /** Helper method to perform migrations*/
@@ -142,14 +140,6 @@ public class FluxInitializer {
         loadFluxRuntimeContainer();
         MigrationsRunner migrationsRunner = fluxRuntimeContainer.getComponentContext().getInstance(MigrationsRunner.class);
         migrationsRunner.migrate();
-    }
-
-    // TODO (Temporary) - For Mr Regunath to play with :)
-    private void testOut() throws InterruptedException {
-        final EagerInitRouterRegistryImpl routerRegistry = fluxRuntimeContainer.getComponentContext().getInstance(EagerInitRouterRegistryImpl.class);
-        routerRegistry.getRouter("someRouter").tell("Message for some router", ActorRef.noSender());
-        routerRegistry.getRouter("someRouterWithoutConfig").tell("Message for some router with no config", ActorRef.noSender());
-        Thread.sleep(1000l);
     }
 
 }
