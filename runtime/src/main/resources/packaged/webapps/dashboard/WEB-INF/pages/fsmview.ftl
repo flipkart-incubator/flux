@@ -76,13 +76,13 @@
             // of lines in the label and the letter size. 0.6 * letterSize is
             // an approximation of the monospace font letter width.
             var letterSize = 10;
-            var width = 1.0 * (letterSize * (0.6 * maxLineLength + 1));
-            var height = 1.0 * ((label.split(' ').length + 1) * letterSize);
+            var width = 1.2 * (letterSize * (0.6 * maxLineLength + 1));
+            var height = 1.2 * ((label.split(' ').length + 1) * letterSize);
             return new joint.shapes.basic.Circle({
                 id: label,
-                size: { width: width, height: width },
+                size: { width: Math.max(width,height), height:  Math.max(width,height) },
                 attrs: {
-                    text: { text: label.replace(' ', '\n'), 'font-size': letterSize, 'font-family': 'monospace', fill: 'white' },
+                    text: { text: label.split(' ').join('\n'), 'font-size': letterSize, 'font-family': 'monospace', fill: 'white' },
                     circle: {
                         fill: '#FE854F',
                         width: width,
@@ -103,7 +103,7 @@
                 labels : [ {
                     position : 0.5,
                     attrs : {
-                        text : { text : edgeDetails[1].replace(' ', '\n'), 'font-size': 8,}
+                        text : { text : edgeDetails[1].split(' ').join('\n'), 'font-size': 8,}
                     }
                 } ],
                 attrs: {
@@ -118,9 +118,10 @@
             var cells = buildGraphFromAdjacencyList(adjacencyList);
             graph.resetCells(cells);
             joint.layout.DirectedGraph.layout(graph, {
-                nodeSep: 100,
-                edgeSep: 20,
-                rankDir: "LR"
+	        	nodeSep: 100,
+	        	edgeSep: 20,
+	        	rankSep: 100,
+	            rankDir: "LR"
             });
         }
 

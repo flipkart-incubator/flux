@@ -31,7 +31,7 @@ import java.util.Map;
  */
 
 public class RunUserVerificationWorkflow {
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         /* Bring up the flux runtime */
         FluxInitializer.main(new String[]{});
 

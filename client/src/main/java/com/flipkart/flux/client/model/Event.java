@@ -20,8 +20,7 @@ package com.flipkart.flux.client.model;
  * @author yogesh.nachnani
  */
 public interface Event {
-    static final String EMPTY="";
     default String name() {
-        return EMPTY;
+        return this.getClass().getName();
     }
 }

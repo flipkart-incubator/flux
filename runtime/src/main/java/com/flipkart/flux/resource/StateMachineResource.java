@@ -149,23 +149,25 @@ public class StateMachineResource {
             for(State state : stateMachine.getStates()) {
                 if(state.getOutputEvent() != null) {
                     EventDefinition eventDefinition = objectMapper.readValue(state.getOutputEvent(), EventDefinition.class);
-                    eventSourceMap.put(eventDefinition.getName(), state.getName());
+                    eventSourceMap.put(this.getEventDisplayName(eventDefinition.getName()), this.getStateDisplayName(state.getName()));
                 }
             }
 
             for(State state: stateMachine.getStates()) {
+            	String stateDisplayName = this.getStateDisplayName(state.getName());
                 if(state.getDependencies() != null && state.getDependencies().size() > 0) {
                     for(String eventName : state.getDependencies()) {
                         if(triggeredEvents.contains(eventName)) {
-                            if(fsmDataMap.get(eventSourceMap.get(eventName)) == null)
-                                fsmDataMap.put(eventSourceMap.get(eventName), new ArrayList<>());
-                            if(fsmDataMap.get(state.getName()) == null)
-                                fsmDataMap.put(state.getName(), new ArrayList<>());
-                            fsmDataMap.get(eventSourceMap.get(eventName)).add(state.getName() + ":" + (eventName));
+                        	String eventDisplayName = this.getEventDisplayName(eventName);
+                            if(fsmDataMap.get(eventSourceMap.get(eventDisplayName)) == null)
+                                fsmDataMap.put(eventSourceMap.get(eventDisplayName), new ArrayList<>());
+                            if(fsmDataMap.get(stateDisplayName) == null)
+                                fsmDataMap.put(stateDisplayName, new ArrayList<>());
+                            fsmDataMap.get(eventSourceMap.get(eventDisplayName)).add(stateDisplayName + ":" + eventDisplayName);
                         }
                     }
                 } else {
-                    initialStates.add(state.getName());
+                    initialStates.add(stateDisplayName);
                 }
             }
 
@@ -176,14 +178,55 @@ public class StateMachineResource {
             }
 
             if(fsmDataMap.containsKey(null)) {
-                fsmDataMap.put("External", fsmDataMap.get(null));
+                fsmDataMap.put("Trigger", fsmDataMap.get(null));
                 fsmDataMap.remove(null);
             }
-            return new ObjectMapper().writeValueAsString(fsmDataMap);
+            return objectMapper.writeValueAsString(fsmDataMap);
 
         } else {
             return "{}";
         }
     }
+    
+    /** 
+     * Helper method to return a display friendly name for the specified event name.
+     * Returns just the name part from the Event FQN
+     */
+    private String getEventDisplayName(String eventName) {
+    	return (eventName == null) ? null : this.getDisplayName(eventName.substring(eventName.lastIndexOf(".") + 1));
+    }
+    
+    /**
+     * Helper method to return a display friendly name for state names
+     * Returns {@link #getDisplayName(String)} 
+     */
+    private String getStateDisplayName(String stateName) {
+    	return this.getDisplayName(stateName);
+    }
 
+    /** 
+     * Helper method to return a display friendly name for the specified label.
+     * Returns a phrase containing single-space separated words that were split at Camel Case boundaries
+     */
+    private String getDisplayName(String label) {
+    	if (label == null) {
+    		return null;
+    	}
+    	String words = label.replaceAll( // Based on http://stackoverflow.com/questions/2559759/how-do-i-convert-camelcase-into-human-readable-names-in-java
+    			String.format("%s|%s|%s",
+    					"(?<=[A-Z])(?=[A-Z][a-z])",
+    		    	    "(?<=[^A-Z])(?=[A-Z])",
+    		    	    "(?<=[A-Za-z])(?=[^A-Za-z])"
+    		    ),"_");
+    	StringBuffer sb = new StringBuffer();
+        for (String s : words.split("_")) {
+            sb.append(Character.toUpperCase(s.charAt(0)));
+            if (s.length() > 1) {
+                sb.append(s.substring(1, s.length()).toLowerCase());
+                sb.append(" ");
+            }
+        }
+        return sb.toString().trim();
+    }
+    
 }

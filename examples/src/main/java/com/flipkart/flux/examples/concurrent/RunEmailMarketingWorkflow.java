@@ -27,7 +27,7 @@ import java.util.Arrays;
  * This or a similar class like this is _not_ required to be present in your actual production jar
  */
 public class RunEmailMarketingWorkflow  {
-    public static void main(String []args) throws Exception {
+    public static void main(String... args) throws Exception {
 
         /* Bring up the flux runtime */
         FluxInitializer.main(new String[]{});
