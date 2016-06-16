@@ -47,6 +47,9 @@ import java.util.*;
 @Path("/api/machines")
 @Named
 public class StateMachineResource {
+	
+	/** Single white space label to denote start of processing i.e. the Trigger*/
+	private static final String TRIGGER = " ";
 
     @Inject
     StateMachinePersistenceService stateMachinePersistenceService;
@@ -178,15 +181,15 @@ public class StateMachineResource {
             }
 
             if(fsmDataMap.containsKey(null)) {
-                fsmDataMap.put("Trigger", fsmDataMap.get(null));
+                fsmDataMap.put(TRIGGER, fsmDataMap.get(null));
                 fsmDataMap.remove(null);
             }
 
             if(initialStates.size() > 0) {
-                if (fsmDataMap.get("Trigger") == null)
-                    fsmDataMap.put("Trigger", new ArrayList<>());
+                if (fsmDataMap.get(TRIGGER) == null)
+                    fsmDataMap.put(TRIGGER, new ArrayList<>());
                 for (String initialState : initialStates) {
-                    fsmDataMap.get("Trigger").add(initialState+":");
+                    fsmDataMap.get(TRIGGER).add(initialState+":");
                 }
             }
             return objectMapper.writeValueAsString(fsmDataMap);

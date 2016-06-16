@@ -84,7 +84,7 @@
                 attrs: {
                     text: { text: label.split(' ').join('\n'), 'font-size': letterSize, 'font-family': 'monospace', fill: 'white' },
                     circle: {
-                        fill: '#FE854F',
+                        fill: (label.trim().length == 0 ? '#7c68fc' : '#FE854F'),
                         width: width,
                         height: height,
                         stroke: 'none'
