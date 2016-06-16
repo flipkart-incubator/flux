@@ -1,6 +1,6 @@
 # Flux
 Flux is an asynchronous, scalable, optionally multi-tenant & distributed and reliable state machine based orchestrator. 
-Flux can be used to build reactive apps that are stateful and workflows. 
+Flux can be used to build Workflows and Reactive apps that are stateful. 
 
 ## Releases
 | Release | Date | Description |
@@ -17,12 +17,14 @@ client SDK to build event-driven reactive apps. The runtime allows to run multip
 
 ## Flux Visualization & Monitoring
 Flux allows you to monitor real-time execution of all running state machine tasks via this console:
+
 ![Monitor](https://github.com/flipkart-incubator/flux/raw/master/docs/Flux-hystrix.png)
 
 Additionally, you can also inspect individual state machine execution DAGs:
+
 ![Serial-Workflow](https://github.com/flipkart-incubator/flux/raw/master/docs/Flux-serial-workflow.png)
 
-![Fork-Join](https://github.com/flipkart-incubator/flux/raw/master/docsFlux-fork-join.png)
+![Fork-Join](https://github.com/flipkart-incubator/flux/raw/master/docs/Flux-fork-join.png)
 
 
 ## Documentation and Examples
