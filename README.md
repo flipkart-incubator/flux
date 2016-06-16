@@ -42,7 +42,7 @@ Flux is licensed under : The Apache Software License, Version 2.0. Here is a cop
 ## Building with Flux
 The Flux system design is organized into multiple layers to support building, testing, deploying and operating workflows in a shared environment:
 
-![Layers](https://github.com/flipkart-incubator/flux/raw/master/docs/flux-high-level.png =433x418)
+![Layers](https://github.com/flipkart-incubator/flux/raw/master/docs/flux-high-level.png){:height="418px" width="433px"}
 
 * UI - Provides for inspecting workflow execution and administration tasks on deployed instances/templates
 * API/Modelling - Provides primitives for modelling State machines and reacting to state transitions, complex DAG-like workflows
