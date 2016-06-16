@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd" xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    
+  <profiles>
+    <profile>
+      <repositories>
+        <repository>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+          <id>fk-central</id>
+          <name>libs-release</name>
+          <url>http://artifactory:8081/artifactory/libs-release</url>
+        </repository>
+        <repository>
+          <snapshots />
+          <id>snapshots</id>
+          <name>libs-snapshot</name>
+          <url>http://artifactory:8081/artifactory/libs-snapshot</url>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+          <id>fk-central</id>
+          <name>plugins-release</name>
+          <url>http://artifactory:8081/artifactory/plugins-release</url>
+        </pluginRepository>
+        <pluginRepository>
+          <snapshots />
+          <id>snapshots</id>
+          <name>plugins-snapshot</name>
+          <url>http://artifactory:8081/artifactory/plugins-snapshot</url>
+        </pluginRepository>
+      </pluginRepositories>
+      <id>artifactory</id>
+    </profile>
+    
+	<!-- Public repos config start start -->
+
+    <profile>
+      <id>dep-public-repositories</id>
+      <repositories>
+        <repository>
+            <id>Maven2-Repo</id>
+            <name>Maven2 Repository</name>
+            <url>http://repo1.maven.org/maven2/</url>
+        </repository>   
+        <repository>
+          <id>mule-maven-public-repository-group</id>
+          <name>Mule Maven Repository Group</name>
+          <url>http://repository.muleforge.org/</url>
+          <layout>default</layout>
+          <releases>
+            <enabled>true</enabled>
+            <updatePolicy>never</updatePolicy>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>never</updatePolicy>
+          </snapshots>
+        </repository>
+        <repository>
+            <id>spring-snapshots</id>
+            <name>Spring Maven Snapshot Repository</name>
+            <url>http://s3.amazonaws.com/maven.springframework.org/snapshot</url>
+        </repository>   
+        <repository>
+            <id>cloudera-hadoop</id>
+            <name>Cloudera Hadoop repo</name>
+            <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+        </repository>
+    	<repository>
+      		<id>clojars</id>
+      		<name>Clojars repository</name>
+      		<url>https://clojars.org/repo</url>
+    	</repository>                                                  
+        <repository>        
+          <id>maven-public-repository-group</id>
+          <name>Public Maven Repository Group</name>
+          <url>http://repo1.maven.org/maven/mule/dependencies/maven2/</url>
+          <layout>default</layout>
+          <releases>
+            <enabled>true</enabled>
+            <updatePolicy>never</updatePolicy>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>never</updatePolicy>
+          </snapshots>
+        </repository>        
+        <repository>
+          <id>codehaus-public-repository-group</id>
+          <name>CodeHaus Public Maven Repository Group</name>
+          <url>http://dist.codehaus.org/mule/dependencies/maven2/</url>
+          <layout>default</layout>
+          <releases>
+            <enabled>true</enabled>
+            <updatePolicy>never</updatePolicy>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>never</updatePolicy>
+          </snapshots>
+        </repository>	
+        <repository>
+          <id>jboss-public-repository-group</id>
+          <name>JBoss Public Maven Repository Group</name>
+          <url>https://repository.jboss.org/nexus/content/groups/public-jboss/</url>
+          <layout>default</layout>
+          <releases>
+            <enabled>true</enabled>
+            <updatePolicy>never</updatePolicy>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>never</updatePolicy>
+          </snapshots>
+        </repository>
+      </repositories>
+      
+      <pluginRepositories>
+        <pluginRepository>
+          <id>jboss-public-repository-group</id>
+          <name>JBoss Public Maven Repository Group</name>
+          <url>https://repository.jboss.org/nexus/content/groups/public-jboss/</url>
+          <layout>default</layout>
+          <releases>
+            <enabled>true</enabled>
+            <updatePolicy>never</updatePolicy>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>never</updatePolicy>
+          </snapshots>
+        </pluginRepository>
+      </pluginRepositories>
+      
+    </profile>
+
+    <profile>
+      <id>jboss-deprecated-repository</id>
+      <repositories>
+        <repository>
+          <id>jboss-deprecated-repository</id>
+          <name>JBoss Deprecated Maven Repository</name>
+          <url>https://repository.jboss.org/nexus/content/repositories/deprecated/</url>
+          <layout>default</layout>
+          <releases>
+            <enabled>true</enabled>
+            <updatePolicy>never</updatePolicy>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+            <updatePolicy>never</updatePolicy>
+          </snapshots>
+        </repository>
+      </repositories>
+    </profile>
+    <!-- Public repos config end -->
+
+  </profiles>
+  
+  <activeProfiles>
+  		<activeProfile>artifactory</activeProfile>
+  		<activeProfile>dep-public-repositories</activeProfile>
+  </activeProfiles>
+
+  <servers>
+	<server>
+      <id>my.server</id>
+      <username>foo</username>
+      <password>{}</password>
+    </server>
+  </servers>
+</settings>
