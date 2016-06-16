@@ -16,7 +16,7 @@ user actions, messages passed between systems and data changes to business entit
 client SDK to build event-driven reactive apps. The runtime allows to run multiple state machine instances concurrently.
 
 ## Flux Visualization & Monitoring
-Flux allows you to monitor real-time execution of all running state machine tasks via this console:
+Flux allows you to monitor real-time execution of all running state machine tasks:
 
 ![Monitor](https://github.com/flipkart-incubator/flux/raw/master/docs/Flux-hystrix.png)
 
