@@ -228,13 +228,13 @@ public class StateMachineResource {
     					"(?<=[A-Z])(?=[A-Z][a-z])",
     		    	    "(?<=[^A-Z])(?=[A-Z])",
     		    	    "(?<=[A-Za-z])(?=[^A-Za-z])"
-    		    ),"_");
+    		    )," ");
     	StringBuffer sb = new StringBuffer();
-        for (String s : words.split("_")) {
+        for (String s : words.split(" ")) {
             sb.append(Character.toUpperCase(s.charAt(0)));
             if (s.length() > 1) {
                 sb.append(s.substring(1, s.length()).toLowerCase());
-                sb.append(" ");
+                sb.append(" "); // add the single space back. Used for wrapping words onto next line in the display
             }
         }
         return sb.toString().trim();
