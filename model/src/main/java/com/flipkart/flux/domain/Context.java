@@ -81,10 +81,16 @@ public abstract class Context {
      * @param triggeredEventNames Names of events that have already been received during the state machine definition
      */
     public Set<State> getInitialStates(HashSet<String> triggeredEventNames) {
-        final Set<State> initialStates = eventToStateDependencyGraph.get(START);
+        final Set<State> initialStates = new HashSet<>();
+        final Set<State> startStates = eventToStateDependencyGraph.get(START);
+        if (startStates != null ) {
+            initialStates.addAll(startStates);
+        }
         for (String aTriggeredEventName : triggeredEventNames) {
             final Set<State> statesDependentOnThisEvent = eventToStateDependencyGraph.get(aTriggeredEventName);
-            statesDependentOnThisEvent.stream().filter(state1 -> state1.isDependencySatisfied(triggeredEventNames)).forEach(initialStates::add);
+            if (statesDependentOnThisEvent != null) {
+                statesDependentOnThisEvent.stream().filter(state1 -> state1.isDependencySatisfied(triggeredEventNames)).forEach(initialStates::add);
+            }
         }
         return initialStates;
     }

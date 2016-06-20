@@ -11,16 +11,21 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.client.model;
+package com.flipkart.flux.examples.decision;
+
+import com.flipkart.flux.client.model.Task;
+
+import java.util.Random;
 
 /**
- * All parameters used in and returned from <code>Task</code>s need to implement this marker interface
- * This acts as a deterrent for teams to use "Strings" or "Integers" as parameters and push them in the direction of
- * using meaningful business entities
- * @author yogesh.nachnani
+ * Used to verify a given user.
+ * Current implementation is not an inspiring one
  */
-public interface Event {
-    default String name() {
-        return this.getClass().getName();
+public class UserVerificationService {
+
+    @Task(version = 1, timeout = 1000l)
+    public UserVerificationStatus verifyUser(UserData userData) {
+        final boolean resultOfRigorousVerification = new Random(System.currentTimeMillis()).nextBoolean();
+        return new UserVerificationStatus(userData.getUserId(), resultOfRigorousVerification);
     }
 }

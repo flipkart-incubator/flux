@@ -11,16 +11,17 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.client.model;
+package com.flipkart.flux.examples.decision;
+
+import com.flipkart.flux.client.model.Task;
 
 /**
- * All parameters used in and returned from <code>Task</code>s need to implement this marker interface
- * This acts as a deterrent for teams to use "Strings" or "Integers" as parameters and push them in the direction of
- * using meaningful business entities
- * @author yogesh.nachnani
+ * In a real case, this may talk to a database to perform CRUD operations on user data
  */
-public interface Event {
-    default String name() {
-        return this.getClass().getName();
+public class UserDataService {
+
+    @Task(version = 1, timeout = 1000l)
+    public UserData retrieveUserData(UserId userId) {
+        return new UserData("someEmail@gmail.com","someName", userId);
     }
 }

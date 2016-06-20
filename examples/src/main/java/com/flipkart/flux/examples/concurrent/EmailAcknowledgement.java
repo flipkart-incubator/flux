@@ -11,16 +11,20 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.client.model;
+package com.flipkart.flux.examples.concurrent;
 
-/**
- * All parameters used in and returned from <code>Task</code>s need to implement this marker interface
- * This acts as a deterrent for teams to use "Strings" or "Integers" as parameters and push them in the direction of
- * using meaningful business entities
- * @author yogesh.nachnani
- */
-public interface Event {
-    default String name() {
-        return this.getClass().getName();
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.flipkart.flux.client.model.Event;
+
+public class EmailAcknowledgement implements Event {
+    @JsonProperty
+    private Boolean sent;
+
+    /* For Jackson */
+    EmailAcknowledgement() {
+    }
+
+    public EmailAcknowledgement(Boolean sent) {
+        this.sent = sent;
     }
 }

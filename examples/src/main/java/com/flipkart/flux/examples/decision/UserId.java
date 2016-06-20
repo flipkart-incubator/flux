@@ -11,16 +11,34 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.client.model;
+package com.flipkart.flux.examples.decision;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.flipkart.flux.client.model.Event;
 
 /**
- * All parameters used in and returned from <code>Task</code>s need to implement this marker interface
- * This acts as a deterrent for teams to use "Strings" or "Integers" as parameters and push them in the direction of
- * using meaningful business entities
- * @author yogesh.nachnani
+ * Carries the key for a unique user.
+ * Notice how a simple Long is encapsulated in a class that implements Flux's <code>Event</code> interface
  */
-public interface Event {
-    default String name() {
-        return this.getClass().getName();
+public class UserId implements Event {
+
+    @JsonProperty
+    private Long id;
+
+    /* For Jackson */
+    UserId() {
+    }
+
+    public UserId(Long id) {
+        this.id = id;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    @Override
+    public String toString() {
+        return "User" + id;
     }
 }

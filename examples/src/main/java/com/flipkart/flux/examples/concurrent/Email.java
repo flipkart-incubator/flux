@@ -11,23 +11,35 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.examples.decision;
+package com.flipkart.flux.examples.concurrent;
 
-import com.flipkart.flux.client.model.Promise;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.flipkart.flux.client.model.Event;
 
 /**
- * Dummy Task Data that is produced as a result of performing a simple task
- *
+ * An email entitye
  */
-public class TaskData {
+public class Email implements Event {
+    @JsonProperty
+    private String body;
 
-    private Promise<Long> id;
+    @JsonProperty
+    private String recipient;
 
-    public boolean isGood() {
-        return false;
+    /* For jackson */
+    Email() {
     }
 
-    public Promise<Long> getId() {
-        return id;
+    public Email(String body, String recipient) {
+        this.body = body;
+        this.recipient = recipient;
+    }
+
+    @Override
+    public String toString() {
+        return "Email{" +
+            "body='" + body + '\'' +
+            ", recipient='" + recipient + '\'' +
+            '}';
     }
 }

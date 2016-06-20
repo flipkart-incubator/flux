@@ -13,20 +13,34 @@
 
 package com.flipkart.flux.examples.decision;
 
-import com.flipkart.flux.client.model.Task;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.flipkart.flux.client.model.Event;
 
 /**
- * Used to communicate with customers or with customer support
+ * Represents a given user's current stats
  */
-public class NotificationService {
+public class UserData implements Event {
 
-    @Task(version = 1, timeout = 1000l)
-    void sendWelcomeEmail(UserId userId) {
-        System.out.println("[NotificationService] Warm welcomes to you, " + userId);
+    @JsonProperty
+    private String name;
+
+    @JsonProperty
+    private String email;
+
+    private UserId userId;
+
+    /* For Jackson & cglib */
+    UserData() {
     }
 
-    @Task(version = 1, timeout = 1000l)
-    void notifyCustomerSupport(UserId userIdId) {
-        System.out.println("[NotificationService] Please manually verify user " + userIdId);
+    public UserData(String email, String name, UserId userId) {
+        this.email = email;
+        this.name = name;
+        this.userId = userId;
+    }
+
+    public UserId getUserId() {
+        return userId;
     }
 }

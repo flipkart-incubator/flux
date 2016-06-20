@@ -3,7 +3,7 @@
 The various sub-systems/components and design considerations for Flux are detailed below.
 
 ## Runtime
-The flux runtime has to support the following models of deployment:
+The Flux runtime has to support the following models of deployment:
 
 ![Runtimes](https://github.com/flipkart-incubator/flux/raw/master/docs/Flux-runtimes.png)
 * Local : Primarily used during development and functional testing. Runs inside an IDE with minimal resource dependencies - say a locally

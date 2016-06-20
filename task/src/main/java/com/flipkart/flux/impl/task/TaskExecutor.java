@@ -14,8 +14,6 @@
 package com.flipkart.flux.impl.task;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.FluxError;
 import com.flipkart.flux.domain.Task;
@@ -24,11 +22,10 @@ import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixCommandProperties.ExecutionIsolationStrategy;
-
-import javafx.util.Pair;
-
 import com.netflix.hystrix.HystrixThreadPoolKey;
 import com.netflix.hystrix.HystrixThreadPoolProperties;
+
+import javafx.util.Pair;
 
 /**
  * <code>TaskExecutor</code> wraps {@link Task} execution with Hystrix.
@@ -43,7 +40,6 @@ public class TaskExecutor extends HystrixCommand<Event> {
 	
 	/** The events used in Task execution*/
 	private Event[] events;
-	private final FluxRuntimeConnector fluxRuntimeConnector;
 	private final Long stateMachineId;
 	private final String outputeEventName;
 	// TODO - use a singleton instead
@@ -55,7 +51,7 @@ public class TaskExecutor extends HystrixCommand<Event> {
 	 * @param fluxRuntimeConnector
 	 * @param stateMachineId
 	 */
-	public TaskExecutor(AbstractTask task, Event[] events, FluxRuntimeConnector fluxRuntimeConnector, Long stateMachineId,String outputeEventName) {
+	public TaskExecutor(AbstractTask task, Event[] events, Long stateMachineId,String outputeEventName) {
         super(Setter
         		.withGroupKey(HystrixCommandGroupKey.Factory.asKey(task.getTaskGroupName()))
                 .andCommandKey(HystrixCommandKey.Factory.asKey(task.getName()))
@@ -66,7 +62,6 @@ public class TaskExecutor extends HystrixCommand<Event> {
                 		.withExecutionTimeoutInMilliseconds(task.getExecutionTimeout())));
 		this.task = task;
 		this.events = events;
-		this.fluxRuntimeConnector = fluxRuntimeConnector;
 		this.stateMachineId = stateMachineId;
 		this.outputeEventName = outputeEventName;
 	}
@@ -82,9 +77,7 @@ public class TaskExecutor extends HystrixCommand<Event> {
 		}
 		final Object returnObject = result.getKey();
 		if (returnObject != null) {
-			final Event returnedEvent = new Event(outputeEventName, returnObject.getClass().getCanonicalName(), Event.EventStatus.triggered, stateMachineId, objectMapper.writeValueAsString(returnObject), MANAGED_RUNTIME);
-			fluxRuntimeConnector.submitEvent(new EventData(returnedEvent.getName(), returnedEvent.getType(), returnedEvent.getEventData(), returnedEvent.getEventSource()), returnedEvent.getStateMachineInstanceId());
-			return returnedEvent;
+			return new Event(outputeEventName, returnObject.getClass().getCanonicalName(), Event.EventStatus.triggered, stateMachineId, objectMapper.writeValueAsString(returnObject), MANAGED_RUNTIME);
 		}
 		return null;
 	}

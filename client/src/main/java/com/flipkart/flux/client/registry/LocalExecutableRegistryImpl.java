@@ -57,8 +57,9 @@ public class LocalExecutableRegistryImpl implements ExecutableRegistry {
         if (cachedExecutable == null) {
             try {
                 final MethodId methodId = MethodId.fromIdentifier(taskIdentifier);
-                final Object classInstance = this.injector.getInstance(Class.forName(methodId.getClassName()));
-                final Method methodToInvoke = classInstance.getClass().getDeclaredMethod(methodId.getMethodName(), methodId.getParameterTypes());
+                final Class<?> clazz = Class.forName(methodId.getClassName());
+                final Object classInstance = this.injector.getInstance(clazz);
+                final Method methodToInvoke = clazz.getDeclaredMethod(methodId.getMethodName(), methodId.getParameterTypes());
                 final Task taskAnnotation = methodToInvoke.getAnnotationsByType(Task.class)[0];
                 return new ExecutableImpl(classInstance, methodToInvoke, taskAnnotation.timeout());
             } catch (ClassNotFoundException | NoSuchMethodException e) {
