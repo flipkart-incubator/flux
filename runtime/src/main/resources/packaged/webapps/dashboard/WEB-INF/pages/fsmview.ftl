@@ -67,7 +67,7 @@
                    links.push(makeEdge(edgeData.label, searchNodeId(sourceVertexId,elements),searchNodeId(targetVertexId,elements)));
                 });
             });
-            var initVertex = makeState("-1:Init");
+            var initVertex = makeState("-1:Init",'#7c68fc');
             elements.push(initVertex)
             _.each(initStateEdges,function(initEdgeData) {
                 _.each(initEdgeData.incidentOn, function(targetVertexId) {
@@ -89,7 +89,7 @@
         }
 
         // Draw a State in the FSM
-        function makeState(vertexIdentifier) {
+        function makeState(vertexIdentifier,colorCode) {
             var label = vertexIdentifier.split(":")[1];
             var nodeId = vertexIdentifier.split(":")[0];
             var maxLineLength = _.max(label.split(' '), function(l) {
@@ -107,7 +107,7 @@
                 attrs: {
                     text: { text: label.split(' ').join('\n'), 'font-size': letterSize, 'font-family': 'monospace', fill: 'white' },
                     circle: {
-                        fill: (label.trim().length == 0 ? '#7c68fc' : '#FE854F'),
+                        fill: colorCode == null ? '#FE854F' : colorCode ,
                         width: width,
                         height: height,
                         stroke: 'none'
