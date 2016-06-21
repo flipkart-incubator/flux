@@ -95,5 +95,6 @@ public class StateMachineResourceTest {
         final StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(objectMapper.readValue(this.getClass().getClassLoader().getResource("state_machine_definition_fork_join.json"), StateMachineDefinition.class));
         final HttpResponse<String> stringHttpResponse = Unirest.get(STATE_MACHINE_RESOURCE_URL + "/" + stateMachine.getId() + "/fsmdata").header("Content-Type", "application/json").asString();
         assertThat(stringHttpResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+        //TODO - we need a better assert here, but since we're using database IDs in the implementation, we cannot simply validate it with a static json
     }
 }
