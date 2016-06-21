@@ -62,7 +62,7 @@
       "dependencies": [
         {
           "name": "event2",
-          "type": "foo"
+          "type": "someType"
         },
         {
           "name": "event3",

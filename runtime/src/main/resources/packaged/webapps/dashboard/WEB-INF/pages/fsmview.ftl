@@ -52,7 +52,7 @@
         });
 
         // Build the DAG from the specified adjacency list
-        function buildGraphFromAdjacencyList(adjacencyList) {
+        function buildGraphFromAdjacencyList(adjacencyList,initStateEdges) {
             var elements = [];
             var links = [];
             var nodeIds = [];
@@ -65,6 +65,13 @@
                 var sourceVertexId = vertexIdentifier.split(":")[0];
                 _.each(edgeData.incidentOn, function(targetVertexId) {
                    links.push(makeEdge(edgeData.label, searchNodeId(sourceVertexId,elements),searchNodeId(targetVertexId,elements)));
+                });
+            });
+            var initVertex = makeState("-1:Init");
+            elements.push(initVertex)
+            _.each(initStateEdges,function(initEdgeData) {
+                _.each(initEdgeData.incidentOn, function(targetVertexId) {
+                    links.push(makeEdge(initEdgeData.label, initVertex,searchNodeId(targetVertexId,elements)));
                 });
             });
             // Links must be added after all the elements. This is because when the links
@@ -129,8 +136,8 @@
         }
 
         // Function to draw the DAG
-        function layout(adjacencyList) {
-            var cells = buildGraphFromAdjacencyList(adjacencyList);
+        function layout(adjacencyList,initStateEdges) {
+            var cells = buildGraphFromAdjacencyList(adjacencyList,initStateEdges);
             graph.resetCells(cells);
             joint.layout.DirectedGraph.layout(graph, {
 	        	nodeSep: 100,
@@ -147,7 +154,7 @@
                 success: function(data, status, jqXHR) {
                     document.getElementById("graph-div").style.display = 'block';
                     document.getElementById("alert-msg").style.display = 'none';
-                    layout(data.fsmGraphData);
+                    layout(data.fsmGraphData,data.initStateEdges);
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) {
                     alert("Status: " + textStatus); alert("Error: " + errorThrown);

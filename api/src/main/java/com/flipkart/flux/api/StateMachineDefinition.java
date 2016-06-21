@@ -101,7 +101,9 @@ public class StateMachineDefinition {
                 eventDataMap.putIfAbsent(anEventDefinition, retrieveEventDataFor(anEventDefinition));
             }
             final EventDefinition outputEventDefinition = aState.getOutputEvent();
-            eventDataMap.put(outputEventDefinition,retrieveEventDataFor(outputEventDefinition));
+            if (outputEventDefinition  != null) {
+                eventDataMap.put(outputEventDefinition, retrieveEventDataFor(outputEventDefinition));
+            }
         }
         return eventDataMap;
     }

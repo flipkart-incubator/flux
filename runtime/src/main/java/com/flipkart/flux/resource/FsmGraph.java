@@ -18,7 +18,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Used in visualisation APIs, this representation makes it easier to draw a diagramatic representation of the SM.
@@ -34,9 +36,12 @@ public class FsmGraph {
     /* The adjacency-list representation of a graph */
     @JsonProperty
     private Map<FsmGraphVertex,FsmGraphEdge> fsmGraphData;
+    @JsonProperty
+    private Set<FsmGraphEdge> initStateEdges;
 
     public FsmGraph(){
         this.fsmGraphData = new HashMap<>();
+        this.initStateEdges = new HashSet<>();
     }
 
     @JsonIgnore
@@ -48,6 +53,11 @@ public class FsmGraph {
     @JsonIgnore
     public void addOutgoingEdge(FsmGraphVertex from, Long to) {
         this.fsmGraphData.get(from).addOutgoingVertex(to);
+    }
+
+    @JsonIgnore
+    public void addInitStateEdge(FsmGraphEdge edge) {
+        this.initStateEdges.add(edge);
     }
 
     @Override

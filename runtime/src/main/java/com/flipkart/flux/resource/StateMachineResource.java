@@ -180,20 +180,21 @@ public class StateMachineResource {
 
         /* Handle states with no dependencies, i.e the states that can be triggered as soon as we execute the state machine */
         final Set<State> initialStates = ramContext.getInitialStates(Collections.emptySet());// hackety hack.  We're fooling the context to give us only events that depend on nothing
-        final FsmGraphVertex trigerVertex = new FsmGraphVertex(0l, TRIGGER);
-        fsmGraph.addVertex(trigerVertex, new FsmGraphEdge(TRIGGER, ""));
-        initialStates.forEach((state) -> fsmGraph.addOutgoingEdge(trigerVertex, state.getId()));
-
+        if (!initialStates.isEmpty()) {
+            final FsmGraphEdge initEdge = new FsmGraphEdge(TRIGGER, Event.EventStatus.triggered.name());
+            initialStates.forEach((state) -> {
+                initEdge.addOutgoingVertex(state.getId());
+            });
+            fsmGraph.addInitStateEdge(initEdge);
+        }
         /* Now we handle events that were not "output-ed" by any state, which means that they were given to the workflow at the time of invocation */
         final HashSet<String> eventsGivenOnWorkflowTrigger = new HashSet<>(stateMachineEvents.keySet());
         eventsGivenOnWorkflowTrigger.removeAll(allOutputEventNames);
-        final MutableLong stepDownCounter = new MutableLong(-1);
         eventsGivenOnWorkflowTrigger.forEach((workflowTriggeredEventName) -> {
+            final FsmGraphEdge initEdge = new FsmGraphEdge(this.getDisplayName(workflowTriggeredEventName), Event.EventStatus.triggered.name());
             final Set<State> dependantStates = ramContext.getDependantStates(workflowTriggeredEventName);
-            final FsmGraphVertex givenDataVertex = new FsmGraphVertex(stepDownCounter.longValue(), TRIGGER);
-            fsmGraph.addVertex(givenDataVertex,new FsmGraphEdge(this.getDisplayName(workflowTriggeredEventName), Event.EventStatus.triggered.name()));
-            dependantStates.forEach((state) -> fsmGraph.addOutgoingEdge(givenDataVertex, state.getId()));
-            stepDownCounter.decrement();
+            dependantStates.forEach((state) -> initEdge.addOutgoingVertex(state.getId()));
+            fsmGraph.addInitStateEdge(initEdge);
         });
         return fsmGraph;
     }
