@@ -55,10 +55,16 @@
         function buildGraphFromAdjacencyList(adjacencyList) {
             var elements = [];
             var links = [];
-            _.each(adjacencyList, function(edges, parentElementLabel) {
-                elements.push(makeState(parentElementLabel));
-                _.each(edges, function(childElementLabel) {
-                    links.push(makeEdge(parentElementLabel, childElementLabel));
+            var nodeIds = [];
+            // Make the vertex nodes
+            _.each(adjacencyList, function(edgeData,vertexIdentifier ) {
+                elements.push(makeState(vertexIdentifier));
+            });
+            // attach edges
+            _.each(adjacencyList, function(edgeData,vertexIdentifier) {
+                var sourceVertexId = vertexIdentifier.split(":")[0];
+                _.each(edgeData.incidentOn, function(targetVertexId) {
+                   links.push(makeEdge(edgeData.label, searchNodeId(sourceVertexId,elements),searchNodeId(targetVertexId,elements)));
                 });
             });
             // Links must be added after all the elements. This is because when the links
@@ -67,8 +73,18 @@
             return elements.concat(links);
         }
 
+        function searchNodeId(requiredNodeId,vertexArray) {
+            return _.find(vertexArray,function(node) {
+                if (node.id == requiredNodeId) {
+                    return true;
+                }
+            });
+        }
+
         // Draw a State in the FSM
-        function makeState(label) {
+        function makeState(vertexIdentifier) {
+            var label = vertexIdentifier.split(":")[1];
+            var nodeId = vertexIdentifier.split(":")[0];
             var maxLineLength = _.max(label.split(' '), function(l) {
                 return l.length;
             }).length;
@@ -79,7 +95,7 @@
             var width = 1.2 * (letterSize * (0.6 * maxLineLength + 1));
             var height = 1.2 * ((label.split(' ').length + 1) * letterSize);
             return new joint.shapes.basic.Circle({
-                id: label,
+                id: nodeId,
                 size: { width: Math.max(width,height), height:  Math.max(width,height) },
                 attrs: {
                     text: { text: label.split(' ').join('\n'), 'font-size': letterSize, 'font-family': 'monospace', fill: 'white' },
@@ -94,16 +110,15 @@
         }
 
         // Draw an Edge in the DAG
-        function makeEdge(parentElementLabel, childElementLabel) {
+        function makeEdge(label,sourceNode,targetNode) {
             // Edge details is of the form TargetNode<colon>EdgeLabel
-            var edgeDetails = childElementLabel.split(":");
             return new joint.shapes.fsa.Arrow({
-                source : { id : parentElementLabel },
-                target : { id : edgeDetails[0] },
+                source : { id : sourceNode.id },
+                target : { id : targetNode.id },
                 labels : [ {
                     position : 0.5,
                     attrs : {
-                        text : { text : edgeDetails[1].split(' ').join('\n'), 'font-size': 8,}
+                        text : { text : label.split(' ').join('\n'), 'font-size': 8,}
                     }
                 } ],
                 attrs: {
@@ -130,16 +145,9 @@
                 url: 'http://localhost:9998/api/machines/'+document.getElementById("fsm-id").value+'/fsmdata',
                 type: 'GET',
                 success: function(data, status, jqXHR) {
-                    var json = JSON.parse(data);
-                    if(json != null && Object.keys(json).length > 0) {
-                        document.getElementById("graph-div").style.display = 'block';
-                        document.getElementById("alert-msg").style.display = 'none';
-                        layout(json);
-                    } else {
-                        document.getElementById("alert-msg").innerHTML = "State machine with Id: "+document.getElementById("fsm-id").value+" not found.";
-                        document.getElementById("graph-div").style.display = 'none';
-                        document.getElementById("alert-msg").style.display = 'inline';
-                    }
+                    document.getElementById("graph-div").style.display = 'block';
+                    document.getElementById("alert-msg").style.display = 'none';
+                    layout(data.fsmGraphData);
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) {
                     alert("Status: " + textStatus); alert("Error: " + errorThrown);

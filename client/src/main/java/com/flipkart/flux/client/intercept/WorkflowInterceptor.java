@@ -21,6 +21,7 @@ import com.flipkart.flux.client.model.Event;
 import com.flipkart.flux.client.model.Workflow;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.LocalContext;
+import org.aopalliance.intercept.Invocation;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
@@ -60,7 +61,7 @@ public class WorkflowInterceptor implements MethodInterceptor {
         try {
             final Method method = invocation.getMethod();
             final Workflow[] workFlowAnnotations = method.getAnnotationsByType(Workflow.class);
-            checkForBadSignatures(method);
+            checkForBadSignatures(invocation);
             localContext.registerNew(new MethodId(method).toString(), workFlowAnnotations[0].version(), workFlowAnnotations[0].description());
             registerEventsForArguments(invocation.getArguments());
             invocation.proceed();
@@ -76,21 +77,59 @@ public class WorkflowInterceptor implements MethodInterceptor {
         if (arguments.length == 0) {
             return;
         }
-        EventData[] eventDatas = new EventData[arguments.length];
-        for (int i = 0; i < arguments.length ; i++) {
-            final Object anArgument = arguments[i];
-            Event anArgumentAsEvent = (Event) anArgument; // This is safe since we have already checked for bad signatures
-            final String eventName = localContext.generateEventName(anArgumentAsEvent);
-            eventDatas[i] = new EventData(eventName, anArgument.getClass().getName(), objectMapper.writeValueAsString(anArgument),CLIENT);
+        final int lengthOfArguments = getRealLengthOfArguments(arguments);
+        EventData[] eventDatas = new EventData[lengthOfArguments];
+        int i = 0;
+        for(Object anArgument : arguments) {
+            /* We traverse the array of events passed as an argument and derive EventData from each element */
+            if (anArgument.getClass().isArray()) {
+                Object[] objects = (Object[]) anArgument;
+                for (Object anObjectArrayMember : objects) {
+                    addToEventDataArray(eventDatas, i, anObjectArrayMember);
+                    i++;
+                }
+
+            } else { /* regular Event object as an argument */
+                addToEventDataArray(eventDatas, i, anArgument);
+                i++;
+            }
         }
         localContext.addEvents(eventDatas);
     }
 
-    private void checkForBadSignatures(Method method) {
+    private void addToEventDataArray(EventData[] eventDatas, int i, Object anObject) throws JsonProcessingException {
+        final String eventName = localContext.generateEventName((Event) anObject);
+        eventDatas[i] = new EventData(eventName, anObject.getClass().getName(), objectMapper.writeValueAsString(anObject), CLIENT);
+    }
+
+
+    private int getRealLengthOfArguments(Object[] arguments) {
+        int len = 0;
+        for (Object anArgument : arguments) {
+            if(anArgument.getClass().isArray()) {
+                Object[] objects = (Object[]) anArgument;
+                len += objects.length;
+            } else {
+                len++;
+            }
+        }
+        return len;
+    }
+
+
+    private void checkForBadSignatures(MethodInvocation invocation) {
+        Method method = invocation.getMethod();
         final Class<?> returnType = method.getReturnType();
         if (!returnType.equals(void.class)) {
             throw new IllegalSignatureException(new MethodId(method),"A workflow method can only return void");
         }
+        final Class<?>[] parameterTypes = method.getParameterTypes();
+        for (Class<?> aParamType : parameterTypes) {
+            if (!Event.class.isAssignableFrom(aParamType) && !aParamType.isArray()) {
+                throw new IllegalSignatureException(new MethodId(method), "Parameter types should implement the Event interface. Collections of events are also not allowed");
+            }
+        }
+
     }
 
 }

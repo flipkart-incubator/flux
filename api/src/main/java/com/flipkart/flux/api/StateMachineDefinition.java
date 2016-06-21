@@ -100,6 +100,8 @@ public class StateMachineDefinition {
             for (EventDefinition anEventDefinition : dependenciesForCurrentState) {
                 eventDataMap.putIfAbsent(anEventDefinition, retrieveEventDataFor(anEventDefinition));
             }
+            final EventDefinition outputEventDefinition = aState.getOutputEvent();
+            eventDataMap.put(outputEventDefinition,retrieveEventDataFor(outputEventDefinition));
         }
         return eventDataMap;
     }

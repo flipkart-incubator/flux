@@ -2,18 +2,22 @@ package com.flipkart.flux.resource;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
+import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.initializer.OrderedComponentBooter;
+import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.util.TestUtils;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import org.apache.commons.io.IOUtils;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,8 +46,17 @@ public class StateMachineResourceTest {
     @Inject
     OrderedComponentBooter orderedComponentBooter;
 
+    @Inject
+    StateMachinePersistenceService stateMachinePersistenceService;
+
     public static final String STATE_MACHINE_RESOURCE_URL = "http://localhost:9998" + RuntimeConstants.API_CONTEXT_PATH + RuntimeConstants.STATE_MACHINE_RESOURCE_RELATIVE_PATH;
     private static final String SLASH = "/";
+    private ObjectMapper objectMapper;
+
+    @Before
+    public void setUp() throws Exception {
+        objectMapper = new ObjectMapper();
+    }
 
     @Test
     public void testCreateStateMachine() throws Exception {
@@ -67,7 +80,8 @@ public class StateMachineResourceTest {
         event = eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event1");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.triggered);
         assertThat(event).isEqualToIgnoringGivenFields(TestUtils.getStandardTestEvent(), "stateMachineInstanceId", "id", "createdAt", "updatedAt");
-        Set<State> triggeredStates = new ObjectMapper().readValue(eventPostResponse.getBody(), new TypeReference<Set<State>>() {});
+        Set<State> triggeredStates = objectMapper.readValue(eventPostResponse.getBody(), new TypeReference<Set<State>>() {
+        });
         Set<String> triggeredStatesNames = new HashSet<>();
         Iterator iterator = triggeredStates.iterator();
         while(iterator.hasNext())
@@ -76,4 +90,10 @@ public class StateMachineResourceTest {
         assertThat(triggeredStatesNames).isEqualTo(expectedStatesNames);
     }
 
+    @Test
+    public void testFsmGraphCreation() throws Exception {
+        final StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(objectMapper.readValue(this.getClass().getClassLoader().getResource("state_machine_definition_fork_join.json"), StateMachineDefinition.class));
+        final HttpResponse<String> stringHttpResponse = Unirest.get(STATE_MACHINE_RESOURCE_URL + "/" + stateMachine.getId() + "/fsmdata").header("Content-Type", "application/json").asString();
+        assertThat(stringHttpResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+    }
 }

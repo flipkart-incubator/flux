@@ -13,10 +13,7 @@
 
 package com.flipkart.flux.domain;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * <code>Context</code> carries execution context for use during a State's execution.
@@ -72,7 +69,11 @@ public abstract class Context {
      * @return
      */
     public Set<State> getDependantStates(String eventName) {
-        return eventToStateDependencyGraph.get(eventName);
+        final Set<State> dependentStates = eventToStateDependencyGraph.get(eventName);
+        if (dependentStates == null) {
+            return Collections.emptySet();
+        }
+        return dependentStates;
     }
 
     /**
@@ -80,7 +81,7 @@ public abstract class Context {
      * @return initial states
      * @param triggeredEventNames Names of events that have already been received during the state machine definition
      */
-    public Set<State> getInitialStates(HashSet<String> triggeredEventNames) {
+    public Set<State> getInitialStates(Set<String> triggeredEventNames) {
         final Set<State> initialStates = new HashSet<>();
         final Set<State> startStates = eventToStateDependencyGraph.get(START);
         if (startStates != null ) {
