@@ -62,10 +62,12 @@
             });
             // attach edges
             _.each(adjacencyList, function(edgeData,vertexIdentifier) {
-                var sourceVertexId = vertexIdentifier.split(":")[0];
-                _.each(edgeData.incidentOn, function(targetVertexId) {
-                   links.push(makeEdge(edgeData.label, searchNodeId(sourceVertexId,elements),searchNodeId(targetVertexId,elements)));
-                });
+                if(edgeData != null) {
+                    var sourceVertexId = vertexIdentifier.split(":")[0];
+                    _.each(edgeData.incidentOn, function(targetVertexId) {
+                    links.push(makeEdge(edgeData.label, searchNodeId(sourceVertexId,elements),searchNodeId(targetVertexId,elements)));
+                    });
+                }
             });
             var initVertex = makeState("-1:Init",'#7c68fc');
             elements.push(initVertex)
