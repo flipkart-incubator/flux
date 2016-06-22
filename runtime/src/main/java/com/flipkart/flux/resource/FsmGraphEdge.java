@@ -33,20 +33,24 @@ public class FsmGraphEdge {
     /* The status of the edge (event) , derived from <code>com.flipkart.flux.domain.Event.EventStatus</code> */
     @JsonProperty
     private String status;
+    /* Gives the source of the event */
+    @JsonProperty
+    private String source;
 
     /* For Jackson */
     FsmGraphEdge() {
-        this(null,null);
+        this(null,null,null);
     }
 
-    public FsmGraphEdge(String label, String status) {
-        this(new HashSet<>(),label,status);
+    public FsmGraphEdge(String label, String status,String source) {
+        this(new HashSet<>(),label,status,source);
     }
 
-    public FsmGraphEdge(Set<Long> incidentOn, String label, String status) {
+    public FsmGraphEdge(Set<Long> incidentOn, String label, String status,String source) {
         this.incidentOn = incidentOn;
         this.label = label;
         this.status = status;
+        this.source = source;
     }
 
     @JsonIgnore

@@ -69,11 +69,17 @@
                     });
                 }
             });
-            var initVertex = makeState("-1:Init",'#7c68fc');
-            elements.push(initVertex)
+            var i = -1;
             _.each(initStateEdges,function(initEdgeData) {
+                var edgeSource = initEdgeData.source;
+                var edgeSourceVertex = searchVertexByLabel(edgeSource,elements);
+                if(edgeSourceVertex == null) {
+                    edgeSourceVertex = makeState(i+":"+edgeSource,'#7c68fc');
+                    i = i - 1;
+                    elements.push(edgeSourceVertex);
+                }
                 _.each(initEdgeData.incidentOn, function(targetVertexId) {
-                    links.push(makeEdge(initEdgeData.label, initVertex,searchNodeId(targetVertexId,elements)));
+                    links.push(makeEdge(initEdgeData.label, edgeSourceVertex,searchNodeId(targetVertexId,elements)));
                 });
             });
             // Links must be added after all the elements. This is because when the links
@@ -82,6 +88,14 @@
             return elements.concat(links);
         }
 
+
+        function searchVertexByLabel(labelToSearch, elementsArray) {
+            return _.find(elementsArray,function(node) {
+                if(node.attributes.attrs.text.text == labelToSearch) {
+
+                }
+            });
+        }
         function searchNodeId(requiredNodeId,vertexArray) {
             return _.find(vertexArray,function(node) {
                 if (node.id == requiredNodeId) {
