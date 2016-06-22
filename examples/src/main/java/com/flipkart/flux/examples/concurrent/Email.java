@@ -42,4 +42,9 @@ public class Email implements Event {
             ", recipient='" + recipient + '\'' +
             '}';
     }
+
+    @Override
+    public String name() {
+        return "EmailMessage";
+    }
 }

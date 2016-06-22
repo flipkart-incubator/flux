@@ -21,11 +21,15 @@ import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
+import com.google.common.base.Functions;
 import com.google.inject.Inject;
+import org.apache.commons.lang3.mutable.MutableLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +41,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
 /**
@@ -51,17 +57,24 @@ public class StateMachineResource {
 	/** Single white space label to denote start of processing i.e. the Trigger*/
 	private static final String TRIGGER = " ";
 
-    @Inject
     StateMachinePersistenceService stateMachinePersistenceService;
 
-    @Inject
     WorkFlowExecutionController workFlowExecutionController;
 
-    @Inject
     StateMachinesDAO stateMachinesDAO;
 
-    @Inject
     EventsDAO eventsDAO;
+
+    ObjectMapper objectMapper;
+
+    @Inject
+    public StateMachineResource(EventsDAO eventsDAO, StateMachinePersistenceService stateMachinePersistenceService, StateMachinesDAO stateMachinesDAO, WorkFlowExecutionController workFlowExecutionController) {
+        this.eventsDAO = eventsDAO;
+        this.stateMachinePersistenceService = stateMachinePersistenceService;
+        this.stateMachinesDAO = stateMachinesDAO;
+        this.workFlowExecutionController = workFlowExecutionController;
+        objectMapper = new ObjectMapper();
+    }
 
     private static final Logger logger = LoggerFactory.getLogger(StateMachineResource.class);
 
@@ -103,7 +116,7 @@ public class StateMachineResource {
                             ) throws Exception {
         //retrieves states which are dependant on this event and starts execution of states which can be executable
         Set<State> triggeredStates = workFlowExecutionController.postEvent(eventData, machineId);
-        return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity(new ObjectMapper().writeValueAsString(triggeredStates)).build();
+        return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity(objectMapper.writeValueAsString(triggeredStates)).build();
     }
 
 
@@ -126,6 +139,7 @@ public class StateMachineResource {
      */
     @GET
     @Path("/{machineId}/fsmdata")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getFsmGraphData(@PathParam("machineId") Long machineId) throws IOException {
         return Response.status(200).entity(getGraphData(machineId))
                 .header("Access-Control-Allow-Origin", "*")
@@ -135,68 +149,54 @@ public class StateMachineResource {
                 .build();
     }
 
-    /**
-     * Provides json data to build fsm status graph.
-     */
-    private String getGraphData(Long fsmId) throws IOException {
+    private FsmGraph getGraphData(Long fsmId) throws IOException {
         StateMachine stateMachine = stateMachinesDAO.findById(fsmId);
 
-        if(stateMachine != null) {
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, String> eventSourceMap = new HashMap<>();
-            Map<String, List<String>> fsmDataMap = new HashMap<>();
-            Set<String> initialStates = new HashSet<>();
-
-            Set<String> triggeredEvents = new HashSet<>(eventsDAO.findTriggeredEventsNamesBySMId(fsmId));
-            for(State state : stateMachine.getStates()) {
-                if(state.getOutputEvent() != null) {
-                    EventDefinition eventDefinition = objectMapper.readValue(state.getOutputEvent(), EventDefinition.class);
-                    eventSourceMap.put(this.getEventDisplayName(eventDefinition.getName()), this.getStateDisplayName(state.getName()));
-                }
-            }
-
-            for(State state: stateMachine.getStates()) {
-            	String stateDisplayName = this.getStateDisplayName(state.getName());
-                if(state.getDependencies() != null && state.getDependencies().size() > 0) {
-                    for(String eventName : state.getDependencies()) {
-                        if(triggeredEvents.contains(eventName)) {
-                        	String eventDisplayName = this.getEventDisplayName(eventName);
-                            if(fsmDataMap.get(eventSourceMap.get(eventDisplayName)) == null)
-                                fsmDataMap.put(eventSourceMap.get(eventDisplayName), new ArrayList<>());
-                            if(fsmDataMap.get(stateDisplayName) == null)
-                                fsmDataMap.put(stateDisplayName, new ArrayList<>());
-                            fsmDataMap.get(eventSourceMap.get(eventDisplayName)).add(stateDisplayName + ":" + eventDisplayName);
-                        }
-                    }
-                } else {
-                    initialStates.add(stateDisplayName);
-                }
-            }
-
-            if(fsmDataMap.size() == 0) {
-                for(String stateName : initialStates) {
-                    fsmDataMap.put(stateName, null);
-                }
-            }
-
-            if(fsmDataMap.containsKey(null)) {
-                fsmDataMap.put(TRIGGER, fsmDataMap.get(null));
-                fsmDataMap.remove(null);
-            }
-
-            if(initialStates.size() > 0) {
-                if (fsmDataMap.get(TRIGGER) == null)
-                    fsmDataMap.put(TRIGGER, new ArrayList<>());
-                for (String initialState : initialStates) {
-                    fsmDataMap.get(TRIGGER).add(initialState+":");
-                }
-            }
-            return objectMapper.writeValueAsString(fsmDataMap);
-
-        } else {
-            return "{}";
+        if(stateMachine == null) {
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
+        final FsmGraph fsmGraph = new FsmGraph();
+
+        Map<String,Event> stateMachineEvents = eventsDAO.findBySMInstanceId(fsmId).stream().collect(
+            Collectors.<Event, String, Event>toMap(Event::getName, (event -> event)));
+        Set<String> allOutputEventNames = new HashSet<>();
+
+        final RAMContext ramContext = new RAMContext(System.currentTimeMillis(), null, stateMachine);
+        /* After this operation, we'll have nodes for each state and its corresponding output event along with the output event's dependencies mapped out*/
+        for(State state : stateMachine.getStates()) {
+            if(state.getOutputEvent() != null) {
+                EventDefinition eventDefinition = objectMapper.readValue(state.getOutputEvent(), EventDefinition.class);
+                final Event outputEvent = stateMachineEvents.get(eventDefinition.getName());
+                final FsmGraphVertex vertex = new FsmGraphVertex(state.getId(), getDisplayName(state.getName()));
+                fsmGraph.addVertex(vertex,
+                    new FsmGraphEdge(getDisplayName(outputEvent.getName()), outputEvent.getStatus().name()));
+                final Set<State> dependantStates = ramContext.getDependantStates(outputEvent.getName());
+                dependantStates.forEach((aState) -> fsmGraph.addOutgoingEdge(vertex, aState.getId()));
+                allOutputEventNames.add(outputEvent.getName()); // we collect all output event names and use them below.
+            } else {
+                fsmGraph.addVertex(new FsmGraphVertex(state.getId(),this.getDisplayName(state.getName())),null);
+            }
+        }
+
+        /* Handle states with no dependencies, i.e the states that can be triggered as soon as we execute the state machine */
+        final Set<State> initialStates = ramContext.getInitialStates(Collections.emptySet());// hackety hack.  We're fooling the context to give us only events that depend on nothing
+        if (!initialStates.isEmpty()) {
+            final FsmGraphEdge initEdge = new FsmGraphEdge(TRIGGER, Event.EventStatus.triggered.name());
+            initialStates.forEach((state) -> {
+                initEdge.addOutgoingVertex(state.getId());
+            });
+            fsmGraph.addInitStateEdge(initEdge);
+        }
+        /* Now we handle events that were not "output-ed" by any state, which means that they were given to the workflow at the time of invocation */
+        final HashSet<String> eventsGivenOnWorkflowTrigger = new HashSet<>(stateMachineEvents.keySet());
+        eventsGivenOnWorkflowTrigger.removeAll(allOutputEventNames);
+        eventsGivenOnWorkflowTrigger.forEach((workflowTriggeredEventName) -> {
+            final FsmGraphEdge initEdge = new FsmGraphEdge(this.getDisplayName(workflowTriggeredEventName), Event.EventStatus.triggered.name());
+            final Set<State> dependantStates = ramContext.getDependantStates(workflowTriggeredEventName);
+            dependantStates.forEach((state) -> initEdge.addOutgoingVertex(state.getId()));
+            fsmGraph.addInitStateEdge(initEdge);
+        });
+        return fsmGraph;
     }
     
     /** 

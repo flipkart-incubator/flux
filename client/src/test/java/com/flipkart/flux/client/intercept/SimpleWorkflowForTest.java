@@ -27,6 +27,7 @@ import com.flipkart.flux.client.model.Workflow;
 
 import javax.inject.Singleton;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -46,6 +47,12 @@ public class SimpleWorkflowForTest {
         final StringEvent newString = simpleStringModifyingTask(someString);
         final IntegerEvent someNewInteger = simpleAdditionTask(someInteger);
         someTaskWithIntegerAndString(newString, someNewInteger);
+    }
+
+    /* A simple workflow that takes in variable number of params tasks and making merry */
+    @Workflow(version = 1)
+    public void simpleDummyWorkflow(StringEvent...stringEvents) {
+        final StringEvent newString = simpleStringModifyingTask(stringEvents[0]);
     }
 
     /*
@@ -75,6 +82,11 @@ public class SimpleWorkflowForTest {
     @Task(version = 1, retries = 2, timeout = 2000l)
     public void badWorkflowWithNonEventParams(String foo) {
         // Doesn't matter. This is a bad workflow that works on strings as parameters. Basically we don't allow
+        // any parameters that are not some Subtypes of Event
+    }
+    @Task(version = 1, retries = 2, timeout = 2000l)
+    public void badWorkflowWithCollectionOfEvents(Collection<Event> foo) {
+        // Doesn't matter. This is a bad workflow that has a collection of events as parameter. Basically we don't allow
         // any parameters that are not some Subtypes of Event
     }
 
