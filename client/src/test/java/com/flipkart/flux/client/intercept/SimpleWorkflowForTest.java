@@ -22,6 +22,7 @@ import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.model.Event;
+import com.flipkart.flux.client.model.ExternalEvent;
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.model.Workflow;
 
@@ -49,6 +50,14 @@ public class SimpleWorkflowForTest {
         someTaskWithIntegerAndString(newString, someNewInteger);
     }
 
+    /* A simple workflow that goes about creating tasks and making merry. Sometimes both these fight over whose the merrier */
+    @Workflow(version = 1)
+    public void simpleDummyWorkflowWithExternalEvent(IntegerEvent someInteger) {
+        final StringEvent newString = waitForExternalEvent(null, someInteger);
+        final StringEvent anotherString = waitForExternalEvent((StringEvent) null);
+        someTaskWithIntegerAndString(newString, someInteger);
+    }
+
     /* A simple workflow that takes in variable number of params tasks and making merry */
     @Workflow(version = 1)
     public void simpleDummyWorkflow(StringEvent...stringEvents) {
@@ -63,10 +72,25 @@ public class SimpleWorkflowForTest {
     public int badWorkflow() {
         return 1;
     }
+
     @Task(version = 2,retries = 2,timeout = 2000l)
     public StringEvent simpleStringModifyingTask(StringEvent someString) {
         return new StringEvent("randomBs" + someString);
     }
+
+    @Task(version = 2, retries = 2, timeout = 2000l)
+    public StringEvent waitForExternalEvent(@ExternalEvent("someExternalEvent") StringEvent someString,IntegerEvent integerEvent) {
+        return new StringEvent(integerEvent.anInteger.toString() + someString);
+    }
+    @Task(version = 2, retries = 2, timeout = 2000l)
+    public StringEvent waitForExternalEvent(@ExternalEvent("someExternalEvent") StringEvent someString) {
+        return new StringEvent(someString.toString());
+    }
+    @Task(version = 2, retries = 2, timeout = 2000l)
+    public StringEvent waitForExternalEvent(@ExternalEvent("someExternalEvent") IntegerEvent integerEvent) {
+        return new StringEvent(integerEvent.anInteger.toString());
+    }
+
 
 
     @Task(version = 1, retries = 2, timeout = 3000l)

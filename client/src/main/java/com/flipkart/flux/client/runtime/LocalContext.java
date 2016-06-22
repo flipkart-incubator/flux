@@ -18,12 +18,13 @@ import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.client.intercept.IllegalInvocationException;
 import com.flipkart.flux.client.model.Event;
 import org.apache.commons.lang3.mutable.MutableInt;
 
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Maintains all local flux related context
@@ -118,5 +119,32 @@ public class LocalContext {
         final int currentEventNumber = this.tlUniqueEventCount.get().intValue();
         this.tlUniqueEventCount.get().increment();
         return event.name() + currentEventNumber;
+    }
+
+    /*
+        Checks if the given definition already exists as part of the current state machine.
+        Also, throws an <code>IllegalInvocationException</code> when it encounters that the given definition's
+        name is already used by another definition with a different type
+      */
+    public EventDefinition checkExistingDefinition(final EventDefinition givenDefinition) {
+        /* This may seem like an expensive operation, we can optimise if necessary */
+        final StateMachineDefinition stateMachineDefinition = this.stateMachineDefinition.get();
+        Set<EventDefinition> allDefinitions = new HashSet<>();
+        stateMachineDefinition.getStates().stream().map(new Function<StateDefinition, Collection<EventDefinition>>() {
+            @Override
+            public Collection<EventDefinition> apply(StateDefinition stateDefinition) {
+                return stateDefinition.getDependencies();
+            }
+        }).forEach(allDefinitions::addAll);
+        final Optional<EventDefinition> searchResult =
+            allDefinitions.stream().filter(eventDefinition -> givenDefinition.getName().equals(eventDefinition.getName())).findFirst();
+        if (!searchResult.isPresent()) {
+            return null;
+        }
+        final EventDefinition eventDefinitionWithMatchingName = searchResult.get();
+        if (eventDefinitionWithMatchingName.getType().equals(givenDefinition.getType())) {
+            return eventDefinitionWithMatchingName;
+        }
+        throw new IllegalInvocationException("Cannot invoke two parameters with the same name & different types!");
     }
 }
