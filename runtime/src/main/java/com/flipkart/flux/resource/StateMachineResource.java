@@ -169,7 +169,7 @@ public class StateMachineResource {
                 final Event outputEvent = stateMachineEvents.get(eventDefinition.getName());
                 final FsmGraphVertex vertex = new FsmGraphVertex(state.getId(), getDisplayName(state.getName()));
                 fsmGraph.addVertex(vertex,
-                    new FsmGraphEdge(getDisplayName(outputEvent.getName()), outputEvent.getStatus().name()));
+                    new FsmGraphEdge(getDisplayName(outputEvent.getName()), outputEvent.getStatus().name(),outputEvent.getEventSource()));
                 final Set<State> dependantStates = ramContext.getDependantStates(outputEvent.getName());
                 dependantStates.forEach((aState) -> fsmGraph.addOutgoingEdge(vertex, aState.getId()));
                 allOutputEventNames.add(outputEvent.getName()); // we collect all output event names and use them below.
@@ -181,17 +181,18 @@ public class StateMachineResource {
         /* Handle states with no dependencies, i.e the states that can be triggered as soon as we execute the state machine */
         final Set<State> initialStates = ramContext.getInitialStates(Collections.emptySet());// hackety hack.  We're fooling the context to give us only events that depend on nothing
         if (!initialStates.isEmpty()) {
-            final FsmGraphEdge initEdge = new FsmGraphEdge(TRIGGER, Event.EventStatus.triggered.name());
+            final FsmGraphEdge initEdge = new FsmGraphEdge(TRIGGER, Event.EventStatus.triggered.name(),TRIGGER);
             initialStates.forEach((state) -> {
                 initEdge.addOutgoingVertex(state.getId());
             });
             fsmGraph.addInitStateEdge(initEdge);
         }
-        /* Now we handle events that were not "output-ed" by any state, which means that they were given to the workflow at the time of invocation */
+        /* Now we handle events that were not "output-ed" by any state, which means that they were given to the workflow at the time of invocation or supplied externally*/
         final HashSet<String> eventsGivenOnWorkflowTrigger = new HashSet<>(stateMachineEvents.keySet());
         eventsGivenOnWorkflowTrigger.removeAll(allOutputEventNames);
         eventsGivenOnWorkflowTrigger.forEach((workflowTriggeredEventName) -> {
-            final FsmGraphEdge initEdge = new FsmGraphEdge(this.getDisplayName(workflowTriggeredEventName), Event.EventStatus.triggered.name());
+            final Event correspondingEvent = stateMachineEvents.get(workflowTriggeredEventName);
+            final FsmGraphEdge initEdge = new FsmGraphEdge(this.getDisplayName(workflowTriggeredEventName), correspondingEvent.getStatus().name(),correspondingEvent.getEventSource());
             final Set<State> dependantStates = ramContext.getDependantStates(workflowTriggeredEventName);
             dependantStates.forEach((state) -> initEdge.addOutgoingVertex(state.getId()));
             fsmGraph.addInitStateEdge(initEdge);

@@ -11,31 +11,29 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.examples.decision;
+package com.flipkart.flux.examples.externalevents;
 
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
+import com.flipkart.flux.examples.decision.UserId;
+import com.flipkart.flux.examples.decision.UserVerificationWorkflow;
 import com.flipkart.flux.initializer.FluxInitializer;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-/**
- * This class can be used to run and observe the <code>UserVerificationWorkflow</code>
- * This or a similar class like this is _not_ required to be present in your actual production jar
- */
-
-public class RunUserVerificationWorkflow {
+public class RunManualUserVerificationWorkflow {
     public static void main(String... args) throws Exception {
-        /* Bring up the flux runtime */
+            /* Bring up the flux runtime */
         FluxInitializer.main(new String[]{});
 
-        /* Initialise _your_ module*/
+            /* Initialise _your_ module*/
         final Injector injector = Guice.createInjector(new FluxClientComponentModule(), new FluxClientInterceptorModule());
 
-        /* Note that we are using guice aop for now, hence your workflow instances need to use guice */
-        final UserVerificationWorkflow userVerificationWorkflow = injector.getInstance(UserVerificationWorkflow.class);
-        /* Lets invoke our workflow */
-        userVerificationWorkflow.verifyUser(new UserId(1l)); // doesn't matter what Id we give
+            /* Note that we are using guice aop for now, hence your workflow instances need to use guice */
+        final ManualUserVerificationFlow manualUserVerificationFlow = injector.getInstance(ManualUserVerificationFlow.class);
+            /* Lets invoke our workflow */
+        manualUserVerificationFlow.verifyUser(new UserId(1l)); // doesn't matter what Id we give
+
         /* Since we've initialised flux, the process will continue to run till you explicitly kill it */
 
     }
