@@ -36,7 +36,7 @@ public class FsmGraphVertex {
 
     public FsmGraphVertex(Long id, String label) {
         this.id = id;
-        this.label = label;
+        this.label = (label == null ? "" : label.trim());
     }
 
     public Long getId() {

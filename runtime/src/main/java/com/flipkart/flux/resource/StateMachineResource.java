@@ -167,14 +167,14 @@ public class StateMachineResource {
             if(state.getOutputEvent() != null) {
                 EventDefinition eventDefinition = objectMapper.readValue(state.getOutputEvent(), EventDefinition.class);
                 final Event outputEvent = stateMachineEvents.get(eventDefinition.getName());
-                final FsmGraphVertex vertex = new FsmGraphVertex(state.getId(), getDisplayName(state.getName()));
+                final FsmGraphVertex vertex = new FsmGraphVertex(state.getId(), getStateDisplayName(state.getName()));
                 fsmGraph.addVertex(vertex,
-                    new FsmGraphEdge(getDisplayName(outputEvent.getName()), outputEvent.getStatus().name(),outputEvent.getEventSource()));
+                    new FsmGraphEdge(getEventDisplayName(outputEvent.getName()), outputEvent.getStatus().name(),outputEvent.getEventSource()));
                 final Set<State> dependantStates = ramContext.getDependantStates(outputEvent.getName());
                 dependantStates.forEach((aState) -> fsmGraph.addOutgoingEdge(vertex, aState.getId()));
                 allOutputEventNames.add(outputEvent.getName()); // we collect all output event names and use them below.
             } else {
-                fsmGraph.addVertex(new FsmGraphVertex(state.getId(),this.getDisplayName(state.getName())),null);
+                fsmGraph.addVertex(new FsmGraphVertex(state.getId(),this.getStateDisplayName(state.getName())),null);
             }
         }
 
@@ -192,7 +192,7 @@ public class StateMachineResource {
         eventsGivenOnWorkflowTrigger.removeAll(allOutputEventNames);
         eventsGivenOnWorkflowTrigger.forEach((workflowTriggeredEventName) -> {
             final Event correspondingEvent = stateMachineEvents.get(workflowTriggeredEventName);
-            final FsmGraphEdge initEdge = new FsmGraphEdge(this.getDisplayName(workflowTriggeredEventName), correspondingEvent.getStatus().name(),correspondingEvent.getEventSource());
+            final FsmGraphEdge initEdge = new FsmGraphEdge(this.getEventDisplayName(workflowTriggeredEventName), correspondingEvent.getStatus().name(),correspondingEvent.getEventSource());
             final Set<State> dependantStates = ramContext.getDependantStates(workflowTriggeredEventName);
             dependantStates.forEach((state) -> initEdge.addOutgoingVertex(state.getId()));
             fsmGraph.addInitStateEdge(initEdge);
