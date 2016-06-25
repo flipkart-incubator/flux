@@ -61,7 +61,7 @@ public class LocalExecutableRegistryImpl implements ExecutableRegistry {
                 final Object classInstance = this.injector.getInstance(clazz);
                 final Method methodToInvoke = clazz.getDeclaredMethod(methodId.getMethodName(), methodId.getParameterTypes());
                 final Task taskAnnotation = methodToInvoke.getAnnotationsByType(Task.class)[0];
-                return new ExecutableImpl(classInstance, methodToInvoke, taskAnnotation.timeout());
+                return new ExecutableImpl(classInstance, methodToInvoke, taskAnnotation.timeout(), null);
             } catch (ClassNotFoundException | NoSuchMethodException e) {
                 throw new UnknownIdentifierException("Could not load method corresponding to the given task identifier:" + taskIdentifier);
             }

@@ -114,7 +114,10 @@ public class WorkFlowExecutionController {
                 stateMachineInstanceId,
                 state.getOutputEvent(), state.getRetryCount());
             logger.debug("Sending msg {} for state machine {}", msg, stateMachineInstanceId);
-            this.routerRegistry.getRouter("someRouter").tell(
+            String taskName = state.getTask();
+            String routerName = taskName.substring(0, taskName.indexOf('_', taskName.indexOf('_')+1)); //the name of router would be classFQN_taskMethodName
+            logger.info("Router name: "+routerName);
+            this.routerRegistry.getRouter(routerName).tell(
                 msg, ActorRef.noSender());
         }));
     }

@@ -13,17 +13,11 @@
 
 package com.flipkart.flux.examples.decision;
 
-import akka.actor.ActorRef;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
-import com.flipkart.flux.impl.task.AkkaTask;
 import com.flipkart.flux.initializer.FluxInitializer;
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * This class can be used to run and observe the <code>UserVerificationWorkflow</code>

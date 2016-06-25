@@ -68,7 +68,7 @@ public class TaskInterceptor implements MethodInterceptor {
         /* Contribute to the ongoing state machine definition */
         localContext.registerNewState(taskAnnotation.version(), generateStateIdentifier(method), null, null, taskIdentifier, taskAnnotation.retries(), taskAnnotation.timeout(), dependencySet, outputEventDefintion);
         /* Register the task with the executable registry on this jvm */
-        executableRegistry.registerTask(taskIdentifier, new ExecutableImpl(invocation.getThis(), invocation.getMethod(), taskAnnotation.timeout()));
+        executableRegistry.registerTask(taskIdentifier, new ExecutableImpl(invocation.getThis(), invocation.getMethod(), taskAnnotation.timeout(), null));
 
         return proxyReturnObject;
     }
@@ -136,7 +136,7 @@ public class TaskInterceptor implements MethodInterceptor {
         return method.getName();
     }
 
-    private String generateTaskIdentifier(Method method) {
+    public String generateTaskIdentifier(Method method) {
         return new MethodId(method).toString();
     }
 }

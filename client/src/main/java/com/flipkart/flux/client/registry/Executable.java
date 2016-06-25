@@ -14,6 +14,8 @@
 
 package com.flipkart.flux.client.registry;
 
+import java.net.URLClassLoader;
+
 /**
  * This provides a interface for the core runtime to execute client side code
  * @author yogesh.nachnani
@@ -25,4 +27,6 @@ public interface Executable {
     Object execute(Object[] parameters);
 
     Class<?>[] getParameterTypes();
+
+    public URLClassLoader getDeploymentUnitClassLoader();
 }

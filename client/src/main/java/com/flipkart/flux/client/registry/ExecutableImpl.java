@@ -19,6 +19,7 @@ import com.flipkart.flux.client.intercept.MethodId;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URLClassLoader;
 
 /**
  * This provides a way for the core runtime to execute client side code
@@ -29,11 +30,14 @@ public class ExecutableImpl implements Executable {
     private final Method toInvoke;
     private final Object singletonMethodOwner;
     private final long timeout;
+    /**Class loader of the deployment unit to which 'toInvoke' belongs */
+    private final URLClassLoader deploymentUnitClassLoader;
 
-    public ExecutableImpl(Object singletonMethodOwner, Method toInvoke, long timeout) {
+    public ExecutableImpl(Object singletonMethodOwner, Method toInvoke, long timeout, URLClassLoader classLoader) {
         this.singletonMethodOwner = singletonMethodOwner;
         this.toInvoke = toInvoke;
         this.timeout = timeout;
+        this.deploymentUnitClassLoader = classLoader;
     }
 
     @Override
@@ -84,5 +88,9 @@ public class ExecutableImpl implements Executable {
     @Override
     public Class<?>[] getParameterTypes() {
         return toInvoke.getParameterTypes();
+    }
+
+    public URLClassLoader getDeploymentUnitClassLoader() {
+        return deploymentUnitClassLoader;
     }
 }

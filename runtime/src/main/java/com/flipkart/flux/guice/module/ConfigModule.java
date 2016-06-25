@@ -14,6 +14,7 @@
 package com.flipkart.flux.guice.module;
 
 import com.flipkart.flux.deploymentunit.DeploymentUnitUtil;
+import com.flipkart.flux.deploymentunit.ExecutableRegistryPopulator;
 import com.flipkart.polyguice.config.ApacheCommonsConfigProvider;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import com.flipkart.polyguice.core.ConfigurationProvider;
@@ -22,12 +23,12 @@ import com.google.inject.Provides;
 import com.google.inject.binder.LinkedBindingBuilder;
 import com.google.inject.name.Names;
 import org.apache.commons.configuration.Configuration;
+import org.eclipse.jetty.util.ConcurrentHashSet;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -79,13 +80,13 @@ public class ConfigModule extends AbstractModule {
         return configProvider;
     }
 
+    /** Returns set of all the available routers, include routers mentioned in configuration.yml and deployment unit routers*/
     @Provides
     @Singleton
     @Named("router.names")
-    public Set<String> getRouterNames() {
-        // TODO - this needs to be Provided by the boot util that loads all deployment units
+    public Set<String> getRouterNames(DeploymentUnitUtil deploymentUnitUtil, ExecutableRegistryPopulator executableRegistryPopulator) {
         Configuration routerConfig = yamlConfiguration.subset("routers");
-        Set<String> routerNames = new HashSet<>();
+        Set<String> routerNames = new ConcurrentHashSet<>();
         Iterator<String> propertyKeys = routerConfig.getKeys();
         while(propertyKeys.hasNext()) {
             String propertyKey = propertyKeys.next();
@@ -93,7 +94,8 @@ public class ConfigModule extends AbstractModule {
             routerNames.add(routerName);
         }
 
-        routerNames.addAll(DeploymentUnitUtil.getAllDeploymentUnits());
+        //add all deployment units' routers
+        routerNames.addAll(executableRegistryPopulator.getDeploymentUnitRouterNames());
 
         //'default' is not a router name, it's a placeholder for router default settings
         routerNames.remove("default");

@@ -17,6 +17,7 @@ import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.model.Workflow;
 import com.flipkart.polyguice.config.YamlConfiguration;
 
+import javax.inject.Singleton;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -24,7 +25,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,27 +37,33 @@ import java.util.Set;
  * Scanning and returning methods annotated with {@link Workflow} annotation.
  * @author shyam.akirala
  */
+@Singleton
 public class DeploymentUnitUtil {
 
+    /** Configuration file of a deployment unit*/
     private static final String CONFIG_FILE = "flux_config.yml";
 
-    /** Key in the config file, which has list of workflow class FQNs*/
-    private static final String WORKFLOWS = "workflows";
+    /** Key in the config file, which has list of workflow/task class FQNs*/
+    private static final String WORKFLOW_CLASSES = "workflowClasses";
 
+    /** Location of deployment units on the system*/
+    private static final String DEPLOYMENT_UNITS_PATH = "/opt/workflows/";
+
+    /** Lists all deployment unit names*/ //todo: currently it's by directory scanning, we may need to change it to get from config service
     public static List<String> getAllDeploymentUnits() {
-        //TODO: IMPLEMENT IT.  Probably get the list from config service or scan the directory structure
-//        throw new UnsupportedOperationException("Implement me");
-        return new ArrayList<String>();
+        File file = new File(DEPLOYMENT_UNITS_PATH);
+        String[] directories = file.list((current, name) -> new File(current, name).isDirectory());
+        return Arrays.asList(directories);
     }
 
     /**
      * Provides {@link java.net.URLClassLoader} for the given directory.
-     * @param directory
+     * @param deploymentUnitName
      * @return class loader
      * @throws MalformedURLException
      */
-    public static URLClassLoader getClassLoader(String directory) throws MalformedURLException {
-        return ClassLoaderProvider.getClassLoader(directory);
+    public URLClassLoader getClassLoader(String deploymentUnitName) throws MalformedURLException {
+        return ClassLoaderProvider.getClassLoader(deploymentUnitName);
     }
 
     /**
@@ -66,10 +73,10 @@ public class DeploymentUnitUtil {
      * @return set of Methods
      * @throws ClassNotFoundException
      */
-    public static Set<Method> getWorkflowMethods(URLClassLoader urlClassLoader) throws ClassNotFoundException, IOException {
+    public Set<Method> getWorkflowMethods(URLClassLoader urlClassLoader) throws ClassNotFoundException, IOException {
 
         YamlConfiguration yamlConfiguration = getProperties(urlClassLoader);
-        List<String> classNames = (List<String>) yamlConfiguration.getProperty(WORKFLOWS);
+        List<String> classNames = (List<String>) yamlConfiguration.getProperty(WORKFLOW_CLASSES);
         Set<Method> methods = new HashSet<>();
 
         //loading this class separately in this class loader as the following isAnnotationPresent check returns false, if
@@ -95,10 +102,10 @@ public class DeploymentUnitUtil {
      * @return set of Methods
      * @throws ClassNotFoundException
      */
-    public static Set<Method> getTaskMethods(URLClassLoader urlClassLoader) throws ClassNotFoundException, IOException {
+    public Set<Method> getTaskMethods(URLClassLoader urlClassLoader) throws ClassNotFoundException, IOException {
 
         YamlConfiguration yamlConfiguration = getProperties(urlClassLoader);
-        List<String> classNames = (List<String>) yamlConfiguration.getProperty(WORKFLOWS);
+        List<String> classNames = (List<String>) yamlConfiguration.getProperty(WORKFLOW_CLASSES);
         Set<Method> methods = new HashSet<>();
 
         //loading this class separately in this class loader as the following isAnnotationPresent check returns false, if
@@ -118,23 +125,23 @@ public class DeploymentUnitUtil {
     }
 
     /**
-     * Given deployment unit directory name retrieves properties from config file and returns them.
-     * @param directory
+     * Given a deployment unit deployment unit name retrieves properties from config file and returns them.
+     * @param deploymentUnitName
      * @return
      * @throws IOException
      */
-    public static YamlConfiguration getProperties(String directory) throws IOException {
-        URLClassLoader classLoader = getClassLoader(directory);
+    public YamlConfiguration getProperties(String deploymentUnitName) throws IOException {
+        URLClassLoader classLoader = getClassLoader(deploymentUnitName);
         return getProperties(classLoader);
     }
 
     /**
-     * Given deployment unit directory name retrieves properties from config file and returns them.
+     * Given a deployment unit classloader retrieves properties from config file and returns them.
      * @param urlClassLoader
      * @return YamlConfiguration
      * @throws IOException
      */
-    public static YamlConfiguration getProperties(URLClassLoader urlClassLoader) throws IOException, FileNotFoundException {
+    public YamlConfiguration getProperties(URLClassLoader urlClassLoader) throws IOException, FileNotFoundException {
         YamlConfiguration yamlConfiguration;
         try {
             yamlConfiguration = new YamlConfiguration(urlClassLoader.getResource(CONFIG_FILE));
@@ -145,28 +152,27 @@ public class DeploymentUnitUtil {
     }
 
     /**
-     * Provides {@link java.net.URLClassLoader for a given directory}
+     * Provides {@link java.net.URLClassLoader for a given deployment unit}
      */
     static class ClassLoaderProvider {
 
         /**
-         * Builds and returns URLClassLoader for a provided directory.
-         * This assumes the provided directory has the following structure.
+         * Builds and returns URLClassLoader for a provided deployment unit.
+         * This assumes the provided deployment unit directory has the following structure.
          *
-         * directory
+         * DeploymentUnit
          * |_____ main              //contains main jar
          * |_____ lib               //contains libraries on which main jar is depending
          * |_____ flux_config.yml   //properties file
          *
          * The constructed class loader is independent and doesn't share anything with System class loader.
-         * @param directory
+         * @param deploymentUnitName
          * @return URLClassLoader
          * @throws java.net.MalformedURLException
          */
-        static public URLClassLoader getClassLoader(String directory) throws MalformedURLException {
+        static public URLClassLoader getClassLoader(String deploymentUnitName) throws MalformedURLException {
 
-            if(!directory.endsWith("/"))
-                directory = directory + "/";
+            String directory = DEPLOYMENT_UNITS_PATH + deploymentUnitName + "/";
 
             File[] mainJars = new File(directory+"main").listFiles();
             File[] libJars = new File(directory+"lib").listFiles();

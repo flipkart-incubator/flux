@@ -22,6 +22,7 @@ public class UserDataService {
 
     @Task(version = 1, timeout = 1000l)
     public UserData retrieveUserData(UserId userId) {
+        System.out.println("Retrieving user data");
         return new UserData("someEmail@gmail.com","someName", userId);
     }
 }
