@@ -16,12 +16,12 @@ package com.flipkart.flux.examples.externalevents;
 import com.flipkart.flux.client.model.Task;
 
 /**
- * In a real case, this may talk to a database to perform CRUD operations on user data
+ * In a real case, this may talk to a database to perform CRUD operations on seller data
  */
 
-public class UserDataService {
+public class SellerDataService {
     @Task(version = 1, timeout = 1000l)
-    public UserData retrieveUserData(UserId userId) {
-        return new UserData("someEmail@gmail.com","someName", userId);
+    public SellerData retrieveSellerData(SellerId sellerId) {
+        return new SellerData("someEmail@gmail.com","someName", sellerId);
     }
 }

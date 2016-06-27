@@ -19,10 +19,10 @@ import com.flipkart.flux.client.model.Task;
 import javax.inject.Singleton;
 
 @Singleton
-public class ManualUserVerificationService {
+public class ManualSellerVerificationService {
     @Task(version = 1, timeout = 1000l)
-    public UserVerificationStatus waitForVerification(@ExternalEvent("userVerification")UserVerificationStatus verificationStatus) {
-        System.out.println("[ManualUserVerificationService] Received verification status " + verificationStatus.isVerifiedUser() + " for user " + verificationStatus.getUserId());
+    public SellerVerificationStatus waitForVerification(@ExternalEvent("sellerVerification")SellerVerificationStatus verificationStatus) {
+        System.out.println("[ManualSellerVerificationService] Received verification status " + verificationStatus.isVerifiedSeller() + " for seller " + verificationStatus.getSellerId());
         return verificationStatus;
     }
 }

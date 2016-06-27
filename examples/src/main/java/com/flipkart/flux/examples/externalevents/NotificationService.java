@@ -20,12 +20,12 @@ import javax.inject.Singleton;
 @Singleton
 public class NotificationService {
     @Task(version = 1, timeout = 1000l)
-    public void notifyCustomerSupport(UserData userData) {
-        System.out.println("[Notification Service] Customer support has been notified about user " + userData.getUserId());
-        System.out.println("[Notification Service] For this example, you are the CustomerSupport. Please post an event of type UserVerificationStatus for user " + userData.getUserId());
+    public void notifyCustomerSupport(SellerData sellerData) {
+        System.out.println("[Notification Service] Customer support has been notified about seller " + sellerData.getSellerId());
+        System.out.println("[Notification Service] For this example, you are the CustomerSupport. Please post an event of type SellerVerificationStatus for seller " + sellerData.getSellerId());
     }
     @Task(version = 1, timeout = 1000l)
-    public void sendWelcomeEmail(UserId userId) {
-        System.out.println("[NotificationService] Warm welcomes to you, " + userId);
+    public void sendWelcomeEmail(SellerId sellerId) {
+        System.out.println("[NotificationService] Warm welcomes to you, " + sellerId);
     }
 }

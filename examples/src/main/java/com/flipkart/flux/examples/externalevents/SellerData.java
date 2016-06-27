@@ -13,37 +13,33 @@
 
 package com.flipkart.flux.examples.externalevents;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flipkart.flux.client.model.Event;
 
 /**
- * Carries verification status for a given UserId
+ * Represents a given seller's current stats
  */
-public class UserVerificationStatus implements Event {
+public class SellerData implements Event {
 
     @JsonProperty
-    private UserId userId;
+    private String name;
 
     @JsonProperty
-    private Boolean verified;
+    private String email;
 
-    /* For Jackson */
-    UserVerificationStatus() {
+    private SellerId sellerId;
+
+    /* For Jackson & cglib */
+    SellerData() {
     }
 
-    public UserVerificationStatus(UserId userId, Boolean verified) {
-        this.userId = userId;
-        this.verified = verified;
+    public SellerData(String email, String name, SellerId sellerId) {
+        this.email = email;
+        this.name = name;
+        this.sellerId = sellerId;
     }
 
-    @JsonIgnore
-    public boolean isVerifiedUser() {
-        return verified;
-    }
-
-
-    public UserId getUserId() {
-        return userId;
+    public SellerId getSellerId() {
+        return sellerId;
     }
 }

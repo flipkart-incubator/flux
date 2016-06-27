@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flipkart.flux.client.model.CorrelationId;
 import com.flipkart.flux.client.model.Event;
 
-public class UserId implements Event {
+public class SellerId implements Event {
     @JsonProperty
     private Long id;
 
@@ -27,13 +27,13 @@ public class UserId implements Event {
     private String correlationId;
 
     /* For Jackson */
-    UserId() {
+    SellerId() {
     }
-    public UserId(Long id) {
+    public SellerId(Long id) {
         this(id,null);
     }
 
-    public UserId(Long id, String correlationId) {
+    public SellerId(Long id, String correlationId) {
         this.id = id;
         this.correlationId = correlationId;
     }
@@ -43,9 +43,9 @@ public class UserId implements Event {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        UserId userId = (UserId) o;
+        SellerId sellerId = (SellerId) o;
 
-        return id.equals(userId.id);
+        return id.equals(sellerId.id);
 
     }
 
@@ -56,7 +56,7 @@ public class UserId implements Event {
 
     @Override
     public String toString() {
-        return "UserId{" +
+        return "SellerId{" +
             "id=" + id +
             '}';
     }
