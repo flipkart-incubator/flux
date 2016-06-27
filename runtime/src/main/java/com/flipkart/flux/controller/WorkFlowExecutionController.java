@@ -86,11 +86,10 @@ public class WorkFlowExecutionController {
             stateMachine = retrieveStateMachine(stateMachineInstanceId);
         } else if(correlationId != null) {
             stateMachine = retrieveStateMachineByCorrelationId(correlationId);
-            stateMachineInstanceId = stateMachine.getId();
+            stateMachineInstanceId = (stateMachine == null) ? null : stateMachine.getId();
         }
         if(stateMachine == null)
             throw new UnknownStateMachine("State machine with id: "+stateMachineInstanceId+ " or correlation id " + correlationId + " not found");
-
         //update event's data and status
         Event event = eventsDAO.findBySMIdAndName(stateMachineInstanceId, eventData.getName());
         if(event == null)
