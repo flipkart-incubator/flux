@@ -66,4 +66,10 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
         List<StateMachine> stateMachines = criteria.list();
         return new HashSet<>(stateMachines);
     }
+
+    @Override
+    @Transactional
+    public StateMachine findByCorrelationId(String correlationId) {
+        return (StateMachine) currentSession().createCriteria(StateMachine.class).add(Restrictions.eq("correlationId",correlationId)).uniqueResult();
+    }
 }

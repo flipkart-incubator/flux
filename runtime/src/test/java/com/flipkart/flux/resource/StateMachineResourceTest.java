@@ -68,6 +68,16 @@ public class StateMachineResourceTest {
     }
 
     @Test
+    public void testCreateStateMachine_shouldBombDueToDuplicateCorrelationId() throws Exception {
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        final HttpResponse<String> response = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+        assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+        assertThat(stateMachinesDAO.findByName("test_state_machine")).hasSize(1);
+        final HttpResponse<String> secondResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+        assertThat(secondResponse.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()); // TODO - change it to 4xx
+    }
+
+    @Test
     public void testPostEvent() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
         final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
@@ -80,14 +90,37 @@ public class StateMachineResourceTest {
         event = eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event1");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.triggered);
         assertThat(event).isEqualToIgnoringGivenFields(TestUtils.getStandardTestEvent(), "stateMachineInstanceId", "id", "createdAt", "updatedAt");
-        Set<State> triggeredStates = objectMapper.readValue(eventPostResponse.getBody(), new TypeReference<Set<State>>() {
-        });
-        Set<String> triggeredStatesNames = new HashSet<>();
-        Iterator iterator = triggeredStates.iterator();
-        while(iterator.hasNext())
-            triggeredStatesNames.add(((State)iterator.next()).getName());
-        Set<String> expectedStatesNames = new HashSet<String>(){{add("test_state2"); add("test_state3");}};
-        assertThat(triggeredStatesNames).isEqualTo(expectedStatesNames);
+        // TODO - assert the status of expected triggered states (after we start storing state statuses)
+    }
+
+    @Test
+    public void testPostEvent_withCorrelationId() throws Exception {
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+        Event event = eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event1");
+        assertThat(event.getStatus()).isEqualTo(Event.EventStatus.pending);
+
+        String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+"magic_number_1"+"/context/events?searchField=correlationId").header("Content-Type","application/json").body(eventJson).asString();
+        assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
+        event = eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event1");
+        assertThat(event.getStatus()).isEqualTo(Event.EventStatus.triggered);
+        assertThat(event).isEqualToIgnoringGivenFields(TestUtils.getStandardTestEvent(), "stateMachineInstanceId", "id", "createdAt", "updatedAt");
+        // TODO - assert the status of expected triggered states (after we start storing state statuses)
+    }
+
+    @Test
+    public void testPostEvent_againstNonExistingCorrelationId() throws Exception {
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+        Event event = eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event1");
+        assertThat(event.getStatus()).isEqualTo(Event.EventStatus.pending);
+
+        String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        // state machine with correlationId magic_number_2 does not exist. The following call should bomb
+        final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+"magic_number_2"+"/context/events?searchField=correlationId").header("Content-Type","application/json").body(eventJson).asString();
+        assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());// TODO - change to 404
+
     }
 
     @Test

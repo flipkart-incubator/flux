@@ -13,16 +13,15 @@
 
 package com.flipkart.flux.examples.externalevents;
 
-import com.flipkart.flux.client.model.ExternalEvent;
 import com.flipkart.flux.client.model.Task;
 
-import javax.inject.Singleton;
+/**
+ * In a real case, this may talk to a database to perform CRUD operations on user data
+ */
 
-@Singleton
-public class ManualUserVerificationService {
+public class UserDataService {
     @Task(version = 1, timeout = 1000l)
-    public UserVerificationStatus waitForVerification(@ExternalEvent("userVerification")UserVerificationStatus verificationStatus) {
-        System.out.println("[ManualUserVerificationService] Received verification status " + verificationStatus.isVerifiedUser() + " for user " + verificationStatus.getUserId());
-        return verificationStatus;
+    public UserData retrieveUserData(UserId userId) {
+        return new UserData("someEmail@gmail.com","someName", userId);
     }
 }

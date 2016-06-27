@@ -78,11 +78,18 @@ public class WorkFlowExecutionController {
      * Retrieves the states which are dependant on this event and starts the execution of eligible states (whose all dependencies are met).
      * @param eventData
      * @param stateMachineInstanceId
+     * @param correlationId
      */
-    public Set<State> postEvent(EventData eventData, Long stateMachineInstanceId) {
-
-        StateMachine stateMachine = retrieveStateMachine(stateMachineInstanceId);
-
+    public Set<State> postEvent(EventData eventData, Long stateMachineInstanceId, String correlationId) {
+        StateMachine stateMachine = null;
+        if (stateMachineInstanceId != null) {
+            stateMachine = retrieveStateMachine(stateMachineInstanceId);
+        } else if(correlationId != null) {
+            stateMachine = retrieveStateMachineByCorrelationId(correlationId);
+            stateMachineInstanceId = (stateMachine == null) ? null : stateMachine.getId();
+        }
+        if(stateMachine == null)
+            throw new UnknownStateMachine("State machine with id: "+stateMachineInstanceId+ " or correlation id " + correlationId + " not found");
         //update event's data and status
         Event event = eventsDAO.findBySMIdAndName(stateMachineInstanceId, eventData.getName());
         if(event == null)
@@ -106,6 +113,10 @@ public class WorkFlowExecutionController {
         return executableStates;
     }
 
+    private StateMachine retrieveStateMachineByCorrelationId(String correlationId) {
+        return stateMachinesDAO.findByCorrelationId(correlationId);
+    }
+
     private void executeStates(Long stateMachineInstanceId, Set<State> executableStates) {
         // TODO - this always uses someRouter for now
         executableStates.forEach((state ->  {
@@ -120,10 +131,7 @@ public class WorkFlowExecutionController {
     }
 
     private StateMachine retrieveStateMachine(Long stateMachineInstanceId) {
-        StateMachine stateMachine = stateMachinesDAO.findById(stateMachineInstanceId);
-        if(stateMachine == null)
-            throw new UnknownStateMachine("State machine with id: "+stateMachineInstanceId+ " not found");
-        return stateMachine;
+        return stateMachinesDAO.findById(stateMachineInstanceId);
     }
 
     /**

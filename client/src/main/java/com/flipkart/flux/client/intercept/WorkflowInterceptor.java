@@ -17,17 +17,20 @@ package com.flipkart.flux.client.intercept;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.client.model.CorrelationId;
 import com.flipkart.flux.client.model.Event;
 import com.flipkart.flux.client.model.Workflow;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.LocalContext;
-import org.aopalliance.intercept.Invocation;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * This intercepts the invocation to <code>@Workflow</code> methods.
@@ -62,7 +65,8 @@ public class WorkflowInterceptor implements MethodInterceptor {
             final Method method = invocation.getMethod();
             final Workflow[] workFlowAnnotations = method.getAnnotationsByType(Workflow.class);
             checkForBadSignatures(invocation);
-            localContext.registerNew(new MethodId(method).toString(), workFlowAnnotations[0].version(), workFlowAnnotations[0].description());
+            final String correlationId = checkForCorrelationId(invocation.getArguments());
+            localContext.registerNew(new MethodId(method).toString(), workFlowAnnotations[0].version(), workFlowAnnotations[0].description(),correlationId);
             registerEventsForArguments(invocation.getArguments());
             invocation.proceed();
             connector.submitNewWorkflow(localContext.getStateMachineDef());
@@ -71,6 +75,36 @@ public class WorkflowInterceptor implements MethodInterceptor {
         finally {
             this.localContext.reset();
         }
+    }
+
+    private String checkForCorrelationId(Object[] arguments) throws IllegalAccessException {
+        final String[] correlationId = {null};
+        /* Iterate over given arguments to find if there is any argument that has a field marked with <code>CorrelationId</code> */
+        for (Object anArgument : arguments) {
+            final Field[] allFields = anArgument.getClass().getDeclaredFields();
+            /* Search for any field which is of type String and has a CorrelationId annotation */
+            final Optional<Field> possibleAnnotatedField = Arrays.stream(allFields).
+                filter(field -> String.class.isAssignableFrom(field.getType())).
+                filter(field -> field.getAnnotationsByType(CorrelationId.class).length > 0).
+                findAny();
+            /* If we have a field that matches above criteria, we populate the correlationId variable and break */
+            if (possibleAnnotatedField.isPresent()) {
+                final Field correlationIdAnnotatedField = possibleAnnotatedField.get();
+                final boolean originalAccessibility = correlationIdAnnotatedField.isAccessible();
+                if (!originalAccessibility) {
+                    correlationIdAnnotatedField.setAccessible(true);
+                }
+                try {
+                    correlationId[0] = (String) correlationIdAnnotatedField.get(anArgument);
+                    break;
+                } finally {
+                    if (!originalAccessibility) {
+                        correlationIdAnnotatedField.setAccessible(false);
+                    }
+                }
+            }
+        }
+        return correlationId[0];
     }
 
     private void registerEventsForArguments(Object[] arguments) throws JsonProcessingException {

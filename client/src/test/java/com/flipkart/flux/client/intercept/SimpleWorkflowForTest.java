@@ -21,10 +21,7 @@ import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
-import com.flipkart.flux.client.model.Event;
-import com.flipkart.flux.client.model.ExternalEvent;
-import com.flipkart.flux.client.model.Task;
-import com.flipkart.flux.client.model.Workflow;
+import com.flipkart.flux.client.model.*;
 
 import javax.inject.Singleton;
 import java.lang.reflect.Method;
@@ -56,6 +53,12 @@ public class SimpleWorkflowForTest {
         final StringEvent newString = waitForExternalEvent(null, someInteger);
         final StringEvent anotherString = waitForExternalEvent((StringEvent) null);
         someTaskWithIntegerAndString(newString, someInteger);
+    }
+
+    /* A simple workflow that takes in a parameter which carries a correlationId */
+    @Workflow(version = 1)
+    public void simpleDummyWorkflowWithCorrelationEvent(StringEventWithContext someString,IntegerEvent someInteger) {
+        final IntegerEvent someNewInteger = simpleAdditionTask(someInteger);
     }
 
     /* A simple workflow that takes in variable number of params tasks and making merry */
@@ -154,7 +157,7 @@ public class SimpleWorkflowForTest {
             add(new EventData(STRING_EVENT_NAME+"0","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent",objectMapper.writeValueAsString(stringEvent),WorkflowInterceptor.CLIENT));
             add(new EventData(INTEGER_EVENT_NAME+"1","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent",objectMapper.writeValueAsString(integerEvent),WorkflowInterceptor.CLIENT));
         }};
-        return new StateMachineDefinition("",new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleDummyWorkflow", StringEvent.class, IntegerEvent.class)).toString(),1l,expectedStateDefs, expectedEventData);
+        return new StateMachineDefinition("",new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleDummyWorkflow", StringEvent.class, IntegerEvent.class)).toString(),1l,expectedStateDefs, expectedEventData, null);
 
     }
 
@@ -236,4 +239,42 @@ public class SimpleWorkflowForTest {
                 '}';
         }
     }
+
+    public static class StringEventWithContext extends StringEvent {
+        @JsonProperty
+        @CorrelationId
+        private String contextId;
+
+        public StringEventWithContext(String aString, String contextId) {
+            super(aString);
+            this.contextId = contextId;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            if (!super.equals(o)) return false;
+
+            StringEventWithContext that = (StringEventWithContext) o;
+
+            return contextId.equals(that.contextId);
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + contextId.hashCode();
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "StringEventWithContext{" +
+                "contextId='" + contextId + '\'' +
+                '}';
+        }
+    }
+
 }

@@ -2,6 +2,7 @@
   "name": "test_state_machine",
   "version": 1,
   "description": "test_description",
+  "correlationId" : "magic_number_1",
   "states": [
     {
       "version": 1,

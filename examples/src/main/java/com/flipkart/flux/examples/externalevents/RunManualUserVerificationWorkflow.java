@@ -15,26 +15,50 @@ package com.flipkart.flux.examples.externalevents;
 
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
-import com.flipkart.flux.examples.decision.UserId;
-import com.flipkart.flux.examples.decision.UserVerificationWorkflow;
+import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
 import com.flipkart.flux.initializer.FluxInitializer;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+import java.util.UUID;
+
 public class RunManualUserVerificationWorkflow {
     public static void main(String... args) throws Exception {
-            /* Bring up the flux runtime */
+        /* Bring up the flux runtime */
         FluxInitializer.main(new String[]{});
 
-            /* Initialise _your_ module*/
+        /* Initialise _your_ module*/
         final Injector injector = Guice.createInjector(new FluxClientComponentModule(), new FluxClientInterceptorModule());
 
-            /* Note that we are using guice aop for now, hence your workflow instances need to use guice */
+        /* Note that we are using guice aop for now, hence your workflow instances need to use guice */
         final ManualUserVerificationFlow manualUserVerificationFlow = injector.getInstance(ManualUserVerificationFlow.class);
-            /* Lets invoke our workflow */
-        manualUserVerificationFlow.verifyUser(new UserId(1l)); // doesn't matter what Id we give
+        /* Lets invoke our workflow */
+
+        String randomCorrelationId = UUID.randomUUID().toString().substring(0,16);
+        manualUserVerificationFlow.verifyUser(new UserId(1l, randomCorrelationId));
 
         /* Since we've initialised flux, the process will continue to run till you explicitly kill it */
+        /* The workflow is currently waiting for the user to post  the external event*/
+        System.out.println("[Main] The workflow is active. Try checking in the UI first & then post an external event against " + randomCorrelationId);
+
+        /**
+         * The workflow will not terminate till you have posted a manual event. A sample json for a manual event is :
+          {
+           "name":"userVerification",
+           "type":"com.flipkart.flux.examples.externalevents.UserVerificationStatus",
+           "data": "{\"userId\": {\"id\" : 1},\"verified\":true}",
+           "eventSource" : "yogesh_nachnani"
+         }
+         */
+
+        /* You may also choose to uncomment the following code to post an external event */
+
+/*
+        System.out.println("[Main] Sleeping for 2 seconds before posting data to flux runtime");
+        Thread.sleep(2000l); // Just a 2 second wait to ensure that the state machine has been created in flux
+        new FluxRuntimeConnectorHttpImpl(1000l,1000l,"http://localhost:9998/api/machines").submitEvent("userVerification", new UserVerificationStatus(new UserId(1l), true), randomCorrelationId, "Main Method");
+        System.out.println("[Main] Posted data to flux runtime, the workflow should have continued");
+*/
 
     }
 }

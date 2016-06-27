@@ -14,11 +14,10 @@
 
 package com.flipkart.flux.client.runtime;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.StateMachineDefinition;
-import org.apache.commons.codec.binary.StringUtils;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -43,6 +42,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
 
     public static final int MAX_TOTAL = 200;
     public static final int MAX_PER_ROUTE = 20;
+    public static final String EXTERNAL = "external";
     private final CloseableHttpClient closeableHttpClient;
     private final String fluxEndpoint;
     private final ObjectMapper objectMapper;
@@ -106,6 +106,23 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         CloseableHttpResponse httpResponse = null;
         try {
             httpResponse = postOverHttp(eventData, "/" + stateMachineId + "/context/events");
+        } finally {
+            HttpClientUtils.closeQuietly(httpResponse);
+        }
+    }
+
+    @Override
+    public void submitEvent(String name,Object data, String correlationId,String eventSource) {
+        final String eventType = data.getClass().getName();
+        if (eventSource == null) {
+            eventSource = EXTERNAL;
+        }
+        CloseableHttpResponse httpResponse = null;
+        try {
+            final EventData eventData = new EventData(name, eventType, objectMapper.writeValueAsString(data), eventSource);
+            httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/events?searchField=correlationId");
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         } finally {
             HttpClientUtils.closeQuietly(httpResponse);
         }
