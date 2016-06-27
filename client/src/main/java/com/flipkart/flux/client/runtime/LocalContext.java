@@ -51,12 +51,12 @@ public class LocalContext {
      * @param version
      * @param description
      */
-    public void registerNew(String methodIdentifier, long version, String description,String contextId) {
+    public void registerNew(String methodIdentifier, long version, String description,String correlationId) {
         if (this.stateMachineDefinition.get() != null) {
             /* This ensures we don't compose workflows within workflows */
             throw new IllegalStateException("A single thread cannot execute more than one workflow");
         }
-        stateMachineDefinition.set(new StateMachineDefinition(description,methodIdentifier, version, new HashSet<>(), new HashSet<>(), contextId));
+        stateMachineDefinition.set(new StateMachineDefinition(description,methodIdentifier, version, new HashSet<>(), new HashSet<>(), correlationId));
         tlUniqueEventCount.set(new MutableInt(0));
         this.eventNames.set(new IdentityHashMap<>());
     }

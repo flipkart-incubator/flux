@@ -31,8 +31,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 /**
  * This intercepts the invocation to <code>@Workflow</code> methods.
@@ -67,8 +65,8 @@ public class WorkflowInterceptor implements MethodInterceptor {
             final Method method = invocation.getMethod();
             final Workflow[] workFlowAnnotations = method.getAnnotationsByType(Workflow.class);
             checkForBadSignatures(invocation);
-            final String contextId = checkForContextId(invocation.getArguments());
-            localContext.registerNew(new MethodId(method).toString(), workFlowAnnotations[0].version(), workFlowAnnotations[0].description(),contextId);
+            final String correlationId = checkForCorrelationId(invocation.getArguments());
+            localContext.registerNew(new MethodId(method).toString(), workFlowAnnotations[0].version(), workFlowAnnotations[0].description(),correlationId);
             registerEventsForArguments(invocation.getArguments());
             invocation.proceed();
             connector.submitNewWorkflow(localContext.getStateMachineDef());
@@ -79,8 +77,8 @@ public class WorkflowInterceptor implements MethodInterceptor {
         }
     }
 
-    private String checkForContextId(Object[] arguments) throws IllegalAccessException {
-        final String[] contextId = {null};
+    private String checkForCorrelationId(Object[] arguments) throws IllegalAccessException {
+        final String[] correlationId = {null};
         /* Iterate over given arguments to find if there is any argument that has a field marked with <code>CorrelationId</code> */
         for (Object anArgument : arguments) {
             final Field[] allFields = anArgument.getClass().getDeclaredFields();
@@ -89,24 +87,24 @@ public class WorkflowInterceptor implements MethodInterceptor {
                 filter(field -> String.class.isAssignableFrom(field.getType())).
                 filter(field -> field.getAnnotationsByType(CorrelationId.class).length > 0).
                 findAny();
-            /* If we have a field that matches above criteria, we populate the contextId variable and break */
+            /* If we have a field that matches above criteria, we populate the correlationId variable and break */
             if (possibleAnnotatedField.isPresent()) {
-                final Field contextIdAnnotatedField = possibleAnnotatedField.get();
-                final boolean originalAccessibility = contextIdAnnotatedField.isAccessible();
+                final Field correlationIdAnnotatedField = possibleAnnotatedField.get();
+                final boolean originalAccessibility = correlationIdAnnotatedField.isAccessible();
                 if (!originalAccessibility) {
-                    contextIdAnnotatedField.setAccessible(true);
+                    correlationIdAnnotatedField.setAccessible(true);
                 }
                 try {
-                    contextId[0] = (String) contextIdAnnotatedField.get(anArgument);
+                    correlationId[0] = (String) correlationIdAnnotatedField.get(anArgument);
                     break;
                 } finally {
                     if (!originalAccessibility) {
-                        contextIdAnnotatedField.setAccessible(false);
+                        correlationIdAnnotatedField.setAccessible(false);
                     }
                 }
             }
         }
-        return contextId[0];
+        return correlationId[0];
     }
 
     private void registerEventsForArguments(Object[] arguments) throws JsonProcessingException {

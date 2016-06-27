@@ -41,7 +41,7 @@ public class StateMachineDefinition {
     private Set<EventData> eventData;
 
     /* User supplied string for easy identification of a workflow instance */
-    private String contextId;
+    private String correlationId;
 
     /* For Jackson */
     StateMachineDefinition() {
@@ -49,13 +49,13 @@ public class StateMachineDefinition {
     }
 
     /** Constructor */
-    public StateMachineDefinition(String description, String name, Long version, Set<StateDefinition> stateDefinitions, Set<EventData> eventData, String contextId) {
+    public StateMachineDefinition(String description, String name, Long version, Set<StateDefinition> stateDefinitions, Set<EventData> eventData, String correlationId) {
         this.description = description;
         this.name = name;
         this.states = stateDefinitions;
         this.version = version;
         this.eventData = eventData;
-        this.contextId = contextId;
+        this.correlationId = correlationId;
     }
 
     public void addState(StateDefinition stateDefinition) {
@@ -96,12 +96,12 @@ public class StateMachineDefinition {
         this.eventData = eventData;
     }
 
-    public String getContextId() {
-        return contextId;
+    public String getCorrelationId() {
+        return correlationId;
     }
 
-    public void setContextId(String contextId) {
-        this.contextId = contextId;
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
     }
 
     @JsonIgnore
