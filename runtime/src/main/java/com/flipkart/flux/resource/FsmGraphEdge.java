@@ -48,9 +48,9 @@ public class FsmGraphEdge {
 
     public FsmGraphEdge(Set<Long> incidentOn, String label, String status,String source) {
         this.incidentOn = incidentOn;
-        this.label = label;
+        this.label = (label == null ? "" : label.trim());
         this.status = status;
-        this.source = source;
+        this.source = (source == null ? "" : source.trim());
     }
 
     @JsonIgnore
