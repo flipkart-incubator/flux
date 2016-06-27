@@ -27,9 +27,7 @@ import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
-import com.google.common.base.Functions;
 import com.google.inject.Inject;
-import org.apache.commons.lang3.mutable.MutableLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +39,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -53,9 +50,10 @@ import java.util.stream.Collectors;
 @Path("/api/machines")
 @Named
 public class StateMachineResource {
-	
-	/** Single white space label to denote start of processing i.e. the Trigger*/
+
+    /** Single white space label to denote start of processing i.e. the Trigger*/
 	private static final String TRIGGER = " ";
+    public static final String CORRELATION_ID = "correlationId";
 
     StateMachinePersistenceService stateMachinePersistenceService;
 
@@ -111,12 +109,19 @@ public class StateMachineResource {
 
     @POST
     @Path("/{machineId}/context/events")
-    public Response submitEvent(@PathParam("machineId") Long machineId,
-                            EventData eventData
+    public Response submitEvent(@PathParam("machineId") String machineId,
+                                @QueryParam("searchField") String searchField,
+                                EventData eventData
                             ) throws Exception {
-        //retrieves states which are dependant on this event and starts execution of states which can be executable
-        Set<State> triggeredStates = workFlowExecutionController.postEvent(eventData, machineId);
-        return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity(objectMapper.writeValueAsString(triggeredStates)).build();
+        if (searchField != null) {
+            if (!searchField.equals(CORRELATION_ID)) {
+                return Response.status(Response.Status.BAD_REQUEST).build();
+            }
+            workFlowExecutionController.postEvent(eventData, null, machineId);
+        } else {
+            workFlowExecutionController.postEvent(eventData, Long.valueOf(machineId), null);
+        }
+        return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
     }
 
 

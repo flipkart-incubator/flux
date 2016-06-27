@@ -34,7 +34,7 @@ public class TestUtils {
             add(state3);
             add(state4);
         }};
-        return new StateMachine(1l,"test_state_machine","test_description", states);
+        return new StateMachine(1l,"test_state_machine","test_description", states, "magic_number_1");
     }
 
     public static EventDefinition standardStateMachineOutputEvent() {

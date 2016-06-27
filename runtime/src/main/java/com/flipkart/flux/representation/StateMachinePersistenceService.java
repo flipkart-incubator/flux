@@ -25,7 +25,6 @@ import com.flipkart.flux.domain.StateMachine;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -69,7 +68,7 @@ public class StateMachinePersistenceService {
         StateMachine stateMachine = new StateMachine(stateMachineDefinition.getVersion(),
                 stateMachineDefinition.getName(),
                 stateMachineDefinition.getDescription(),
-                states);
+                states, stateMachineDefinition.getCorrelationId());
 
         stateMachinesDAO.create(stateMachine);
 

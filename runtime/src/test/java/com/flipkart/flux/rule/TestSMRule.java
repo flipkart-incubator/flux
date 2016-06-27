@@ -50,7 +50,7 @@ public class TestSMRule extends ExternalResource {
         Set<State> states = new HashSet<>();
         states.add(state1);
         states.add(state2);
-        StateMachine stateMachine1 = new StateMachine(2L, "SM_name", "SM_desc", states);
+        StateMachine stateMachine1 = new StateMachine(2L, "SM_name", "SM_desc", states,null);
         stateMachine = stateMachinesDAO.create(stateMachine1);
     }
 
