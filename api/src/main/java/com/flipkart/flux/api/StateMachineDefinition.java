@@ -40,18 +40,22 @@ public class StateMachineDefinition {
     /* All Event Data that has been passed on as part of state machine execution */
     private Set<EventData> eventData;
 
+    /* User supplied string for easy identification of a workflow instance */
+    private String contextId;
+
     /* For Jackson */
     StateMachineDefinition() {
-        this(null,null,null, Collections.emptySet(),Collections.emptySet());
+        this(null,null,null, Collections.emptySet(),Collections.emptySet(), null);
     }
 
     /** Constructor */
-    public StateMachineDefinition(String description, String name, Long version, Set<StateDefinition> stateDefinitions, Set<EventData> eventData) {
+    public StateMachineDefinition(String description, String name, Long version, Set<StateDefinition> stateDefinitions, Set<EventData> eventData, String contextId) {
         this.description = description;
         this.name = name;
         this.states = stateDefinitions;
         this.version = version;
         this.eventData = eventData;
+        this.contextId = contextId;
     }
 
     public void addState(StateDefinition stateDefinition) {
@@ -90,6 +94,14 @@ public class StateMachineDefinition {
 
     public void setEventData(Set<EventData> eventData) {
         this.eventData = eventData;
+    }
+
+    public String getContextId() {
+        return contextId;
+    }
+
+    public void setContextId(String contextId) {
+        this.contextId = contextId;
     }
 
     @JsonIgnore

@@ -17,17 +17,22 @@ package com.flipkart.flux.client.intercept;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.client.model.CorrelationId;
 import com.flipkart.flux.client.model.Event;
 import com.flipkart.flux.client.model.Workflow;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.LocalContext;
-import org.aopalliance.intercept.Invocation;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * This intercepts the invocation to <code>@Workflow</code> methods.
@@ -62,7 +67,8 @@ public class WorkflowInterceptor implements MethodInterceptor {
             final Method method = invocation.getMethod();
             final Workflow[] workFlowAnnotations = method.getAnnotationsByType(Workflow.class);
             checkForBadSignatures(invocation);
-            localContext.registerNew(new MethodId(method).toString(), workFlowAnnotations[0].version(), workFlowAnnotations[0].description());
+            final String contextId = checkForContextId(invocation.getArguments());
+            localContext.registerNew(new MethodId(method).toString(), workFlowAnnotations[0].version(), workFlowAnnotations[0].description(),contextId);
             registerEventsForArguments(invocation.getArguments());
             invocation.proceed();
             connector.submitNewWorkflow(localContext.getStateMachineDef());
@@ -71,6 +77,36 @@ public class WorkflowInterceptor implements MethodInterceptor {
         finally {
             this.localContext.reset();
         }
+    }
+
+    private String checkForContextId(Object[] arguments) throws IllegalAccessException {
+        final String[] contextId = {null};
+        /* Iterate over given arguments to find if there is any argument that has a field marked with <code>CorrelationId</code> */
+        for (Object anArgument : arguments) {
+            final Field[] allFields = anArgument.getClass().getDeclaredFields();
+            /* Search for any field which is of type String and has a CorrelationId annotation */
+            final Optional<Field> possibleAnnotatedField = Arrays.stream(allFields).
+                filter(field -> String.class.isAssignableFrom(field.getType())).
+                filter(field -> field.getAnnotationsByType(CorrelationId.class).length > 0).
+                findAny();
+            /* If we have a field that matches above criteria, we populate the contextId variable and break */
+            if (possibleAnnotatedField.isPresent()) {
+                final Field contextIdAnnotatedField = possibleAnnotatedField.get();
+                final boolean originalAccessibility = contextIdAnnotatedField.isAccessible();
+                if (!originalAccessibility) {
+                    contextIdAnnotatedField.setAccessible(true);
+                }
+                try {
+                    contextId[0] = (String) contextIdAnnotatedField.get(anArgument);
+                    break;
+                } finally {
+                    if (!originalAccessibility) {
+                        contextIdAnnotatedField.setAccessible(false);
+                    }
+                }
+            }
+        }
+        return contextId[0];
     }
 
     private void registerEventsForArguments(Object[] arguments) throws JsonProcessingException {

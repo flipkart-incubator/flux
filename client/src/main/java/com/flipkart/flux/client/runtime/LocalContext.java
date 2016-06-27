@@ -24,7 +24,6 @@ import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * Maintains all local flux related context
@@ -52,12 +51,12 @@ public class LocalContext {
      * @param version
      * @param description
      */
-    public void registerNew(String methodIdentifier, long version, String description) {
+    public void registerNew(String methodIdentifier, long version, String description,String contextId) {
         if (this.stateMachineDefinition.get() != null) {
             /* This ensures we don't compose workflows within workflows */
             throw new IllegalStateException("A single thread cannot execute more than one workflow");
         }
-        stateMachineDefinition.set(new StateMachineDefinition(description,methodIdentifier, version, new HashSet<>(), new HashSet<>()));
+        stateMachineDefinition.set(new StateMachineDefinition(description,methodIdentifier, version, new HashSet<>(), new HashSet<>(), contextId));
         tlUniqueEventCount.set(new MutableInt(0));
         this.eventNames.set(new IdentityHashMap<>());
     }
