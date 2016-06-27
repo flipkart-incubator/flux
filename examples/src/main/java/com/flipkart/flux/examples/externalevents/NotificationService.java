@@ -14,8 +14,6 @@
 package com.flipkart.flux.examples.externalevents;
 
 import com.flipkart.flux.client.model.Task;
-import com.flipkart.flux.examples.decision.UserData;
-import com.flipkart.flux.examples.decision.UserId;
 
 import javax.inject.Singleton;
 
@@ -24,7 +22,7 @@ public class NotificationService {
     @Task(version = 1, timeout = 1000l)
     public void notifyCustomerSupport(UserData userData) {
         System.out.println("[Notification Service] Customer support has been notified about user " + userData.getUserId());
-        System.out.println("[Notification Service] For this example, you are the CustomerSupport. Please post an event of type UserVerificationStatus " + userData.getUserId());
+        System.out.println("[Notification Service] For this example, you are the CustomerSupport. Please post an event of type UserVerificationStatus for user " + userData.getUserId());
     }
     @Task(version = 1, timeout = 1000l)
     public void sendWelcomeEmail(UserId userId) {

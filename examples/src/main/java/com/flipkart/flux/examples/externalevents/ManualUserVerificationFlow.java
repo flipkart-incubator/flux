@@ -15,10 +15,6 @@ package com.flipkart.flux.examples.externalevents;
 
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.model.Workflow;
-import com.flipkart.flux.examples.decision.UserData;
-import com.flipkart.flux.examples.decision.UserDataService;
-import com.flipkart.flux.examples.decision.UserId;
-import com.flipkart.flux.examples.decision.UserVerificationStatus;
 
 import javax.inject.Inject;
 
