@@ -47,12 +47,11 @@ public class ManualSellerVerificationFlow {
         notificationService.notifyCustomerSupport(sellerData);
         /* The workflow will not proceed to invoke this event untill and unless the requisite data is POSTed back to the flux engine */
         final SellerVerificationStatus sellerVerificationStatus = sellerVerificationService.waitForVerification(null);
-        /* This is similar to the checkVerificationStatus method used in @see com.flipkart.flux.examples.decision.UserVerificationStatus */
-        checkVerificationStatus(sellerVerificationStatus);
+        confirmVerificationStatus(sellerVerificationStatus);
     }
 
     @Task(version = 1, timeout = 1000l, retries = 2)
-    public void checkVerificationStatus(SellerVerificationStatus sellerVerificationStatus) {
+    public void confirmVerificationStatus(SellerVerificationStatus sellerVerificationStatus) {
         if (sellerVerificationStatus.isVerifiedSeller()) {
             notificationService.sendWelcomeEmail(sellerVerificationStatus.getSellerId());
 

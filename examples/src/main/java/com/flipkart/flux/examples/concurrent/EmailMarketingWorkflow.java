@@ -23,7 +23,7 @@ import javax.inject.Singleton;
  * To speed up execution, we send the email out
  * Things to Note
  * 1. Observe how concurrency works - there is no method that depends on output of another method
- * 2. Observe how the methods EmailMarketingWorkflow.sendEmails and EmailDispatcher.sendEmail are annotated with @Task
+ * 2. Observe how the methods EmailMarketingWorkflow.sendEmails and EmailDispatcher.sendEmail are annotated with @Workflow and @Task respectively
  * 3. Observe how we are using javax.inject annotations for Dependency Injection
  */
 @Singleton
