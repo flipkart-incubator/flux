@@ -6,6 +6,7 @@ import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.Status;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -24,10 +25,10 @@ public class TestUtils {
         String dummyOutputEvent;
         dummyOutputEvent = objectMapper.writeValueAsString(standardStateMachineOutputEvent());
         Set<String> state4Events = new HashSet<String>(){{ add("event2"); add("event3"); }};
-        State state1 = new State(1l, "test_state1", "test_state_desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.DummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.emptySet(), 5l, 100l, null);
-        State state2 = new State(1l, "test_state2", "test_state_desc2", "com.flipkart.flux.dao.TestOnEntryHook", "com.flipkart.flux.dao.TestTask", "com.flipkart.flux.dao.TestOnExitHook", Collections.singleton("event1"), 3l, 100l, dummyOutputEvent);
-        State state3 = new State(1l, "test_state3", "test_state_desc3", "com.flipkart.flux.dao.TestOnEntryHook", "com.flipkart.flux.dao.TestTask", "com.flipkart.flux.dao.TestOnExitHook", Collections.singleton("event1"), 3l, 100l, null);
-        State state4 = new State(1l, "test_state4", "test_state_desc4", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.DummyTask", "com.flipkart.flux.dao.DummyOnExitHook", state4Events, 5l, 100l,null );
+        State state1 = new State(1l, "test_state1", "test_state_desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.DummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.emptySet(), 5l, 100l, null, Status.initialized, null, 0l);
+        State state2 = new State(1l, "test_state2", "test_state_desc2", "com.flipkart.flux.dao.TestOnEntryHook", "com.flipkart.flux.dao.TestTask", "com.flipkart.flux.dao.TestOnExitHook", Collections.singleton("event1"), 3l, 100l, dummyOutputEvent, Status.initialized, null, 0l);
+        State state3 = new State(1l, "test_state3", "test_state_desc3", "com.flipkart.flux.dao.TestOnEntryHook", "com.flipkart.flux.dao.TestTask", "com.flipkart.flux.dao.TestOnExitHook", Collections.singleton("event1"), 3l, 100l, null, Status.initialized, null, 0l);
+        State state4 = new State(1l, "test_state4", "test_state_desc4", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.DummyTask", "com.flipkart.flux.dao.DummyOnExitHook", state4Events, 5l, 100l,null, Status.initialized, null, 0l);
         Set<State> states = new HashSet<State>(){{
             add(state1);
             add(state2);

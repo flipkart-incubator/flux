@@ -70,16 +70,15 @@ public class State {
     private List<FluxError> errors;
 
     /** The Status of state transition execution*/
-    @Transient
+    @Enumerated(EnumType.STRING)
     private Status status;
 
     /** The rollback status*/
-    @Transient
+    @Enumerated(EnumType.STRING)
     private Status rollbackStatus;
 
     /** The number of retries attempted*/
-    @Transient
-    private Long numRetries;
+    private Long attemptedNoOfRetries;
 
     /** Time at which this State has been created */
     private Timestamp createdAt;
@@ -94,7 +93,7 @@ public class State {
         dependencies = new HashSet<>();
     }
     public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, Set<String> dependencies,
-                 Long retryCount, Long timeout, String outputEvent) {
+                 Long retryCount, Long timeout, String outputEvent, Status status, Status rollbackStatus, Long attemptedNoOfRetries) {
         this();
         this.version = version;
         this.name = name;
@@ -106,6 +105,9 @@ public class State {
         this.retryCount = retryCount;
         this.timeout = timeout;
         this.outputEvent = outputEvent;
+        this.status = status;
+        this.rollbackStatus = rollbackStatus;
+        this.attemptedNoOfRetries = attemptedNoOfRetries;
     }
 
     /**
@@ -199,11 +201,11 @@ public class State {
     public void setRollbackStatus(Status rollbackStatus) {
         this.rollbackStatus = rollbackStatus;
     }
-    public Long getNumRetries() {
-        return numRetries;
+    public Long getAttemptedNoOfRetries() {
+        return attemptedNoOfRetries;
     }
-    public void setNumRetries(Long numRetries) {
-        this.numRetries = numRetries;
+    public void setAttemptedNoOfRetries(Long attemptedNoOfRetries) {
+        this.attemptedNoOfRetries = attemptedNoOfRetries;
     }
 
     public String getOutputEvent() {
@@ -221,7 +223,7 @@ public class State {
         if (description != null ? !description.equals(state.description) : state.description != null) return false;
         if (errors != null ? !errors.equals(state.errors) : state.errors != null) return false;
         if (name != null ? !name.equals(state.name) : state.name != null) return false;
-        if (numRetries != null ? !numRetries.equals(state.numRetries) : state.numRetries != null) return false;
+        if (attemptedNoOfRetries != null ? !attemptedNoOfRetries.equals(state.attemptedNoOfRetries) : state.attemptedNoOfRetries != null) return false;
         if (onEntryHook != null ? !onEntryHook.equals(state.onEntryHook) : state.onEntryHook != null) return false;
         if (onExitHook != null ? !onExitHook.equals(state.onExitHook) : state.onExitHook != null) return false;
         if (outputEvent != null ? !outputEvent.equals(state.outputEvent) : state.outputEvent != null) return false;
@@ -253,7 +255,7 @@ public class State {
         result = 31 * result + (errors != null ? errors.hashCode() : 0);
         result = 31 * result + (status != null ? status.hashCode() : 0);
         result = 31 * result + (rollbackStatus != null ? rollbackStatus.hashCode() : 0);
-        result = 31 * result + (numRetries != null ? numRetries.hashCode() : 0);
+        result = 31 * result + (attemptedNoOfRetries != null ? attemptedNoOfRetries.hashCode() : 0);
         result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
         result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
         return result;
@@ -277,7 +279,7 @@ public class State {
                 ", errors=" + errors +
                 ", status=" + status +
                 ", rollbackStatus=" + rollbackStatus +
-                ", numRetries=" + numRetries +
+                ", attemptedNoOfRetries=" + attemptedNoOfRetries +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

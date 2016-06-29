@@ -24,6 +24,9 @@ public interface StatesDAO {
     /** Creates a state in db and returns the saved object*/
     State create(State state);
 
+    /** Updates a state in db */
+    void updateState(State state);
+
     /** Retrieves a state by it's unique identifier*/
     State findById(Long id);
 }
