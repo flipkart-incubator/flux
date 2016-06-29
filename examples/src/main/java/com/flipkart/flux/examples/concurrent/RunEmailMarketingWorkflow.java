@@ -15,12 +15,8 @@ package com.flipkart.flux.examples.concurrent;
 
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
-import com.flipkart.flux.constant.RuntimeConstants;
-import com.flipkart.flux.initializer.FluxInitializer;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
-import java.util.Arrays;
 
 /**
  * This class can be used to run and observe the email marketing workflow.
@@ -30,7 +26,7 @@ public class RunEmailMarketingWorkflow  {
     public static void main(String... args) throws Exception {
 
         /* Bring up the flux runtime */
-        FluxInitializer.main(new String[]{});
+//        FluxInitializer.main(new String[]{});
 
         /* Initialise _your_ module*/
         final Injector injector = Guice.createInjector(new FluxClientComponentModule(), new FluxClientInterceptorModule());
