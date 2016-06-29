@@ -115,10 +115,14 @@ public class WorkFlowExecutionController {
                 state.getOutputEvent(), state.getRetryCount());
             logger.debug("Sending msg {} for state machine {}", msg, stateMachineInstanceId);
             String taskName = state.getTask();
-            String routerName = taskName.substring(0, taskName.indexOf('_', taskName.indexOf('_')+1)); //the name of router would be classFQN_taskMethodName
-            logger.info("Router name: "+routerName);
-            this.routerRegistry.getRouter(routerName).tell(
-                msg, ActorRef.noSender());
+            int secondUnderscorePosition = taskName.indexOf('_', taskName.indexOf('_') + 1);
+            String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition); //the name of router would be classFQN_taskMethodName
+            ActorRef router = this.routerRegistry.getRouter(routerName);
+            if(router == null) { //this should true only for E2E Tests
+                logger.error("Router " + routerName + " not found. Using someRouter.");
+                router = this.routerRegistry.getRouter("someRouter");
+            }
+            router.tell(msg, ActorRef.noSender());
         }));
     }
 
