@@ -51,7 +51,6 @@ public class ExecutableRegistryPopulator implements Initializable {
 
     @Inject
     public ExecutableRegistryPopulator(DeploymentUnitUtil deploymentUnitUtil, ExecutableRegistry executableRegistry, TaskInterceptor taskInterceptor) {
-        System.out.println("Test logger========================================");
         this.deploymentUnitUtil = deploymentUnitUtil;
         this.executableRegistry = executableRegistry;
         this.taskInterceptor = taskInterceptor;
@@ -77,13 +76,12 @@ public class ExecutableRegistryPopulator implements Initializable {
                             timeout = (Long) value;
                         }
                     }
-                    executableRegistry.registerTask(taskIdentifier, new ExecutableImpl(method.getDeclaringClass().newInstance(), method, timeout, classLoader)); //todo: singletonMethodOwner -- cases: classes which carry state, abstract classes ?
-                    //TODO - add workflow routers, need to decide how they will be used
+                    executableRegistry.registerTask(taskIdentifier, new ExecutableImpl(method.getDeclaringClass().newInstance(), method, timeout, classLoader));
                     routerNames.add(method.getDeclaringClass().getName() + "_" + method.getName());
                 }
             } catch (Exception e) {
-                LOGGER.error("Unable to populate Executable Registry. Exception: "+e.getMessage());
-                throw new FluxError(FluxError.ErrorType.runtime, "Unable to populate Executable Registry", e);
+                LOGGER.error("Unable to populate Executable Registry for deployment unit: "+deploymentUnitName+". Exception: "+e.getMessage());
+                throw new FluxError(FluxError.ErrorType.runtime, "Unable to populate Executable Registry for deployment unit: "+deploymentUnitName, e);
             }
         }
 

@@ -72,7 +72,7 @@ public class LocalJvmTask extends AbstractTask {
             for (int i = 0 ; i < parameterTypes.length ; i++) {
                 for (Event anEvent : events) {
                     ClassLoader classLoader = toInvoke.getDeploymentUnitClassLoader() != null ? toInvoke.getDeploymentUnitClassLoader() : this.getClass().getClassLoader();
-                    if(Class.forName(anEvent.getType(), true, classLoader).equals(parameterTypes[i])) { //todo: Class.forName won't work as it refers to the class loader of present class. Pass the class loader
+                    if(Class.forName(anEvent.getType(), true, classLoader).equals(parameterTypes[i])) {
                         parameters[i] = objectMapper.readValue(anEvent.getEventData(), Class.forName(anEvent.getType(), true, classLoader));
                     }
                 }

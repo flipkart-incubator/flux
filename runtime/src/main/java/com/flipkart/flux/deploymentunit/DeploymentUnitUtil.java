@@ -49,7 +49,7 @@ public class DeploymentUnitUtil {
     /** Location of deployment units on the system*/
     private static final String DEPLOYMENT_UNITS_PATH = "/opt/workflows/";
 
-    /** Lists all deployment unit names*/ //todo: currently it's by directory scanning, we may need to change it to get from config service
+    /** Lists all deployment unit names*/ //todo: currently it's by directory scanning, will change it accordingly once we decide on where to store deployment units
     public static List<String> getAllDeploymentUnits() {
         File file = new File(DEPLOYMENT_UNITS_PATH);
         String[] directories = file.list((current, name) -> new File(current, name).isDirectory());
@@ -62,7 +62,7 @@ public class DeploymentUnitUtil {
      * @return class loader
      * @throws MalformedURLException
      */
-    public URLClassLoader getClassLoader(String deploymentUnitName) throws MalformedURLException {
+    public URLClassLoader getClassLoader(String deploymentUnitName) throws MalformedURLException, FileNotFoundException {
         return ClassLoaderProvider.getClassLoader(deploymentUnitName);
     }
 
@@ -141,14 +141,8 @@ public class DeploymentUnitUtil {
      * @return YamlConfiguration
      * @throws IOException
      */
-    public YamlConfiguration getProperties(URLClassLoader urlClassLoader) throws IOException, FileNotFoundException {
-        YamlConfiguration yamlConfiguration;
-        try {
-            yamlConfiguration = new YamlConfiguration(urlClassLoader.getResource(CONFIG_FILE));
-        } catch (NullPointerException e) {
-            throw new FileNotFoundException(CONFIG_FILE+" is either not found or it's empty");
-        }
-        return yamlConfiguration;
+    public YamlConfiguration getProperties(URLClassLoader urlClassLoader) throws IOException {
+        return new YamlConfiguration(urlClassLoader.getResource(CONFIG_FILE));
     }
 
     /**
@@ -170,7 +164,7 @@ public class DeploymentUnitUtil {
          * @return URLClassLoader
          * @throws java.net.MalformedURLException
          */
-        static public URLClassLoader getClassLoader(String deploymentUnitName) throws MalformedURLException {
+        public static URLClassLoader getClassLoader(String deploymentUnitName) throws MalformedURLException, FileNotFoundException {
 
             String directory = DEPLOYMENT_UNITS_PATH + deploymentUnitName + "/";
 
@@ -178,7 +172,11 @@ public class DeploymentUnitUtil {
             File[] libJars = new File(directory+"lib").listFiles();
 
             if(mainJars == null)
-                throw new RuntimeException("Unable to build class loader. Required directory "+directory+"main is empty.");
+                throw new FileNotFoundException("Unable to build class loader. Required directory "+directory+"main is empty.");
+
+            File configFile = new File(directory+CONFIG_FILE);
+            if(!configFile.isFile())
+                throw new FileNotFoundException("Unable to build class loader. Config file not found");
 
             URL[] urls = new URL[mainJars.length + (libJars != null ? libJars.length : 0) + 1];
             int urlIndex = 0;

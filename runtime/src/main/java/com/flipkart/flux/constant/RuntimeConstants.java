@@ -18,7 +18,6 @@ package com.flipkart.flux.constant;
  * 
  * @author regunath.balasubramanian
  * @author kartik.bommepally
- * @author shyam.akirala
  */
 public class RuntimeConstants {
 
@@ -43,11 +42,4 @@ public class RuntimeConstants {
      */
     public static final String CONFIGURATION_YML = CONFIG_ROOT + "/configuration.yml";
     public static final String STATE_MACHINE_RESOURCE_RELATIVE_PATH = "/machines";
-
-    /**
-     * Deployment Unit constants
-     */
-    public static final String ROUTER_SUFFIX = "_Router";
-    public static final String HOOK_ROUTER_SUFFIX = "_Hook_Router";
-    public static final String DEPLOYMENT_UNIT_PATH = "/CHANGE_ME"; //TODO: add the path
 }
