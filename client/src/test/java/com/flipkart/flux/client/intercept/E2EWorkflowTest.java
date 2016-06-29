@@ -14,6 +14,9 @@
 
 package com.flipkart.flux.client.intercept;
 
+import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.api.StateDefinition;
+import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.IntegerEvent;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEvent;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
@@ -27,8 +30,11 @@ import org.junit.runner.RunWith;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.inject.Inject;
+import javax.inject.Scope;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -68,10 +74,19 @@ public class E2EWorkflowTest {
         dummyFluxRuntimeResource.assertStateMachineReceived(simpleWorkflowForTest.getEquivalentStateMachineDefintion(new StringEvent("String one"),new IntegerEvent(2)), 1);
         /* verify registration in executable registry */
         final Map<String,Method> identifierToMethodMap = (Map<String, Method>) ReflectionTestUtils.getField(executableRegistry, "identifierToMethodMap");
-        assertThat(identifierToMethodMap.keySet()).containsOnly(
+        assertThat(identifierToMethodMap.keySet()).containsOnlyOnce(
             new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleStringModifyingTask", StringEvent.class)).toString(),
             new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("someTaskWithIntegerAndString", StringEvent.class, IntegerEvent.class)).toString(),
             new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleAdditionTask", IntegerEvent.class)).toString()
         );
+    }
+
+    @Test
+    public void testSubmissionOfWorkflowWithExternalEvents() throws Exception {
+        simpleWorkflowForTest.simpleDummyWorkflowWithExternalEvent(new IntegerEvent(2));
+        final StateMachineDefinition submittedDefinition = dummyFluxRuntimeResource.smToCountMap.keySet().stream().findFirst().get();
+        assertThat(submittedDefinition.getStates()).hasSize(3);
+        final Stream<String> eventDefNames = submittedDefinition.getStates().stream().flatMap(stateDefinition -> stateDefinition.getDependencies().stream()).map(EventDefinition::getName);
+        assertThat(eventDefNames.distinct().toArray()).containsOnlyOnce(SimpleWorkflowForTest.INTEGER_EVENT_NAME + "0", "someExternalEvent", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent1");
     }
 }

@@ -11,24 +11,35 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.client.model;
+package com.flipkart.flux.examples.externalevents;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.flipkart.flux.client.model.Event;
 
 /**
- * Used to wrap the result of a com.flipkart.flux.client.model.Task.
- * This is used by Flux runtime to enable tasks that can now be executed
- * @param <V>
+ * Represents a given seller's current stats
  */
-public class Promise<V> {
+public class SellerData implements Event {
 
-    public Promise(V v) {
-        throw new UnsupportedOperationException("not implemented yet");
+    @JsonProperty
+    private String name;
+
+    @JsonProperty
+    private String email;
+
+    private SellerId sellerId;
+
+    /* For Jackson & cglib */
+    SellerData() {
     }
 
-    boolean isDone() {
-        return false;
+    public SellerData(String email, String name, SellerId sellerId) {
+        this.email = email;
+        this.name = name;
+        this.sellerId = sellerId;
     }
 
-    public V get() {
-        return null;
+    public SellerId getSellerId() {
+        return sellerId;
     }
 }

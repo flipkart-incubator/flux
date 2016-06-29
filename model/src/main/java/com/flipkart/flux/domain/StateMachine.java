@@ -42,6 +42,9 @@ public class StateMachine {
     /** Description of the state machine*/
     private String description;
 
+    /** User supplied correlationId. A user can post events for a state machine given this correlation id */
+    private String correlationId;
+
     /** List of states that this machine has*/
     @OneToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL, targetEntity = State.class)
     @JoinColumn(name = "stateMachineId")
@@ -65,12 +68,13 @@ public class StateMachine {
 
     /** Constructors*/
     protected StateMachine() {}
-    public StateMachine(Long version, String name, String description, Set<State> states) {
+    public StateMachine(Long version, String name, String description, Set<State> states, String correlationId) {
         super();
         this.version = version;
         this.name = name;
         this.description = description;
         this.states = states;
+        this.correlationId = correlationId;
     }
 
     /** Accessor/Mutator methods */
@@ -106,6 +110,9 @@ public class StateMachine {
     }
     public Timestamp getUpdatedAt() {
         return updatedAt;
+    }
+    public String getCorrelationId() {
+        return correlationId;
     }
 
     @Override

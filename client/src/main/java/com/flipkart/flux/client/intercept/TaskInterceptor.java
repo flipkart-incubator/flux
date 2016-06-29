@@ -16,6 +16,7 @@ package com.flipkart.flux.client.intercept;
 
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.client.model.Event;
+import com.flipkart.flux.client.model.ExternalEvent;
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.registry.ExecutableImpl;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
@@ -25,6 +26,7 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 import javax.inject.Inject;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
@@ -62,7 +64,7 @@ public class TaskInterceptor implements MethodInterceptor {
         final Method method = invocation.getMethod();
         final Task taskAnnotation = method.getAnnotationsByType(Task.class)[0];
         final String taskIdentifier = generateTaskIdentifier(method);
-        final Set<EventDefinition> dependencySet = generateDependencySet(invocation.getArguments());
+        final Set<EventDefinition> dependencySet = generateDependencySet(invocation.getArguments(),method.getParameterAnnotations(),method.getParameterTypes());
         final Object proxyReturnObject = createProxyReturnObject(method);
         final EventDefinition outputEventDefintion = generateOutputEventDefintion(proxyReturnObject);
         /* Contribute to the ongoing state machine definition */
@@ -119,9 +121,24 @@ public class TaskInterceptor implements MethodInterceptor {
         }
     }
 
-    private Set<EventDefinition> generateDependencySet(Object[] arguments) {
+    private Set<EventDefinition> generateDependencySet(Object[] arguments, Annotation[][] parameterAnnotations, Class<?>[] parameterTypes) {
         Set<EventDefinition> eventDefinitions = new HashSet<>();
-        for (Object argument : arguments) {
+        for (int i = 0; i < arguments.length ; i++) {
+            Object argument = arguments[i];
+            ExternalEvent externalEventAnnotation = checkForExternalEventAnnotation(parameterAnnotations[i]);
+            if (externalEventAnnotation != null) {
+                if (argument != null) {
+                    throw new IllegalInvocationException("cannot pass" + argument + " as the parameter is marked an external event");
+                }
+                final EventDefinition definition = new EventDefinition(externalEventAnnotation.value(), parameterTypes[i].getName());
+                EventDefinition existingDefinition = localContext.checkExistingDefinition(definition);
+                if (existingDefinition != null) {
+                    eventDefinitions.add(existingDefinition);
+                } else {
+                    eventDefinitions.add(definition);
+                }
+                continue;
+            }
             if (argument instanceof Intercepted) {
                 eventDefinitions.add(new EventDefinition(((Event) argument).name(), ((Intercepted)argument).getRealClassName() ));
             } else {
@@ -130,6 +147,15 @@ public class TaskInterceptor implements MethodInterceptor {
         }
         return eventDefinitions;
 
+    }
+
+    private ExternalEvent checkForExternalEventAnnotation(Annotation[] givenParameterAnnotations) {
+        for (Annotation annotation : givenParameterAnnotations) {
+            if (annotation instanceof ExternalEvent) {
+                return (ExternalEvent) annotation;
+            }
+        }
+        return null;
     }
 
     private String generateStateIdentifier(Method method) {

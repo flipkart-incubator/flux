@@ -1,0 +1,98 @@
+{
+  "name" : "state_machine_with_fork_join",
+  "version": 1,
+  "description": "This has 3 states joining into one",
+  "states" : [
+    {
+      "version": 1,
+      "name": "initialState",
+      "description": "initial state that is triggered when the workflow is invoked ",
+      "onEntryHook": null,
+      "task": "com.flipkart.flux.dao.DummyTask",
+      "onExitHook": null,
+      "dependencies": [],
+      "retryCount": "5",
+      "timeout": "100",
+      "outputEvent": {
+        "name" : "init_state_output_event",
+        "type" : "com.flipkart.flux.package.SomeOutputType"
+      }
+    },
+    {
+      "version": 1,
+      "name": "forkState",
+      "description": "fork_state_1",
+      "onEntryHook": null,
+      "task": "com.flipkart.flux.dao.DummyTask",
+      "onExitHook": null,
+      "dependencies": [
+        {
+          "name" : "given_event",
+          "type" : "com.flipkart.flux.package.SomeType"
+        }
+      ],
+      "retryCount": "5",
+      "timeout": "100",
+      "outputEvent": {
+        "name" : "fork_state_1_output_event",
+        "type" : "com.flipkart.flux.package.SomeOutputType"
+      }
+    },
+    {
+      "version": 1,
+      "name": "forkState",
+      "description": "fork_state_2",
+      "onEntryHook": null,
+      "task": "com.flipkart.flux.dao.DummyTask",
+      "onExitHook": null,
+      "dependencies": [
+        {
+          "name" : "given_event",
+          "type" : "com.flipkart.flux.package.SomeType"
+        }
+      ],
+      "retryCount": "5",
+      "timeout": "100",
+      "outputEvent": {
+        "name" : "fork_state_2_output_event",
+        "type" : "com.flipkart.flux.package.SomeOutputType"
+      }
+    },
+    {
+      "version": 1,
+      "name": "joinState",
+      "description": "join state - depends on above 2",
+      "onEntryHook": null,
+      "task": "com.flipkart.flux.dao.DummyTask",
+      "onExitHook": null,
+      "dependencies": [
+        {
+          "name" : "init_state_output_event",
+          "type" : "com.flipkart.flux.package.SomeOutputType"
+        },
+        {
+          "name" : "fork_state_1_output_event",
+          "type" : "com.flipkart.flux.package.SomeOutputType"
+        },
+        {
+          "name" : "fork_state_2_output_event",
+          "type" : "com.flipkart.flux.package.SomeOutputType"
+        }
+      ],
+      "retryCount": "5",
+      "timeout": "100",
+      "outputEvent": {
+        "name" : "nobody_cares_output_event",
+        "type" : "com.flipkart.flux.package.SomeOutputType"
+      }
+    }
+  ],
+  "eventData" : [
+    {
+      "name" : "given_event",
+      "type" : "com.flipkart.flux.package.SomeType",
+      "data" : "{ \"aString\" : \"foo\"}",
+      "eventSource" : "client"
+    }
+  ]
+}

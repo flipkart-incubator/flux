@@ -9,10 +9,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-package com.flipkart.flux.impl;
+package com.flipkart.flux.client.intercept;
 
-public class TestUtil {
+public class IllegalInvocationException extends RuntimeException {
+    public IllegalInvocationException(String message) {
+        super(message);
+    }
 }

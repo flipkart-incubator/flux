@@ -25,11 +25,17 @@ import com.flipkart.flux.client.runtime.LocalContext;
 import com.flipkart.flux.client.utils.TestUtil;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+<<<<<<< HEAD
+=======
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+>>>>>>> 3e8a5c846453dda2d034972e14f65d33841198d6
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -42,6 +48,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.flipkart.flux.client.intercept.SimpleWorkflowForTest.INTEGER_EVENT_NAME;
 import static com.flipkart.flux.client.intercept.SimpleWorkflowForTest.STRING_EVENT_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -57,6 +64,7 @@ public class TaskInterceptorTest {
 
     @Before
     public void setUp() throws Exception {
+//        localContext = Mockito.spy(new LocalContext());
         taskInterceptor = new TaskInterceptor(localContext,executableRegistry);
         simpleWorkflowForTest = new SimpleWorkflowForTest();
         when(localContext.isWorkflowInterception()).thenReturn(true);
@@ -64,8 +72,7 @@ public class TaskInterceptorTest {
 
     @Test
     public void testInterception_shouldSubmitNewState_methodWithOneParam() throws Throwable {
-        final AtomicInteger eventCounter = new AtomicInteger(0);
-        doAnswer(invocation -> (((Event)invocation.getArguments()[0]).name())+eventCounter.getAndIncrement()).when(localContext).generateEventName(any(Event.class));
+        setupMockLocalContext();
 
         final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", StringEvent.class);
         taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod, new Object[]{new StringEvent("someEvent")}));
@@ -80,12 +87,11 @@ public class TaskInterceptorTest {
 
     @Test
     public void testInterception_shouldSubmitNewState_methodWithTwoParam() throws Throwable {
-        final AtomicInteger eventCounter = new AtomicInteger(0);
-        doAnswer(invocation -> (((Event)invocation.getArguments()[0]).name())+eventCounter.getAndIncrement()).when(localContext).generateEventName(any(Event.class));
+        setupMockLocalContext();
 
         final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("someTaskWithIntegerAndString", StringEvent.class, IntegerEvent.class);
         /* Third task intercepted */
-        taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod,new Object[]{new StringEvent("someEvent"),new IntegerEvent(1)}));
+        taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod, new Object[]{new StringEvent("someEvent"), new IntegerEvent(1)}));
         /* Verifications */
         final Set<EventDefinition> expectedDependencies = new HashSet<EventDefinition>() {{
             add(new EventDefinition(STRING_EVENT_NAME+"0", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
@@ -105,7 +111,7 @@ public class TaskInterceptorTest {
         final Object returnedObject = taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod));
         assertThat(returnedObject).isNotNull();
         assertThat(StringEvent.class.isAssignableFrom(returnedObject.getClass())).isTrue();
-        assertThat(((Event)returnedObject).name()).isEqualTo("generatedEventName");
+        assertThat(((Event) returnedObject).name()).isEqualTo("generatedEventName");
     }
 
     @Test
@@ -135,7 +141,7 @@ public class TaskInterceptorTest {
         final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", StringEvent.class);
         taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod, simpleWorkflowForTest));
         final Executable expectedExecutable = new ExecutableImpl(simpleWorkflowForTest, invokedMethod, 2000l, null);
-        verify(executableRegistry,times(1)).registerTask(new MethodId(invokedMethod).toString(),expectedExecutable);
+        verify(executableRegistry, times(1)).registerTask(new MethodId(invokedMethod).toString(), expectedExecutable);
     }
 
     @Test
@@ -154,4 +160,60 @@ public class TaskInterceptorTest {
         final MethodInvocation dummyInvocation = TestUtil.dummyInvocation(simpleWorkflowForTest.getClass().getDeclaredMethod("badWorkflowWithNonEventParams", String.class), simpleWorkflowForTest);
         taskInterceptor.invoke(dummyInvocation);
     }
+
+    @Test
+    public void testRegisterExternalEventsWithTheirGivenName() throws Throwable {
+        /* setup */
+        setupMockLocalContext();
+        final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("waitForExternalEvent", StringEvent.class,IntegerEvent.class);
+
+        /* invocation */
+        taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod,new Object[]{null,new IntegerEvent(1)}));
+
+        /* verification */
+        final Set<EventDefinition> expectedDependency = new HashSet<EventDefinition>() {{
+            add(new EventDefinition("someExternalEvent", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
+            add(new EventDefinition(INTEGER_EVENT_NAME + "0", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent"));
+            }};
+        final EventDefinition expectedOutput = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent1","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
+        verify(localContext, times(1)).
+            registerNewState(2l, "waitForExternalEvent", null, null,
+                new MethodId(invokedMethod).toString(), 2l, 2000l, expectedDependency, expectedOutput);
+    }
+
+    @Test(expected = IllegalInvocationException.class)
+    public void testExternalEvents_externalEventAnnotatedArgsShouldBeNull() throws Throwable {
+        /* setup */
+        setupMockLocalContext();
+        final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("waitForExternalEvent", StringEvent.class,IntegerEvent.class);
+
+        /* invocation */
+        taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod, new Object[]{new StringEvent("foo"), new IntegerEvent(1)}));
+
+    }
+
+    @Test
+    public void testExternalEvents_checkWithLocalContextForExistingDefs() throws Throwable {
+        /* setup */
+        setupMockLocalContext();
+        /* Invocation 1 */
+        final Method method1 = simpleWorkflowForTest.getClass().getDeclaredMethod("waitForExternalEvent", StringEvent.class, IntegerEvent.class);
+        taskInterceptor.invoke(TestUtil.dummyInvocation(method1,new Object[]{null,new IntegerEvent(1)}));
+
+        /* Invocation 2 - the method is annotated with externalEvent with same name and same type, so we're good */
+        final Method method2 = simpleWorkflowForTest.getClass().getDeclaredMethod("waitForExternalEvent", StringEvent.class);
+        taskInterceptor.invoke(TestUtil.dummyInvocation(method2,new Object[]{null}));
+
+        /* Invocation 3 - the method is annotated with externalEvent with same name but different type, so it will fail if passed to the real context */
+        final Method method3 = simpleWorkflowForTest.getClass().getDeclaredMethod("waitForExternalEvent", IntegerEvent.class);
+        taskInterceptor.invoke(TestUtil.dummyInvocation(method3, new Object[]{null}));
+        verify(localContext,times(2)).checkExistingDefinition(new EventDefinition("someExternalEvent", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
+        verify(localContext,times(1)).checkExistingDefinition(new EventDefinition("someExternalEvent","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent"));
+    }
+
+    private void setupMockLocalContext() {
+        final AtomicInteger eventCounter = new AtomicInteger(0);
+        doAnswer(invocation -> (((Event)invocation.getArguments()[0]).name())+eventCounter.getAndIncrement()).when(localContext).generateEventName(any(Event.class));
+    }
+
 }

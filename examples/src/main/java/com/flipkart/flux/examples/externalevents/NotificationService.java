@@ -11,19 +11,21 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.examples.orderfulfilment;
+package com.flipkart.flux.examples.externalevents;
 
-import com.flipkart.flux.client.model.Promise;
 import com.flipkart.flux.client.model.Task;
 
-/**
- * Dummy service to run warehouse operations
- */
-public class WarehouseService {
+import javax.inject.Singleton;
+
+@Singleton
+public class NotificationService {
     @Task(version = 1, timeout = 1000l)
-    public Promise<PackedOrder> packOrder(Promise<ConfirmedOrder> createdOrderPromise) {
-        // Sends out a notification (probably to a human console) to indicate that this order needs to be packed
-        createdOrderPromise.get().pack();
-        return new Promise<PackedOrder>(new PackedOrder());
+    public void notifyCustomerSupport(SellerData sellerData) {
+        System.out.println("[Notification Service] Customer support has been notified about seller " + sellerData.getSellerId());
+        System.out.println("[Notification Service] For this example, you are the CustomerSupport. Please post an event of type SellerVerificationStatus for seller " + sellerData.getSellerId());
+    }
+    @Task(version = 1, timeout = 1000l)
+    public void sendWelcomeEmail(SellerId sellerId) {
+        System.out.println("[NotificationService] Warm welcomes to you, " + sellerId);
     }
 }

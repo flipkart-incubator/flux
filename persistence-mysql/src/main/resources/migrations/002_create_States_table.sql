@@ -13,12 +13,15 @@ CREATE TABLE IF NOT EXISTS `States` (
   `task` VARCHAR(500) DEFAULT NULL,
   `onExitHook` varchar(500) DEFAULT NULL,
   `outputEvent` varchar(500) DEFAULT NULL,
-  `retryCount` TINYINT UNSIGNED DEFAULT NULL,
-  `timeout` SMALLINT UNSIGNED DEFAULT NULL,
+  `retryCount` TINYINT UNSIGNED DEFAULT 0,
+  `timeout` INT UNSIGNED DEFAULT NULL,
+  `status` varchar(50) DEFAULT NULL,
+  `rollbackStatus` varchar(50) DEFAULT NULL,
+  `attemptedNoOfRetries` INT UNSIGNED DEFAULT 0,
   `createdAt` TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3),
   `updatedAt` TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`),
-  UNIQUE KEY (`name`, `stateMachineId`),
+  UNIQUE KEY (`id`, `stateMachineId`),
   CONSTRAINT `FK_sm_states` FOREIGN KEY (`stateMachineId`) REFERENCES `StateMachines` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 )
 ENGINE=InnoDB

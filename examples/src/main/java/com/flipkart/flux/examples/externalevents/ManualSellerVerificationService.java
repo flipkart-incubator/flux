@@ -11,15 +11,18 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.examples.di;
+package com.flipkart.flux.examples.externalevents;
 
-import com.flipkart.flux.client.model.Promise;
+import com.flipkart.flux.client.model.ExternalEvent;
 import com.flipkart.flux.client.model.Task;
 
-/**
- * Dummy Storage Service that provides the capability of storing a message to a store
- */
-public interface StorageService {
+import javax.inject.Singleton;
+
+@Singleton
+public class ManualSellerVerificationService {
     @Task(version = 1, timeout = 1000l)
-    Promise<Long> store(Message message);
+    public SellerVerificationStatus waitForVerification(@ExternalEvent("sellerVerification")SellerVerificationStatus verificationStatus) {
+        System.out.println("[ManualSellerVerificationService] Received verification status " + verificationStatus.isVerifiedSeller() + " for seller " + verificationStatus.getSellerId());
+        return verificationStatus;
+    }
 }

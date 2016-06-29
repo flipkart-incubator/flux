@@ -11,19 +11,17 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.examples.orderfulfilment;
+package com.flipkart.flux.examples.externalevents;
 
-import com.flipkart.flux.client.model.FluxContext;
-import com.flipkart.flux.client.model.HookAdapter;
-
-import java.time.Instant;
+import com.flipkart.flux.client.model.Task;
 
 /**
- * Dummy class that will log the start time of a task
+ * In a real case, this may talk to a database to perform CRUD operations on seller data
  */
-public class LoggingHook extends HookAdapter {
-    @Override
-    public void preEntry(FluxContext context) {
-        System.out.println("Task " + context.retrieveTaskToken() + " started at " + Instant.ofEpochSecond(context.getStartTime()));
+
+public class SellerDataService {
+    @Task(version = 1, timeout = 1000l)
+    public SellerData retrieveSellerData(SellerId sellerId) {
+        return new SellerData("someEmail@gmail.com","someName", sellerId);
     }
 }

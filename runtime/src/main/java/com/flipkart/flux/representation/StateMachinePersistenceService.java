@@ -22,10 +22,10 @@ import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.Status;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -69,7 +69,7 @@ public class StateMachinePersistenceService {
         StateMachine stateMachine = new StateMachine(stateMachineDefinition.getVersion(),
                 stateMachineDefinition.getName(),
                 stateMachineDefinition.getDescription(),
-                states);
+                states, stateMachineDefinition.getCorrelationId());
 
         stateMachinesDAO.create(stateMachine);
 
@@ -117,7 +117,9 @@ public class StateMachinePersistenceService {
                     stateDefinition.getOnExitHook(),
                     events,
                     stateDefinition.getRetryCount(),
-                    stateDefinition.getTimeout(), stateDefinition.getOutputEvent() != null? objectMapper.writeValueAsString(stateDefinition.getOutputEvent()) : null);
+                    stateDefinition.getTimeout(),
+                    stateDefinition.getOutputEvent() != null? objectMapper.writeValueAsString(stateDefinition.getOutputEvent()) : null,
+                    Status.initialized, null, 0l);
             return state;
         } catch (Exception e) {
             throw new IllegalRepresentationException("Unable to create state domain object", e);

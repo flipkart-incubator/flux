@@ -17,6 +17,7 @@ package com.flipkart.flux.client.intercept;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.client.model.CorrelationId;
 import com.flipkart.flux.client.model.Event;
 import com.flipkart.flux.client.model.Workflow;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
@@ -26,7 +27,10 @@ import org.aopalliance.intercept.MethodInvocation;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * This intercepts the invocation to <code>@Workflow</code> methods.
@@ -60,8 +64,9 @@ public class WorkflowInterceptor implements MethodInterceptor {
         try {
             final Method method = invocation.getMethod();
             final Workflow[] workFlowAnnotations = method.getAnnotationsByType(Workflow.class);
-            checkForBadSignatures(method);
-            localContext.registerNew(new MethodId(method).toString(), workFlowAnnotations[0].version(), workFlowAnnotations[0].description());
+            checkForBadSignatures(invocation);
+            final String correlationId = checkForCorrelationId(invocation.getArguments());
+            localContext.registerNew(new MethodId(method).toString(), workFlowAnnotations[0].version(), workFlowAnnotations[0].description(),correlationId);
             registerEventsForArguments(invocation.getArguments());
             invocation.proceed();
             connector.submitNewWorkflow(localContext.getStateMachineDef());
@@ -72,25 +77,93 @@ public class WorkflowInterceptor implements MethodInterceptor {
         }
     }
 
+    private String checkForCorrelationId(Object[] arguments) throws IllegalAccessException {
+        final String[] correlationId = {null};
+        /* Iterate over given arguments to find if there is any argument that has a field marked with <code>CorrelationId</code> */
+        for (Object anArgument : arguments) {
+            final Field[] allFields = anArgument.getClass().getDeclaredFields();
+            /* Search for any field which is of type String and has a CorrelationId annotation */
+            final Optional<Field> possibleAnnotatedField = Arrays.stream(allFields).
+                filter(field -> String.class.isAssignableFrom(field.getType())).
+                filter(field -> field.getAnnotationsByType(CorrelationId.class).length > 0).
+                findAny();
+            /* If we have a field that matches above criteria, we populate the correlationId variable and break */
+            if (possibleAnnotatedField.isPresent()) {
+                final Field correlationIdAnnotatedField = possibleAnnotatedField.get();
+                final boolean originalAccessibility = correlationIdAnnotatedField.isAccessible();
+                if (!originalAccessibility) {
+                    correlationIdAnnotatedField.setAccessible(true);
+                }
+                try {
+                    correlationId[0] = (String) correlationIdAnnotatedField.get(anArgument);
+                    break;
+                } finally {
+                    if (!originalAccessibility) {
+                        correlationIdAnnotatedField.setAccessible(false);
+                    }
+                }
+            }
+        }
+        return correlationId[0];
+    }
+
     private void registerEventsForArguments(Object[] arguments) throws JsonProcessingException {
         if (arguments.length == 0) {
             return;
         }
-        EventData[] eventDatas = new EventData[arguments.length];
-        for (int i = 0; i < arguments.length ; i++) {
-            final Object anArgument = arguments[i];
-            Event anArgumentAsEvent = (Event) anArgument; // This is safe since we have already checked for bad signatures
-            final String eventName = localContext.generateEventName(anArgumentAsEvent);
-            eventDatas[i] = new EventData(eventName, anArgument.getClass().getName(), objectMapper.writeValueAsString(anArgument),CLIENT);
+        final int lengthOfArguments = getRealLengthOfArguments(arguments);
+        EventData[] eventDatas = new EventData[lengthOfArguments];
+        int i = 0;
+        for(Object anArgument : arguments) {
+            /* We traverse the array of events passed as an argument and derive EventData from each element */
+            if (anArgument.getClass().isArray()) {
+                Object[] objects = (Object[]) anArgument;
+                for (Object anObjectArrayMember : objects) {
+                    addToEventDataArray(eventDatas, i, anObjectArrayMember);
+                    i++;
+                }
+
+            } else { /* regular Event object as an argument */
+                addToEventDataArray(eventDatas, i, anArgument);
+                i++;
+            }
         }
         localContext.addEvents(eventDatas);
     }
 
-    private void checkForBadSignatures(Method method) {
+    private void addToEventDataArray(EventData[] eventDatas, int i, Object anObject) throws JsonProcessingException {
+        final String eventName = localContext.generateEventName((Event) anObject);
+        eventDatas[i] = new EventData(eventName, anObject.getClass().getName(), objectMapper.writeValueAsString(anObject), CLIENT);
+    }
+
+
+    private int getRealLengthOfArguments(Object[] arguments) {
+        int len = 0;
+        for (Object anArgument : arguments) {
+            if(anArgument.getClass().isArray()) {
+                Object[] objects = (Object[]) anArgument;
+                len += objects.length;
+            } else {
+                len++;
+            }
+        }
+        return len;
+    }
+
+
+    private void checkForBadSignatures(MethodInvocation invocation) {
+        Method method = invocation.getMethod();
         final Class<?> returnType = method.getReturnType();
         if (!returnType.equals(void.class)) {
             throw new IllegalSignatureException(new MethodId(method),"A workflow method can only return void");
         }
+        final Class<?>[] parameterTypes = method.getParameterTypes();
+        for (Class<?> aParamType : parameterTypes) {
+            if (!Event.class.isAssignableFrom(aParamType) && !aParamType.isArray()) {
+                throw new IllegalSignatureException(new MethodId(method), "Parameter types should implement the Event interface. Collections of events are also not allowed");
+            }
+        }
+
     }
 
 }

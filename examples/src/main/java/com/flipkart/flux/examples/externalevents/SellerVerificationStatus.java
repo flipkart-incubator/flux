@@ -11,40 +11,39 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.examples.concurrent;
+package com.flipkart.flux.examples.externalevents;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flipkart.flux.client.model.Event;
 
 /**
- * An email entitye
+ * Carries verification status for a given SellerId
  */
-public class Email implements Event {
-    @JsonProperty
-    private String body;
+public class SellerVerificationStatus implements Event {
 
     @JsonProperty
-    private String recipient;
+    private SellerId sellerId;
 
-    /* For jackson */
-    Email() {
+    @JsonProperty
+    private Boolean verified;
+
+    /* For Jackson */
+    SellerVerificationStatus() {
     }
 
-    public Email(String body, String recipient) {
-        this.body = body;
-        this.recipient = recipient;
+    public SellerVerificationStatus(SellerId sellerId, Boolean verified) {
+        this.sellerId = sellerId;
+        this.verified = verified;
     }
 
-    @Override
-    public String toString() {
-        return "Email{" +
-            "body='" + body + '\'' +
-            ", recipient='" + recipient + '\'' +
-            '}';
+    @JsonIgnore
+    public boolean isVerifiedSeller() {
+        return verified;
     }
 
-    @Override
-    public String name() {
-        return "EmailMessage";
+
+    public SellerId getSellerId() {
+        return sellerId;
     }
 }

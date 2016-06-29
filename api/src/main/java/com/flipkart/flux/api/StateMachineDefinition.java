@@ -40,18 +40,22 @@ public class StateMachineDefinition {
     /* All Event Data that has been passed on as part of state machine execution */
     private Set<EventData> eventData;
 
+    /* User supplied string for easy identification of a workflow instance */
+    private String correlationId;
+
     /* For Jackson */
     StateMachineDefinition() {
-        this(null,null,null, Collections.emptySet(),Collections.emptySet());
+        this(null,null,null, Collections.emptySet(),Collections.emptySet(), null);
     }
 
     /** Constructor */
-    public StateMachineDefinition(String description, String name, Long version, Set<StateDefinition> stateDefinitions, Set<EventData> eventData) {
+    public StateMachineDefinition(String description, String name, Long version, Set<StateDefinition> stateDefinitions, Set<EventData> eventData, String correlationId) {
         this.description = description;
         this.name = name;
         this.states = stateDefinitions;
         this.version = version;
         this.eventData = eventData;
+        this.correlationId = correlationId;
     }
 
     public void addState(StateDefinition stateDefinition) {
@@ -92,6 +96,14 @@ public class StateMachineDefinition {
         this.eventData = eventData;
     }
 
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
+    }
+
     @JsonIgnore
     public Map<EventDefinition,EventData> getEventDataMap() {
         Map<EventDefinition,EventData> eventDataMap = new HashMap<>();
@@ -99,6 +111,10 @@ public class StateMachineDefinition {
             final Set<EventDefinition> dependenciesForCurrentState = aState.getDependencies();
             for (EventDefinition anEventDefinition : dependenciesForCurrentState) {
                 eventDataMap.putIfAbsent(anEventDefinition, retrieveEventDataFor(anEventDefinition));
+            }
+            final EventDefinition outputEventDefinition = aState.getOutputEvent();
+            if (outputEventDefinition  != null) {
+                eventDataMap.put(outputEventDefinition, retrieveEventDataFor(outputEventDefinition));
             }
         }
         return eventDataMap;
