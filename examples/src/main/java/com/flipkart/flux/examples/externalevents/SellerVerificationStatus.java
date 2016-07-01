@@ -42,6 +42,13 @@ public class SellerVerificationStatus implements Event {
         return verified;
     }
 
+    public void setSellerId(SellerId sellerId) {
+        this.sellerId = sellerId;
+    }
+
+    public void setVerified(Boolean verified) {
+        this.verified = verified;
+    }
 
     public SellerId getSellerId() {
         return sellerId;

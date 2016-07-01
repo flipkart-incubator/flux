@@ -16,7 +16,6 @@ package com.flipkart.flux.examples.externalevents;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
-import com.flipkart.flux.initializer.FluxInitializer;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -25,7 +24,7 @@ import java.util.UUID;
 public class RunManualSellerVerificationWorkflow {
     public static void main(String... args) throws Exception {
         /* Bring up the flux runtime */
-        FluxInitializer.main(new String[]{});
+//        FluxInitializer.main(new String[]{});
 
         /* Initialise _your_ module*/
         final Injector injector = Guice.createInjector(new FluxClientComponentModule(), new FluxClientInterceptorModule());

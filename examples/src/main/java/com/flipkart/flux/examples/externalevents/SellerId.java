@@ -38,6 +38,22 @@ public class SellerId implements Event {
         this.correlationId = correlationId;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

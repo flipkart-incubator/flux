@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.deploymentunit;
 
+import com.flipkart.flux.client.deploymentunit.ClassLoaderInjector;
 import com.flipkart.flux.client.intercept.TaskInterceptor;
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.registry.ExecutableImpl;
@@ -64,6 +65,16 @@ public class ExecutableRegistryPopulator implements Initializable {
             try {
                 URLClassLoader classLoader = deploymentUnitUtil.getClassLoader(deploymentUnitName);
                 Class TaskClass = classLoader.loadClass(Task.class.getCanonicalName());
+                Class InjectorClass;
+                String injectorClassName = String.valueOf(deploymentUnitUtil.getProperties(classLoader).getProperty("injectorClass"));
+                if(injectorClassName == null || injectorClassName.trim().isEmpty() || injectorClassName.equals("null"))
+                    InjectorClass = classLoader.loadClass(ClassLoaderInjector.class.getCanonicalName());
+                else {
+                    InjectorClass = classLoader.loadClass(injectorClassName);
+                }
+                Method getClassInstance = InjectorClass.getMethod("getClassInstance", Class.class);
+                Object injectorClassInstance = InjectorClass.newInstance();
+
                 Set<Method> taskMethods = deploymentUnitUtil.getTaskMethods(classLoader);
                 for(Method method : taskMethods) {
                     String taskIdentifier = taskInterceptor.generateTaskIdentifier(method);
@@ -76,7 +87,8 @@ public class ExecutableRegistryPopulator implements Initializable {
                             timeout = (Long) value;
                         }
                     }
-                    executableRegistry.registerTask(taskIdentifier, new ExecutableImpl(method.getDeclaringClass().newInstance(), method, timeout, classLoader));
+                    Object singletonMethodOwner = getClassInstance.invoke(injectorClassInstance, method.getDeclaringClass());
+                    executableRegistry.registerTask(taskIdentifier, new ExecutableImpl(singletonMethodOwner, method, timeout, classLoader));
                     routerNames.add(method.getDeclaringClass().getName() + "_" + method.getName());
                 }
             } catch (Exception e) {
