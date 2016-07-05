@@ -14,6 +14,7 @@
 package com.flipkart.flux.dao.iface;
 
 import com.flipkart.flux.domain.State;
+import com.flipkart.flux.domain.Status;
 
 /**
  * <code>StatesDAO</code> interface provides methods to perform CR operations on {@link State}
@@ -26,6 +27,15 @@ public interface StatesDAO {
 
     /** Updates a state in db */
     void updateState(State state);
+
+    /** Updates status of a state*/
+    public void updateStatus(Long stateId, Status status);
+
+    /** Updates rollback status of a state */
+    public void updateRollbackStatus(Long stateId, Status rollbackStatus);
+
+    /** Increments the attempted no.of retries of a state by 1 */
+    void incrementRetryCount(Long stateId);
 
     /** Retrieves a state by it's unique identifier*/
     State findById(Long id);

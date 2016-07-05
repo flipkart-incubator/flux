@@ -15,6 +15,8 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.State;
+import com.flipkart.flux.domain.Status;
+import org.hibernate.Query;
 import org.hibernate.SessionFactory;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -40,6 +42,32 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Transactional
     public void updateState(State state) {
         super.update(state);
+    }
+
+    @Override
+    @Transactional
+    public void updateStatus(Long stateId, Status status) {
+        Query query = currentSession().createQuery("update State set status = :status where id = :stateId");
+        query.setString("status", status != null ? status.toString() : null);
+        query.setLong("stateId", stateId);
+        query.executeUpdate();
+    }
+
+    @Override
+    @Transactional
+    public void updateRollbackStatus(Long stateId, Status rollbackStatus) {
+        Query query = currentSession().createQuery("update State set rollbackStatus = :rollbackStatus where id = :stateId");
+        query.setString("rollbackStatus", rollbackStatus != null ? rollbackStatus.toString() : null);
+        query.setLong("stateId", stateId);
+        query.executeUpdate();
+    }
+
+    @Override
+    @Transactional
+    public void incrementRetryCount(Long stateId) {
+        Query query = currentSession().createQuery("update State set attemptedNoOfRetries = attemptedNoOfRetries + 1 where id = :stateId");
+        query.setLong("stateId", stateId);
+        query.executeUpdate();
     }
 
     @Override
