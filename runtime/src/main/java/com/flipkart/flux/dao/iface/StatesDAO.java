@@ -28,8 +28,11 @@ public interface StatesDAO {
     /** Updates a state in db */
     void updateState(State state);
 
-    /** Updates the statuses of a state*/
-    public void updateStatuses(Long stateId, Status status, Status rollbackStatus);
+    /** Updates status of a state*/
+    public void updateStatus(Long stateId, Status status);
+
+    /** Updates rollback status of a state */
+    public void updateRollbackStatus(Long stateId, Status rollbackStatus);
 
     /** Increments the attempted no.of retries of a state by 1 */
     void incrementRetryCount(Long stateId);

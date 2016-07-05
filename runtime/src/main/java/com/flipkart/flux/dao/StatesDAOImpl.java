@@ -44,21 +44,20 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         super.update(state);
     }
 
-    /** Updates status of state, if null is passed we skip updating that field */
     @Override
     @Transactional
-    public void updateStatuses(Long stateId, Status status, Status rollbackStatus) {
-        StringBuilder queryString = new StringBuilder("update State set ");
-        if(status != null) {
-            queryString.append("status = :status");
-            if(rollbackStatus != null) queryString.append(",");
-        }
-        if(rollbackStatus != null) queryString.append("rollbackStatus = :rollbackStatus");
-        queryString.append(" where id = :stateId");
+    public void updateStatus(Long stateId, Status status) {
+        Query query = currentSession().createQuery("update State set status = :status where id = :stateId");
+        query.setString("status", status.toString());
+        query.setLong("stateId", stateId);
+        query.executeUpdate();
+    }
 
-        Query query = currentSession().createQuery(queryString.toString());
-        if(status != null) query.setString("status", status.toString());
-        if (rollbackStatus != null) query.setString("rollbackStatus", rollbackStatus.toString());
+    @Override
+    @Transactional
+    public void updateRollbackStatus(Long stateId, Status rollbackStatus) {
+        Query query = currentSession().createQuery("update State set rollbackStatus = :rollbackStatus where id = :stateId");
+        query.setString("rollbackStatus", rollbackStatus.toString());
         query.setLong("stateId", stateId);
         query.executeUpdate();
     }
