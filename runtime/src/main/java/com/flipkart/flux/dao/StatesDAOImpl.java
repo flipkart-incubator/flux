@@ -48,7 +48,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Transactional
     public void updateStatus(Long stateId, Status status) {
         Query query = currentSession().createQuery("update State set status = :status where id = :stateId");
-        query.setString("status", status.toString());
+        query.setString("status", status != null ? status.toString() : null);
         query.setLong("stateId", stateId);
         query.executeUpdate();
     }
@@ -57,7 +57,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Transactional
     public void updateRollbackStatus(Long stateId, Status rollbackStatus) {
         Query query = currentSession().createQuery("update State set rollbackStatus = :rollbackStatus where id = :stateId");
-        query.setString("rollbackStatus", rollbackStatus.toString());
+        query.setString("rollbackStatus", rollbackStatus != null ? rollbackStatus.toString() : null);
         query.setLong("stateId", stateId);
         query.executeUpdate();
     }
