@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.domain;
+package com.flipkart.flux.api.core;
 
 /**
  * <code>FluxError</code> defines an error in the Flux runtime.

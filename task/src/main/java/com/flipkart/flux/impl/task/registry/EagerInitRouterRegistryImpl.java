@@ -29,7 +29,7 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.flipkart.flux.domain.FluxError;
+import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.impl.boot.ActorSystemManager;
 import com.flipkart.flux.impl.task.AkkaGatewayTask;
 import com.flipkart.polyguice.core.Initializable;

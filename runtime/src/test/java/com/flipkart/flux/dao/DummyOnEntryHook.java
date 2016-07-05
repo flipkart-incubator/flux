@@ -13,8 +13,8 @@
 
 package com.flipkart.flux.dao;
 
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.Hook;
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.core.Hook;
 
 /**
  * @author shyam.akirala
@@ -22,7 +22,7 @@ import com.flipkart.flux.domain.Hook;
 public class DummyOnEntryHook implements Hook {
 
     @Override
-    public void execute(Event[] events) {
+    public void execute(EventData[] events) {
         //DO SOMETHING
     }
 }

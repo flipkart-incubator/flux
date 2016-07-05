@@ -12,16 +12,18 @@
  */
 package com.flipkart.flux.impl.task;
 
-import com.flipkart.flux.client.registry.Executable;
-import com.flipkart.flux.client.registry.ExecutableRegistry;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.Task;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.core.Task;
+import com.flipkart.flux.client.registry.Executable;
+import com.flipkart.flux.client.registry.ExecutableRegistry;
+import com.flipkart.flux.domain.Event;
 
 /**
  * <code>TaskRegistry</code> maintains an in-memory registry of {@link Task} and their {@link Event} mappings. This registry is usually populated during Flux startup by inspecting
@@ -60,7 +62,7 @@ public class TaskRegistry {
 	 * @param task the Task
 	 * @param events array of EventS that the Task can process
 	 */
-	public void registerTask(AbstractTask task, Event[] events) {
+	public void registerTask(AbstractTask task, EventData[] events) {
 		this.eventsToTaskMap.put(TaskRegistry.getEventsKey(events), task);
 	}
 
@@ -105,9 +107,9 @@ public class TaskRegistry {
 	 * @param events Event[] array for creating key
 	 * @return String representing the EventS
 	 */
-	public static String getEventsKey(Event[] events) {
+	public static String getEventsKey(EventData[] events) {
 		StringBuilder sb = new StringBuilder();
-		for (Event event : events) {
+		for (EventData event : events) {
 			sb.append(event.getClass().getName());
 			sb.append("_");
 		}

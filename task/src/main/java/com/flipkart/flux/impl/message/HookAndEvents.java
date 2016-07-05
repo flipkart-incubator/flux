@@ -12,8 +12,9 @@
  */
 package com.flipkart.flux.impl.message;
 
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.core.Hook;
 import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.Hook;
 import com.flipkart.flux.impl.task.AbstractHook;
 import com.flipkart.flux.impl.task.AkkaHook;
 
@@ -28,10 +29,10 @@ public class HookAndEvents {
 
 	/** Member variables for this message*/
 	private AbstractHook hook;
-	private Event[] events;
+	private EventData[] events;
 	
 	/** Constructor with all member variables */
-	public HookAndEvents(AbstractHook hook, Event[] events) {
+	public HookAndEvents(AbstractHook hook, EventData[] events) {
 		super();
 		this.hook = hook;
 		this.events = events;
@@ -41,7 +42,7 @@ public class HookAndEvents {
 	public AbstractHook getHook() {
 		return hook;
 	}
-	public Event[] getEvents() {
+	public EventData[] getEvents() {
 		return events;
 	}
 	

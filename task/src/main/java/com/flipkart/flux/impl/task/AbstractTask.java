@@ -12,7 +12,7 @@
  */
 package com.flipkart.flux.impl.task;
 
-import com.flipkart.flux.domain.Task;
+import com.flipkart.flux.api.core.Task;
 
 /**
  * <code>AbstractTask</code> provides behavior common to all {@link Task} implementations such as methods to control concurrency, execution timeouts etc.

@@ -14,18 +14,16 @@
 
 package com.flipkart.flux.controller;
 
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.testkit.TestActorRef;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.dao.iface.EventsDAO;
-import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.impl.message.TaskAndEvents;
-import com.flipkart.flux.impl.task.registry.RouterRegistry;
-import com.flipkart.flux.MockActorRef;
-import com.flipkart.flux.util.TestUtils;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+import java.util.Collections;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,11 +31,19 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Arrays;
-import java.util.Collections;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.MockActorRef;
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.dao.iface.EventsDAO;
+import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.impl.message.TaskAndEvents;
+import com.flipkart.flux.impl.task.registry.RouterRegistry;
+import com.flipkart.flux.util.TestUtils;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.testkit.TestActorRef;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WorkFlowExecutionControllerTest {
@@ -78,7 +84,7 @@ public class WorkFlowExecutionControllerTest {
     public void testEventPost_shouldLookupRouterAndSendMessage() throws Exception {
         final EventData testEventData = new EventData("event1", "foo", "someStringData", "runtime");
         when(eventsDAO.findBySMIdAndName(1l, "event1")).thenReturn(new Event("event1", "foo", Event.EventStatus.pending, 1l, null, null));
-        Event[] expectedEvents = new Event[]{new Event("event1","someType", Event.EventStatus.triggered,1l,"someStringData","runtime")};
+        EventData[] expectedEvents = new EventData[]{new EventData("event1","someType","someStringData","runtime")};
         when(eventsDAO.findByEventNamesAndSMId(Collections.singleton("event1"),1l)).thenReturn(Arrays.asList(expectedEvents));
         when(eventsDAO.findTriggeredEventsNamesBySMId(1l)).thenReturn(Collections.singletonList("event1"));
         workFlowExecutionController.postEvent(testEventData, 1l, null);

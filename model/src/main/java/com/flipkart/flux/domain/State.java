@@ -65,10 +65,6 @@ public class State {
     private String outputEvent;
 
     /* Maintained by the execution engine */
-    /** List of errors during state transition*/
-    @Transient
-    private List<FluxError> errors;
-
     /** The Status of state transition execution*/
     @Enumerated(EnumType.STRING)
     private Status status;
@@ -183,12 +179,6 @@ public class State {
     public void setTimeout(Long timeout) {
         this.timeout = timeout;
     }
-    public List<FluxError> getErrors() {
-        return errors;
-    }
-    public void setErrors(List<FluxError> errors) {
-        this.errors = errors;
-    }
     public Status getStatus() {
         return status;
     }
@@ -221,7 +211,6 @@ public class State {
 
         if (createdAt != null ? !createdAt.equals(state.createdAt) : state.createdAt != null) return false;
         if (description != null ? !description.equals(state.description) : state.description != null) return false;
-        if (errors != null ? !errors.equals(state.errors) : state.errors != null) return false;
         if (name != null ? !name.equals(state.name) : state.name != null) return false;
         if (attemptedNoOfRetries != null ? !attemptedNoOfRetries.equals(state.attemptedNoOfRetries) : state.attemptedNoOfRetries != null) return false;
         if (onEntryHook != null ? !onEntryHook.equals(state.onEntryHook) : state.onEntryHook != null) return false;
@@ -252,7 +241,6 @@ public class State {
         result = 31 * result + (outputEvent != null ? outputEvent.hashCode() : 0);
         result = 31 * result + (retryCount != null ? retryCount.hashCode() : 0);
         result = 31 * result + (timeout != null ? timeout.hashCode() : 0);
-        result = 31 * result + (errors != null ? errors.hashCode() : 0);
         result = 31 * result + (status != null ? status.hashCode() : 0);
         result = 31 * result + (rollbackStatus != null ? rollbackStatus.hashCode() : 0);
         result = 31 * result + (attemptedNoOfRetries != null ? attemptedNoOfRetries.hashCode() : 0);
@@ -276,7 +264,6 @@ public class State {
                 ", retryCount=" + retryCount +
                 ", timeout=" + timeout +
                 ", dependencies=" + dependencies +
-                ", errors=" + errors +
                 ", status=" + status +
                 ", rollbackStatus=" + rollbackStatus +
                 ", attemptedNoOfRetries=" + attemptedNoOfRetries +

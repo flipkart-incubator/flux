@@ -20,10 +20,11 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.api.core.FluxError;
+import com.flipkart.flux.api.core.Task;
 import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.FluxError;
-import com.flipkart.flux.domain.Task;
 import com.flipkart.flux.impl.message.HookAndEvents;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.netflix.hystrix.HystrixCommand;
@@ -131,7 +132,7 @@ public class AkkaTask extends UntypedActor {
 	/**
 	 * Helper method to execute pre and post Task execution Hooks as independent Actor invocations
 	 */
-	private void executeHooks(List<AbstractHook> hooks, Event[] events) {
+	private void executeHooks(List<AbstractHook> hooks, EventData[] events) {
 		if (hooks != null) {
 			for (AbstractHook hook : hooks) {
 				HookAndEvents hookAndEvents = new HookAndEvents(hook, events);

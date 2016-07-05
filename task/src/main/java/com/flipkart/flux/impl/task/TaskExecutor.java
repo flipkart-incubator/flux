@@ -14,9 +14,10 @@
 package com.flipkart.flux.impl.task;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.core.FluxError;
+import com.flipkart.flux.api.core.Task;
 import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.FluxError;
-import com.flipkart.flux.domain.Task;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
@@ -39,7 +40,7 @@ public class TaskExecutor extends HystrixCommand<Event> {
 	private Task task;
 	
 	/** The events used in Task execution*/
-	private Event[] events;
+	private EventData[] events;
 	private final Long stateMachineId;
 	private final String outputeEventName;
 	// TODO - use a singleton instead
@@ -51,7 +52,7 @@ public class TaskExecutor extends HystrixCommand<Event> {
 	 * @param fluxRuntimeConnector
 	 * @param stateMachineId
 	 */
-	public TaskExecutor(AbstractTask task, Event[] events, Long stateMachineId,String outputeEventName) {
+	public TaskExecutor(AbstractTask task, EventData[] events, Long stateMachineId,String outputeEventName) {
         super(Setter
         		.withGroupKey(HystrixCommandGroupKey.Factory.asKey(task.getTaskGroupName()))
                 .andCommandKey(HystrixCommandKey.Factory.asKey(task.getName()))

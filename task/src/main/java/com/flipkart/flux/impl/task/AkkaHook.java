@@ -15,8 +15,8 @@ package com.flipkart.flux.impl.task;
 
 import java.util.concurrent.Future;
 
+import com.flipkart.flux.api.core.Hook;
 import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.Hook;
 import com.flipkart.flux.impl.message.HookAndEvents;
 import com.netflix.hystrix.HystrixCommand;
 

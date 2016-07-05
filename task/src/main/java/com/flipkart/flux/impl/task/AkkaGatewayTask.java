@@ -17,9 +17,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.inject.Inject;
 
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.core.Task;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.Task;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 
 import akka.actor.ActorRef;
