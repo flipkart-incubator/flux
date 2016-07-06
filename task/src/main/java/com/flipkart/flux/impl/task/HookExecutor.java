@@ -13,8 +13,8 @@
 
 package com.flipkart.flux.impl.task;
 
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.Hook;
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.core.Hook;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
@@ -39,13 +39,13 @@ public class HookExecutor extends HystrixCommand<HookExecutor.STATUS> {
 	private AbstractHook hook;
 	
 	/** The events used in Hook execution*/
-	private Event[] events;
+	private EventData[] events;
 
 	/**
 	 * Constructor for this class
 	 * @param hook the Hook to execute
 	 */
-	public HookExecutor(AbstractHook hook, Event[] events) {
+	public HookExecutor(AbstractHook hook, EventData[] events) {
         super(Setter
         		.withGroupKey(HystrixCommandGroupKey.Factory.asKey(hook.getHookGroupName()))
                 .andCommandKey(HystrixCommandKey.Factory.asKey(hook.getName()))

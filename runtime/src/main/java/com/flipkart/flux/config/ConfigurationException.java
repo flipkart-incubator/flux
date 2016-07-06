@@ -16,7 +16,7 @@
 
 package com.flipkart.flux.config;
 
-import com.flipkart.flux.domain.FluxError;
+import com.flipkart.flux.api.core.FluxError;
 
 /**
  * The <code>ConfigurationException</code> is sub-type of the {@link FluxError} for use in the configuration modules  

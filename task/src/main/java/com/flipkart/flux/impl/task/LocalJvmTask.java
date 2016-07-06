@@ -14,13 +14,16 @@
 
 package com.flipkart.flux.impl.task;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.client.registry.Executable;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.FluxError;
-import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.core.FluxError;
+import com.flipkart.flux.client.registry.Executable;
+import com.flipkart.flux.domain.Event;
+
+import javafx.util.Pair;
 
 /**
  * A task that can be executed locally within the same JVM
@@ -61,7 +64,7 @@ public class LocalJvmTask extends AbstractTask {
     }
 
     @Override
-    public Pair<Object, FluxError> execute(Event[] events) {
+    public Pair<Object, FluxError> execute(EventData[] events) {
         Object[] parameters = new Object[events.length];
         Class<?>[] parameterTypes = toInvoke.getParameterTypes();
         try {
@@ -70,10 +73,10 @@ public class LocalJvmTask extends AbstractTask {
             will fail for methods where we have mutliple params of the same type.
              */
             for (int i = 0 ; i < parameterTypes.length ; i++) {
-                for (Event anEvent : events) {
+                for (EventData anEvent : events) {
                     ClassLoader classLoader = toInvoke.getDeploymentUnitClassLoader() != null ? toInvoke.getDeploymentUnitClassLoader() : this.getClass().getClassLoader();
                     if(Class.forName(anEvent.getType(), true, classLoader).equals(parameterTypes[i])) {
-                        parameters[i] = objectMapper.readValue(anEvent.getEventData(), Class.forName(anEvent.getType(), true, classLoader));
+                        parameters[i] = objectMapper.readValue(anEvent.getData(), Class.forName(anEvent.getType(), true, classLoader));
                     }
                 }
                 if (parameters[i] == null) {

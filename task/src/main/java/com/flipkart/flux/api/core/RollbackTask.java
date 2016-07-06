@@ -11,7 +11,10 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.domain;
+package com.flipkart.flux.api.core;
+
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.domain.State;
 
 import javafx.util.Pair;
 
@@ -28,5 +31,5 @@ public interface RollbackTask extends Task {
      * Callback method to effect a rollback when state transition fails in the current State or a later one
      * @param rollbackTrigger the Pair of Event and/or FluxError that triggered the rollback
      */
-    public void rollback(Pair<Event,FluxError> rollbackTrigger);
+    public void rollback(Pair<EventData,FluxError> rollbackTrigger);
 }

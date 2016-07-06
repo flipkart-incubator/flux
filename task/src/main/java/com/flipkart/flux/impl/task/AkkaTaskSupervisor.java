@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.flipkart.flux.domain.FluxError;
+import com.flipkart.flux.api.core.FluxError;
 
 import akka.actor.OneForOneStrategy;
 import akka.actor.Props;

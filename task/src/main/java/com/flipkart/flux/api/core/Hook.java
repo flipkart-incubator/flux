@@ -11,7 +11,10 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.domain;
+package com.flipkart.flux.api.core;
+
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.domain.State;
 
 /**
  * <code>Hook</code> is user defined code that is executed asynchronously on entry or exit of a {@link State}
@@ -28,6 +31,6 @@ public interface Hook {
 	 * Executes this Hook asynchronous to State transition
 	 * @param events the EventS available on entry or while exiting a State
 	 */
-	public void execute(Event[] events);
+	public void execute(EventData[] events);
 
 }

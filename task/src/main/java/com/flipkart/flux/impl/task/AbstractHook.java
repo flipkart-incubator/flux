@@ -12,7 +12,7 @@
  */
 package com.flipkart.flux.impl.task;
 
-import com.flipkart.flux.domain.Hook;
+import com.flipkart.flux.api.core.Hook;
 
 /**
  * <code>AbstractHook</code> provides behavior common to all {@link Hook} implementations such as methods to control concurrency, execution timeouts etc.

@@ -14,12 +14,13 @@
 
 package com.flipkart.flux.impl.message;
 
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.Task;
-import com.flipkart.flux.impl.task.AkkaTask;
-
 import java.io.Serializable;
 import java.util.Arrays;
+
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.core.Task;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.impl.task.AkkaTask;
 
 /**
  * <code>TaskAndEvents</code> is a message that composes a {@link Task} identifier and the {@link Event}S that it processes.
@@ -34,7 +35,7 @@ public class TaskAndEvents implements Serializable {
     /* The string that uniquely identifies a client task to be executed */
     private String taskIdentifier;
     /* The set of events that have presently unblocked the task and whose data will be utilised during task execution */
-    private Event[] events;
+    private EventData[] events;
     /* The state machine id for which this execution message is raised */
     private Long stateMachineId;
     /* Serialised output event definition */
@@ -42,7 +43,7 @@ public class TaskAndEvents implements Serializable {
     /* The max retry count*/
     private long retryCount;
 
-    public TaskAndEvents(String taskName, String taskIdentifier, Event[] events, Long stateMachineId, String outputEvent, long retryCount) {
+    public TaskAndEvents(String taskName, String taskIdentifier, EventData[] events, Long stateMachineId, String outputEvent, long retryCount) {
     	this.taskName = taskName;
         this.taskIdentifier = taskIdentifier;
         this.events = events;
@@ -57,7 +58,7 @@ public class TaskAndEvents implements Serializable {
 	public String getTaskIdentifier() {
         return taskIdentifier;
     }
-    public Event[] getEvents() {
+    public EventData[] getEvents() {
         return this.events;
     }
     public Long getStateMachineId() {
