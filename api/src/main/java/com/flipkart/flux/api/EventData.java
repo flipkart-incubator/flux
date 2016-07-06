@@ -81,8 +81,8 @@ public class EventData {
         if (!name.equals(eventData.name)) return false;
         if (!type.equals(eventData.type)) return false;
         if (data != null ? !data.equals(eventData.data) : eventData.data != null) return false;
-        return eventSource.equals(eventData.eventSource);
-
+        if (eventSource != null ? !eventSource.equals(eventData.eventSource) : eventData.eventSource != null) return false;
+        return true;
     }
 
     @Override
@@ -90,7 +90,7 @@ public class EventData {
         int result = name.hashCode();
         result = 31 * result + type.hashCode();
         result = 31 * result + (data != null ? data.hashCode() : 0);
-        result = 31 * result + eventSource.hashCode();
+        result = 31 * result + (eventSource != null ? eventSource.hashCode() : 0);
         return result;
     }
 
