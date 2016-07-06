@@ -13,12 +13,12 @@
 
 package com.flipkart.flux.deploymentunit;
 
+import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.client.deploymentunit.ClassLoaderInjector;
 import com.flipkart.flux.client.intercept.TaskInterceptor;
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.registry.ExecutableImpl;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
-import com.flipkart.flux.domain.FluxError;
 import com.flipkart.polyguice.core.Initializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

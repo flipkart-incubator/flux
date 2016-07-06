@@ -19,22 +19,41 @@ import com.google.inject.Module;
 
 /**
  * <code>ClassLoaderInjector</code> is used by Flux Runtime during Executable Registry population to provide injected objects of User classes.
+ *
+ * If user wants to use guice injection in his code, he has to create an class extending this class and should pass the modules as parameters in default constructor's super call.
+ * Ex:
+ *  public class UserInjector extends ClassLoaderInjector {
+ *      public UserInjector() {
+ *          super(new UserModule1(), new UserModule2(), new UserModule3());
+ *      }
+ *  }
+ *
+ *  And in the deployment unit config file (flux_config.yml) user has to put an entry "injectorClass: user_injector_class_fqn"
+ *
  * @author shyam.akirala
  */
 public class ClassLoaderInjector {
 
     private static Injector injector;
 
+    /** This constructor would be called if used doesn't provide any injector class in the user config file */
     public ClassLoaderInjector() {
         injector = Guice.createInjector();
     }
 
+    /** Creates guice injector with specified modules */
     public ClassLoaderInjector(Module... modules){
         injector = Guice.createInjector(modules);
     }
 
+    /** Given a class, returns its instance */
     public Object getClassInstance(Class clazz) {
         return injector.getInstance(clazz);
+    }
+
+    /** Returns injector instance which user can use for his purposes */
+    public static Injector getInjector() {
+        return injector;
     }
 
 }

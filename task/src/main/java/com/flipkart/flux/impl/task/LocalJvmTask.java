@@ -14,16 +14,16 @@
 
 package com.flipkart.flux.impl.task;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.domain.Event;
-
 import javafx.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Method;
 
 /**
  * A task that can be executed locally within the same JVM
@@ -72,9 +72,9 @@ public class LocalJvmTask extends AbstractTask {
             While this works for methods with all unique param types, it
             will fail for methods where we have mutliple params of the same type.
              */
+            ClassLoader classLoader = toInvoke.getDeploymentUnitClassLoader() != null ? toInvoke.getDeploymentUnitClassLoader() : this.getClass().getClassLoader();
             for (int i = 0 ; i < parameterTypes.length ; i++) {
                 for (EventData anEvent : events) {
-                    ClassLoader classLoader = toInvoke.getDeploymentUnitClassLoader() != null ? toInvoke.getDeploymentUnitClassLoader() : this.getClass().getClassLoader();
                     if(Class.forName(anEvent.getType(), true, classLoader).equals(parameterTypes[i])) {
                         parameters[i] = objectMapper.readValue(anEvent.getData(), Class.forName(anEvent.getType(), true, classLoader));
                     }
@@ -84,8 +84,14 @@ public class LocalJvmTask extends AbstractTask {
                     throw new RuntimeException("Could not find a paramter of type " + parameterTypes[i]);
                 }
             }
+            Class objectMapper = classLoader.loadClass("com.fasterxml.jackson.databind.ObjectMapper");
+            Method writeValueAsString = objectMapper.getMethod("writeValueAsString", Object.class);
+
             final Object returnObject = toInvoke.execute(parameters);
-            return new Pair<>(returnObject,null);
+            Event returnEvent = null;
+            if(returnObject!=null)
+                returnEvent = new Event(null, returnObject.getClass().getCanonicalName(), null, null, (String) writeValueAsString.invoke(objectMapper.newInstance(), returnObject), null);
+            return new Pair<>(returnEvent,null);
         } catch (Exception e) {
             logger.warn("Bad things happened while trying to execute {}",toInvoke,e);
             return new Pair<>(null,new FluxError(FluxError.ErrorType.runtime,e.getMessage(),e));
