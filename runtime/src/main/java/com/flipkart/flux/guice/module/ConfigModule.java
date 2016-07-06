@@ -45,7 +45,7 @@ public class ConfigModule extends AbstractModule {
     public ConfigModule(URL configUrl) {
         try {
             this.configUrl = configUrl;
-            configProvider = new ApacheCommonsConfigProvider().location(configUrl.getPath());
+            configProvider = new ApacheCommonsConfigProvider().location(configUrl);
             yamlConfiguration = new YamlConfiguration(configUrl);
         } catch (IOException e) {
             throw new RuntimeException(e);

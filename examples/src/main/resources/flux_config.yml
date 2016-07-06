@@ -1,0 +1,10 @@
+workflowClasses: ["com.flipkart.flux.examples.decision.NotificationService",
+                  "com.flipkart.flux.examples.decision.UserDataService",
+                  "com.flipkart.flux.examples.decision.UserVerificationService",
+                  "com.flipkart.flux.examples.decision.UserVerificationWorkflow",
+                  "com.flipkart.flux.examples.concurrent.EmailDispatcher",
+                  "com.flipkart.flux.examples.concurrent.EmailMarketingWorkflow",
+                  "com.flipkart.flux.examples.externalevents.ManualSellerVerificationFlow",
+                  "com.flipkart.flux.examples.externalevents.ManualSellerVerificationService",
+                  "com.flipkart.flux.examples.externalevents.NotificationService",
+                  "com.flipkart.flux.examples.externalevents.SellerDataService"]

@@ -23,8 +23,6 @@ import java.util.UUID;
 
 public class RunManualSellerVerificationWorkflow {
     public static void main(String... args) throws Exception {
-        /* Bring up the flux runtime */
-//        FluxInitializer.main(new String[]{});
 
         /* Initialise _your_ module*/
         final Injector injector = Guice.createInjector(new FluxClientComponentModule(), new FluxClientInterceptorModule());

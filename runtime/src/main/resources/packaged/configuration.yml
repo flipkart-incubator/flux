@@ -37,4 +37,4 @@ runtime:
     configname: application.conf
     maxGatewayActorCreateRetries : 10
 
-deploymentUnitsPath: "/opt/workflows/"
+deploymentUnitsPath: "/tmp/workflows/"
