@@ -15,7 +15,6 @@ package com.flipkart.flux.examples.decision;
 
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
-import com.flipkart.flux.initializer.FluxInitializer;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -27,7 +26,7 @@ import com.google.inject.Injector;
 public class RunUserVerificationWorkflow {
     public static void main(String... args) throws Exception {
         /* Bring up the flux runtime */
-        FluxInitializer.main(new String[]{});
+//        FluxInitializer.main(new String[]{});
 
         /* Initialise _your_ module*/
         final Injector injector = Guice.createInjector(new FluxClientComponentModule(), new FluxClientInterceptorModule());

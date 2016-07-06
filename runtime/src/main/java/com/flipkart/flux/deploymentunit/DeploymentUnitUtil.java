@@ -16,7 +16,9 @@ package com.flipkart.flux.deploymentunit;
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.model.Workflow;
 import com.flipkart.polyguice.config.YamlConfiguration;
+import com.google.inject.Inject;
 
+import javax.inject.Named;
 import javax.inject.Singleton;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,10 +27,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * <code>DeploymentUnitUtil</code> performs operations on deployment units.
@@ -46,14 +45,21 @@ public class DeploymentUnitUtil {
     /** Key in the config file, which has list of workflow/task class FQNs*/
     private static final String WORKFLOW_CLASSES = "workflowClasses";
 
+    private static final String SLASH = "/";
+
     /** Location of deployment units on the system*/
-    private static final String DEPLOYMENT_UNITS_PATH = "/opt/workflows/";
+    @Inject(optional=true) @Named("deploymentUnitsPath")
+    private String DEPLOYMENT_UNITS_PATH;
 
     /** Lists all deployment unit names*/ //todo: currently it's by directory scanning, will change it accordingly once we decide on where to store deployment units
-    public static List<String> getAllDeploymentUnits() {
-        File file = new File(DEPLOYMENT_UNITS_PATH);
-        String[] directories = file.list((current, name) -> new File(current, name).isDirectory());
-        return Arrays.asList(directories);
+    public List<String> getAllDeploymentUnits() {
+        if(DEPLOYMENT_UNITS_PATH != null) {
+            File file = new File(DEPLOYMENT_UNITS_PATH);
+            String[] directories = file.list((current, name) -> new File(current, name).isDirectory());
+            return Arrays.asList(directories);
+        } else {
+            return new ArrayList<>();
+        }
     }
 
     /**
@@ -63,7 +69,12 @@ public class DeploymentUnitUtil {
      * @throws MalformedURLException
      */
     public URLClassLoader getClassLoader(String deploymentUnitName) throws MalformedURLException, FileNotFoundException {
-        return ClassLoaderProvider.getClassLoader(deploymentUnitName);
+        StringBuilder deploymentUnitFQN = new StringBuilder(DEPLOYMENT_UNITS_PATH);
+        if(!DEPLOYMENT_UNITS_PATH.endsWith(SLASH))
+            deploymentUnitFQN.append(SLASH);
+        deploymentUnitFQN.append(deploymentUnitName);
+        deploymentUnitFQN.append(SLASH);
+        return ClassLoaderProvider.getClassLoader(deploymentUnitFQN.toString());
     }
 
     /**
@@ -160,21 +171,19 @@ public class DeploymentUnitUtil {
          * |_____ flux_config.yml   //properties file
          *
          * The constructed class loader is independent and doesn't share anything with System class loader.
-         * @param deploymentUnitName
+         * @param deploymentUnitFQN
          * @return URLClassLoader
          * @throws java.net.MalformedURLException
          */
-        public static URLClassLoader getClassLoader(String deploymentUnitName) throws MalformedURLException, FileNotFoundException {
+        public static URLClassLoader getClassLoader(String deploymentUnitFQN) throws MalformedURLException, FileNotFoundException {
 
-            String directory = DEPLOYMENT_UNITS_PATH + deploymentUnitName + "/";
-
-            File[] mainJars = new File(directory+"main").listFiles();
-            File[] libJars = new File(directory+"lib").listFiles();
+            File[] mainJars = new File(deploymentUnitFQN+"main").listFiles();
+            File[] libJars = new File(deploymentUnitFQN+"lib").listFiles();
 
             if(mainJars == null)
-                throw new FileNotFoundException("Unable to build class loader. Required directory "+directory+"main is empty.");
+                throw new FileNotFoundException("Unable to build class loader. Required directory "+deploymentUnitFQN+"main is empty.");
 
-            File configFile = new File(directory+CONFIG_FILE);
+            File configFile = new File(deploymentUnitFQN+CONFIG_FILE);
             if(!configFile.isFile())
                 throw new FileNotFoundException("Unable to build class loader. Config file not found");
 
@@ -195,7 +204,7 @@ public class DeploymentUnitUtil {
                 }
             }
 
-            urls[urlIndex] = new File(directory).toURI().toURL();
+            urls[urlIndex] = new File(deploymentUnitFQN).toURI().toURL();
 
             return new URLClassLoader(urls, null);
         }

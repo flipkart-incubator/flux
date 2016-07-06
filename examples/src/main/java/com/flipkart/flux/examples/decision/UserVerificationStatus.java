@@ -42,6 +42,13 @@ public class UserVerificationStatus implements Event {
         return verified;
     }
 
+    public void setVerified(Boolean verified) {
+        this.verified = verified;
+    }
+
+    public void setUserId(UserId userId) {
+        this.userId = userId;
+    }
 
     public UserId getUserId() {
         return userId;

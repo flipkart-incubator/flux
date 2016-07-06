@@ -60,7 +60,7 @@ public class ExecutableRegistryPopulator implements Initializable {
     @Override
     public void initialize() {
         routerNames = new HashSet<String>();
-        List<String> deploymentUnitNames = DeploymentUnitUtil.getAllDeploymentUnits();
+        List<String> deploymentUnitNames = deploymentUnitUtil.getAllDeploymentUnits();
         for(String deploymentUnitName : deploymentUnitNames) {
             try {
                 URLClassLoader classLoader = deploymentUnitUtil.getClassLoader(deploymentUnitName);

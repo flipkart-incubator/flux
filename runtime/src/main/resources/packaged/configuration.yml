@@ -36,3 +36,5 @@ runtime:
     name: FluxSystem
     configname: application.conf
     maxGatewayActorCreateRetries : 10
+
+deploymentUnitsPath: "/opt/workflows/"
