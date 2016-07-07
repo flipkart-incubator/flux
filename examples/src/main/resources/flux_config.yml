@@ -1,3 +1,4 @@
+guiceModuleClass: "com.flipkart.flux.examples.externalevents.SellerVerificationWorkflowModule"
 workflowClasses: ["com.flipkart.flux.examples.decision.NotificationService",
                   "com.flipkart.flux.examples.decision.UserDataService",
                   "com.flipkart.flux.examples.decision.UserVerificationService",

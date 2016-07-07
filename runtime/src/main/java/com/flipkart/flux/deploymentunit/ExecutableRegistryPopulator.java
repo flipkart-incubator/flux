@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * <code>ExecutableRegistryPopulator</code> reads the available deployment units and puts the methods
+ * which are annotated with {@link com.flipkart.flux.client.model.Task} in Executable Registry for the later execution.
  * @author shyam.akirala
  */
 @Singleton
@@ -61,35 +63,47 @@ public class ExecutableRegistryPopulator implements Initializable {
     public void initialize() {
         routerNames = new HashSet<String>();
         List<String> deploymentUnitNames = deploymentUnitUtil.getAllDeploymentUnits();
+
+        //for each deployment unit
         for(String deploymentUnitName : deploymentUnitNames) {
             try {
+
+                //create a class loader and get required classes from it
                 URLClassLoader classLoader = deploymentUnitUtil.getClassLoader(deploymentUnitName);
                 Class TaskClass = classLoader.loadClass(Task.class.getCanonicalName());
-                Class InjectorClass;
-                String injectorClassName = String.valueOf(deploymentUnitUtil.getProperties(classLoader).getProperty("injectorClass"));
-                if(injectorClassName == null || injectorClassName.trim().isEmpty() || injectorClassName.equals("null"))
-                    InjectorClass = classLoader.loadClass(ClassLoaderInjector.class.getCanonicalName());
+                Class InjectorClass = classLoader.loadClass(ClassLoaderInjector.class.getCanonicalName());
+                Method getClassInstanceMethod = InjectorClass.getMethod("getClassInstance", Class.class);
+                Class guiceModuleClass = classLoader.loadClass("com.google.inject.Module");
+
+                Object injectorClassInstance;
+                String DUModuleClassFQN = String.valueOf(deploymentUnitUtil.getProperties(classLoader).getProperty("guiceModuleClass"));
+
+                //check if user has specified any guice module class name in deployment unit configuration file, if not create an empty injector
+                if(DUModuleClassFQN == null || DUModuleClassFQN.trim().isEmpty() || DUModuleClassFQN.equals("null"))
+                    injectorClassInstance = InjectorClass.newInstance();
                 else {
-                    InjectorClass = classLoader.loadClass(injectorClassName);
+                    injectorClassInstance = InjectorClass.getConstructor(guiceModuleClass).newInstance(classLoader.loadClass(DUModuleClassFQN).newInstance());
                 }
-                Method getClassInstance = InjectorClass.getMethod("getClassInstance", Class.class);
-                Object injectorClassInstance = InjectorClass.newInstance();
 
                 Set<Method> taskMethods = deploymentUnitUtil.getTaskMethods(classLoader);
+                //for every task method found in the deployment unit create an executable and keep it in executable registry
                 for(Method method : taskMethods) {
                     String taskIdentifier = taskInterceptor.generateTaskIdentifier(method);
                     Annotation taskAnnotation = method.getAnnotationsByType(TaskClass)[0];
                     Class<? extends Annotation> annotationType = taskAnnotation.annotationType();
-                    long timeout = 60;
+                    long timeout = 1000l; //default timeout
                     for (Method annotationMethod : annotationType.getDeclaredMethods()) {
                         Object value = annotationMethod.invoke(taskAnnotation, (Object[])null);
                         if(annotationMethod.getName().equals("timeout")) { //todo: find a way get Task.timeout() name
                             timeout = (Long) value;
                         }
                     }
-                    Object singletonMethodOwner = getClassInstance.invoke(injectorClassInstance, method.getDeclaringClass());
+
+                    Object singletonMethodOwner = getClassInstanceMethod.invoke(injectorClassInstance, method.getDeclaringClass());
                     executableRegistry.registerTask(taskIdentifier, new ExecutableImpl(singletonMethodOwner, method, timeout, classLoader));
-                    routerNames.add(method.getDeclaringClass().getName() + "_" + method.getName());
+
+                    //add the router name to deployment unit routers
+                    routerNames.add(method.getDeclaringClass().getName() + "_" + method.getName()); //convention: task router name is classFQN_taskMethodName
                 }
             } catch (Exception e) {
                 LOGGER.error("Unable to populate Executable Registry for deployment unit: "+deploymentUnitName+". Exception: "+e.getMessage());

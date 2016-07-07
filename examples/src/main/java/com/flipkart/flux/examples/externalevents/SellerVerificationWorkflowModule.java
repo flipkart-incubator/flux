@@ -18,9 +18,11 @@ import com.google.inject.AbstractModule;
 /**
  * @author shyam.akirala
  */
-public class SellerVerificationWorkflowModule extends AbstractModule {
+public class SellerVerificationWorkflowModule extends AbstractModule{
+
     @Override
     protected void configure() {
-        System.out.println("[SellerVerificationWorkflowModule] configuring........");
+        //install other modules
+        System.out.println("Configuring example deployment unit..........");
     }
 }
