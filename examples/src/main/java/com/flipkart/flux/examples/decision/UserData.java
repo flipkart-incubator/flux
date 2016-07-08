@@ -13,7 +13,6 @@
 
 package com.flipkart.flux.examples.decision;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flipkart.flux.client.model.Event;
 

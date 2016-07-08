@@ -16,6 +16,8 @@ package com.flipkart.flux.client.model;
 /**
  * <Code>FluxContext</Code> can be used to provide a Task's context as maintained by Flux
  * This is currently limited to providing the taskId and its start time, but will be enhanced for other functionality
+ *
+ * @author yogesh.nachnani
  */
 public interface FluxContext {
     public String retrieveTaskToken();

@@ -15,6 +15,8 @@ package com.flipkart.flux.client.model;
 
 /**
  * Adapter class that provides empty implementations of preEntry and postEntry methods of a <Code>Hook</Code>
+ *
+ * @author yogesh.nachnani
  */
 public class HookAdapter implements Hook {
     public void preEntry(FluxContext context) {

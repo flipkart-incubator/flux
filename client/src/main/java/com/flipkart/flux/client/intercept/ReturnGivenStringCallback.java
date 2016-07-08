@@ -13,7 +13,6 @@
 
 package com.flipkart.flux.client.intercept;
 
-import com.flipkart.flux.client.runtime.LocalContext;
 import net.sf.cglib.proxy.FixedValue;
 
 import javax.inject.Inject;
@@ -24,6 +23,8 @@ import javax.inject.Singleton;
  * This callback will return the string value that was passed to it.
  * Generally, the <code>CallbackFilter</code> would determine which method this callback should be invoked for
  * For usage, see @TaskInterceptor
+ *
+ * @author yogesh.nachnani
  */
 @Singleton
 public class ReturnGivenStringCallback implements FixedValue {

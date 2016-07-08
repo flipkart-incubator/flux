@@ -25,7 +25,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 /**
- *  Boots various components one after the other. This is makeshift - till we get something equivalent to trooper
+ *  <code>OrderedComponentBooter</code> boots various components one after the other. This is makeshift - till we get something equivalent to trooper
  *  (https://github.com/regunathb/Trooper)
  *  @author yogesh.nachnani
  */

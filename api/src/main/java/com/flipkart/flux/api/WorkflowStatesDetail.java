@@ -14,7 +14,6 @@
 package com.flipkart.flux.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.flipkart.flux.api.WorkflowStateDetail;
 
 import java.util.List;
 

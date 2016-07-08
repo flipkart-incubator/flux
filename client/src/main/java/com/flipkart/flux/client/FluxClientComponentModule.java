@@ -23,6 +23,11 @@ import com.google.inject.Provides;
 
 import javax.inject.Singleton;
 
+/**
+ * <code>FluxClientComponentModule</code> is a Guice {@link AbstractModule} implementation
+ * which wires and provides classes to support task execution.
+ * @author yogesh.nachnani
+ */
 public class FluxClientComponentModule extends AbstractModule {
     @Override
     protected void configure() {

@@ -120,11 +120,11 @@ public class LocalContext {
         return event.name() + currentEventNumber;
     }
 
-    /*
-        Checks if the given definition already exists as part of the current state machine.
-        Also, throws an <code>IllegalInvocationException</code> when it encounters that the given definition's
-        name is already used by another definition with a different type
-      */
+    /**
+     * Checks if the given definition already exists as part of the current state machine.
+     * Also, throws an <code>IllegalInvocationException</code> when it encounters that the given definition's
+     * name is already used by another definition with a different type
+     */
     public EventDefinition checkExistingDefinition(final EventDefinition givenDefinition) {
         /* This may seem like an expensive operation, we can optimise if necessary */
         final StateMachineDefinition stateMachineDefinition = this.stateMachineDefinition.get();

@@ -26,6 +26,8 @@ import java.lang.annotation.*;
  * and not in any of its superclasse(s).
  * Although it is possible to search the entire class hierarchy for the presence of this annotation, it makes the code
  * harder to reason about and error prone.
+ *
+ * @author yogesh.nachnani
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

@@ -13,31 +13,6 @@
 
 package com.flipkart.flux.resource;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
-import javax.transaction.Transactional;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
@@ -53,10 +28,28 @@ import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.google.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Named;
+import javax.inject.Singleton;
+import javax.transaction.Transactional;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
- * @understands Exposes APIs for end users
+ * <code>StateMachineResource</code> exposes APIs to perform state machine related operations. Ex: Creating SM, receiving event for a SM
+ * @author shyam.akirala
+ * @author yogesh
+ * @author regunath.balasubramanian
  */
 
 @Singleton
@@ -66,6 +59,7 @@ public class StateMachineResource {
 
     /** Single white space label to denote start of processing i.e. the Trigger*/
 	private static final String TRIGGER = " ";
+
     public static final String CORRELATION_ID = "correlationId";
 
     StateMachinePersistenceService stateMachinePersistenceService;
@@ -87,6 +81,7 @@ public class StateMachineResource {
         objectMapper = new ObjectMapper();
     }
 
+    /** Logger instance for this class*/
     private static final Logger logger = LoggerFactory.getLogger(StateMachineResource.class);
 
     /**

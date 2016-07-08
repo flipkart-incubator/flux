@@ -19,6 +19,8 @@ package com.flipkart.flux.client.intercept;
  * This can happen in race conditions where freshly loaded code in another JVM triggers a workflow and the given
  * classes are yet to be loaded on to this particular JVM.
  * // TODO: Is there a way we can avoid this?
+ *
+ * @author yogesh.nachnani
  */
 public class UnknownIdentifierException extends RuntimeException {
     public UnknownIdentifierException(String message) {

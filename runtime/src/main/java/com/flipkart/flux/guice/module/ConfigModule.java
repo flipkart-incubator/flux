@@ -13,18 +13,16 @@
 
 package com.flipkart.flux.guice.module;
 
-import static com.flipkart.flux.constant.RuntimeConstants.CONFIGURATION_YML;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.Iterator;
-
 import com.flipkart.polyguice.config.ApacheCommonsConfigProvider;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import com.flipkart.polyguice.core.ConfigurationProvider;
 import com.google.inject.AbstractModule;
 import com.google.inject.binder.LinkedBindingBuilder;
 import com.google.inject.name.Names;
+
+import java.io.IOException;
+import java.net.URL;
+import java.util.Iterator;
 
 /**
  * <code>ConfigModule</code> is a Guice {@link AbstractModule} implementation used for wiring flux configuration.
