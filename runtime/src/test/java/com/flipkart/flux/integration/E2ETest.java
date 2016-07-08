@@ -55,6 +55,9 @@ public class E2ETest {
     public void testSimpleWorkflowE2E() throws Exception {
         /* Invocation */
         simpleWorkflow.simpleDummyWorkflow(new StringEvent("startingEvent"));
+        
+        // sleep for a while to let things complete and then eval results and shutdown
+        Thread.sleep(2000L);
 
         /* Asserts*/
         final Set<StateMachine> smInDb = stateMachinesDAO.findByNameAndVersion("com.flipkart.flux.integration.SimpleWorkflow_simpleDummyWorkflow_void_com.flipkart.flux.integration.StringEvent", 1l);

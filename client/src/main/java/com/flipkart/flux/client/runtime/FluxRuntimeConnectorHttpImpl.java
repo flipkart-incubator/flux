@@ -133,11 +133,9 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         HttpPost httpPostRequest;
         httpPostRequest = new HttpPost(fluxEndpoint + pathSuffix);
         try {
-        	if (dataToPost != null) { // post data may be null
-	            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-	            objectMapper.writeValue(byteArrayOutputStream, dataToPost);
-	            httpPostRequest.setEntity(new ByteArrayEntity(byteArrayOutputStream.toByteArray(), ContentType.APPLICATION_JSON));
-        	}
+            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            objectMapper.writeValue(byteArrayOutputStream, dataToPost);
+            httpPostRequest.setEntity(new ByteArrayEntity(byteArrayOutputStream.toByteArray(), ContentType.APPLICATION_JSON));
             httpResponse = closeableHttpClient.execute(httpPostRequest);
             final int statusCode = httpResponse.getStatusLine().getStatusCode();
             if (statusCode >= Response.Status.OK.getStatusCode() && statusCode < Response.Status.MOVED_PERMANENTLY.getStatusCode() ) {

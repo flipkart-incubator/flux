@@ -49,6 +49,7 @@ public class TaskModule extends AbstractModule {
         requestStaticInjection(AkkaTask.class);
         requestStaticInjection(AkkaGatewayTask.class);
         requestStaticInjection(AkkaTaskSupervisor.class);
+        requestStaticInjection(AkkaTask.class);
         requireBinding(ExecutableRegistry.class);
     }
 

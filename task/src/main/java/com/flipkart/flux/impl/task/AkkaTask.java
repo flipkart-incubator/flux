@@ -22,8 +22,10 @@ import javax.inject.Named;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.api.Status;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.api.core.Task;
+import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.impl.message.HookAndEvents;
 import com.flipkart.flux.impl.message.TaskAndEvents;
@@ -59,6 +61,10 @@ public class AkkaTask extends UntypedActor {
 	@Inject
     private static TaskRegistry taskRegistry;
 
+	/** The Flux Runtime Connector instance for dispatching processed EventS and execution status updates*/
+	@Inject
+	private static FluxRuntimeConnector fluxRuntimeConnector;
+	
     /** Router instance for the Hook actors*/
     @Inject
     @Named("HookRouter")
@@ -76,6 +82,8 @@ public class AkkaTask extends UntypedActor {
 			FluxError fluxError = (FluxError)reason;
 			TaskAndEvents taskAndEvent = (TaskAndEvents)message.get();
 			taskAndEvent.setCurrentRetryCount(fluxError.getExecutionContextMeta().getAttemptedNoOfRetries() + 1); // increment the retry count
+			// update the Flux runtime incrementing the retry count for the Task
+			fluxRuntimeConnector.incrementExecutionRetries(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId());
 			// we reschedule the message back on this Actor to see if it goes through when retried. TODO : Uses a fixed 1 second time delay and no exponential backoff for now
 			getContext().system().scheduler().scheduleOnce(
 					FiniteDuration.create(1, TimeUnit.SECONDS),
@@ -96,13 +104,18 @@ public class AkkaTask extends UntypedActor {
 			logger.debug("Received directive {}", taskAndEvent);
 		 	AbstractTask task = this.taskRegistry.retrieveTask(taskAndEvent.getTaskIdentifier());
 			if (task != null) {
+				// update the Flux runtime with status of the Task as running
+				fluxRuntimeConnector.updateExecutionStatus(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.running);
 				// Execute any pre-exec HookS
 				this.executeHooks(this.taskRegistry.getPreExecHooks(task), taskAndEvent.getEvents());
 				final String outputEventName = getOutputEventName(taskAndEvent);
 				final TaskExecutor taskExecutor = new TaskExecutor(task, taskAndEvent.getEvents(), taskAndEvent.getStateMachineId(), outputEventName);
 				Event outputEvent = null;
+				// update the 
 				try {
 					outputEvent = taskExecutor.execute();
+					// update the Flux runtime with status of the Task as completed
+					fluxRuntimeConnector.updateExecutionStatus(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.completed);
 				} catch (HystrixRuntimeException hre) {
 					if (taskExecutor.isResponseTimedOut()) {
 						throw new FluxError(FluxError.ErrorType.timeout, "Execution timeout for : " + task.getName(), 
@@ -110,6 +123,9 @@ public class AkkaTask extends UntypedActor {
 								new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(),
 										taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
 					}
+				} catch (Exception e) {
+					// mark the task outcome as execution failure
+					fluxRuntimeConnector.updateExecutionStatus(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.errored);
 				} finally {
 					if (outputEvent != null) {
 						getSender().tell(outputEvent, getContext().parent()); // we send back the parent Supervisor Actor as the sender

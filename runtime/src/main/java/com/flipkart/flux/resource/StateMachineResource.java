@@ -155,16 +155,22 @@ public class StateMachineResource {
 		switch (status) {
 			case initialized:
 				updateStatus = com.flipkart.flux.domain.Status.initialized;
+				break;
 			case running:
 				updateStatus = com.flipkart.flux.domain.Status.running;
+				break;
 			case completed:
 				updateStatus = com.flipkart.flux.domain.Status.completed;
+				break;
 			case cancelled:
 				updateStatus = com.flipkart.flux.domain.Status.cancelled;
+				break;
 			case errored:
 				updateStatus = com.flipkart.flux.domain.Status.errored;
+				break;
 			case sidelined:
 				updateStatus = com.flipkart.flux.domain.Status.sidelined;
+				break;
     	}
 		this.workFlowExecutionController.updateExecutionStatus(machineId, stateId, updateStatus);
     	return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
