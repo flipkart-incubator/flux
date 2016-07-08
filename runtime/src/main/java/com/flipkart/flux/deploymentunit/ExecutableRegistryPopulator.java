@@ -14,12 +14,12 @@
 package com.flipkart.flux.deploymentunit;
 
 import com.flipkart.flux.api.core.FluxError;
-import com.flipkart.flux.client.deploymentunit.ClassLoaderInjector;
 import com.flipkart.flux.client.intercept.TaskInterceptor;
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.registry.ExecutableImpl;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.polyguice.core.Initializable;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +71,7 @@ public class ExecutableRegistryPopulator implements Initializable {
                 //create a class loader and get required classes from it
                 URLClassLoader classLoader = deploymentUnitUtil.getClassLoader(deploymentUnitName);
                 Class TaskClass = classLoader.loadClass(Task.class.getCanonicalName());
-                Class InjectorClass = classLoader.loadClass(ClassLoaderInjector.class.getCanonicalName());
+                Class InjectorClass = loadClassLoaderInjector(classLoader);
                 Method getClassInstanceMethod = InjectorClass.getMethod("getClassInstance", Class.class);
                 Class guiceModuleClass = classLoader.loadClass("com.google.inject.Module");
 
@@ -111,6 +111,36 @@ public class ExecutableRegistryPopulator implements Initializable {
             }
         }
 
+    }
+
+    /**
+     * Loads {@Link ClassLoaderInjector} class into given deployment unit's class loader and returns it.
+     * @param deploymentUnitClassLoader
+     * @return ClassLoaderInjector class
+     */
+    private Class loadClassLoaderInjector(ClassLoader deploymentUnitClassLoader) {
+        try {
+            //Convert the class into bytes
+            byte[] classBytes = IOUtils.toByteArray(this.getClass().getResourceAsStream("/com/flipkart/flux/deploymentunit/ClassLoaderInjector.class"));
+
+            Class classLoaderInjectorClass;
+            Class classLoaderClass = Class.forName("java.lang.ClassLoader");
+            java.lang.reflect.Method method = classLoaderClass.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class);
+
+            // protected method invocation
+            method.setAccessible(true);
+            try {
+                Object[] args = new Object[]{ClassLoaderInjector.class.getCanonicalName(), classBytes, 0, classBytes.length};
+                classLoaderInjectorClass = (Class) method.invoke(deploymentUnitClassLoader, args);
+            } finally {
+                method.setAccessible(false);
+            }
+
+            return classLoaderInjectorClass;
+        } catch (Exception e) {
+            LOGGER.error("Unable to load class ClassLoaderInjector into deployment unit's class loader. Exception: " + e.getMessage());
+            throw new RuntimeException("Unable to load class ClassLoaderInjector into deployment unit's class loader. Exception: " + e.getMessage());
+        }
     }
 
     public Set<String> getDeploymentUnitRouterNames() {

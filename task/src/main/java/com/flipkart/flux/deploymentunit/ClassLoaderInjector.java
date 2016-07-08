@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.client.deploymentunit;
+package com.flipkart.flux.deploymentunit;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
