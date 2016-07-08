@@ -46,27 +46,30 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
-    public void updateStatus(Long stateId, Status status) {
-        Query query = currentSession().createQuery("update State set status = :status where id = :stateId");
+    public void updateStatus(Long stateId, Long stateMachineId, Status status) {
+        Query query = currentSession().createQuery("update State set status = :status where id = :stateId and stateMachineId = :stateMachineId");
         query.setString("status", status != null ? status.toString() : null);
         query.setLong("stateId", stateId);
+        query.setLong("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
 
     @Override
     @Transactional
-    public void updateRollbackStatus(Long stateId, Status rollbackStatus) {
-        Query query = currentSession().createQuery("update State set rollbackStatus = :rollbackStatus where id = :stateId");
+    public void updateRollbackStatus(Long stateId, Long stateMachineId, Status rollbackStatus) {
+        Query query = currentSession().createQuery("update State set rollbackStatus = :rollbackStatus where id = :stateId and stateMachineId = :stateMachineId");
         query.setString("rollbackStatus", rollbackStatus != null ? rollbackStatus.toString() : null);
         query.setLong("stateId", stateId);
+        query.setLong("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
 
     @Override
     @Transactional
-    public void incrementRetryCount(Long stateId) {
-        Query query = currentSession().createQuery("update State set attemptedNoOfRetries = attemptedNoOfRetries + 1 where id = :stateId");
+    public void incrementRetryCount(Long stateId, Long stateMachineId) {
+        Query query = currentSession().createQuery("update State set attemptedNoOfRetries = attemptedNoOfRetries + 1 where id = :stateId and stateMachineId = :stateMachineId");
         query.setLong("stateId", stateId);
+        query.setLong("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
 

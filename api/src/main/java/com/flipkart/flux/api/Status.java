@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.domain;
+package com.flipkart.flux.api;
 /**
  * <code>Status</code> Describes the current status of execution {@link Task} within a {@link State}
  * 

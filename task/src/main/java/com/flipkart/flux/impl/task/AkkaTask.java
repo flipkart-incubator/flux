@@ -72,12 +72,17 @@ public class AkkaTask extends UntypedActor {
 	 * @see akka.actor.UntypedActor#preRestart(java.lang.Throwable, scala.Option)
 	 */
 	public void preRestart(Throwable reason, Option<Object> message) {
-		// we reschedule the message back on this Actor to see if it goes through when retried. TODO : Uses a fixed 1 second time delay and no exponential backoff for now
-		getContext().system().scheduler().scheduleOnce(
-				FiniteDuration.create(1, TimeUnit.SECONDS),
-				getSelf(),
-				message.get(), 
-				getContext().system().dispatcher(), null);
+		if (FluxError.class.isAssignableFrom(reason.getClass()) && TaskAndEvents.class.isAssignableFrom(message.get().getClass())) {
+			FluxError fluxError = (FluxError)reason;
+			TaskAndEvents taskAndEvent = (TaskAndEvents)message.get();
+			taskAndEvent.setCurrentRetryCount(fluxError.getExecutionContextMeta().getAttemptedNoOfRetries() + 1); // increment the retry count
+			// we reschedule the message back on this Actor to see if it goes through when retried. TODO : Uses a fixed 1 second time delay and no exponential backoff for now
+			getContext().system().scheduler().scheduleOnce(
+					FiniteDuration.create(1, TimeUnit.SECONDS),
+					getSelf(),
+					taskAndEvent, 
+					getContext().system().dispatcher(), null);
+		}
 	}
 
 	/**
@@ -100,7 +105,10 @@ public class AkkaTask extends UntypedActor {
 					outputEvent = taskExecutor.execute();
 				} catch (HystrixRuntimeException hre) {
 					if (taskExecutor.isResponseTimedOut()) {
-						throw new FluxError(FluxError.ErrorType.timeout, "Execution timeout for : " + task.getName(), null, false);
+						throw new FluxError(FluxError.ErrorType.timeout, "Execution timeout for : " + task.getName(), 
+								null, false, 
+								new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(),
+										taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
 					}
 				} finally {
 					if (outputEvent != null) {

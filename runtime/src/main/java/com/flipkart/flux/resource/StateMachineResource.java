@@ -13,6 +13,31 @@
 
 package com.flipkart.flux.resource;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.inject.Named;
+import javax.inject.Singleton;
+import javax.transaction.Transactional;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
@@ -28,18 +53,6 @@ import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.google.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
-import javax.transaction.Transactional;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
 
 
 /**
@@ -124,7 +137,55 @@ public class StateMachineResource {
         return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
     }
 
-
+    /**
+     * Updates the status of the specified Task under the specified State machine
+     * @param machineId the state machine identifier
+     * @param stateId the task/state identifier
+     * @param status the Status 
+     * @return Response with execution status code
+     * @throws Exception
+     */
+    @POST
+    @Path("/{machineId}/{stateId}/status")
+    public Response updateStatus(@PathParam("machineId") Long machineId,
+                                @PathParam("stateId") Long stateId,
+                                com.flipkart.flux.api.Status status
+                            ) throws Exception {
+    	com.flipkart.flux.domain.Status updateStatus = null;
+		switch (status) {
+			case initialized:
+				updateStatus = com.flipkart.flux.domain.Status.initialized;
+			case running:
+				updateStatus = com.flipkart.flux.domain.Status.running;
+			case completed:
+				updateStatus = com.flipkart.flux.domain.Status.completed;
+			case cancelled:
+				updateStatus = com.flipkart.flux.domain.Status.cancelled;
+			case errored:
+				updateStatus = com.flipkart.flux.domain.Status.errored;
+			case sidelined:
+				updateStatus = com.flipkart.flux.domain.Status.sidelined;
+    	}
+		this.workFlowExecutionController.updateExecutionStatus(machineId, stateId, updateStatus);
+    	return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
+    }
+    
+    /**
+     * Increments the retry count for the specified Task under the specified State machine
+     * @param machineId the state machine identifier
+     * @param stateId the task/state identifier
+     * @return Response with execution status code
+     * @throws Exception
+     */
+    @POST
+    @Path("/{machineId}/{stateId}/retries/inc")
+    public Response incrementRetry(@PathParam("machineId") Long machineId,
+                                @PathParam("stateId") Long stateId
+                            ) throws Exception {
+    	this.workFlowExecutionController.incrementExecutionRetries(machineId, stateId);
+    	return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
+    }
+    
     /**
      * Cancel a machine being executed.*
      * @param machineId The machineId to be cancelled

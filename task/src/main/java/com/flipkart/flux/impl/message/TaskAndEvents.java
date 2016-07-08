@@ -30,10 +30,14 @@ import com.flipkart.flux.impl.task.AkkaTask;
  *
  */
 public class TaskAndEvents implements Serializable {
+	/** Default serialversion UID*/
+	private static final long serialVersionUID = 1L;
 	/* The task name*/
 	private String taskName;
     /* The string that uniquely identifies a client task to be executed */
     private String taskIdentifier;
+    /* The Task instance identifier in persistence store*/
+    private Long taskId;
     /* The set of events that have presently unblocked the task and whose data will be utilised during task execution */
     private EventData[] events;
     /* The state machine id for which this execution message is raised */
@@ -42,10 +46,13 @@ public class TaskAndEvents implements Serializable {
     private String outputEvent;
     /* The max retry count*/
     private long retryCount;
+    /* The current retry count*/
+    private long currentRetryCount;
 
-    public TaskAndEvents(String taskName, String taskIdentifier, EventData[] events, Long stateMachineId, String outputEvent, long retryCount) {
+    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, EventData[] events, Long stateMachineId, String outputEvent, long retryCount) {
     	this.taskName = taskName;
         this.taskIdentifier = taskIdentifier;
+        this.taskId = taskId;
         this.events = events;
         this.stateMachineId = stateMachineId;
         this.outputEvent = outputEvent;
@@ -58,7 +65,10 @@ public class TaskAndEvents implements Serializable {
 	public String getTaskIdentifier() {
         return taskIdentifier;
     }
-    public EventData[] getEvents() {
+    public Long getTaskId() {
+		return taskId;
+	}
+	public EventData[] getEvents() {
         return this.events;
     }
     public Long getStateMachineId() {
@@ -70,6 +80,12 @@ public class TaskAndEvents implements Serializable {
     public long getRetryCount() {
 		return retryCount;
 	}
+	public long getCurrentRetryCount() {
+		return currentRetryCount;
+	}
+	public void setCurrentRetryCount(long currentRetryCount) {
+		this.currentRetryCount = currentRetryCount;
+	}
 
 	@Override
     public boolean equals(Object o) {
@@ -79,6 +95,7 @@ public class TaskAndEvents implements Serializable {
         TaskAndEvents that = (TaskAndEvents) o;
 
         if (!taskIdentifier.equals(that.taskIdentifier)) return false;
+        if (!taskId.equals(that.taskId)) return false;
         // Probably incorrect - comparing Object[] arrays with Arrays.equals
         if (!Arrays.equals(events, that.events)) return false;
         if (!stateMachineId.equals(that.stateMachineId)) return false;
@@ -90,6 +107,7 @@ public class TaskAndEvents implements Serializable {
     public int hashCode() {
         int result = taskIdentifier.hashCode();
         result = 31 * result + (events != null ? Arrays.hashCode(events) : 0);
+        result = 31 * result + taskId.hashCode();
         result = 31 * result + stateMachineId.hashCode();
         result = 31 * result + (outputEvent != null ? outputEvent.hashCode() : 0);
         return result;
@@ -100,6 +118,7 @@ public class TaskAndEvents implements Serializable {
         return "TaskAndEvents{" +
             "events=" + Arrays.toString(events) +
             ", taskIdentifier='" + taskIdentifier + '\'' +
+            ", taskId=" + taskId +
             ", stateMachineId=" + stateMachineId +
             ", outputEvent='" + outputEvent + '\'' +
             '}';

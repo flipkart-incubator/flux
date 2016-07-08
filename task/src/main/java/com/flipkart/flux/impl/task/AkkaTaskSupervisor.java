@@ -16,10 +16,13 @@ package com.flipkart.flux.impl.task;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.flipkart.flux.api.core.FluxError;
+import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 
 import akka.actor.OneForOneStrategy;
 import akka.actor.Props;
@@ -49,6 +52,10 @@ public class AkkaTaskSupervisor {
 	/** Logger for this class*/
 	private static final Logger LOGGER = LoggerFactory.getLogger(AkkaTaskSupervisor.class);
     
+	/** The Flux Runtime Connector instance for dispatching processed EventS and execution status updates*/
+	@Inject
+	private static FluxRuntimeConnector fluxRuntimeConnector;
+	
 	/**
 	 * Creates supervisor {@link Props} for {@link AkkaTask} with backoff strategy
 	 * @param taskActorName name that identifies the Task of the AkkaTask
@@ -67,8 +74,15 @@ public class AkkaTaskSupervisor {
 					        if (t instanceof FluxError) {
 					        	FluxError fe = (FluxError)t;
 					        	if (fe.getType().equals(FluxError.ErrorType.timeout)) {
-					        		LOGGER.info("Retrying execution of Task. Cause - " + fe.getMessage());
-					        		return SupervisorStrategy.restart();
+					        		if (fe.getExecutionContextMeta().getAttemptedNoOfRetries() < fe.getExecutionContextMeta().getMaxRetries()) {
+						        		LOGGER.info("Retrying execution of Task. Retry count = {}, Cause = {} ",fe.getExecutionContextMeta().getAttemptedNoOfRetries(), 
+						        				fe.getMessage());
+						        		return SupervisorStrategy.restart();
+					        		} else {
+					        			LOGGER.warn("Aborting retries for Task Id : {}. Retry count exceeded : {}", fe.getExecutionContextMeta().getTaskId(), 
+					        					fe.getExecutionContextMeta().getAttemptedNoOfRetries());
+					        			return SupervisorStrategy.stop();
+					        		}
 					        	} else { 
 					        		return SupervisorStrategy.stop();
 					        	}

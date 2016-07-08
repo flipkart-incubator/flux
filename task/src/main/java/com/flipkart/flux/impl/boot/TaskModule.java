@@ -24,6 +24,7 @@ import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.impl.task.AkkaGatewayTask;
 import com.flipkart.flux.impl.task.AkkaTask;
+import com.flipkart.flux.impl.task.AkkaTaskSupervisor;
 import com.flipkart.flux.impl.task.registry.EagerInitRouterRegistryImpl;
 import com.flipkart.flux.impl.task.registry.LocalRouterConfigurationRegistryImpl;
 import com.flipkart.flux.impl.task.registry.RouterConfigurationRegistry;
@@ -47,6 +48,7 @@ public class TaskModule extends AbstractModule {
         install(new FluxClientComponentModule());
         requestStaticInjection(AkkaTask.class);
         requestStaticInjection(AkkaGatewayTask.class);
+        requestStaticInjection(AkkaTaskSupervisor.class);
         requireBinding(ExecutableRegistry.class);
     }
 
