@@ -22,4 +22,7 @@ java -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" &
 sleep 15
 
 echo "Running $EXAMPLE_FQN for you "
-java -cp "target/examples-1.0-SNAPSHOT.jar:target/dependency/*" $EXAMPLE_FQN
+#The below code prints the lines in green color
+echo "\033[33;32m $(java -cp 'target/examples-1.0-SNAPSHOT.jar:target/dependency/*' $EXAMPLE_FQN)"
+#Reset the color
+echo "\033[33;0m"
