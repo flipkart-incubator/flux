@@ -71,11 +71,12 @@ public class LocalJvmTask extends AbstractTask {
              */
             ClassLoader classLoader = toInvoke.getDeploymentUnitClassLoader() != null ? toInvoke.getDeploymentUnitClassLoader() : this.getClass().getClassLoader();
             Class objectMapper = classLoader.loadClass("com.fasterxml.jackson.databind.ObjectMapper");
+            Object objectMapperInstance = objectMapper.newInstance();
 
             for (int i = 0 ; i < parameterTypes.length ; i++) {
                 for (EventData anEvent : events) {
                     if(Class.forName(anEvent.getType(), true, classLoader).equals(parameterTypes[i])) {
-                        parameters[i] = objectMapper.getMethod("readValue", String.class, Class.class).invoke(objectMapper.newInstance(), anEvent.getData(), Class.forName(anEvent.getType(), true, classLoader));
+                        parameters[i] = objectMapper.getMethod("readValue", String.class, Class.class).invoke(objectMapperInstance, anEvent.getData(), Class.forName(anEvent.getType(), true, classLoader));
                     }
                 }
                 if (parameters[i] == null) {
@@ -89,7 +90,7 @@ public class LocalJvmTask extends AbstractTask {
             final Object returnObject = toInvoke.execute(parameters);
             Event returnEvent = null;
             if(returnObject!=null)
-                returnEvent = new Event(null, returnObject.getClass().getCanonicalName(), null, null, (String) writeValueAsString.invoke(objectMapper.newInstance(), returnObject), null);
+                returnEvent = new Event(null, returnObject.getClass().getCanonicalName(), null, null, (String) writeValueAsString.invoke(objectMapperInstance, returnObject), null);
             return new Pair<>(returnEvent,null);
         } catch (Exception e) {
             logger.warn("Bad things happened while trying to execute {}",toInvoke,e);
