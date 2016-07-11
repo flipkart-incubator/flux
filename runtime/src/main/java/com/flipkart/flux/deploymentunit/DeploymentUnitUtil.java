@@ -49,12 +49,12 @@ public class DeploymentUnitUtil {
 
     /** Location of deployment units on the system*/
     @Inject(optional=true) @Named("deploymentUnitsPath")
-    private String DEPLOYMENT_UNITS_PATH;
+    private String deploymentUnitsPath;
 
     /** Lists all deployment unit names*/ //todo: currently it's by directory scanning, will change it accordingly once we decide on where to store deployment units
     public List<String> getAllDeploymentUnits() {
-        if(DEPLOYMENT_UNITS_PATH != null) {
-            File file = new File(DEPLOYMENT_UNITS_PATH);
+        if(deploymentUnitsPath != null) {
+            File file = new File(deploymentUnitsPath);
             String[] directories = file.list((current, name) -> new File(current, name).isDirectory());
             return Arrays.asList(directories);
         } else {
@@ -69,8 +69,8 @@ public class DeploymentUnitUtil {
      * @throws MalformedURLException
      */
     public URLClassLoader getClassLoader(String deploymentUnitName) throws MalformedURLException, FileNotFoundException {
-        StringBuilder deploymentUnitFQN = new StringBuilder(DEPLOYMENT_UNITS_PATH);
-        if(!DEPLOYMENT_UNITS_PATH.endsWith(SLASH))
+        StringBuilder deploymentUnitFQN = new StringBuilder(deploymentUnitsPath);
+        if(!deploymentUnitsPath.endsWith(SLASH))
             deploymentUnitFQN.append(SLASH);
         deploymentUnitFQN.append(deploymentUnitName);
         deploymentUnitFQN.append(SLASH);
@@ -92,13 +92,13 @@ public class DeploymentUnitUtil {
 
         //loading this class separately in this class loader as the following isAnnotationPresent check returns false, if
         //we use default class loader's Workflow, as both class loaders don't have any relation between them.
-        Class workflowClass = urlClassLoader.loadClass(Workflow.class.getCanonicalName());
+        Class workflowAnnotationClass = urlClassLoader.loadClass(Workflow.class.getCanonicalName());
 
         for(String name : classNames) {
             Class clazz = urlClassLoader.loadClass(name);
 
             for(Method method : clazz.getMethods()) {
-                if(method.isAnnotationPresent(workflowClass))
+                if(method.isAnnotationPresent(workflowAnnotationClass))
                     methods.add(method);
             }
         }
@@ -121,13 +121,13 @@ public class DeploymentUnitUtil {
 
         //loading this class separately in this class loader as the following isAnnotationPresent check returns false, if
         //we use default class loader's Task, as both class loaders don't have any relation between them.
-        Class taskClass = urlClassLoader.loadClass(Task.class.getCanonicalName());
+        Class taskAnnotationClass = urlClassLoader.loadClass(Task.class.getCanonicalName());
 
         for(String name : classNames) {
             Class clazz = urlClassLoader.loadClass(name);
 
             for(Method method : clazz.getMethods()) {
-                if(method.isAnnotationPresent(taskClass))
+                if(method.isAnnotationPresent(taskAnnotationClass))
                     methods.add(method);
             }
         }
@@ -180,12 +180,14 @@ public class DeploymentUnitUtil {
             File[] mainJars = new File(deploymentUnitFQN+"main").listFiles();
             File[] libJars = new File(deploymentUnitFQN+"lib").listFiles();
 
-            if(mainJars == null)
-                throw new FileNotFoundException("Unable to build class loader. Required directory "+deploymentUnitFQN+"main is empty.");
+            if(mainJars == null) {
+                throw new FileNotFoundException("Unable to build class loader. Required directory " + deploymentUnitFQN + "main is empty.");
+            }
 
             File configFile = new File(deploymentUnitFQN+CONFIG_FILE);
-            if(!configFile.isFile())
+            if(!configFile.isFile()) {
                 throw new FileNotFoundException("Unable to build class loader. Config file not found");
+            }
 
             URL[] urls = new URL[mainJars.length + (libJars != null ? libJars.length : 0) + 1];
             int urlIndex = 0;

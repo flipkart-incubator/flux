@@ -68,7 +68,7 @@ public class ExecutableRegistryPopulator implements Initializable {
                 URLClassLoader classLoader = deploymentUnitUtil.getClassLoader(deploymentUnitName);
                 Class TaskClass = classLoader.loadClass(Task.class.getCanonicalName());
                 Class InjectorClass = loadClassLoaderInjector(classLoader);
-                Method getClassInstanceMethod = InjectorClass.getMethod("getClassInstance", Class.class);
+                Method getInstanceMethod = InjectorClass.getMethod("getInstance", Class.class);
                 Class guiceModuleClass = classLoader.loadClass("com.google.inject.Module");
 
                 Object injectorClassInstance;
@@ -95,14 +95,14 @@ public class ExecutableRegistryPopulator implements Initializable {
                         }
                     }
 
-                    Object singletonMethodOwner = getClassInstanceMethod.invoke(injectorClassInstance, method.getDeclaringClass());
+                    Object singletonMethodOwner = getInstanceMethod.invoke(injectorClassInstance, method.getDeclaringClass());
                     executableRegistry.registerTask(taskIdentifier, new ExecutableImpl(singletonMethodOwner, method, timeout, classLoader));
 
                     //add the router name to deployment unit routers
                     routerNames.add(method.getDeclaringClass().getName() + "_" + method.getName()); //convention: task router name is classFQN_taskMethodName
                 }
             } catch (Exception e) {
-                LOGGER.error("Unable to populate Executable Registry for deployment unit: "+deploymentUnitName+". Exception: "+e.getMessage());
+                LOGGER.error("Unable to populate Executable Registry for deployment unit: {}. Exception: {}", deploymentUnitName, e.getMessage());
                 throw new FluxError(FluxError.ErrorType.runtime, "Unable to populate Executable Registry for deployment unit: "+deploymentUnitName, e);
             }
         }
@@ -134,7 +134,7 @@ public class ExecutableRegistryPopulator implements Initializable {
 
             return classLoaderInjectorClass;
         } catch (Exception e) {
-            LOGGER.error("Unable to load class ClassLoaderInjector into deployment unit's class loader. Exception: " + e.getMessage());
+            LOGGER.error("Unable to load class ClassLoaderInjector into deployment unit's class loader. Exception: {}" , e.getMessage());
             throw new RuntimeException("Unable to load class ClassLoaderInjector into deployment unit's class loader. Exception: " + e.getMessage());
         }
     }

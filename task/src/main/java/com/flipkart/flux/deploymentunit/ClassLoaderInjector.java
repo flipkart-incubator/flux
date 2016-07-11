@@ -49,7 +49,7 @@ public class ClassLoaderInjector {
     }
 
     /** Given a class, returns its instance */
-    public Object getClassInstance(Class clazz) {
+    public Object getInstance(Class clazz) {
         return injector.getInstance(clazz);
     }
 
