@@ -14,7 +14,7 @@
 package com.flipkart.flux.deploymentunit;
 
 import com.flipkart.flux.api.core.FluxError;
-import com.flipkart.flux.client.intercept.TaskInterceptor;
+import com.flipkart.flux.client.intercept.MethodId;
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.registry.ExecutableImpl;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
@@ -49,14 +49,10 @@ public class ExecutableRegistryPopulator implements Initializable {
 
     private Set<String> routerNames;
 
-    //todo: included this to call generateTaskIdentifier(), it's better to move that method to separate class like util class
-    private TaskInterceptor taskInterceptor;
-
     @Inject
-    public ExecutableRegistryPopulator(DeploymentUnitUtil deploymentUnitUtil, ExecutableRegistry executableRegistry, TaskInterceptor taskInterceptor) {
+    public ExecutableRegistryPopulator(DeploymentUnitUtil deploymentUnitUtil, ExecutableRegistry executableRegistry) {
         this.deploymentUnitUtil = deploymentUnitUtil;
         this.executableRegistry = executableRegistry;
-        this.taskInterceptor = taskInterceptor;
     }
 
     @Override
@@ -88,7 +84,7 @@ public class ExecutableRegistryPopulator implements Initializable {
                 Set<Method> taskMethods = deploymentUnitUtil.getTaskMethods(classLoader);
                 //for every task method found in the deployment unit create an executable and keep it in executable registry
                 for(Method method : taskMethods) {
-                    String taskIdentifier = taskInterceptor.generateTaskIdentifier(method);
+                    String taskIdentifier = new MethodId(method).toString();
                     Annotation taskAnnotation = method.getAnnotationsByType(TaskClass)[0];
                     Class<? extends Annotation> annotationType = taskAnnotation.annotationType();
                     long timeout = 1000l; //default timeout

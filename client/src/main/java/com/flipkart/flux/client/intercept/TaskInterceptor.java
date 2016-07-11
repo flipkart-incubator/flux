@@ -162,7 +162,7 @@ public class TaskInterceptor implements MethodInterceptor {
         return method.getName();
     }
 
-    public String generateTaskIdentifier(Method method) {
+    private String generateTaskIdentifier(Method method) {
         return new MethodId(method).toString();
     }
 }
