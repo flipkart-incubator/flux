@@ -35,7 +35,7 @@ public class EmailDispatcher {
 
     @Task(version = 1, timeout = 1000l)
     public EmailAcknowledgement sendEmail(Email email) {
-        logger.info("Sending email {} ",email);
+        System.out.println("[EmailMarketingWorkflow] Sending email " + email);
         return new EmailAcknowledgement(random.nextBoolean());
     }
 

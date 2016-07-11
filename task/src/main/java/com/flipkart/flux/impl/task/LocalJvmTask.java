@@ -14,7 +14,6 @@
 
 package com.flipkart.flux.impl.task;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.client.registry.Executable;
@@ -32,8 +31,6 @@ import java.lang.reflect.Method;
 public class LocalJvmTask extends AbstractTask {
 
     private final Executable toInvoke;
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final Logger logger = LoggerFactory.getLogger(LocalJvmTask.class);
 
@@ -73,10 +70,12 @@ public class LocalJvmTask extends AbstractTask {
             will fail for methods where we have mutliple params of the same type.
              */
             ClassLoader classLoader = toInvoke.getDeploymentUnitClassLoader() != null ? toInvoke.getDeploymentUnitClassLoader() : this.getClass().getClassLoader();
+            Class objectMapper = classLoader.loadClass("com.fasterxml.jackson.databind.ObjectMapper");
+
             for (int i = 0 ; i < parameterTypes.length ; i++) {
                 for (EventData anEvent : events) {
                     if(Class.forName(anEvent.getType(), true, classLoader).equals(parameterTypes[i])) {
-                        parameters[i] = objectMapper.readValue(anEvent.getData(), Class.forName(anEvent.getType(), true, classLoader));
+                        parameters[i] = objectMapper.getMethod("readValue", String.class, Class.class).invoke(objectMapper.newInstance(), anEvent.getData(), Class.forName(anEvent.getType(), true, classLoader));
                     }
                 }
                 if (parameters[i] == null) {
@@ -84,7 +83,7 @@ public class LocalJvmTask extends AbstractTask {
                     throw new RuntimeException("Could not find a paramter of type " + parameterTypes[i]);
                 }
             }
-            Class objectMapper = classLoader.loadClass("com.fasterxml.jackson.databind.ObjectMapper");
+
             Method writeValueAsString = objectMapper.getMethod("writeValueAsString", Object.class);
 
             final Object returnObject = toInvoke.execute(parameters);
