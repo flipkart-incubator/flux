@@ -18,6 +18,7 @@ import com.flipkart.flux.client.intercept.MethodId;
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.registry.ExecutableImpl;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
+import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.polyguice.core.Initializable;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -87,7 +88,7 @@ public class ExecutableRegistryPopulator implements Initializable {
                     String taskIdentifier = new MethodId(method).toString();
                     Annotation taskAnnotation = method.getAnnotationsByType(TaskClass)[0];
                     Class<? extends Annotation> annotationType = taskAnnotation.annotationType();
-                    long timeout = 1000l; //default timeout
+                    long timeout = RuntimeConstants.defaultTaskTimeout;
                     for (Method annotationMethod : annotationType.getDeclaredMethods()) {
                         Object value = annotationMethod.invoke(taskAnnotation, (Object[])null);
                         if(annotationMethod.getName().equals("timeout")) { //todo: find a way get Task.timeout() name
