@@ -79,35 +79,6 @@ public class DeploymentUnitUtil {
 
     /**
      * Given a class loader, retrieves workflow classes names from config file, and returns methods
-     * which are annotated with {@link com.flipkart.flux.client.model.Workflow} annotation in those classes.
-     * @param urlClassLoader
-     * @return set of Methods
-     * @throws ClassNotFoundException
-     */
-    public Set<Method> getWorkflowMethods(URLClassLoader urlClassLoader) throws ClassNotFoundException, IOException {
-
-        YamlConfiguration yamlConfiguration = getProperties(urlClassLoader);
-        List<String> classNames = (List<String>) yamlConfiguration.getProperty(WORKFLOW_CLASSES);
-        Set<Method> methods = new HashSet<>();
-
-        //loading this class separately in this class loader as the following isAnnotationPresent check returns false, if
-        //we use default class loader's Workflow, as both class loaders don't have any relation between them.
-        Class workflowAnnotationClass = urlClassLoader.loadClass(Workflow.class.getCanonicalName());
-
-        for(String name : classNames) {
-            Class clazz = urlClassLoader.loadClass(name);
-
-            for(Method method : clazz.getMethods()) {
-                if(method.isAnnotationPresent(workflowAnnotationClass))
-                    methods.add(method);
-            }
-        }
-
-        return methods;
-    }
-
-    /**
-     * Given a class loader, retrieves workflow classes names from config file, and returns methods
      * which are annotated with {@link com.flipkart.flux.client.model.Task} annotation in those classes.
      * @param urlClassLoader
      * @return set of Methods
@@ -133,17 +104,6 @@ public class DeploymentUnitUtil {
         }
 
         return methods;
-    }
-
-    /**
-     * Given a deployment unit deployment unit name retrieves properties from config file and returns them.
-     * @param deploymentUnitName
-     * @return
-     * @throws IOException
-     */
-    public YamlConfiguration getProperties(String deploymentUnitName) throws IOException {
-        URLClassLoader classLoader = getClassLoader(deploymentUnitName);
-        return getProperties(classLoader);
     }
 
     /**

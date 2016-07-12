@@ -13,7 +13,6 @@
 
 package com.flipkart.flux.impl.task;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.api.core.Task;
@@ -43,8 +42,6 @@ public class TaskExecutor extends HystrixCommand<Event> {
 	private EventData[] events;
 	private final Long stateMachineId;
 	private final String outputeEventName;
-	// TODO - use a singleton instead
-	private static final ObjectMapper objectMapper = new ObjectMapper();
 
 	/**
 	 * Constructor for this class
