@@ -26,13 +26,12 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.*;
 
 /**
  * <code>DeploymentUnitUtil</code> performs operations on deployment units.
  * Ex:
- * Creating {@link URLClassLoader} for a deployment unit.
+ * Creating {@link DeploymentUnitClassLoader} for a deployment unit.
  * Scanning and returning methods annotated with {@link Workflow} annotation.
  * @author shyam.akirala
  */
@@ -63,12 +62,12 @@ public class DeploymentUnitUtil {
     }
 
     /**
-     * Provides {@link java.net.URLClassLoader} for the given directory.
+     * Provides {@link DeploymentUnitClassLoader} for the given directory.
      * @param deploymentUnitName
      * @return class loader
      * @throws MalformedURLException
      */
-    public URLClassLoader getClassLoader(String deploymentUnitName) throws MalformedURLException, FileNotFoundException {
+    public DeploymentUnitClassLoader getClassLoader(String deploymentUnitName) throws MalformedURLException, FileNotFoundException {
         StringBuilder deploymentUnitFQN = new StringBuilder(deploymentUnitsPath);
         if(!deploymentUnitsPath.endsWith(SLASH))
             deploymentUnitFQN.append(SLASH);
@@ -80,22 +79,22 @@ public class DeploymentUnitUtil {
     /**
      * Given a class loader, retrieves workflow classes names from config file, and returns methods
      * which are annotated with {@link com.flipkart.flux.client.model.Task} annotation in those classes.
-     * @param urlClassLoader
+     * @param classLoader
      * @return set of Methods
      * @throws ClassNotFoundException
      */
-    public Set<Method> getTaskMethods(URLClassLoader urlClassLoader) throws ClassNotFoundException, IOException {
+    public Set<Method> getTaskMethods(DeploymentUnitClassLoader classLoader) throws ClassNotFoundException, IOException {
 
-        YamlConfiguration yamlConfiguration = getProperties(urlClassLoader);
+        YamlConfiguration yamlConfiguration = getProperties(classLoader);
         List<String> classNames = (List<String>) yamlConfiguration.getProperty(WORKFLOW_CLASSES);
         Set<Method> methods = new HashSet<>();
 
         //loading this class separately in this class loader as the following isAnnotationPresent check returns false, if
         //we use default class loader's Task, as both class loaders don't have any relation between them.
-        Class taskAnnotationClass = urlClassLoader.loadClass(Task.class.getCanonicalName());
+        Class taskAnnotationClass = classLoader.loadClass(Task.class.getCanonicalName());
 
         for(String name : classNames) {
-            Class clazz = urlClassLoader.loadClass(name);
+            Class clazz = classLoader.loadClass(name);
 
             for(Method method : clazz.getMethods()) {
                 if(method.isAnnotationPresent(taskAnnotationClass))
@@ -108,21 +107,21 @@ public class DeploymentUnitUtil {
 
     /**
      * Given a deployment unit classloader retrieves properties from config file and returns them.
-     * @param urlClassLoader
+     * @param classLoader
      * @return YamlConfiguration
      * @throws IOException
      */
-    public YamlConfiguration getProperties(URLClassLoader urlClassLoader) throws IOException {
-        return new YamlConfiguration(urlClassLoader.getResource(CONFIG_FILE));
+    public YamlConfiguration getProperties(DeploymentUnitClassLoader classLoader) throws IOException {
+        return new YamlConfiguration(classLoader.getResource(CONFIG_FILE));
     }
 
     /**
-     * Provides {@link java.net.URLClassLoader for a given deployment unit}
+     * Provides {@link com.flipkart.flux.deploymentunit.DeploymentUnitClassLoader for a given deployment unit}
      */
     static class ClassLoaderProvider {
 
         /**
-         * Builds and returns URLClassLoader for a provided deployment unit.
+         * Builds and returns DeploymentUnitClassLoader for a provided deployment unit.
          * This assumes the provided deployment unit directory has the following structure.
          *
          * DeploymentUnit
@@ -132,10 +131,10 @@ public class DeploymentUnitUtil {
          *
          * The constructed class loader is independent and doesn't share anything with System class loader.
          * @param deploymentUnitFQN
-         * @return URLClassLoader
+         * @return DeploymentUnitClassLoader
          * @throws java.net.MalformedURLException
          */
-        public static URLClassLoader getClassLoader(String deploymentUnitFQN) throws MalformedURLException, FileNotFoundException {
+        public static DeploymentUnitClassLoader getClassLoader(String deploymentUnitFQN) throws MalformedURLException, FileNotFoundException {
 
             File[] mainJars = new File(deploymentUnitFQN+"main").listFiles();
             File[] libJars = new File(deploymentUnitFQN+"lib").listFiles();
@@ -168,7 +167,7 @@ public class DeploymentUnitUtil {
 
             urls[urlIndex] = new File(deploymentUnitFQN).toURI().toURL();
 
-            return new URLClassLoader(urls, null);
+            return new DeploymentUnitClassLoader(urls, null);
         }
     }
 }

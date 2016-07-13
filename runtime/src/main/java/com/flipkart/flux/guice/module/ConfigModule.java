@@ -15,6 +15,7 @@ package com.flipkart.flux.guice.module;
 
 import com.flipkart.flux.client.intercept.MethodId;
 import com.flipkart.flux.deploymentunit.DeploymentUnit;
+import com.flipkart.flux.deploymentunit.DeploymentUnitClassLoader;
 import com.flipkart.flux.deploymentunit.DeploymentUnitUtil;
 import com.flipkart.polyguice.config.ApacheCommonsConfigProvider;
 import com.flipkart.polyguice.config.YamlConfiguration;
@@ -31,7 +32,6 @@ import javax.inject.Singleton;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -94,7 +94,7 @@ public class ConfigModule extends AbstractModule {
         Map<String, DeploymentUnit> deploymentUnits = new HashMap<>();
         List<String> deploymentUnitNames = deploymentUnitUtil.getAllDeploymentUnitNames();
         for(String deploymentUnitName : deploymentUnitNames) {
-            URLClassLoader deploymentUnitClassLoader = deploymentUnitUtil.getClassLoader(deploymentUnitName);
+            DeploymentUnitClassLoader deploymentUnitClassLoader = deploymentUnitUtil.getClassLoader(deploymentUnitName);
             Set<Method> taskMethods = deploymentUnitUtil.getTaskMethods(deploymentUnitClassLoader);
             deploymentUnits.put(deploymentUnitName, new DeploymentUnit(deploymentUnitName, deploymentUnitClassLoader, taskMethods));
         }

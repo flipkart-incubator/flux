@@ -14,7 +14,6 @@
 package com.flipkart.flux.deploymentunit;
 
 import java.lang.reflect.Method;
-import java.net.URLClassLoader;
 import java.util.Set;
 
 /**
@@ -27,14 +26,14 @@ public class DeploymentUnit {
     private String name;
 
     /** Class loader of the deployment unit*/
-    private URLClassLoader urlClassLoader;
+    private DeploymentUnitClassLoader deploymentUnitClassLoader;
 
     /** Tasks which belong to the deployment unit*/
     private Set<Method> taskMethods;
 
-    public DeploymentUnit(String name, URLClassLoader urlClassLoader, Set<Method> taskMethods) {
+    public DeploymentUnit(String name, DeploymentUnitClassLoader deploymentUnitClassLoader, Set<Method> taskMethods) {
         this.name = name;
-        this.urlClassLoader = urlClassLoader;
+        this.deploymentUnitClassLoader = deploymentUnitClassLoader;
         this.taskMethods = taskMethods;
     }
 
@@ -42,8 +41,8 @@ public class DeploymentUnit {
         return name;
     }
 
-    public URLClassLoader getUrlClassLoader() {
-        return urlClassLoader;
+    public DeploymentUnitClassLoader getDeploymentUnitClassLoader() {
+        return deploymentUnitClassLoader;
     }
 
     public Set<Method> getTaskMethods() {

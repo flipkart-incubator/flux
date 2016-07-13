@@ -29,7 +29,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.net.URLClassLoader;
 import java.util.Map;
 import java.util.Set;
 
@@ -66,10 +65,10 @@ public class ExecutableRegistryPopulator implements Initializable {
                 DeploymentUnit deploymentUnit = deploymentUnitEntry.getValue();
 
                 //get required classes from deployment unit class loader
-                URLClassLoader classLoader = deploymentUnit.getUrlClassLoader();
-                Class TaskClass = classLoader.loadClass(Task.class.getCanonicalName());
-                Class InjectorClass = loadClassLoaderInjector(classLoader);
-                Method getInstanceMethod = InjectorClass.getMethod("getInstance", Class.class);
+                DeploymentUnitClassLoader classLoader = deploymentUnit.getDeploymentUnitClassLoader();
+                Class taskClass = classLoader.loadClass(Task.class.getCanonicalName());
+                Class injectorClass = loadClassLoaderInjector(classLoader);
+                Method getInstanceMethod = injectorClass.getMethod("getInstance", Class.class);
                 Class guiceModuleClass = classLoader.loadClass("com.google.inject.Module");
 
                 Object injectorClassInstance;
@@ -77,16 +76,16 @@ public class ExecutableRegistryPopulator implements Initializable {
 
                 //check if user has specified any guice module class name in deployment unit configuration file, if not create an empty injector
                 if(DUModuleClassFQN == null || DUModuleClassFQN.trim().isEmpty() || DUModuleClassFQN.equals("null"))
-                    injectorClassInstance = InjectorClass.newInstance();
+                    injectorClassInstance = injectorClass.newInstance();
                 else {
-                    injectorClassInstance = InjectorClass.getConstructor(guiceModuleClass).newInstance(classLoader.loadClass(DUModuleClassFQN).newInstance());
+                    injectorClassInstance = injectorClass.getConstructor(guiceModuleClass).newInstance(classLoader.loadClass(DUModuleClassFQN).newInstance());
                 }
 
                 Set<Method> taskMethods = deploymentUnit.getTaskMethods();
                 //for every task method found in the deployment unit create an executable and keep it in executable registry
                 for(Method method : taskMethods) {
                     String taskIdentifier = new MethodId(method).toString();
-                    Annotation taskAnnotation = method.getAnnotationsByType(TaskClass)[0];
+                    Annotation taskAnnotation = method.getAnnotationsByType(taskClass)[0];
                     Class<? extends Annotation> annotationType = taskAnnotation.annotationType();
                     long timeout = RuntimeConstants.defaultTaskTimeout;
                     for (Method annotationMethod : annotationType.getDeclaredMethods()) {
@@ -112,25 +111,13 @@ public class ExecutableRegistryPopulator implements Initializable {
      * @param deploymentUnitClassLoader
      * @return ClassLoaderInjector class
      */
-    private Class loadClassLoaderInjector(ClassLoader deploymentUnitClassLoader) {
+    private Class loadClassLoaderInjector(DeploymentUnitClassLoader deploymentUnitClassLoader) {
         try {
             //Convert the class into bytes
             byte[] classBytes = IOUtils.toByteArray(this.getClass().getResourceAsStream("/com/flipkart/flux/deploymentunit/ClassLoaderInjector.class"));
 
-            Class classLoaderInjectorClass;
-            Class classLoaderClass = Class.forName("java.lang.ClassLoader");
-            java.lang.reflect.Method method = classLoaderClass.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class);
+            return deploymentUnitClassLoader.defineClass(ClassLoaderInjector.class.getCanonicalName(), classBytes);
 
-            // protected method invocation
-            method.setAccessible(true);
-            try {
-                Object[] args = new Object[]{ClassLoaderInjector.class.getCanonicalName(), classBytes, 0, classBytes.length};
-                classLoaderInjectorClass = (Class) method.invoke(deploymentUnitClassLoader, args);
-            } finally {
-                method.setAccessible(false);
-            }
-
-            return classLoaderInjectorClass;
         } catch (Exception e) {
             LOGGER.error("Unable to load class ClassLoaderInjector into deployment unit's class loader. Exception: {}" , e.getMessage());
             throw new RuntimeException("Unable to load class ClassLoaderInjector into deployment unit's class loader. Exception: " + e.getMessage());
