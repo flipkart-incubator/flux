@@ -58,7 +58,30 @@
             var nodeIds = [];
             // Make the vertex nodes
             _.each(adjacencyList, function(edgeData,vertexIdentifier ) {
-                elements.push(makeState(vertexIdentifier));
+            	var stateColor = '#33ccff'; // default is 'initialized' color
+            	if (edgeData != null) {
+	            	switch(edgeData.status) {
+	            	case 'initialized':
+	            		stateColor = '#33ccff';
+	            		break;
+	            	case 'running': 
+	            		stateColor = '#cc99ff';
+	            		break;
+	            	case 'completed':
+	            		stateColor = '#33cc33';
+	            		break;
+	            	case 'cancelled': 
+	            		stateColor = '#993333';
+	            		break;
+	            	case 'errored':
+	            		stateColor = '#ff0000';
+	            		break;
+	            	case 'sidelined':
+	            		stateColor = '#FE854F';
+	            		break;
+	            	}
+            	}
+                elements.push(makeState(vertexIdentifier,stateColor));
             });
             // attach edges
             _.each(adjacencyList, function(edgeData,vertexIdentifier) {
@@ -123,7 +146,7 @@
                 attrs: {
                     text: { text: label.split(' ').join('\n'), 'font-size': letterSize, 'font-family': 'monospace', fill: 'white' },
                     circle: {
-                        fill: colorCode == null ? '#FE854F' : colorCode ,
+                        fill: colorCode,
                         width: width,
                         height: height,
                         stroke: 'none'

@@ -236,7 +236,7 @@ public class StateMachineResource {
                 final Event outputEvent = stateMachineEvents.get(eventDefinition.getName());
                 final FsmGraphVertex vertex = new FsmGraphVertex(state.getId(), getStateDisplayName(state.getName()));
                 fsmGraph.addVertex(vertex,
-                    new FsmGraphEdge(getEventDisplayName(outputEvent.getName()), outputEvent.getStatus().name(),outputEvent.getEventSource()));
+                    new FsmGraphEdge(getEventDisplayName(outputEvent.getName()), state.getStatus().name(),outputEvent.getEventSource()));
                 final Set<State> dependantStates = ramContext.getDependantStates(outputEvent.getName());
                 dependantStates.forEach((aState) -> fsmGraph.addOutgoingEdge(vertex, aState.getId()));
                 allOutputEventNames.add(outputEvent.getName()); // we collect all output event names and use them below.
