@@ -73,16 +73,10 @@ public class TaskExecutor extends HystrixCommand<Event> {
 		if (result.getValue() != null) {
 			throw result.getValue();
 		}
-		final Object returnObject = result.getKey();
+		final SerializedEvent returnObject = (SerializedEvent) result.getKey();
 		if (returnObject != null) {
-            Event event = (Event) returnObject;
-            event.setName(outputeEventName);
-            event.setStatus(Event.EventStatus.triggered);
-            event.setStateMachineInstanceId(stateMachineId);
-            event.setEventSource(MANAGED_RUNTIME);
-			return event;
+            return new Event(outputeEventName, returnObject.getEventType(), Event.EventStatus.triggered, stateMachineId, returnObject.getSerializedEventData(), MANAGED_RUNTIME);
 		}
 		return null;
 	}
-	
 }

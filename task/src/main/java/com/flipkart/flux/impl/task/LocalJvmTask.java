@@ -17,7 +17,6 @@ package com.flipkart.flux.impl.task;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.client.registry.Executable;
-import com.flipkart.flux.domain.Event;
 import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,10 +87,11 @@ public class LocalJvmTask extends AbstractTask {
             Method writeValueAsString = objectMapper.getMethod("writeValueAsString", Object.class);
 
             final Object returnObject = toInvoke.execute(parameters);
-            Event returnEvent = null;
-            if(returnObject!=null)
-                returnEvent = new Event(null, returnObject.getClass().getCanonicalName(), null, null, (String) writeValueAsString.invoke(objectMapperInstance, returnObject), null);
-            return new Pair<>(returnEvent,null);
+            SerializedEvent serializedEvent = null;
+            if (returnObject != null) {
+                serializedEvent = new SerializedEvent(returnObject.getClass().getCanonicalName(), (String) writeValueAsString.invoke(objectMapperInstance, returnObject));
+            }
+            return new Pair<>(serializedEvent,null);
         } catch (Exception e) {
             logger.warn("Bad things happened while trying to execute {}",toInvoke,e);
             return new Pair<>(null,new FluxError(FluxError.ErrorType.runtime,e.getMessage(),e));
