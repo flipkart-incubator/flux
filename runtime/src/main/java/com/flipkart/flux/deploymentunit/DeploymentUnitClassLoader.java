@@ -23,7 +23,7 @@ import java.net.URLClassLoader;
 public class DeploymentUnitClassLoader extends URLClassLoader{
 
     /** constructor */
-    public DeploymentUnitClassLoader(URL[] urls, ClassLoader parent) {
+    DeploymentUnitClassLoader(URL[] urls, ClassLoader parent) {
         super(urls, parent);
     }
 
