@@ -15,6 +15,7 @@ package com.flipkart.flux.client.intercept;
 
 /**
  * This is used to indicate that a given object has been intercepted by our client
+ * @author yogesh.nachnani
  */
 public interface Intercepted {
     String getRealClassName();

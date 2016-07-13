@@ -13,11 +13,11 @@
 
 package com.flipkart.flux.dao.iface;
 
-import java.util.List;
-import java.util.Set;
-
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.domain.Event;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * <code>EventsDAO</code> interface provides methods to perform CR operations on {@link Event}

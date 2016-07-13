@@ -17,11 +17,14 @@ import com.flipkart.flux.client.intercept.TaskInterceptor;
 import com.flipkart.flux.client.intercept.WorkflowInterceptor;
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.model.Workflow;
-import com.flipkart.flux.client.registry.ExecutableRegistry;
-import com.flipkart.flux.client.registry.LocalExecutableRegistryImpl;
 import com.google.inject.AbstractModule;
 import com.google.inject.matcher.Matchers;
 
+/**
+ * <code>FluxClientInterceptorModule</code> is a Guice {@link AbstractModule} implementation
+ * used for wiring workflow interceptor classes.
+ * @author yogesh.nachnani
+ */
 public class FluxClientInterceptorModule extends AbstractModule {
     @Override
     protected void configure() {

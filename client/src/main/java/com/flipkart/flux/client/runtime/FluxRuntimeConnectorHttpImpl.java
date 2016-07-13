@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.api.Status;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -77,30 +78,6 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         }
     }
 
-    private CloseableHttpResponse postOverHttp(Object dataToPost, String pathSuffix)  {
-        CloseableHttpResponse httpResponse = null;
-        HttpPost httpPostRequest;
-        httpPostRequest = new HttpPost(fluxEndpoint + pathSuffix);
-        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        try {
-            objectMapper.writeValue(byteArrayOutputStream, dataToPost);
-            httpPostRequest.setEntity(new ByteArrayEntity(byteArrayOutputStream.toByteArray(), ContentType.APPLICATION_JSON));
-            httpResponse = closeableHttpClient.execute(httpPostRequest);
-            final int statusCode = httpResponse.getStatusLine().getStatusCode();
-            if (statusCode >= Response.Status.OK.getStatusCode() && statusCode < Response.Status.MOVED_PERMANENTLY.getStatusCode() ) {
-                // all is well, TODO write a trace level log
-            } else {
-                // TODO: log status line here
-                throw new RuntimeCommunicationException("Did not receive a valid response from Flux core");
-            }
-        } catch (IOException e) {
-            // TODO log exception here
-            e.printStackTrace();
-            throw new RuntimeCommunicationException("Could not communicate with Flux runtime");
-        }
-        return httpResponse;
-    }
-
     @Override
     public void submitEvent(EventData eventData, Long stateMachineId) {
         CloseableHttpResponse httpResponse = null;
@@ -127,4 +104,51 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
             HttpClientUtils.closeQuietly(httpResponse);
         }
     }
+
+	/**
+	 * Interface method implementation. Updates the status in persistence store by invoking suitable Flux runtime API
+	 * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#updateExecutionStatus(java.lang.Long, com.flipkart.flux.api.Status)
+	 */
+	public void updateExecutionStatus(Long stateMachineId,Long taskId, Status status) {
+		CloseableHttpResponse httpResponse = null;
+        httpResponse = postOverHttp(status,  "/" + stateMachineId + "/" + taskId + "/status");
+        HttpClientUtils.closeQuietly(httpResponse);
+	}
+
+	/**
+	 * Interface method implementation. Increments the execution retries in persistence by invoking suitable Flux runtime API
+	 * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#incrementExecutionRetries(java.lang.Long, java.lang.Long)
+	 */
+	@Override
+	public void incrementExecutionRetries(Long stateMachineId,Long taskId) {
+		CloseableHttpResponse httpResponse = null;
+        httpResponse = postOverHttp(null,  "/" + stateMachineId + "/" + taskId + "/retries/inc");
+        HttpClientUtils.closeQuietly(httpResponse);
+	}
+	
+	/** Helper method to post data over Http */
+    private CloseableHttpResponse postOverHttp(Object dataToPost, String pathSuffix)  {
+        CloseableHttpResponse httpResponse = null;
+        HttpPost httpPostRequest;
+        httpPostRequest = new HttpPost(fluxEndpoint + pathSuffix);
+        try {
+            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            objectMapper.writeValue(byteArrayOutputStream, dataToPost);
+            httpPostRequest.setEntity(new ByteArrayEntity(byteArrayOutputStream.toByteArray(), ContentType.APPLICATION_JSON));
+            httpResponse = closeableHttpClient.execute(httpPostRequest);
+            final int statusCode = httpResponse.getStatusLine().getStatusCode();
+            if (statusCode >= Response.Status.OK.getStatusCode() && statusCode < Response.Status.MOVED_PERMANENTLY.getStatusCode() ) {
+                // all is well, TODO write a trace level log
+            } else {
+                // TODO: log status line here
+                throw new RuntimeCommunicationException("Did not receive a valid response from Flux core");
+            }
+        } catch (IOException e) {
+            // TODO log exception here
+            e.printStackTrace();
+            throw new RuntimeCommunicationException("Could not communicate with Flux runtime");
+        }
+        return httpResponse;
+    }
+
 }

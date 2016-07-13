@@ -43,7 +43,7 @@ public class AkkaGatewayTask extends UntypedActor {
 	/** Counter to help create unique actor names*/
 	private static final AtomicLong INSTANCE_COUNTER = new AtomicLong();
     
-	/** The Flux Runtime Connector instance for dispatching processed EventS*/
+	/** The Flux Runtime Connector instance for dispatching processed EventS and execution status updates*/
 	@Inject
 	private static FluxRuntimeConnector fluxRuntimeConnector;
     

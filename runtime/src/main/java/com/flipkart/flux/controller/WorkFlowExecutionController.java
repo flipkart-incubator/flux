@@ -17,10 +17,8 @@ import akka.actor.ActorRef;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.domain.Context;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.State;
-import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.dao.iface.StatesDAO;
+import com.flipkart.flux.domain.*;
 import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
@@ -45,15 +43,19 @@ public class WorkFlowExecutionController {
     private StateMachinesDAO stateMachinesDAO;
 
     private EventsDAO eventsDAO;
+    
+    /** The DAO for Task related DB operations*/
+    private StatesDAO statesDAO;
 
     private RouterRegistry routerRegistry;
 
     private static final Logger logger = LoggerFactory.getLogger(WorkFlowExecutionController.class);
 
     @Inject
-    public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO, RouterRegistry routerRegistry) {
+    public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO, StatesDAO statesDAO, RouterRegistry routerRegistry) {
         this.eventsDAO = eventsDAO;
         this.stateMachinesDAO = stateMachinesDAO;
+        this.statesDAO = statesDAO;
         this.routerRegistry = routerRegistry;
     }
 
@@ -113,6 +115,25 @@ public class WorkFlowExecutionController {
         return executableStates;
     }
 
+    /**
+     * Updates the execution status for the specified State machine's Task
+     * @param stateMachineId the state machine identifier
+     * @param taskId the Task identifier
+     * @param status the Status to be updated to
+     */
+	public void updateExecutionStatus(Long stateMachineId,Long taskId, Status status) {
+		this.statesDAO.updateStatus(taskId, stateMachineId, status);
+	}
+
+	/**
+	 * Increments the no. of execution retries for the specified State machine's Task
+	 * @param stateMachineId the state machine identifier
+	 * @param taskId the Task identifier
+	 */
+	public void incrementExecutionRetries(Long stateMachineId,Long taskId) {
+		this.statesDAO.incrementRetryCount(taskId, stateMachineId);
+	}
+    
     private StateMachine retrieveStateMachineByCorrelationId(String correlationId) {
         return stateMachinesDAO.findByCorrelationId(correlationId);
     }
@@ -120,7 +141,7 @@ public class WorkFlowExecutionController {
     private void executeStates(Long stateMachineInstanceId, Set<State> executableStates) {
         // TODO - this always uses someRouter for now
         executableStates.forEach((state ->  {
-            final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(),
+            final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
                 eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId).toArray(new EventData[]{}),
                 stateMachineInstanceId,
                 state.getOutputEvent(), state.getRetryCount());

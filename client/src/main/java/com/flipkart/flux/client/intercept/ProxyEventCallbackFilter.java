@@ -23,6 +23,8 @@ import java.lang.reflect.Method;
  * All other method calls go to the NoOp callback instance
  * This is used by the <code>TaskInterceptor</code> to create proxy objects that would respond with the given FixedValue callback
  * whenever their name() method is called
+ *
+ * @author yogesh.nachnani
  */
 public abstract class ProxyEventCallbackFilter extends CallbackHelper {
 

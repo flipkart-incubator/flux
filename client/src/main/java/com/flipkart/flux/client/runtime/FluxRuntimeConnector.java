@@ -16,6 +16,7 @@ package com.flipkart.flux.client.runtime;
 
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.api.Status;
 
 /**
  * Used to connect with the core Flux Runtime
@@ -37,4 +38,19 @@ public interface FluxRuntimeConnector {
      * @param eventSource optional string to denote an event source
      */
     void submitEvent(String name, Object data,String correlationId,String eventSource);
+    
+    /**
+     * Updates the status of the Task identified by the specified Task ID to the Status specified
+     * @param stateMachineId the state machine identifier
+     * @param taskId identifier for the Task whose status is to be updated
+     * @param status the Task status
+     */
+    void updateExecutionStatus(Long stateMachineId, Long taskId, Status status);
+    
+    /**
+     * Increments the attempted retries count for the Task identified by the specified task Id
+     * @param stateMachineId the state machine identifier
+     * @param taskId identifier for the Task whose retry count is to be updated
+     */
+    void incrementExecutionRetries(Long stateMachineId, Long taskId);
 }

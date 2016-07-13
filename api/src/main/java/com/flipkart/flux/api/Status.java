@@ -9,21 +9,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-package com.flipkart.flux.client.intercept;
-
+package com.flipkart.flux.api;
 /**
- * Used to denote runtime execution exceptions where a method of a given identifier cannot be instantiated
- * This can happen in race conditions where freshly loaded code in another JVM triggers a workflow and the given
- * classes are yet to be loaded on to this particular JVM.
- * // TODO: Is there a way we can avoid this?
- *
- * @author yogesh.nachnani
+ * <code>Status</code> Describes the current status of execution {@link Task} within a {@link State}
+ * 
+ * @author Yogesh
+ * @author regunath.balasubramanian
  */
-public class UnknownIdentifierException extends RuntimeException {
-    public UnknownIdentifierException(String message) {
-        super(message);
-    }
+public enum  Status {
+    initialized, running, completed, cancelled, errored, sidelined; //possible statuses of execution
 }

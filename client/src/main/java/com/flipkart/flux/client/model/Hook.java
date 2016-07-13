@@ -17,6 +17,7 @@ package com.flipkart.flux.client.model;
  * A <Code>Hook</Code> specified on a com.flipkart.flux.client.model.Task gets invoked before (pre-entry) and after a task execution
  * Hooks are fired at most once by Flux and are never retried nor are any runtime failures handled.
  *
+ * @author yogesh.nachnani
  */
 public interface Hook {
     public void preEntry(FluxContext context);

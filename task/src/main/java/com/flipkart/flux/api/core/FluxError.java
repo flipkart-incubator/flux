@@ -28,17 +28,20 @@ public class FluxError extends RuntimeException {
 	
 	/** Default Fill in stack trace setting*/
 	private static final boolean DEFAULT_FILL_IN_STACK_TRACE = true;
-	
+
+    /** Enum of errro types*/
+    public enum ErrorType {
+        runtime,timeout
+    }
+    
 	/** The type of error*/
     private ErrorType type;
     
     /** The flag for filling in the stack trace*/
     private boolean fillInStackTrace = DEFAULT_FILL_IN_STACK_TRACE;
     
-    /** Enum of errro types*/
-    public enum ErrorType {
-        runtime,timeout
-    }
+    /** Optional execution context meta data*/
+    private FluxError.ExecutionContextMeta executionContextMeta;
     
     /** Constructors */
 	public FluxError(ErrorType type, String errorMessage, Throwable rootCause) {
@@ -46,9 +49,41 @@ public class FluxError extends RuntimeException {
 		this.type = type;
 	}
 	public FluxError(ErrorType type, String errorMessage, Throwable rootCause, boolean fillInStackTrace) {
-		super(errorMessage, rootCause);
-		this.type = type;
+		this(type, errorMessage, rootCause);
 		this.fillInStackTrace = fillInStackTrace;
+	}
+	public FluxError(ErrorType type, String errorMessage, Throwable rootCause, boolean fillInStackTrace, 
+			FluxError.ExecutionContextMeta executionContextMeta) {
+		this(type, errorMessage, rootCause, fillInStackTrace);
+		this.executionContextMeta = executionContextMeta;
+	}
+
+	/**
+	 * Data bag for holding execution context meta data 
+	 */
+	public static class ExecutionContextMeta {
+		private Long stateMachineId;
+		private Long taskId;
+		private Long maxRetries;
+		private Long attemptedNoOfRetries;
+		public ExecutionContextMeta(Long stateMachineId, Long taskId, Long maxRetries, Long attemptedNoOfRetries) {
+			this.stateMachineId = stateMachineId;
+			this.taskId = taskId;
+			this.maxRetries = maxRetries;
+			this.attemptedNoOfRetries = attemptedNoOfRetries;
+		}
+		public Long getStateMachineId() {
+			return stateMachineId;
+		}
+		public Long getTaskId() {
+			return taskId;
+		}
+		public Long getMaxRetries() {
+			return maxRetries;
+		}
+		public Long getAttemptedNoOfRetries() {
+			return attemptedNoOfRetries;
+		}
 	}
 	
 	/**
@@ -69,6 +104,9 @@ public class FluxError extends RuntimeException {
 	}
 	public void setType(ErrorType type) {
 		this.type = type;
+	}
+	public FluxError.ExecutionContextMeta getExecutionContextMeta() {
+		return executionContextMeta;
 	}
     
 }

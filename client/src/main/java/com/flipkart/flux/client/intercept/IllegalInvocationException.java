@@ -13,6 +13,10 @@
 
 package com.flipkart.flux.client.intercept;
 
+/**
+ * <code>IllegalInvocationException</code> represents an illegal invocation of a Task.
+ * @author yogesh.nachnani
+ */
 public class IllegalInvocationException extends RuntimeException {
     public IllegalInvocationException(String message) {
         super(message);

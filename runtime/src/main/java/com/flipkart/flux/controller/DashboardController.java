@@ -15,14 +15,14 @@
  */
 package com.flipkart.flux.controller;
 
-import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
 
 /**
  * <code>DashboardController</code> is a Spring MVC Controller for the Dashboard

@@ -16,23 +16,6 @@
 
 package com.flipkart.flux.guice.module;
 
-import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
-
-import java.io.File;
-import java.net.URISyntaxException;
-import java.util.logging.Logger;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
-import javax.ws.rs.core.UriBuilder;
-
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.eclipse.jetty.webapp.WebAppContext;
-import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
-import org.glassfish.jersey.server.ResourceConfig;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.flipkart.flux.config.FileLocator;
@@ -41,6 +24,20 @@ import com.flipkart.flux.resource.FluxResource;
 import com.flipkart.flux.resource.StateMachineResource;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.webapp.WebAppContext;
+import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
+import org.glassfish.jersey.server.ResourceConfig;
+
+import javax.inject.Named;
+import javax.inject.Singleton;
+import javax.ws.rs.core.UriBuilder;
+import java.io.File;
+import java.net.URISyntaxException;
+
+import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
 
 /**
  * <code>ContainerModule</code> is a Guice {@link AbstractModule} implementation used for wiring Flux container components.

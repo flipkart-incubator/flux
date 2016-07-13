@@ -13,22 +13,20 @@
 
 package com.flipkart.flux.dao;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
-import javax.inject.Inject;
-import javax.transaction.Transactional;
-
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.dao.iface.EventsDAO;
+import com.flipkart.flux.domain.Event;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
-import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.dao.iface.EventsDAO;
-import com.flipkart.flux.domain.Event;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * <code>EventsDAOImpl</code> is an implementation of {@link EventsDAO} which uses Hibernate to perform operations.

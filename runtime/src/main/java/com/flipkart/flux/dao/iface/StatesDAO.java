@@ -29,13 +29,13 @@ public interface StatesDAO {
     void updateState(State state);
 
     /** Updates status of a state*/
-    public void updateStatus(Long stateId, Status status);
+    public void updateStatus(Long stateId, Long stateMachineId, Status status);
 
     /** Updates rollback status of a state */
-    public void updateRollbackStatus(Long stateId, Status rollbackStatus);
+    public void updateRollbackStatus(Long stateId, Long stateMachineId, Status rollbackStatus);
 
     /** Increments the attempted no.of retries of a state by 1 */
-    void incrementRetryCount(Long stateId);
+    void incrementRetryCount(Long stateId, Long stateMachineId);
 
     /** Retrieves a state by it's unique identifier*/
     State findById(Long id);

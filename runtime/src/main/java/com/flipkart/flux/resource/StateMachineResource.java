@@ -38,12 +38,18 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
 /**
- * @understands Exposes APIs for end users
+ * <code>StateMachineResource</code> exposes APIs to perform state machine related operations. Ex: Creating SM, receiving event for a SM
+ * @author shyam.akirala
+ * @author yogesh
+ * @author regunath.balasubramanian
  */
 
 @Singleton
@@ -53,6 +59,7 @@ public class StateMachineResource {
 
     /** Single white space label to denote start of processing i.e. the Trigger*/
 	private static final String TRIGGER = " ";
+
     public static final String CORRELATION_ID = "correlationId";
 
     StateMachinePersistenceService stateMachinePersistenceService;
@@ -74,6 +81,7 @@ public class StateMachineResource {
         objectMapper = new ObjectMapper();
     }
 
+    /** Logger instance for this class*/
     private static final Logger logger = LoggerFactory.getLogger(StateMachineResource.class);
 
     /**
@@ -124,7 +132,61 @@ public class StateMachineResource {
         return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
     }
 
-
+    /**
+     * Updates the status of the specified Task under the specified State machine
+     * @param machineId the state machine identifier
+     * @param stateId the task/state identifier
+     * @param status the Status 
+     * @return Response with execution status code
+     * @throws Exception
+     */
+    @POST
+    @Path("/{machineId}/{stateId}/status")
+    public Response updateStatus(@PathParam("machineId") Long machineId,
+                                @PathParam("stateId") Long stateId,
+                                com.flipkart.flux.api.Status status
+                            ) throws Exception {
+    	com.flipkart.flux.domain.Status updateStatus = null;
+		switch (status) {
+			case initialized:
+				updateStatus = com.flipkart.flux.domain.Status.initialized;
+				break;
+			case running:
+				updateStatus = com.flipkart.flux.domain.Status.running;
+				break;
+			case completed:
+				updateStatus = com.flipkart.flux.domain.Status.completed;
+				break;
+			case cancelled:
+				updateStatus = com.flipkart.flux.domain.Status.cancelled;
+				break;
+			case errored:
+				updateStatus = com.flipkart.flux.domain.Status.errored;
+				break;
+			case sidelined:
+				updateStatus = com.flipkart.flux.domain.Status.sidelined;
+				break;
+    	}
+		this.workFlowExecutionController.updateExecutionStatus(machineId, stateId, updateStatus);
+    	return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
+    }
+    
+    /**
+     * Increments the retry count for the specified Task under the specified State machine
+     * @param machineId the state machine identifier
+     * @param stateId the task/state identifier
+     * @return Response with execution status code
+     * @throws Exception
+     */
+    @POST
+    @Path("/{machineId}/{stateId}/retries/inc")
+    public Response incrementRetry(@PathParam("machineId") Long machineId,
+                                @PathParam("stateId") Long stateId
+                            ) throws Exception {
+    	this.workFlowExecutionController.incrementExecutionRetries(machineId, stateId);
+    	return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
+    }
+    
     /**
      * Cancel a machine being executed.*
      * @param machineId The machineId to be cancelled

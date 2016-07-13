@@ -14,16 +14,19 @@
 
 package com.flipkart.flux.controller;
 
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.Collections;
-
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.testkit.TestActorRef;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.MockActorRef;
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.dao.iface.EventsDAO;
+import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.dao.iface.StatesDAO;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.impl.message.TaskAndEvents;
+import com.flipkart.flux.impl.task.registry.RouterRegistry;
+import com.flipkart.flux.util.TestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,19 +34,12 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.MockActorRef;
-import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.dao.iface.EventsDAO;
-import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.impl.message.TaskAndEvents;
-import com.flipkart.flux.impl.task.registry.RouterRegistry;
-import com.flipkart.flux.util.TestUtils;
+import java.util.Arrays;
+import java.util.Collections;
 
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.testkit.TestActorRef;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WorkFlowExecutionControllerTest {
@@ -53,6 +49,9 @@ public class WorkFlowExecutionControllerTest {
 
     @Mock
     EventsDAO eventsDAO;
+    
+    @Mock
+    StatesDAO statesDAO;
 
     @Mock
     private RouterRegistry routerRegistry;
@@ -66,7 +65,7 @@ public class WorkFlowExecutionControllerTest {
 
     @Before
     public void setUp() throws Exception {
-        workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, routerRegistry);
+        workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, routerRegistry);
         when(stateMachinesDAO.findById(anyLong())).thenReturn(TestUtils.getStandardTestMachine());
         actorSystem = ActorSystem.create();
         mockActor = TestActorRef.create(actorSystem, Props.create(MockActorRef.class));
@@ -90,8 +89,8 @@ public class WorkFlowExecutionControllerTest {
         workFlowExecutionController.postEvent(testEventData, 1l, null);
 
         verify(routerRegistry, times(2)).getRouter("com.flipkart.flux.dao.TestWorkflow_TestTask"); // For 2 unblocked states
-        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("TestTask", "com.flipkart.flux.dao.TestWorkflow_TestTask_event1", expectedEvents, 1l, objectMapper.writeValueAsString(TestUtils.standardStateMachineOutputEvent()),2), 1);
-        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("TestTask", "com.flipkart.flux.dao.TestWorkflow_TestTask_event1", expectedEvents, 1l, null,2), 1);
+        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("TestTask", "com.flipkart.flux.dao.TestWorkflow_TestTask_event1", 1L, expectedEvents, 1l, objectMapper.writeValueAsString(TestUtils.standardStateMachineOutputEvent()),2), 1);
+        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("TestTask", "com.flipkart.flux.dao.TestWorkflow_TestTask_event1", 1L, expectedEvents, 1l, null,2), 1);
         verifyNoMoreInteractions(routerRegistry);
     }
 }

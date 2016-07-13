@@ -13,8 +13,6 @@
 
 package com.flipkart.flux.domain;
 
-import org.hibernate.annotations.Type;
-
 import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
