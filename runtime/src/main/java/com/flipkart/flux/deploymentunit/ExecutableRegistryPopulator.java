@@ -25,12 +25,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.URLClassLoader;
-import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -48,25 +48,25 @@ public class ExecutableRegistryPopulator implements Initializable {
 
     private ExecutableRegistry executableRegistry;
 
-    private Set<String> routerNames;
+    private Map<String, DeploymentUnit> deploymentUnitsMap;
 
     @Inject
-    public ExecutableRegistryPopulator(DeploymentUnitUtil deploymentUnitUtil, ExecutableRegistry executableRegistry) {
+    public ExecutableRegistryPopulator(DeploymentUnitUtil deploymentUnitUtil, ExecutableRegistry executableRegistry, @Named("deploymentUnits")Map<String, DeploymentUnit> deploymentUnitsMap) {
         this.deploymentUnitUtil = deploymentUnitUtil;
         this.executableRegistry = executableRegistry;
+        this.deploymentUnitsMap = deploymentUnitsMap;
     }
 
     @Override
     public void initialize() {
-        routerNames = new HashSet<String>();
-        List<String> deploymentUnitNames = deploymentUnitUtil.getAllDeploymentUnits();
 
         //for each deployment unit
-        for(String deploymentUnitName : deploymentUnitNames) {
+        for(Map.Entry<String, DeploymentUnit> deploymentUnitEntry : deploymentUnitsMap.entrySet()) {
             try {
+                DeploymentUnit deploymentUnit = deploymentUnitEntry.getValue();
 
-                //create a class loader and get required classes from it
-                URLClassLoader classLoader = deploymentUnitUtil.getClassLoader(deploymentUnitName);
+                //get required classes from deployment unit class loader
+                URLClassLoader classLoader = deploymentUnit.getUrlClassLoader();
                 Class TaskClass = classLoader.loadClass(Task.class.getCanonicalName());
                 Class InjectorClass = loadClassLoaderInjector(classLoader);
                 Method getInstanceMethod = InjectorClass.getMethod("getInstance", Class.class);
@@ -82,7 +82,7 @@ public class ExecutableRegistryPopulator implements Initializable {
                     injectorClassInstance = InjectorClass.getConstructor(guiceModuleClass).newInstance(classLoader.loadClass(DUModuleClassFQN).newInstance());
                 }
 
-                Set<Method> taskMethods = deploymentUnitUtil.getTaskMethods(classLoader);
+                Set<Method> taskMethods = deploymentUnit.getTaskMethods();
                 //for every task method found in the deployment unit create an executable and keep it in executable registry
                 for(Method method : taskMethods) {
                     String taskIdentifier = new MethodId(method).toString();
@@ -98,13 +98,10 @@ public class ExecutableRegistryPopulator implements Initializable {
 
                     Object singletonMethodOwner = getInstanceMethod.invoke(injectorClassInstance, method.getDeclaringClass());
                     executableRegistry.registerTask(taskIdentifier, new ExecutableImpl(singletonMethodOwner, method, timeout, classLoader));
-
-                    //add the router name to deployment unit routers
-                    routerNames.add(method.getDeclaringClass().getName() + "_" + method.getName()); //convention: task router name is classFQN_taskMethodName
                 }
             } catch (Exception e) {
-                LOGGER.error("Unable to populate Executable Registry for deployment unit: {}. Exception: {}", deploymentUnitName, e.getMessage());
-                throw new FluxError(FluxError.ErrorType.runtime, "Unable to populate Executable Registry for deployment unit: "+deploymentUnitName, e);
+                LOGGER.error("Unable to populate Executable Registry for deployment unit: {}. Exception: {}", deploymentUnitEntry.getKey(), e.getMessage());
+                throw new FluxError(FluxError.ErrorType.runtime, "Unable to populate Executable Registry for deployment unit: "+deploymentUnitEntry.getKey(), e);
             }
         }
 
@@ -138,10 +135,6 @@ public class ExecutableRegistryPopulator implements Initializable {
             LOGGER.error("Unable to load class ClassLoaderInjector into deployment unit's class loader. Exception: {}" , e.getMessage());
             throw new RuntimeException("Unable to load class ClassLoaderInjector into deployment unit's class loader. Exception: " + e.getMessage());
         }
-    }
-
-    public Set<String> getDeploymentUnitRouterNames() {
-        return routerNames;
     }
 
 }

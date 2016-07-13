@@ -13,8 +13,9 @@
 
 package com.flipkart.flux.guice.module;
 
+import com.flipkart.flux.client.intercept.MethodId;
+import com.flipkart.flux.deploymentunit.DeploymentUnit;
 import com.flipkart.flux.deploymentunit.DeploymentUnitUtil;
-import com.flipkart.flux.deploymentunit.ExecutableRegistryPopulator;
 import com.flipkart.polyguice.config.ApacheCommonsConfigProvider;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import com.flipkart.polyguice.core.ConfigurationProvider;
@@ -28,9 +29,11 @@ import org.eclipse.jetty.util.ConcurrentHashSet;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.Iterator;
-import java.util.Set;
+import java.net.URLClassLoader;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <code>ConfigModule</code> is a Guice {@link AbstractModule} implementation used for wiring flux configuration.
@@ -80,11 +83,31 @@ public class ConfigModule extends AbstractModule {
         return configProvider;
     }
 
-    /** Returns set of all the available routers, include routers mentioned in configuration.yml and deployment unit routers*/
+
+    /**
+     * Returns Map<deploymentUnitName,DeploymentUnit> of all the deployment units available //todo: this shows only deployment units available at boot time, need to handle dynamic deployments.
+     */
     @Provides
     @Singleton
-    @Named("router.names")
-    public Set<String> getRouterNames(DeploymentUnitUtil deploymentUnitUtil, ExecutableRegistryPopulator executableRegistryPopulator) {
+    @Named("deploymentUnits")
+    public Map<String, DeploymentUnit> getAllDeploymentUnits(DeploymentUnitUtil deploymentUnitUtil) throws IOException, ClassNotFoundException {
+        Map<String, DeploymentUnit> deploymentUnits = new HashMap<>();
+        List<String> deploymentUnitNames = deploymentUnitUtil.getAllDeploymentUnitNames();
+        for(String deploymentUnitName : deploymentUnitNames) {
+            URLClassLoader deploymentUnitClassLoader = deploymentUnitUtil.getClassLoader(deploymentUnitName);
+            Set<Method> taskMethods = deploymentUnitUtil.getTaskMethods(deploymentUnitClassLoader);
+            deploymentUnits.put(deploymentUnitName, new DeploymentUnit(deploymentUnitName, deploymentUnitClassLoader, taskMethods));
+        }
+        return deploymentUnits;
+    }
+
+    /**
+     * Returns set of all the available routers, include routers mentioned in configuration.yml and deployment unit routers //todo: handle dynamic deployments
+     */
+    @Provides
+    @Singleton
+    @Named("routerNames")
+    public Set<String> getRouterNames(@Named("deploymentUnits") Map<String, DeploymentUnit> deploymentUnitsMap) {
         Configuration routerConfig = yamlConfiguration.subset("routers");
         Set<String> routerNames = new ConcurrentHashSet<>();
         Iterator<String> propertyKeys = routerConfig.getKeys();
@@ -94,11 +117,14 @@ public class ConfigModule extends AbstractModule {
             routerNames.add(routerName);
         }
 
-        //add all deployment units' routers
-        routerNames.addAll(executableRegistryPopulator.getDeploymentUnitRouterNames());
-
         //'default' is not a router name, it's a placeholder for router default settings
         routerNames.remove("default");
+
+        //add all deployment units' routers
+        for(Map.Entry<String, DeploymentUnit> deploymentUnitEntry : deploymentUnitsMap.entrySet()) {
+            Set<Method> taskMethods = deploymentUnitEntry.getValue().getTaskMethods();
+            routerNames.addAll(taskMethods.stream().map(method -> new MethodId(method).getPrefix()).collect(Collectors.toList()));
+        }
 
         return routerNames;
     }

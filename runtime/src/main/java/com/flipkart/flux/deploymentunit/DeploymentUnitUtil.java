@@ -52,7 +52,7 @@ public class DeploymentUnitUtil {
     private String deploymentUnitsPath;
 
     /** Lists all deployment unit names*/ //todo: currently it's by directory scanning, will change it accordingly once we decide on where to store deployment units
-    public List<String> getAllDeploymentUnits() {
+    public List<String> getAllDeploymentUnitNames() {
         if(deploymentUnitsPath != null) {
             File file = new File(deploymentUnitsPath);
             String[] directories = file.list((current, name) -> new File(current, name).isDirectory());
