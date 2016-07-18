@@ -17,6 +17,7 @@ import com.flipkart.flux.client.intercept.MethodId;
 import com.flipkart.flux.deploymentunit.DeploymentUnit;
 import com.flipkart.flux.deploymentunit.DeploymentUnitClassLoader;
 import com.flipkart.flux.deploymentunit.DeploymentUnitUtil;
+import com.flipkart.flux.deploymentunit.DirectoryBasedDeploymentUnitUtil;
 import com.flipkart.polyguice.config.ApacheCommonsConfigProvider;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import com.flipkart.polyguice.core.ConfigurationProvider;
@@ -59,6 +60,9 @@ public class ConfigModule extends AbstractModule {
     protected void configure() {
         bind(ConfigurationProvider.class).toInstance(configProvider);
         bindConfigProperties();
+        if(yamlConfiguration.getProperty("deploymentType").equals("directory")) {
+            bind(DeploymentUnitUtil.class).to(DirectoryBasedDeploymentUnitUtil.class);
+        }
     }
 
     /**
@@ -90,7 +94,7 @@ public class ConfigModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("deploymentUnits")
-    public Map<String, DeploymentUnit> getAllDeploymentUnits(DeploymentUnitUtil deploymentUnitUtil) throws IOException, ClassNotFoundException {
+    public Map<String, DeploymentUnit> getAllDeploymentUnits(DeploymentUnitUtil deploymentUnitUtil) throws Exception {
         Map<String, DeploymentUnit> deploymentUnits = new HashMap<>();
         List<String> deploymentUnitNames = deploymentUnitUtil.getAllDeploymentUnitNames();
         for(String deploymentUnitName : deploymentUnitNames) {
