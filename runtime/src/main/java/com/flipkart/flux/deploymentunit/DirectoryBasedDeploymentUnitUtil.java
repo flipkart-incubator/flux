@@ -18,7 +18,6 @@ import com.flipkart.polyguice.config.YamlConfiguration;
 import com.google.inject.Inject;
 
 import javax.inject.Named;
-import javax.inject.Singleton;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -37,7 +36,6 @@ import java.util.*;
  *
  * @author shyam.akirala
  */
-@Singleton
 public class DirectoryBasedDeploymentUnitUtil implements DeploymentUnitUtil {
 
     /** Configuration file of a deployment unit*/

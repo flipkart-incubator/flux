@@ -61,7 +61,7 @@ public class ConfigModule extends AbstractModule {
         bind(ConfigurationProvider.class).toInstance(configProvider);
         bindConfigProperties();
         if(yamlConfiguration.getProperty("deploymentType").equals("directory")) {
-            bind(DeploymentUnitUtil.class).to(DirectoryBasedDeploymentUnitUtil.class);
+            bind(DeploymentUnitUtil.class).to(DirectoryBasedDeploymentUnitUtil.class).in(Singleton.class);
         }
     }
 
