@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.net.URL;
 
 /**
+ * <code>DeploymentUnitGuiceJunit4Runner</code> provides guice injection capabilities to a test class instance, used by E2E tests where they creation of dummy deployment unit is needed
  * @author shyam.akirala
  */
 public class DeploymentUnitGuiceJunit4Runner extends BlockJUnit4ClassRunner {
