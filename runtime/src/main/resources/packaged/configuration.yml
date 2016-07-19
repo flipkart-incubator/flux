@@ -23,9 +23,6 @@ Api:
   service.baseURL: "http://localhost"
 
 routers:
-  someRouter:
-    totalInstances: 100
-    maxInstancesPerNode: 3
   default:
     totalInstances: 10
     maxInstancesPerNode: 2

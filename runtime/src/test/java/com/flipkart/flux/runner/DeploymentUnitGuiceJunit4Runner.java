@@ -15,12 +15,14 @@ package com.flipkart.flux.runner;
 
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.constant.RuntimeConstants;
+import com.flipkart.flux.deploymentunit.ExecutableRegistryPopulator;
 import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.HibernateModule;
 import com.flipkart.flux.impl.boot.TaskModule;
-import com.flipkart.flux.module.RuntimeTestModule;
+import com.flipkart.flux.module.DeploymentUnitTestModule;
 import com.flipkart.polyguice.core.support.Polyguice;
+import com.google.inject.util.Modules;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.InitializationError;
 
@@ -28,19 +30,19 @@ import java.io.IOException;
 import java.net.URL;
 
 /**
- * <code>GuiceJunit4Runner</code> provides guice injection capabilities to a test class instance
  * @author shyam.akirala
  */
-public class GuiceJunit4Runner extends BlockJUnit4ClassRunner {
+public class DeploymentUnitGuiceJunit4Runner extends BlockJUnit4ClassRunner {
 
     private static Polyguice polyguice;
     static {
-        URL configUrl = GuiceJunit4Runner.class.getClassLoader().getResource(RuntimeConstants.CONFIGURATION_YML);
+        URL configUrl = DeploymentUnitGuiceJunit4Runner.class.getClassLoader().getResource(RuntimeConstants.CONFIGURATION_YML);
         polyguice = new Polyguice();
         final ConfigModule configModule = new ConfigModule(configUrl);
-        polyguice.modules(configModule, new HibernateModule(), new ContainerModule(), new TaskModule(), new FluxClientInterceptorModule(), new RuntimeTestModule());
+        polyguice.modules(Modules.override(configModule).with(new DeploymentUnitTestModule()), new HibernateModule(), new ContainerModule(), new TaskModule(), new FluxClientInterceptorModule());
         polyguice.registerConfigurationProvider(configModule.getConfigProvider());
         polyguice.prepare();
+        polyguice.getComponentContext().getInstance(ExecutableRegistryPopulator.class);
     }
 
     /**
@@ -49,7 +51,7 @@ public class GuiceJunit4Runner extends BlockJUnit4ClassRunner {
      * @param klass
      * @throws org.junit.runners.model.InitializationError if the test class is malformed.
      */
-    public GuiceJunit4Runner(Class<?> klass) throws InitializationError, IOException {
+    public DeploymentUnitGuiceJunit4Runner(Class<?> klass) throws InitializationError, IOException {
         super(klass);
     }
 
@@ -59,4 +61,5 @@ public class GuiceJunit4Runner extends BlockJUnit4ClassRunner {
         polyguice.getComponentContext().inject(testInstance);
         return testInstance;
     }
+
 }

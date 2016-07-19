@@ -28,6 +28,8 @@ import org.aopalliance.intercept.MethodInvocation;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -70,7 +72,7 @@ public class TaskInterceptor implements MethodInterceptor {
         /* Contribute to the ongoing state machine definition */
         localContext.registerNewState(taskAnnotation.version(), generateStateIdentifier(method), null, null, taskIdentifier, taskAnnotation.retries(), taskAnnotation.timeout(), dependencySet, outputEventDefintion);
         /* Register the task with the executable registry on this jvm */
-        executableRegistry.registerTask(taskIdentifier, new ExecutableImpl(invocation.getThis(), invocation.getMethod(), taskAnnotation.timeout(), null));
+        executableRegistry.registerTask(taskIdentifier, new ExecutableImpl(invocation.getThis(), invocation.getMethod(), taskAnnotation.timeout(), new URLClassLoader(new URL[0], this.getClass().getClassLoader())));
 
         return proxyReturnObject;
     }

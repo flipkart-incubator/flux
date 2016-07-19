@@ -43,7 +43,7 @@ public class TestSMRule extends ExternalResource {
     @Override @Transactional
     protected void before() throws Throwable {
         String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
-        String task = "com.flipkart.flux.dao.TestWorkflow_DummyTask";
+        String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";
         String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
         State state1 = new State(2L, "state1", "desc1", onEntryHook, task, onExitHook, null, 3L, 60L, null, null, null, 0l);
         State state2 = new State(2L, "state2", "desc2", onEntryHook, task, onExitHook, null, 3L, 60L, null, null, null, 0l);

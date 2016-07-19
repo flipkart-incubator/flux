@@ -19,7 +19,7 @@ import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.initializer.OrderedComponentBooter;
 import com.flipkart.flux.rule.DbClearRule;
-import com.flipkart.flux.runner.GuiceJunit4Runner;
+import com.flipkart.flux.runner.DeploymentUnitGuiceJunit4Runner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(GuiceJunit4Runner.class)
+@RunWith(DeploymentUnitGuiceJunit4Runner.class)
 public class E2ETest {
 
     @Inject

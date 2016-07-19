@@ -68,7 +68,7 @@ public class LocalJvmTask extends AbstractTask {
             While this works for methods with all unique param types, it
             will fail for methods where we have mutliple params of the same type.
              */
-            ClassLoader classLoader = toInvoke.getDeploymentUnitClassLoader() != null ? toInvoke.getDeploymentUnitClassLoader() : this.getClass().getClassLoader();
+            ClassLoader classLoader = toInvoke.getDeploymentUnitClassLoader();
             Class objectMapper = classLoader.loadClass("com.fasterxml.jackson.databind.ObjectMapper");
             Object objectMapperInstance = objectMapper.newInstance();
 

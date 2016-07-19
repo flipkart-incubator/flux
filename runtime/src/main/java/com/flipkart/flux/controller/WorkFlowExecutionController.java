@@ -139,7 +139,6 @@ public class WorkFlowExecutionController {
     }
 
     private void executeStates(Long stateMachineInstanceId, Set<State> executableStates) {
-        // TODO - this always uses someRouter for now
         executableStates.forEach((state ->  {
             final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
                 eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId).toArray(new EventData[]{}),
@@ -150,10 +149,6 @@ public class WorkFlowExecutionController {
             int secondUnderscorePosition = taskName.indexOf('_', taskName.indexOf('_') + 1);
             String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition); //the name of router would be classFQN_taskMethodName
             ActorRef router = this.routerRegistry.getRouter(routerName);
-            if(router == null) { //this should true only for E2E Tests
-                logger.error("Router " + routerName + " not found. Using someRouter.");
-                router = this.routerRegistry.getRouter("someRouter");
-            }
             router.tell(msg, ActorRef.noSender());
         }));
     }
