@@ -231,17 +231,18 @@ public class StateMachineResource {
         final RAMContext ramContext = new RAMContext(System.currentTimeMillis(), null, stateMachine);
         /* After this operation, we'll have nodes for each state and its corresponding output event along with the output event's dependencies mapped out*/
         for(State state : stateMachine.getStates()) {
+            final FsmGraphVertex vertex = new FsmGraphVertex(state.getId(), this.getStateDisplayName(state.getName()));
             if(state.getOutputEvent() != null) {
                 EventDefinition eventDefinition = objectMapper.readValue(state.getOutputEvent(), EventDefinition.class);
                 final Event outputEvent = stateMachineEvents.get(eventDefinition.getName());
-                final FsmGraphVertex vertex = new FsmGraphVertex(state.getId(), getStateDisplayName(state.getName()));
                 fsmGraph.addVertex(vertex,
-                    new FsmGraphEdge(getEventDisplayName(outputEvent.getName()), outputEvent.getStatus().name(),outputEvent.getEventSource()));
+                    new FsmGraphEdge(getEventDisplayName(outputEvent.getName()), state.getStatus().name(),outputEvent.getEventSource()));
                 final Set<State> dependantStates = ramContext.getDependantStates(outputEvent.getName());
                 dependantStates.forEach((aState) -> fsmGraph.addOutgoingEdge(vertex, aState.getId()));
                 allOutputEventNames.add(outputEvent.getName()); // we collect all output event names and use them below.
             } else {
-                fsmGraph.addVertex(new FsmGraphVertex(state.getId(),this.getStateDisplayName(state.getName())),null);
+                fsmGraph.addVertex(vertex,
+                        new FsmGraphEdge(null, state.getStatus().name(),null));
             }
         }
 
