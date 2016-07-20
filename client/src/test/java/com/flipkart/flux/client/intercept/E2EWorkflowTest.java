@@ -15,8 +15,8 @@
 package com.flipkart.flux.client.intercept;
 
 import com.flipkart.flux.api.EventDefinition;
-import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.client.guice.annotation.IsolatedEnv;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.IntegerEvent;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEvent;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
@@ -30,18 +30,13 @@ import org.junit.runner.RunWith;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.inject.Inject;
-import javax.inject.Scope;
 import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
-
 /**
- *
  * @author yogesh.nachnani
  */
 @RunWith(GuiceJunit4Runner.class)
@@ -63,7 +58,7 @@ public class E2EWorkflowTest {
     @Inject
     public DummyFluxRuntimeResource dummyFluxRuntimeResource;
 
-    @Inject
+    @Inject @IsolatedEnv
     ExecutableRegistry executableRegistry;
 
 

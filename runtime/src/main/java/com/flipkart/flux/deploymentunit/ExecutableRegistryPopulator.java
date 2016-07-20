@@ -16,9 +16,10 @@ package com.flipkart.flux.deploymentunit;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.client.intercept.MethodId;
 import com.flipkart.flux.client.model.Task;
-import com.flipkart.flux.client.registry.ExecutableImpl;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.constant.RuntimeConstants;
+import com.flipkart.flux.guice.annotation.ManagedEnv;
+import com.flipkart.flux.registry.TaskExecutableImpl;
 import com.flipkart.polyguice.core.Initializable;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -50,7 +51,7 @@ public class ExecutableRegistryPopulator implements Initializable {
     private Map<String, DeploymentUnit> deploymentUnitsMap;
 
     @Inject
-    public ExecutableRegistryPopulator(DeploymentUnitUtil deploymentUnitUtil, ExecutableRegistry executableRegistry, @Named("deploymentUnits")Map<String, DeploymentUnit> deploymentUnitsMap) {
+    public ExecutableRegistryPopulator(DeploymentUnitUtil deploymentUnitUtil, @ManagedEnv ExecutableRegistry executableRegistry, @Named("deploymentUnits")Map<String, DeploymentUnit> deploymentUnitsMap) {
         this.deploymentUnitUtil = deploymentUnitUtil;
         this.executableRegistry = executableRegistry;
         this.deploymentUnitsMap = deploymentUnitsMap;
@@ -96,7 +97,7 @@ public class ExecutableRegistryPopulator implements Initializable {
                     }
 
                     Object singletonMethodOwner = getInstanceMethod.invoke(injectorClassInstance, method.getDeclaringClass());
-                    executableRegistry.registerTask(taskIdentifier, new ExecutableImpl(singletonMethodOwner, method, timeout, classLoader));
+                    executableRegistry.registerTask(taskIdentifier, new TaskExecutableImpl(singletonMethodOwner, method, timeout, classLoader));
                 }
             } catch (Exception e) {
                 LOGGER.error("Unable to populate Executable Registry for deployment unit: {}. Exception: {}", deploymentUnitEntry.getKey(), e.getMessage());

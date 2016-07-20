@@ -16,6 +16,7 @@ package com.flipkart.flux.impl.boot;
 
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
+import com.flipkart.flux.guice.annotation.ManagedEnv;
 import com.flipkart.flux.impl.task.AkkaGatewayTask;
 import com.flipkart.flux.impl.task.AkkaTask;
 import com.flipkart.flux.impl.task.AkkaTaskSupervisor;
@@ -23,11 +24,13 @@ import com.flipkart.flux.impl.task.registry.EagerInitRouterRegistryImpl;
 import com.flipkart.flux.impl.task.registry.LocalRouterConfigurationRegistryImpl;
 import com.flipkart.flux.impl.task.registry.RouterConfigurationRegistry;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
+import com.flipkart.flux.registry.TaskExecutableRegistryImpl;
 import com.google.inject.AbstractModule;
 
 /**
  * Guice module for the Task Runtime
  * @author yogesh.nachnani
+ * @author shyam.akirala
  */
 public class TaskModule extends AbstractModule {
 
@@ -38,11 +41,11 @@ public class TaskModule extends AbstractModule {
     protected void configure() {
         bind(RouterConfigurationRegistry.class).to(LocalRouterConfigurationRegistryImpl.class);
         bind(RouterRegistry.class).to(EagerInitRouterRegistryImpl.class);
+        bind(ExecutableRegistry.class).annotatedWith(ManagedEnv.class).to(TaskExecutableRegistryImpl.class);
         install(new FluxClientComponentModule());
         requestStaticInjection(AkkaTask.class);
         requestStaticInjection(AkkaGatewayTask.class);
         requestStaticInjection(AkkaTaskSupervisor.class);
-        requireBinding(ExecutableRegistry.class);
     }
 
 }

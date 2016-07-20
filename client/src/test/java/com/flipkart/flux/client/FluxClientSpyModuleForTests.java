@@ -14,6 +14,7 @@
 
 package com.flipkart.flux.client;
 
+import com.flipkart.flux.client.guice.annotation.IsolatedEnv;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.client.registry.LocalExecutableRegistryImpl;
@@ -32,7 +33,7 @@ public class FluxClientSpyModuleForTests extends AbstractModule {
     @Override
     protected void configure() {
         install(new FluxClientInterceptorModule());
-        bind(ExecutableRegistry.class).to(LocalExecutableRegistryImpl.class);
+        bind(ExecutableRegistry.class).annotatedWith(IsolatedEnv.class).to(LocalExecutableRegistryImpl.class);
         bind(SimpleWorkflowForTest.class);
         install(new TestResourceModule());
     }

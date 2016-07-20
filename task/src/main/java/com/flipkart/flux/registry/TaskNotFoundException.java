@@ -9,21 +9,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-package com.flipkart.flux.client.registry;
+package com.flipkart.flux.registry;
 
 /**
- * This provides a interface for the core runtime to execute client side code
- * @author yogesh.nachnani
+ * <code>TaskNotFoundException</code> represents a missing Task method.
+ * Ex: Thrown from {@link TaskExecutableRegistryImpl} if the task is missing in it's identifierToMethodMap.
+ * @author shyam.akirala
  */
-public interface Executable {
-
-    String getName();
-    long getTimeout();
-    Object execute(Object[] parameters);
-
-    Class<?>[] getParameterTypes();
-
+public class TaskNotFoundException extends RuntimeException {
+    public TaskNotFoundException(String message) {
+        super(message);
+    }
 }

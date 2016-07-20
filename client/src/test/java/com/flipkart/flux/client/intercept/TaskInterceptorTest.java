@@ -133,7 +133,7 @@ public class TaskInterceptorTest {
     public void shouldRegisterTaskMethodsWithRegistry() throws Throwable {
         final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", StringEvent.class);
         taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod, simpleWorkflowForTest));
-        final Executable expectedExecutable = new ExecutableImpl(simpleWorkflowForTest, invokedMethod, 2000l, null);
+        final Executable expectedExecutable = new ExecutableImpl(simpleWorkflowForTest, invokedMethod, 2000l);
         verify(executableRegistry, times(1)).registerTask(new MethodId(invokedMethod).toString(), expectedExecutable);
     }
 

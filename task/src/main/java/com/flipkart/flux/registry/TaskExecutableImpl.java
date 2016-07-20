@@ -9,31 +9,39 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-
-package com.flipkart.flux.client.registry;
+package com.flipkart.flux.registry;
 
 import com.flipkart.flux.client.intercept.MethodId;
+import com.flipkart.flux.client.registry.Executable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URLClassLoader;
 
 /**
- * This provides a way for the core runtime to execute client side code
- * @author yogesh.nachnani
+ * <code>TaskExecutableImpl</code> is a {@link com.flipkart.flux.client.registry.Executable} implementation
+ * used in flux managed environment to provide a way to execute client code. All the task methods are stored
+ * in {@link com.flipkart.flux.client.registry.ExecutableRegistry} as <taskIdentifier, Executable> which will be
+ * retrieved and executed.
+ *
+ * @author shyam.akirala
  */
-public class ExecutableImpl implements Executable {
+public class TaskExecutableImpl implements Executable {
 
     private final Method toInvoke;
     private final Object singletonMethodOwner;
     private final long timeout;
 
-    public ExecutableImpl(Object singletonMethodOwner, Method toInvoke, long timeout) {
+    /**Class loader of the deployment unit to which 'toInvoke' belongs */
+    private final URLClassLoader deploymentUnitClassLoader;
+
+    public TaskExecutableImpl(Object singletonMethodOwner, Method toInvoke, long timeout, URLClassLoader classLoader) {
         this.singletonMethodOwner = singletonMethodOwner;
         this.toInvoke = toInvoke;
         this.timeout = timeout;
+        this.deploymentUnitClassLoader = classLoader;
     }
 
     @Override
@@ -41,11 +49,12 @@ public class ExecutableImpl implements Executable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ExecutableImpl that = (ExecutableImpl) o;
+        TaskExecutableImpl that = (TaskExecutableImpl) o;
 
         if (timeout != that.timeout) return false;
         if (!toInvoke.equals(that.toInvoke)) return false;
         return singletonMethodOwner.equals(that.singletonMethodOwner);
+
     }
 
     @Override
@@ -59,9 +68,9 @@ public class ExecutableImpl implements Executable {
     @Override
     public String toString() {
         return "Executable{" +
-            "singletonMethodOwner=" + singletonMethodOwner +
-            ", toInvoke=" + toInvoke +
-            '}';
+                "singletonMethodOwner=" + singletonMethodOwner +
+                ", toInvoke=" + toInvoke +
+                '}';
     }
     public String getName() {
         return new MethodId(toInvoke).getMethodName();
@@ -85,4 +94,7 @@ public class ExecutableImpl implements Executable {
         return toInvoke.getParameterTypes();
     }
 
+    public URLClassLoader getDeploymentUnitClassLoader() {
+        return deploymentUnitClassLoader;
+    }
 }

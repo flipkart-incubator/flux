@@ -17,6 +17,7 @@ package com.flipkart.flux.impl.task;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.client.registry.Executable;
+import com.flipkart.flux.registry.TaskExecutableImpl;
 import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,8 @@ import java.lang.reflect.Method;
 /**
  * A task that can be executed locally within the same JVM
  * @author yogesh.nachnani
- * */
+ * @author shyam.akirala
+ */
 public class LocalJvmTask extends AbstractTask {
 
     private final Executable toInvoke;
@@ -68,7 +70,7 @@ public class LocalJvmTask extends AbstractTask {
             While this works for methods with all unique param types, it
             will fail for methods where we have mutliple params of the same type.
              */
-            ClassLoader classLoader = toInvoke.getDeploymentUnitClassLoader();
+            ClassLoader classLoader = ((TaskExecutableImpl)toInvoke).getDeploymentUnitClassLoader();
             Class objectMapper = classLoader.loadClass("com.fasterxml.jackson.databind.ObjectMapper");
             Object objectMapperInstance = objectMapper.newInstance();
 

@@ -46,7 +46,7 @@ public class TaskRegistryTest {
     @Test
     public void testRetrieve_shouldReturnTaskGivenIdentifier() throws Exception {
         final Object someObject = new Object();
-        final Executable givenExecutable = new ExecutableImpl(someObject, someObject.getClass().getDeclaredMethod("toString"), 10, null);
+        final Executable givenExecutable = new ExecutableImpl(someObject, someObject.getClass().getDeclaredMethod("toString"), 10);
         when(executableRegistry.getTask(anyString())).thenReturn(givenExecutable);
         assertThat(taskRegistry.retrieveTask("com.flipkart.flux.impl.SomeWorkflow_simpleStringModifyingTask_java.lang.String_java.lang.String")).isEqualTo(new LocalJvmTask(givenExecutable));
         verify(executableRegistry, times(1)).getTask("com.flipkart.flux.impl.SomeWorkflow_simpleStringModifyingTask_java.lang.String_java.lang.String");

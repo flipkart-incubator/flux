@@ -15,6 +15,7 @@
 package com.flipkart.flux.client.intercept;
 
 import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.client.guice.annotation.IsolatedEnv;
 import com.flipkart.flux.client.model.Event;
 import com.flipkart.flux.client.model.ExternalEvent;
 import com.flipkart.flux.client.model.Task;
@@ -28,8 +29,6 @@ import org.aopalliance.intercept.MethodInvocation;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -43,7 +42,7 @@ public class TaskInterceptor implements MethodInterceptor {
 
     @Inject
     private LocalContext localContext;
-    @Inject
+    @Inject @IsolatedEnv
     private ExecutableRegistry executableRegistry;
 
     /* Used to create an empty interceptor in the Guice module. The private members are injected later.
@@ -72,7 +71,7 @@ public class TaskInterceptor implements MethodInterceptor {
         /* Contribute to the ongoing state machine definition */
         localContext.registerNewState(taskAnnotation.version(), generateStateIdentifier(method), null, null, taskIdentifier, taskAnnotation.retries(), taskAnnotation.timeout(), dependencySet, outputEventDefintion);
         /* Register the task with the executable registry on this jvm */
-        executableRegistry.registerTask(taskIdentifier, new ExecutableImpl(invocation.getThis(), invocation.getMethod(), taskAnnotation.timeout(), new URLClassLoader(new URL[0], this.getClass().getClassLoader())));
+        executableRegistry.registerTask(taskIdentifier, new ExecutableImpl(invocation.getThis(), invocation.getMethod(), taskAnnotation.timeout()));
 
         return proxyReturnObject;
     }
