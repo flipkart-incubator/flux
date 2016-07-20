@@ -41,7 +41,7 @@ public class SimpleWorkflow {
         someTaskWithIntegerAndString(newString, someNewInteger);
     }
 
-    @Task(version = 2,retries = 2,timeout = 200000l)
+    @Task(version = 2,retries = 2,timeout = 2000l)
     public StringEvent simpleStringReturningTask(StringEvent stringEvent) {
         logger.info("In Simple String returning task {}, received",stringEvent);
         countDownLatchForSimpleStringReturnTask.countDown();
