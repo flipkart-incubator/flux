@@ -14,10 +14,7 @@
 package com.flipkart.flux.guice.module;
 
 import com.flipkart.flux.client.intercept.MethodId;
-import com.flipkart.flux.deploymentunit.DeploymentUnit;
-import com.flipkart.flux.deploymentunit.DeploymentUnitClassLoader;
-import com.flipkart.flux.deploymentunit.DeploymentUnitUtil;
-import com.flipkart.flux.deploymentunit.DirectoryBasedDeploymentUnitUtil;
+import com.flipkart.flux.deploymentunit.*;
 import com.flipkart.polyguice.config.ApacheCommonsConfigProvider;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import com.flipkart.polyguice.core.ConfigurationProvider;
@@ -60,8 +57,11 @@ public class ConfigModule extends AbstractModule {
     protected void configure() {
         bind(ConfigurationProvider.class).toInstance(configProvider);
         bindConfigProperties();
-        if(yamlConfiguration.getProperty("deploymentType").equals("directory")) {
+        String deploymentType = (String)yamlConfiguration.getProperty("deploymentType");
+        if("directory".equals(deploymentType)) {
             bind(DeploymentUnitUtil.class).to(DirectoryBasedDeploymentUnitUtil.class).in(Singleton.class);
+        } else {
+            bind(DeploymentUnitUtil.class).to(NoOpDeploymentUnitUtil.class).in(Singleton.class);
         }
     }
 
