@@ -34,6 +34,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.MockActorRef;
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.redriver.RedriverRegistry;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
@@ -61,6 +62,9 @@ public class WorkFlowExecutionControllerTest {
     @Mock
     private RouterRegistry routerRegistry;
 
+    @Mock
+    private RedriverRegistry redriverRegistry;
+    
     TestActorRef<MockActorRef> mockActor;
 
     private WorkFlowExecutionController workFlowExecutionController;
@@ -70,7 +74,7 @@ public class WorkFlowExecutionControllerTest {
 
     @Before
     public void setUp() throws Exception {
-        workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, routerRegistry);
+        workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, routerRegistry, redriverRegistry);
         when(stateMachinesDAO.findById(anyLong())).thenReturn(TestUtils.getStandardTestMachine());
         actorSystem = ActorSystem.create();
         mockActor = TestActorRef.create(actorSystem, Props.create(MockActorRef.class));

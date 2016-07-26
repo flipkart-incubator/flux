@@ -117,6 +117,7 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
         }
         final Iterable<Pair<String, ClusterRouterPoolSettings>> configurations = routerConfigurationRegistry.getConfigurations();
         for (Pair<String, ClusterRouterPoolSettings> next : configurations) {
+            // create the Router for the Actor. Note that the path links this instance with the proxy that is created subsequently
             actorSystem.actorOf(
                 ClusterSingletonManager.props(new ClusterRouterPool(new RoundRobinPool(2).withSupervisorStrategy(getGatewayTasksuperviseStrategy()), next.getValue()).props(
                     new RemoteRouterConfig(new RoundRobinPool(6), this.memberAddresses).props(

@@ -27,14 +27,14 @@ public interface RedriverRegistry {
 	/**
 	 * Registers the specified task with this re-driver registry for restarts from stalled state after the specified
 	 * re-driver delay.
-	 * @param task the Task instance
+	 * @param taskId the Task State identifier
 	 * @param redriverDelay the minimum elapsed duration after which restart is to be attempted
 	 */
-	public void registerTask(Task task, long redriverDelay);
+	public void registerTask(Long taskId, long redriverDelay);
 	
 	/**
 	 * Cancels restarts for the specified Task from stalled state.
-	 * @param task the Task instance
+	 * @param taskId the Task State identifier
 	 */
-	public void deRegisterTask(Task task);
+	public void deRegisterTask(Long taskId);
 }
