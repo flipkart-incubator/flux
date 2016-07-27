@@ -22,6 +22,7 @@ import javax.inject.Named;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.Status;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.api.core.Task;
@@ -105,7 +106,7 @@ public class AkkaTask extends UntypedActor {
 		 	AbstractTask task = this.taskRegistry.retrieveTask(taskAndEvent.getTaskIdentifier());
 			if (task != null) {
 				// update the Flux runtime with status of the Task as running
-				fluxRuntimeConnector.updateExecutionStatus(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.running);
+				fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.running));
 				// Execute any pre-exec HookS
 				this.executeHooks(this.taskRegistry.getPreExecHooks(task), taskAndEvent.getEvents());
 				final String outputEventName = getOutputEventName(taskAndEvent);
@@ -115,7 +116,8 @@ public class AkkaTask extends UntypedActor {
 				try {
 					outputEvent = taskExecutor.execute();
 					// update the Flux runtime with status of the Task as completed
-					fluxRuntimeConnector.updateExecutionStatus(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.completed);
+					fluxRuntimeConnector.updateExecutionStatus(
+							new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.completed, taskAndEvent.getRetryCount()));
 				} catch (HystrixRuntimeException hre) {
 					if (taskExecutor.isResponseTimedOut()) {
 						throw new FluxError(FluxError.ErrorType.timeout, "Execution timeout for : " + task.getName(), 
@@ -125,7 +127,8 @@ public class AkkaTask extends UntypedActor {
 					}
 				} catch (Exception e) {
 					// mark the task outcome as execution failure
-					fluxRuntimeConnector.updateExecutionStatus(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.errored);
+					fluxRuntimeConnector.updateExecutionStatus(
+							new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.errored));
 				} finally {
 					if (outputEvent != null) {
 						getSender().tell(outputEvent, getContext().parent()); // we send back the parent Supervisor Actor as the sender

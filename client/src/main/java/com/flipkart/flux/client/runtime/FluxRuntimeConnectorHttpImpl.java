@@ -17,6 +17,7 @@ package com.flipkart.flux.client.runtime;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.api.Status;
 import org.apache.http.client.config.RequestConfig;
@@ -107,11 +108,11 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
 
 	/**
 	 * Interface method implementation. Updates the status in persistence store by invoking suitable Flux runtime API
-	 * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#updateExecutionStatus(java.lang.Long, com.flipkart.flux.api.Status)
+	 * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#updateExecutionStatus(ExecutionUpdateData)
 	 */
-	public void updateExecutionStatus(Long stateMachineId,Long taskId, Status status) {
+	public void updateExecutionStatus(ExecutionUpdateData executionUpdateData) {
 		CloseableHttpResponse httpResponse = null;
-        httpResponse = postOverHttp(status,  "/" + stateMachineId + "/" + taskId + "/status");
+        httpResponse = postOverHttp(executionUpdateData,  "/" + executionUpdateData.getStateMachineId() + "/" + executionUpdateData.getTaskId() + "/status");
         HttpClientUtils.closeQuietly(httpResponse);
 	}
 

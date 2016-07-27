@@ -21,6 +21,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.Status;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
@@ -83,8 +84,8 @@ public class AkkaTaskSupervisor {
 					        			LOGGER.warn("Aborting retries for Task Id : {}. Retry count exceeded : {}", fe.getExecutionContextMeta().getTaskId(), 
 					        					fe.getExecutionContextMeta().getAttemptedNoOfRetries());
 					        			// update the Flux runtime to mark the Task as sidelined
-					        			fluxRuntimeConnector.updateExecutionStatus(fe.getExecutionContextMeta().getStateMachineId(), 
-					        					fe.getExecutionContextMeta().getTaskId(), Status.sidelined);
+					        			fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(fe.getExecutionContextMeta().getStateMachineId(), 
+					        					fe.getExecutionContextMeta().getTaskId(), Status.sidelined));
 					        			return SupervisorStrategy.stop();
 					        		}
 					        	} else { 
