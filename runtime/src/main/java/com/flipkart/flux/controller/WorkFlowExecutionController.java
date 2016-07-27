@@ -170,8 +170,8 @@ public class WorkFlowExecutionController {
             logger.debug("Sending msg {} for state machine {}", msg, stateMachineInstanceId);
             // register the Task with the redriver
             if (state.getRetryCount() > 0) {
-            	// delay between retries is 1 second as seen in AkkaTask#preRestart(). Redriver interval is set as 2X of this value
-            	long redriverInterval = state.getRetryCount() * 1000 * 2;
+            	// delay between retries is 1 second as seen in AkkaTask#preRestart(). Redriver interval is set as 2 x retrycount x (delay + timeout)
+            	long redriverInterval = 2 * state.getRetryCount() * (1000 + state.getTimeout());
             	this.redriverRegistry.registerTask(state.getId(), redriverInterval);
             }
             // send the message to the Router
