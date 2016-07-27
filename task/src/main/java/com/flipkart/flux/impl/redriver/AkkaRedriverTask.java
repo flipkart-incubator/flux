@@ -60,7 +60,7 @@ public class AkkaRedriverTask extends UntypedActor {
 	public AkkaRedriverTask(int noOfRedriverWorkers) {
 		List<Routee> routees = new ArrayList<Routee>();
 		for (int i = 0; i < noOfRedriverWorkers; i++) {
-			ActorRef r = getContext().actorOf(Props.create(RedriverWorker.class));
+			ActorRef r = getContext().actorOf(Props.create(AkkaRedriverWorker.class));
 			getContext().watch(r);
 			routees.add(new ActorRefRoutee(r));
 		}
@@ -87,16 +87,18 @@ public class AkkaRedriverTask extends UntypedActor {
 		} else if (message instanceof Terminated) {
 			// add back any terminated RedriverWorker instances
 			this.router = this.router.removeRoutee(((Terminated) message).actor());
-			ActorRef r = getContext().actorOf(Props.create(RedriverWorker.class));
+			ActorRef r = getContext().actorOf(Props.create(AkkaRedriverWorker.class));
 			getContext().watch(r);
 			this.router = this.router.addRoutee(new ActorRefRoutee(r));
 		} else if (message instanceof TaskRedriverDetails) {
 			TaskRedriverDetails redriverDetails = (TaskRedriverDetails)message;
 			switch(redriverDetails.getAction()) {
 			case Register:
+				logger.info("Register task : {} for redriver with time : {}", redriverDetails.getTaskId(), redriverDetails.getRedriverDelay());
 				// register the Task with the redriver scheduler
 				break;
 			case Deregister:
+				logger.info("DeRegister task : {} with redriver", redriverDetails.getTaskId());
 				// de-register the Task with the redriver scheduler
 				break;
 			case Redrive:
@@ -124,26 +126,5 @@ public class AkkaRedriverTask extends UntypedActor {
 				// register this actor for callbacks when redriver times elapse for registered tasks
 			}
 		}
-	}
-	
-	/**
-	 * Actor for redriving Tasks
-	 * @author regunath.balasubramanian
-	 */
-	private class RedriverWorker extends UntypedActor {
-		/**
-		 * Actor call back method for executing stalled Tasks 
-		 * @see akka.actor.UntypedActor#onReceive(java.lang.Object)
-		 */
-		public void onReceive(Object message) throws Exception {
-			if (message instanceof TaskRedriverDetails && 
-					((TaskRedriverDetails)message).getAction().equals(TaskRedriverDetails.RegisterAction.Redrive)) {
-				// Check if the Task has stalled. If yes, recreate the appropriate TaskAndEvents and drive the task
-			}else {
-				logger.error("Redriver Task Wroker received a message that it cannot process (or) a non-redriver action. Message type received is : {}", message.getClass().getName());
-				unhandled(message);
-			}
-		}
-	}
-    
+	}	
 }
