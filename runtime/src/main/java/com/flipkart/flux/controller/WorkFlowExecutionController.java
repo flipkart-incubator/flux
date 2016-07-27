@@ -13,25 +13,33 @@
 
 package com.flipkart.flux.controller;
 
-import akka.actor.ActorRef;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.redriver.RedriverRegistry;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
-import com.flipkart.flux.domain.*;
+import com.flipkart.flux.domain.Context;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.State;
+import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import akka.actor.ActorRef;
 
 /**
  * <code>WorkFlowExecutionController</code> controls the execution flow of a given state machine
@@ -40,23 +48,31 @@ import java.util.Set;
 @Singleton
 public class WorkFlowExecutionController {
 
-    private StateMachinesDAO stateMachinesDAO;
+	/** Logger instance for this class*/
+    private static final Logger logger = LoggerFactory.getLogger(WorkFlowExecutionController.class);
 
+    /** FSM and Events DAOs*/
+    private StateMachinesDAO stateMachinesDAO;
     private EventsDAO eventsDAO;
     
     /** The DAO for Task related DB operations*/
     private StatesDAO statesDAO;
 
+    /** The Router registry*/
     private RouterRegistry routerRegistry;
+    
+    /** The Redriver Registry for driving stalled Tasks*/
+    private RedriverRegistry redriverRegistry;
 
-    private static final Logger logger = LoggerFactory.getLogger(WorkFlowExecutionController.class);
-
+    /** Constructor for this class */
     @Inject
-    public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO, StatesDAO statesDAO, RouterRegistry routerRegistry) {
+    public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO, 
+    		StatesDAO statesDAO, RouterRegistry routerRegistry, RedriverRegistry redriverRegistry) {
         this.eventsDAO = eventsDAO;
         this.stateMachinesDAO = stateMachinesDAO;
         this.statesDAO = statesDAO;
         this.routerRegistry = routerRegistry;
+        this.redriverRegistry = redriverRegistry;
     }
 
     /**
@@ -123,6 +139,10 @@ public class WorkFlowExecutionController {
      */
 	public void updateExecutionStatus(Long stateMachineId,Long taskId, Status status) {
 		this.statesDAO.updateStatus(taskId, stateMachineId, status);
+		// cancel the redriver if the Task has been executed successfully
+		if (status.equals(Status.completed)) {
+        	this.redriverRegistry.deRegisterTask(taskId);
+		}
 	}
 
 	/**
@@ -145,6 +165,15 @@ public class WorkFlowExecutionController {
                 stateMachineInstanceId,
                 state.getOutputEvent(), state.getRetryCount());
             logger.debug("Sending msg {} for state machine {}", msg, stateMachineInstanceId);
+
+            // register the Task with the redriver
+            if (state.getRetryCount() > 0) {
+                // delay between retries is 1 second as seen in AkkaTask#preRestart(). Redriver interval is set as 2X of this value
+                long redriverInterval = state.getRetryCount() * 1000 * 2;
+                this.redriverRegistry.registerTask(state.getId(), redriverInterval);
+            }
+
+            //send the message to the Router
             String taskName = state.getTask();
             int secondUnderscorePosition = taskName.indexOf('_', taskName.indexOf('_') + 1);
             String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition); //the name of router would be classFQN_taskMethodName

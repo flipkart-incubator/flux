@@ -17,6 +17,8 @@ package com.flipkart.flux.impl.boot;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.guice.annotation.ManagedEnv;
+import com.flipkart.flux.api.redriver.RedriverRegistry;
+import com.flipkart.flux.impl.redriver.AkkaRedriverRegistryImpl;
 import com.flipkart.flux.impl.task.AkkaGatewayTask;
 import com.flipkart.flux.impl.task.AkkaTask;
 import com.flipkart.flux.impl.task.AkkaTaskSupervisor;
@@ -42,6 +44,7 @@ public class TaskModule extends AbstractModule {
         bind(RouterConfigurationRegistry.class).to(LocalRouterConfigurationRegistryImpl.class);
         bind(RouterRegistry.class).to(EagerInitRouterRegistryImpl.class);
         bind(ExecutableRegistry.class).annotatedWith(ManagedEnv.class).to(TaskExecutableRegistryImpl.class);
+        bind(RedriverRegistry.class).to(AkkaRedriverRegistryImpl.class);
         install(new FluxClientComponentModule());
         requestStaticInjection(AkkaTask.class);
         requestStaticInjection(AkkaGatewayTask.class);

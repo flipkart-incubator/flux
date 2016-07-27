@@ -20,6 +20,7 @@ import akka.testkit.TestActorRef;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.MockActorRef;
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.redriver.RedriverRegistry;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
@@ -56,6 +57,9 @@ public class WorkFlowExecutionControllerTest {
     @Mock
     private RouterRegistry routerRegistry;
 
+    @Mock
+    private RedriverRegistry redriverRegistry;
+    
     TestActorRef<MockActorRef> mockActor;
 
     private WorkFlowExecutionController workFlowExecutionController;
@@ -65,8 +69,8 @@ public class WorkFlowExecutionControllerTest {
 
     @Before
     public void setUp() throws Exception {
-        workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, routerRegistry);
-        when(stateMachinesDAO.findById(anyLong())).thenReturn(TestUtils.getStandardTestMachine());
+        workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, routerRegistry, redriverRegistry);
+        when(stateMachinesDAO.findById(anyLong())).thenReturn(TestUtils.getStandardTestMachineWithId());
         actorSystem = ActorSystem.create();
         mockActor = TestActorRef.create(actorSystem, Props.create(MockActorRef.class));
         when(routerRegistry.getRouter(anyString())).thenReturn(mockActor);
@@ -89,8 +93,8 @@ public class WorkFlowExecutionControllerTest {
         workFlowExecutionController.postEvent(testEventData, 1l, null);
 
         verify(routerRegistry, times(2)).getRouter("com.flipkart.flux.dao.TestWorkflow_testTask"); // For 2 unblocked states
-        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("testTask", "com.flipkart.flux.dao.TestWorkflow_testTask_event1", 1L, expectedEvents, 1l, objectMapper.writeValueAsString(TestUtils.standardStateMachineOutputEvent()),2), 1);
-        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("testTask", "com.flipkart.flux.dao.TestWorkflow_testTask_event1", 1L, expectedEvents, 1l, null,2), 1);
+        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("testTask", "com.flipkart.flux.dao.TestWorkflow_testTask_event1", 2L, expectedEvents, 1l, objectMapper.writeValueAsString(TestUtils.standardStateMachineOutputEvent()),2), 1);
+        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("testTask", "com.flipkart.flux.dao.TestWorkflow_testTask_event1", 3L, expectedEvents, 1l, null,2), 1);
         verifyNoMoreInteractions(routerRegistry);
     }
 }
