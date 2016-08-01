@@ -15,11 +15,9 @@ package com.flipkart.flux.resource;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.flipkart.flux.domain.AuditRecord;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Used in visualisation APIs, this representation makes it easier to draw a diagramatic representation of the SM.
@@ -37,6 +35,8 @@ public class FsmGraph {
     private Map<FsmGraphVertex,FsmGraphEdge> fsmGraphData;
     @JsonProperty
     private Set<FsmGraphEdge> initStateEdges;
+    @JsonProperty
+    private List<AuditRecord> auditData;
 
     public FsmGraph(){
         this.fsmGraphData = new HashMap<>();
@@ -57,6 +57,10 @@ public class FsmGraph {
     @JsonIgnore
     public void addInitStateEdge(FsmGraphEdge edge) {
         this.initStateEdges.add(edge);
+    }
+
+    public void setAuditData(List<AuditRecord> auditData) {
+        this.auditData = auditData;
     }
 
     @Override

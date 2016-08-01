@@ -35,6 +35,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.flipkart.flux.dao.iface.AuditDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,13 +82,17 @@ public class StateMachineResource {
 
     EventsDAO eventsDAO;
 
+    AuditDAO auditDAO;
+
     ObjectMapper objectMapper;
 
     @Inject
-    public StateMachineResource(EventsDAO eventsDAO, StateMachinePersistenceService stateMachinePersistenceService, StateMachinesDAO stateMachinesDAO, WorkFlowExecutionController workFlowExecutionController) {
+    public StateMachineResource(EventsDAO eventsDAO, StateMachinePersistenceService stateMachinePersistenceService,
+                                AuditDAO auditDAO, StateMachinesDAO stateMachinesDAO, WorkFlowExecutionController workFlowExecutionController) {
         this.eventsDAO = eventsDAO;
         this.stateMachinePersistenceService = stateMachinePersistenceService;
         this.stateMachinesDAO = stateMachinesDAO;
+        this.auditDAO = auditDAO;
         this.workFlowExecutionController = workFlowExecutionController;
         objectMapper = new ObjectMapper();
     }
@@ -276,6 +281,9 @@ public class StateMachineResource {
             dependantStates.forEach((state) -> initEdge.addOutgoingVertex(state.getId()));
             fsmGraph.addInitStateEdge(initEdge);
         });
+
+        fsmGraph.setAuditData(auditDAO.findBySMInstanceId(fsmId));
+
         return fsmGraph;
     }
     

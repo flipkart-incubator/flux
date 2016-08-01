@@ -30,8 +30,14 @@
     <div>&nbsp;</div>
     <div id="alert-msg" class="alert alert-danger fade in" style="margin-left: 130px;"></div>
     <div>&nbsp;</div>
-    <div id="graph-div">
-        <div class="paper" id="fsmcanvas" style="width: 1200px; height: 600px; overflow: auto;"></div>
+    <div>
+        <div id="graph-div" style="float: left">
+            <div class="paper" id="fsmcanvas" style="width: 1200px; height: 600px; overflow: auto;"></div>
+        </div>
+
+        <div id="audit-div">
+            <!-- audit table creation is done from java script -->
+        </div>
     </div>
 
     <script type="text/javascript">
@@ -50,6 +56,97 @@
 	        	return true;
 	        }		        
         });
+
+        //creates Audit records table and attaches it to audit-div
+        function createAuditTable(adjacencyList, auditData) {
+
+            var stateIdToNameMap = {};
+            _.each(adjacencyList, function(edgeData,vertexIdentifier){
+                var sourceVertex = vertexIdentifier.split(":");
+                stateIdToNameMap[sourceVertex[0]] = sourceVertex[1]; //stateId as key and stateName as value
+            });
+
+            var auditDiv = document.getElementById("audit-div");
+
+            auditDiv.innerHTML = "";
+
+            var table = document.createElement("table");
+            table.className = "table table-striped table-hover";
+
+            table.border = '1';
+
+            var tableHead = document.createElement("thead");
+            table.appendChild(tableHead);
+
+            var tr = document.createElement("tr");
+            tableHead.appendChild(tr);
+
+            var stateId = document.createElement("th");
+            stateId.appendChild(document.createTextNode("State Id"));
+            tr.appendChild(stateId);
+
+            var stateName = document.createElement("th");
+            stateName.appendChild(document.createTextNode("State Name"));
+            tr.appendChild(stateName);
+
+            var retryAttempt = document.createElement("th");
+            retryAttempt.appendChild(document.createTextNode("Retry Attempt"));
+            tr.appendChild(retryAttempt);
+
+            var status = document.createElement("th");
+            status.appendChild(document.createTextNode("Status"));
+            tr.appendChild(status);
+
+            var rollbackStatus = document.createElement("th");
+            rollbackStatus.appendChild(document.createTextNode("Rollback Status"));
+            tr.appendChild(rollbackStatus);
+
+            var errors = document.createElement("th");
+            errors.appendChild(document.createTextNode("Errors"));
+            tr.appendChild(errors);
+
+            var createdAt = document.createElement("th");
+            createdAt.appendChild(document.createTextNode("Created At"));
+            tr.appendChild(createdAt);
+
+            var tableBody = document.createElement("tbody");
+            table.appendChild(tableBody);
+
+            _.each(auditData, function(auditRecord) {
+                tr = document.createElement("tr");
+                tableBody.appendChild(tr);
+
+                var td = document.createElement("td");
+                td.appendChild(document.createTextNode(auditRecord.stateId));
+                tr.appendChild(td);
+
+                td = document.createElement("td");
+                td.appendChild(document.createTextNode(stateIdToNameMap[auditRecord.stateId]));
+                tr.appendChild(td);
+
+                td = document.createElement("td");
+                td.appendChild(document.createTextNode(auditRecord.retryAttempt));
+                tr.appendChild(td);
+
+                td = document.createElement("td");
+                td.appendChild(document.createTextNode(auditRecord.stateStatus));
+                tr.appendChild(td);
+
+                td = document.createElement("td");
+                td.appendChild(document.createTextNode(auditRecord.stateRollbackStatus));
+                tr.appendChild(td);
+
+                td = document.createElement("td");
+                td.appendChild(document.createTextNode(auditRecord.errors));
+                tr.appendChild(td);
+
+                td = document.createElement("td");
+                td.appendChild(document.createTextNode(JSON.stringify(new Date(auditRecord.createdAt))));
+                tr.appendChild(td);
+            });
+
+            auditDiv.appendChild(table);
+        }
 
         // Build the DAG from the specified adjacency list
         function buildGraphFromAdjacencyList(adjacencyList,initStateEdges) {
@@ -194,6 +291,7 @@
                     document.getElementById("graph-div").style.display = 'block';
                     document.getElementById("alert-msg").style.display = 'none';
                     layout(data.fsmGraphData,data.initStateEdges);
+                    createAuditTable(data.fsmGraphData,data.auditData);
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) {
                     alert("Status: " + textStatus); alert("Error: " + errorThrown);

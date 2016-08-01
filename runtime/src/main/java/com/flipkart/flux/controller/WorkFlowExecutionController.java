@@ -13,33 +13,27 @@
 
 package com.flipkart.flux.controller;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import akka.actor.ActorRef;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.redriver.RedriverRegistry;
+import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
-import com.flipkart.flux.domain.Context;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.State;
-import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.domain.*;
 import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import akka.actor.ActorRef;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * <code>WorkFlowExecutionController</code> controls the execution flow of a given state machine
@@ -48,29 +42,33 @@ import akka.actor.ActorRef;
 @Singleton
 public class WorkFlowExecutionController {
 
-	/** Logger instance for this class*/
+    /** Logger instance for this class*/
     private static final Logger logger = LoggerFactory.getLogger(WorkFlowExecutionController.class);
 
     /** FSM and Events DAOs*/
     private StateMachinesDAO stateMachinesDAO;
     private EventsDAO eventsDAO;
-    
+
     /** The DAO for Task related DB operations*/
     private StatesDAO statesDAO;
 
+    /** The DAO for AuditRecord related DB operationss*/
+    private AuditDAO auditDAO;
+
     /** The Router registry*/
     private RouterRegistry routerRegistry;
-    
+
     /** The Redriver Registry for driving stalled Tasks*/
     private RedriverRegistry redriverRegistry;
 
     /** Constructor for this class */
     @Inject
-    public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO, 
-    		StatesDAO statesDAO, RouterRegistry routerRegistry, RedriverRegistry redriverRegistry) {
+    public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO,
+                                       StatesDAO statesDAO, AuditDAO auditDAO, RouterRegistry routerRegistry, RedriverRegistry redriverRegistry) {
         this.eventsDAO = eventsDAO;
         this.stateMachinesDAO = stateMachinesDAO;
         this.statesDAO = statesDAO;
+        this.auditDAO = auditDAO;
         this.routerRegistry = routerRegistry;
         this.redriverRegistry = redriverRegistry;
     }
@@ -138,24 +136,25 @@ public class WorkFlowExecutionController {
      * @param status the Status to be updated to
      * @param retryCount the configured retry count for the task
      */
-	public void updateExecutionStatus(Long stateMachineId,Long taskId, Status status, long retryCount) {
-		this.statesDAO.updateStatus(taskId, stateMachineId, status);
-		// cancel the redriver if the Task has been executed successfully and if the Task's original retry count is > 0
-		// Redriver would not have been registered otherwise
-		if (status.equals(Status.completed) && retryCount > 0) {
-        	this.redriverRegistry.deRegisterTask(taskId);
-		}
-	}
+    public void updateExecutionStatus(Long stateMachineId,Long taskId, Status status, long retryCount) {
+        this.statesDAO.updateStatus(taskId, stateMachineId, status);
+        this.auditDAO.create(new AuditRecord(stateMachineId, taskId, retryCount, status, null, null));
+        // cancel the redriver if the Task has been executed successfully and if the Task's original retry count is > 0
+        // Redriver would not have been registered otherwise
+        if (status.equals(Status.completed) && retryCount > 0) {
+            this.redriverRegistry.deRegisterTask(taskId);
+        }
+    }
 
-	/**
-	 * Increments the no. of execution retries for the specified State machine's Task
-	 * @param stateMachineId the state machine identifier
-	 * @param taskId the Task identifier
-	 */
-	public void incrementExecutionRetries(Long stateMachineId,Long taskId) {
-		this.statesDAO.incrementRetryCount(taskId, stateMachineId);
-	}
-    
+    /**
+     * Increments the no. of execution retries for the specified State machine's Task
+     * @param stateMachineId the state machine identifier
+     * @param taskId the Task identifier
+     */
+    public void incrementExecutionRetries(Long stateMachineId,Long taskId) {
+        this.statesDAO.incrementRetryCount(taskId, stateMachineId);
+    }
+
     private StateMachine retrieveStateMachineByCorrelationId(String correlationId) {
         return stateMachinesDAO.findByCorrelationId(correlationId);
     }
@@ -164,15 +163,15 @@ public class WorkFlowExecutionController {
         // TODO - this always uses someRouter for now
         executableStates.forEach((state ->  {
             final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
-                eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId).toArray(new EventData[]{}),
-                stateMachineInstanceId,
-                state.getOutputEvent(), state.getRetryCount());
+                    eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId).toArray(new EventData[]{}),
+                    stateMachineInstanceId,
+                    state.getOutputEvent(), state.getRetryCount());
             logger.debug("Sending msg {} for state machine {}", msg, stateMachineInstanceId);
             // register the Task with the redriver
             if (state.getRetryCount() > 0) {
-            	// delay between retries is 1 second as seen in AkkaTask#preRestart(). Redriver interval is set as 2 x retrycount x (delay + timeout)
-            	long redriverInterval = 2 * state.getRetryCount() * (1000 + state.getTimeout());
-            	this.redriverRegistry.registerTask(state.getId(), redriverInterval);
+                // delay between retries is 1 second as seen in AkkaTask#preRestart(). Redriver interval is set as 2 x retrycount x (delay + timeout)
+                long redriverInterval = 2 * state.getRetryCount() * (1000 + state.getTimeout());
+                this.redriverRegistry.registerTask(state.getId(), redriverInterval);
             }
             // send the message to the Router
             this.routerRegistry.getRouter("someRouter").tell(msg, ActorRef.noSender());

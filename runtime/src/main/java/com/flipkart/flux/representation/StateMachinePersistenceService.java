@@ -18,11 +18,9 @@ import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.State;
-import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.domain.*;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -38,13 +36,15 @@ import java.util.Set;
 public class StateMachinePersistenceService {
 
     private StateMachinesDAO stateMachinesDAO;
+    private AuditDAO auditDAO;
 
     private EventPersistenceService eventPersistenceService;
     private final ObjectMapper objectMapper;
 
     @Inject
-    public StateMachinePersistenceService(StateMachinesDAO stateMachinesDAO, EventPersistenceService eventPersistenceService) {
+    public StateMachinePersistenceService(StateMachinesDAO stateMachinesDAO, AuditDAO auditDAO, EventPersistenceService eventPersistenceService) {
         this.stateMachinesDAO = stateMachinesDAO;
+        this.auditDAO = auditDAO;
         this.eventPersistenceService = eventPersistenceService;
         objectMapper = new ObjectMapper();
     }
@@ -76,6 +76,11 @@ public class StateMachinePersistenceService {
         for(Event event: allEvents) {
             event.setStateMachineInstanceId(stateMachine.getId());
             eventPersistenceService.persistEvent(event);
+        }
+
+        //create audit records for all the states
+        for(State state : stateMachine.getStates()) {
+            auditDAO.create(new AuditRecord(stateMachine.getId(), state.getId(), 0L, Status.initialized, null, null));
         }
 
         return stateMachine;

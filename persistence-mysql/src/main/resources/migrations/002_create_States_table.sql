@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS `States` (
   `task` VARCHAR(500) DEFAULT NULL,
   `onExitHook` varchar(500) DEFAULT NULL,
   `outputEvent` varchar(500) DEFAULT NULL,
-  `retryCount` TINYINT UNSIGNED DEFAULT 0,
+  `retryCount` INT UNSIGNED DEFAULT 0,
   `timeout` INT UNSIGNED DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL,
   `rollbackStatus` varchar(50) DEFAULT NULL,
