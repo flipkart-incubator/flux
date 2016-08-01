@@ -23,7 +23,7 @@
             <div class="Cell">
                 <input class="form-control" type="text" placeholder="FSM Id" id="fsm-id"/>
             </div>
-            <div class="Cell"><button class="btn btn-sm btn-primary" onclick="getFSMData()">Show FSM</button></div>
+            <div class="Cell"><button class="btn btn-sm btn-primary" onclick="getFSMData()" id="get-fsm-data">Show FSM</button></div>
         </div>
     </div>
     <div>&nbsp;</div>
@@ -332,6 +332,15 @@
 
         document.getElementById("graph-div").style.display = 'none';
         document.getElementById("alert-msg").style.display = 'none';
+
+        //on pressing Enter key while "fsm-id" text box is in focus, click "get-fsm-data" button
+        document.getElementById("fsm-id")
+                .addEventListener("keyup", function(event) {
+                    event.preventDefault();
+                    if (event.keyCode == 13) {
+                        document.getElementById("get-fsm-data").click();
+                    }
+                });
 
     </script>
 
