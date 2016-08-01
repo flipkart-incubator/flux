@@ -110,7 +110,6 @@ public class AkkaTask extends UntypedActor {
                 final String outputEventName = getOutputEventName(taskAndEvent);
                 final TaskExecutor taskExecutor = new TaskExecutor(task, taskAndEvent.getEvents(), taskAndEvent.getStateMachineId(), outputEventName);
                 Event outputEvent = null;
-                // update the
                 try {
                     outputEvent = taskExecutor.execute();
                     // update the Flux runtime with status of the Task as completed

@@ -71,7 +71,7 @@
             auditDiv.innerHTML = "";
 
             var table = document.createElement("table");
-            table.className = "table table-striped table-hover";
+            table.className = "table table-hover";
 
             table.border = '1';
 
@@ -143,9 +143,40 @@
                 td = document.createElement("td");
                 td.appendChild(document.createTextNode(JSON.stringify(new Date(auditRecord.createdAt))));
                 tr.appendChild(td);
+
+                var rowColor = getRowColor(auditRecord.stateStatus);
+                if(rowColor != null)
+                    tr.className = rowColor;
+
+                //todo: assign color code based on rollback status as well
             });
 
             auditDiv.appendChild(table);
+        }
+
+        // Returns row color for audit record based on status, color setting is done by specifying bootstrap class name for the element.
+        function getRowColor(status) {
+            var rowColor = null;
+            switch (status) {
+                case 'initialized':
+                    break; //let it be default
+                case 'running':
+                    rowColor = 'active';
+                    break;
+                case 'completed':
+                    rowColor = 'success';
+                    break;
+                case 'cancelled':
+                    rowColor = 'warning';
+                    break;
+                case 'errored':
+                    rowColor = 'danger';
+                    break;
+                case 'sidelined':
+                    rowColor = 'danger';
+                    break;
+            }
+            return rowColor;
         }
 
         // Build the DAG from the specified adjacency list
