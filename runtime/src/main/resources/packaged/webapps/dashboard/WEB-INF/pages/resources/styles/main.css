@@ -253,7 +253,7 @@ h4 {
 	background-size:100% 100%;
 	text-align:center;
  }
- 
+
  td
  {
  	margin:0;
@@ -1239,3 +1239,16 @@ table th[class*="col-"] {
         border-bottom: 0;
     }
 }
+
+.Legend div{
+    margin-left:15px;
+    width:16px;
+    border:1px solid #808080;
+    display:inline-block;
+}
+.initialized {background-color:#33ccff; width: 10px; height: 10px; float: right;}
+.running {background-color:#cc99ff;width: 10px; height: 10px; float: right;}
+.completed {background-color:#33cc33;width: 10px; height: 10px; float: right;}
+.cancelled {background-color:#993333;width: 10px; height: 10px; float: right;}
+.errored {background-color:#ff0000;width: 10px; height: 10px; float: right;}
+.sidelined {background-color:#FE854F;width: 10px; height: 10px;  float: right;}

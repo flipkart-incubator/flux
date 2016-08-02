@@ -34,6 +34,17 @@
         <div id="graph-div" style="float: left">
             <div class="paper" id="fsmcanvas" style="width: 1200px; height: 600px; overflow: auto;"></div>
         </div>
+        <div id="Legend">
+            <table class="table" style="width: 10%;">
+                <tr><th style="border-top: none">Legend</th></tr>
+                <tr><td style="border-top: none; vertical-align: middle"><div class="initialized">&nbsp;</div></td><td style="border-top: none;">&nbsp;Initialized</td></tr>
+                <tr><td style="border-top: none; vertical-align: middle"><div class="running">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Running </td></tr>
+                <tr><td style="border-top: none; vertical-align: middle"><div class="completed">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Completed</td></tr>
+                <tr><td style="border-top: none; vertical-align: middle"><div class="cancelled">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Cancelled</td></tr>
+                <tr><td style="border-top: none; vertical-align: middle"><div class="errored">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Errored </td></tr>
+                <tr><td style="border-top: none; vertical-align: middle"><div class="sidelined">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Sidelined</td></tr>
+            </table>
+        </div>
 
         <div id="audit-div">
             <!-- audit table creation is done from java script -->
@@ -323,6 +334,7 @@
                     document.getElementById("alert-msg").style.display = 'none';
                     layout(data.fsmGraphData,data.initStateEdges);
                     createAuditTable(data.fsmGraphData,data.auditData);
+                    document.getElementById("Legend").style.display = 'block';
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) {
                     alert("Status: " + textStatus); alert("Error: " + errorThrown);
@@ -332,6 +344,7 @@
 
         document.getElementById("graph-div").style.display = 'none';
         document.getElementById("alert-msg").style.display = 'none';
+        document.getElementById("Legend").style.display = 'none';
 
         //on pressing Enter key while "fsm-id" text box is in focus, click "get-fsm-data" button
         document.getElementById("fsm-id")
