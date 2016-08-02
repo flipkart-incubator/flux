@@ -28,6 +28,7 @@ public class ExecutionUpdateData implements Serializable {
 	private Long taskId;
 	private Status status;
 	private long retrycount = 0;
+    private long currentRetryCount = 0;
 	
 	/** Constructors*/
 	/* For use by Jackson for deserialization*/
@@ -42,8 +43,12 @@ public class ExecutionUpdateData implements Serializable {
 		this(stateMachineId, taskId,status);
 		this.retrycount = retrycount;
 	}
-	
-	/** Accessors*/
+    public ExecutionUpdateData(Long stateMachineId, Long taskId, Status status, long retrycount, long currentRetryCount) {
+        this(stateMachineId, taskId, status, retrycount);
+        this.currentRetryCount = currentRetryCount;
+    }
+
+    /** Accessors*/
 	public Long getStateMachineId() {
 		return stateMachineId;
 	}
@@ -56,5 +61,7 @@ public class ExecutionUpdateData implements Serializable {
 	public long getRetrycount() {
 		return retrycount;
 	}
-	
+    public long getCurrentRetryCount() {
+        return currentRetryCount;
+    }
 }

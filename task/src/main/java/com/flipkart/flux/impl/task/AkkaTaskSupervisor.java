@@ -82,7 +82,7 @@ public class AkkaTaskSupervisor {
 					        					fe.getExecutionContextMeta().getAttemptedNoOfRetries());
 					        			// update the Flux runtime to mark the Task as sidelined
 					        			fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(fe.getExecutionContextMeta().getStateMachineId(), 
-					        					fe.getExecutionContextMeta().getTaskId(), Status.sidelined, fe.getExecutionContextMeta().getAttemptedNoOfRetries()));
+					        					fe.getExecutionContextMeta().getTaskId(), Status.sidelined, 0, fe.getExecutionContextMeta().getAttemptedNoOfRetries()));
 					        			return SupervisorStrategy.stop();
 					        		}
 					        	} else { 
