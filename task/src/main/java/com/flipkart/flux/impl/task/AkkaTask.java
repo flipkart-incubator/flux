@@ -104,7 +104,7 @@ public class AkkaTask extends UntypedActor {
             AbstractTask task = this.taskRegistry.retrieveTask(taskAndEvent.getTaskIdentifier());
             if (task != null) {
                 // update the Flux runtime with status of the Task as running
-                fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.running, taskAndEvent.getCurrentRetryCount()));
+                fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.running, taskAndEvent.getRetryCount()));
                 // Execute any pre-exec HookS
                 this.executeHooks(this.taskRegistry.getPreExecHooks(task), taskAndEvent.getEvents());
                 final String outputEventName = getOutputEventName(taskAndEvent);
