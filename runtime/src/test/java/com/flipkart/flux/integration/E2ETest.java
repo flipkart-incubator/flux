@@ -19,20 +19,17 @@ import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.initializer.OrderedComponentBooter;
 import com.flipkart.flux.rule.DbClearRule;
-import com.flipkart.flux.runner.GuiceJunit4Runner;
-import org.junit.Ignore;
+import com.flipkart.flux.runner.DeploymentUnitGuiceJunit4Runner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
-
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(GuiceJunit4Runner.class)
+@RunWith(DeploymentUnitGuiceJunit4Runner.class)
 public class E2ETest {
 
     @Inject
@@ -64,11 +61,8 @@ public class E2ETest {
         final Long smId = smInDb.stream().findFirst().get().getId();
         assertThat(smInDb).hasSize(1);
         assertThat(eventsDAO.findBySMInstanceId(smId)).hasSize(3);
-        /* The following will return true only if the latch has been counted down as part of execution in another thread */
-        assertThat(simpleWorkflow.getCountDownLatchForSimpleIntegerReturnTask().await(1, TimeUnit.SECONDS)).isTrue();
-        assertThat(simpleWorkflow.getCountDownLatchForSimpleStringReturnTask().await(1, TimeUnit.SECONDS)).isTrue();
-        assertThat(simpleWorkflow.getCountDownLatchForSimpleIntegerAndStringTask().await(1, TimeUnit.SECONDS)).isTrue();
 
-        /* See if Akka Test suite can be used to verify akka interactions, not needed though */
+        /** All the events should be in triggered state after execution*/
+        assertThat(eventsDAO.findTriggeredEventsNamesBySMId(smId)).hasSize(3);
     }
 }

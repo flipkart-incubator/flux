@@ -12,15 +12,6 @@
  */
 package com.flipkart.flux.impl.redriver;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-
-import com.flipkart.flux.api.redriver.RedriverRegistry;
-import com.flipkart.flux.impl.boot.ActorSystemManager;
-import com.flipkart.flux.impl.message.TaskRedriverDetails;
-import com.flipkart.polyguice.core.Initializable;
-
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.PoisonPill;
@@ -29,6 +20,14 @@ import akka.cluster.singleton.ClusterSingletonManager;
 import akka.cluster.singleton.ClusterSingletonManagerSettings;
 import akka.cluster.singleton.ClusterSingletonProxy;
 import akka.cluster.singleton.ClusterSingletonProxySettings;
+import com.flipkart.flux.api.redriver.RedriverRegistry;
+import com.flipkart.flux.impl.boot.ActorSystemManager;
+import com.flipkart.flux.impl.message.TaskRedriverDetails;
+import com.flipkart.polyguice.core.Initializable;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 /**
  * <code>AkkaRedriverRegistryImpl</code> is an Akka based implementation of the {@link RedriverRegistry}. Uses a cluster singleton

@@ -82,6 +82,9 @@ public class Event implements Serializable {
     public Long getId() {
         return id;
     }
+    public void setName(String name) {
+        this.name = name;
+    }
     public EventStatus getStatus() {
         return status;
     }

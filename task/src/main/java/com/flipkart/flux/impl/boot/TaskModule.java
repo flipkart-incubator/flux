@@ -14,15 +14,10 @@
 
 package com.flipkart.flux.impl.boot;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
-
-import com.flipkart.flux.api.redriver.RedriverRegistry;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
+import com.flipkart.flux.guice.annotation.ManagedEnv;
+import com.flipkart.flux.api.redriver.RedriverRegistry;
 import com.flipkart.flux.impl.redriver.AkkaRedriverRegistryImpl;
 import com.flipkart.flux.impl.task.AkkaGatewayTask;
 import com.flipkart.flux.impl.task.AkkaTask;
@@ -31,12 +26,13 @@ import com.flipkart.flux.impl.task.registry.EagerInitRouterRegistryImpl;
 import com.flipkart.flux.impl.task.registry.LocalRouterConfigurationRegistryImpl;
 import com.flipkart.flux.impl.task.registry.RouterConfigurationRegistry;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
+import com.flipkart.flux.registry.TaskExecutableRegistryImpl;
 import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
 
 /**
  * Guice module for the Task Runtime
  * @author yogesh.nachnani
+ * @author shyam.akirala
  */
 public class TaskModule extends AbstractModule {
 
@@ -47,22 +43,12 @@ public class TaskModule extends AbstractModule {
     protected void configure() {
         bind(RouterConfigurationRegistry.class).to(LocalRouterConfigurationRegistryImpl.class);
         bind(RouterRegistry.class).to(EagerInitRouterRegistryImpl.class);
+        bind(ExecutableRegistry.class).annotatedWith(ManagedEnv.class).to(TaskExecutableRegistryImpl.class);
         bind(RedriverRegistry.class).to(AkkaRedriverRegistryImpl.class);
         install(new FluxClientComponentModule());
         requestStaticInjection(AkkaTask.class);
         requestStaticInjection(AkkaGatewayTask.class);
         requestStaticInjection(AkkaTaskSupervisor.class);
-        requestStaticInjection(AkkaTask.class);
-        requireBinding(ExecutableRegistry.class);
-    }
-
-    /* Following are hacks that need to go away soon */
-    @Provides
-    @Singleton
-    @Named("router.names")
-    public Set<String> getRouterNames() {
-        // TODO - this needs to be Provided by the boot util that loads all deployment units
-        return new HashSet<String>(){{add("someRouter");add("someRouterWithoutConfig");}};
     }
 
 }

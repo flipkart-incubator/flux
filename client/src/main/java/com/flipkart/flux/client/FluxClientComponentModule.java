@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.client;
 
+import com.flipkart.flux.client.guice.annotation.IsolatedEnv;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.client.registry.LocalExecutableRegistryImpl;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
@@ -27,12 +28,15 @@ import javax.inject.Singleton;
  * <code>FluxClientComponentModule</code> is a Guice {@link AbstractModule} implementation
  * which wires and provides classes to support task execution.
  * @author yogesh.nachnani
+ * @author shyam.akirala
  */
 public class FluxClientComponentModule extends AbstractModule {
+
     @Override
     protected void configure() {
-        bind(ExecutableRegistry.class).to(LocalExecutableRegistryImpl.class);
+        bind(ExecutableRegistry.class).annotatedWith(IsolatedEnv.class).to(LocalExecutableRegistryImpl.class);
     }
+
     @Provides
     @Singleton
     public FluxRuntimeConnector provideFluxRuntimeConnector( ){

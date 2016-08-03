@@ -25,4 +25,5 @@ public interface Executable {
     Object execute(Object[] parameters);
 
     Class<?>[] getParameterTypes();
+
 }

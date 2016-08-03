@@ -18,7 +18,6 @@ package com.flipkart.flux.constant;
  * 
  * @author regunath.balasubramanian
  * @author kartik.bommepally
- *
  */
 public class RuntimeConstants {
 
@@ -43,4 +42,7 @@ public class RuntimeConstants {
      */
     public static final String CONFIGURATION_YML = CONFIG_ROOT + "/configuration.yml";
     public static final String STATE_MACHINE_RESOURCE_RELATIVE_PATH = "/machines";
+
+    /** default timeout for a task */ //todo: move it to configuration file
+    public static final Long defaultTaskTimeout = 1000l;
 }

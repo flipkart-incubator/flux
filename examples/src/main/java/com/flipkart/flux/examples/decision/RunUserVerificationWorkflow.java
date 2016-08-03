@@ -15,7 +15,6 @@ package com.flipkart.flux.examples.decision;
 
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
-import com.flipkart.flux.initializer.FluxInitializer;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -26,8 +25,6 @@ import com.google.inject.Injector;
 
 public class RunUserVerificationWorkflow {
     public static void main(String... args) throws Exception {
-        /* Bring up the flux runtime */
-        FluxInitializer.main(new String[]{});
 
         /* Initialise _your_ module*/
         final Injector injector = Guice.createInjector(new FluxClientComponentModule(), new FluxClientInterceptorModule());
@@ -35,6 +32,7 @@ public class RunUserVerificationWorkflow {
         /* Note that we are using guice aop for now, hence your workflow instances need to use guice */
         final UserVerificationWorkflow userVerificationWorkflow = injector.getInstance(UserVerificationWorkflow.class);
         /* Lets invoke our workflow */
+        System.out.println("[Main] Starting workflow execution");
         userVerificationWorkflow.verifyUser(new UserId(1l)); // doesn't matter what Id we give
         /* Since we've initialised flux, the process will continue to run till you explicitly kill it */
 

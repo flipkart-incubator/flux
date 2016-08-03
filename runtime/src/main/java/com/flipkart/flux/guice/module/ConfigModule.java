@@ -13,16 +13,25 @@
 
 package com.flipkart.flux.guice.module;
 
+import com.flipkart.flux.client.intercept.MethodId;
+import com.flipkart.flux.deploymentunit.*;
 import com.flipkart.polyguice.config.ApacheCommonsConfigProvider;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import com.flipkart.polyguice.core.ConfigurationProvider;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 import com.google.inject.binder.LinkedBindingBuilder;
 import com.google.inject.name.Names;
+import org.apache.commons.configuration.Configuration;
+import org.eclipse.jetty.util.ConcurrentHashSet;
 
+import javax.inject.Named;
+import javax.inject.Singleton;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.Iterator;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <code>ConfigModule</code> is a Guice {@link AbstractModule} implementation used for wiring flux configuration.
@@ -32,16 +41,28 @@ public class ConfigModule extends AbstractModule {
 
     private URL configUrl;
     private final ConfigurationProvider configProvider;
+    private final YamlConfiguration yamlConfiguration;
 
     public ConfigModule(URL configUrl) {
-        this.configUrl =configUrl;
-        configProvider = new ApacheCommonsConfigProvider().location(configUrl);
+        try {
+            this.configUrl = configUrl;
+            configProvider = new ApacheCommonsConfigProvider().location(configUrl);
+            yamlConfiguration = new YamlConfiguration(configUrl);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     protected void configure() {
         bind(ConfigurationProvider.class).toInstance(configProvider);
-        bindConfigProperties(configUrl);
+        bindConfigProperties();
+        String deploymentType = (String)yamlConfiguration.getProperty("deploymentType");
+        if("directory".equals(deploymentType)) {
+            bind(DeploymentUnitUtil.class).to(DirectoryBasedDeploymentUnitUtil.class).in(Singleton.class);
+        } else {
+            bind(DeploymentUnitUtil.class).to(NoOpDeploymentUnitUtil.class).in(Singleton.class);
+        }
     }
 
     /**
@@ -51,23 +72,65 @@ public class ConfigModule extends AbstractModule {
      * @Named("Dashboard.service.port") int port
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private void bindConfigProperties(URL url) {
-        try {
-            YamlConfiguration yamlConfiguration = new YamlConfiguration(url);
-            bind(YamlConfiguration.class).toInstance(yamlConfiguration);
-            Iterator<String> propertyKeys = yamlConfiguration.getKeys();
-            while (propertyKeys.hasNext()) {
-                String propertyKey = propertyKeys.next();
-                Object propertyValue = yamlConfiguration.getProperty(propertyKey);
-                LinkedBindingBuilder annotatedWith = bind(propertyValue.getClass()).annotatedWith(Names.named(propertyKey));
-                annotatedWith.toInstance(propertyValue);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    private void bindConfigProperties() {
+        bind(YamlConfiguration.class).toInstance(yamlConfiguration);
+        Iterator<String> propertyKeys = yamlConfiguration.getKeys();
+        while (propertyKeys.hasNext()) {
+            String propertyKey = propertyKeys.next();
+            Object propertyValue = yamlConfiguration.getProperty(propertyKey);
+            LinkedBindingBuilder annotatedWith = bind(propertyValue.getClass()).annotatedWith(Names.named(propertyKey));
+            annotatedWith.toInstance(propertyValue);
         }
     }
 
     public ConfigurationProvider getConfigProvider() {
         return configProvider;
     }
+
+
+    /**
+     * Returns Map<deploymentUnitName,DeploymentUnit> of all the deployment units available //todo: this shows only deployment units available at boot time, need to handle dynamic deployments.
+     */
+    @Provides
+    @Singleton
+    @Named("deploymentUnits")
+    public Map<String, DeploymentUnit> getAllDeploymentUnits(DeploymentUnitUtil deploymentUnitUtil) throws Exception {
+        Map<String, DeploymentUnit> deploymentUnits = new HashMap<>();
+        List<String> deploymentUnitNames = deploymentUnitUtil.getAllDeploymentUnitNames();
+        for(String deploymentUnitName : deploymentUnitNames) {
+            DeploymentUnitClassLoader deploymentUnitClassLoader = deploymentUnitUtil.getClassLoader(deploymentUnitName);
+            Set<Method> taskMethods = deploymentUnitUtil.getTaskMethods(deploymentUnitClassLoader);
+            deploymentUnits.put(deploymentUnitName, new DeploymentUnit(deploymentUnitName, deploymentUnitClassLoader, taskMethods));
+        }
+        return deploymentUnits;
+    }
+
+    /**
+     * Returns set of all the available routers, include routers mentioned in configuration.yml and deployment unit routers //todo: handle dynamic deployments
+     */
+    @Provides
+    @Singleton
+    @Named("routerNames")
+    public Set<String> getRouterNames(@Named("deploymentUnits") Map<String, DeploymentUnit> deploymentUnitsMap) {
+        Configuration routerConfig = yamlConfiguration.subset("routers");
+        Set<String> routerNames = new ConcurrentHashSet<>();
+        Iterator<String> propertyKeys = routerConfig.getKeys();
+        while(propertyKeys.hasNext()) {
+            String propertyKey = propertyKeys.next();
+            String routerName = propertyKey.substring(0, propertyKey.lastIndexOf('.'));
+            routerNames.add(routerName);
+        }
+
+        //'default' is not a router name, it's a placeholder for router default settings
+        routerNames.remove("default");
+
+        //add all deployment units' routers
+        for(Map.Entry<String, DeploymentUnit> deploymentUnitEntry : deploymentUnitsMap.entrySet()) {
+            Set<Method> taskMethods = deploymentUnitEntry.getValue().getTaskMethods();
+            routerNames.addAll(taskMethods.stream().map(method -> new MethodId(method).getPrefix()).collect(Collectors.toList()));
+        }
+
+        return routerNames;
+    }
+
 }

@@ -15,7 +15,6 @@ package com.flipkart.flux.examples.concurrent;
 
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
-import com.flipkart.flux.initializer.FluxInitializer;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -26,15 +25,13 @@ import com.google.inject.Injector;
 public class RunEmailMarketingWorkflow  {
     public static void main(String... args) throws Exception {
 
-        /* Bring up the flux runtime */
-        FluxInitializer.main(new String[]{});
-
         /* Initialise _your_ module*/
         final Injector injector = Guice.createInjector(new FluxClientComponentModule(), new FluxClientInterceptorModule());
 
         /* Note that we are using guice aop for now, hence your workflow instances need to use guice */
         final EmailMarketingWorkflow emailMarketingWorkflow = injector.getInstance(EmailMarketingWorkflow.class);
         /* Lets invoke our workflow */
+        System.out.println("[Main] Starting workflow execution");
         emailMarketingWorkflow.sendEmails(new Email("someBody","someone@flipkart.com"),new Email("someMore","someoneElse@fk.com"));
         /* Observe the logs and see how different emails are sent from different threads! Its magic! */
     }

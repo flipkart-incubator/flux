@@ -42,7 +42,6 @@ public class UserVerificationStatus implements Event {
         return verified;
     }
 
-
     public UserId getUserId() {
         return userId;
     }

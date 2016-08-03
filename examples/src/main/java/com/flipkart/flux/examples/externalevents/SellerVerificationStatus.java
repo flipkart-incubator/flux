@@ -42,7 +42,6 @@ public class SellerVerificationStatus implements Event {
         return verified;
     }
 
-
     public SellerId getSellerId() {
         return sellerId;
     }

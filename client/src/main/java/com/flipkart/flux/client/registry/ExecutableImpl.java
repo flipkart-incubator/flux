@@ -46,7 +46,6 @@ public class ExecutableImpl implements Executable {
         if (timeout != that.timeout) return false;
         if (!toInvoke.equals(that.toInvoke)) return false;
         return singletonMethodOwner.equals(that.singletonMethodOwner);
-
     }
 
     @Override
@@ -85,4 +84,5 @@ public class ExecutableImpl implements Executable {
     public Class<?>[] getParameterTypes() {
         return toInvoke.getParameterTypes();
     }
+
 }

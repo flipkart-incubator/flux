@@ -14,22 +14,19 @@
 
 package com.flipkart.flux.impl.task.registry;
 
-import java.util.HashSet;
-import java.util.Set;
+import akka.cluster.routing.ClusterRouterPoolSettings;
+import com.flipkart.polyguice.core.ConfigurationProvider;
+import com.flipkart.polyguice.core.Initializable;
+import javafx.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import scala.Option;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.flipkart.polyguice.core.ConfigurationProvider;
-import com.flipkart.polyguice.core.Initializable;
-
-import akka.cluster.routing.ClusterRouterPoolSettings;
-import javafx.util.Pair;
-import scala.Option;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Retrieves router configurations from local config
@@ -51,7 +48,7 @@ public class LocalRouterConfigurationRegistryImpl implements RouterConfiguration
     }
 
     @Inject
-    public LocalRouterConfigurationRegistryImpl(@Named("router.names") Set<String> routerNames,
+    public LocalRouterConfigurationRegistryImpl(@Named("routerNames") Set<String> routerNames,
                                                 ConfigurationProvider configurationProvider) {
         this();
         this.routerNames = routerNames;

@@ -21,9 +21,6 @@ import com.flipkart.flux.guice.module.HibernateModule;
 import com.flipkart.flux.impl.boot.TaskModule;
 import com.flipkart.flux.module.RuntimeTestModule;
 import com.flipkart.polyguice.core.support.Polyguice;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Stage;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.InitializationError;
 

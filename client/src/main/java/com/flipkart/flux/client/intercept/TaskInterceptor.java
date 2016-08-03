@@ -15,6 +15,7 @@
 package com.flipkart.flux.client.intercept;
 
 import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.client.guice.annotation.IsolatedEnv;
 import com.flipkart.flux.client.model.Event;
 import com.flipkart.flux.client.model.ExternalEvent;
 import com.flipkart.flux.client.model.Task;
@@ -41,7 +42,7 @@ public class TaskInterceptor implements MethodInterceptor {
 
     @Inject
     private LocalContext localContext;
-    @Inject
+    @Inject @IsolatedEnv
     private ExecutableRegistry executableRegistry;
 
     /* Used to create an empty interceptor in the Guice module. The private members are injected later.

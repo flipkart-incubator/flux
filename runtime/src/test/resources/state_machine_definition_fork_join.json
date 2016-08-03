@@ -8,7 +8,7 @@
       "name": "initialState",
       "description": "initial state that is triggered when the workflow is invoked ",
       "onEntryHook": null,
-      "task": "com.flipkart.flux.dao.DummyTask",
+      "task": "com.flipkart.flux.dao.dummyTask",
       "onExitHook": null,
       "dependencies": [],
       "retryCount": "5",
@@ -23,7 +23,7 @@
       "name": "forkState",
       "description": "fork_state_1",
       "onEntryHook": null,
-      "task": "com.flipkart.flux.dao.DummyTask",
+      "task": "com.flipkart.flux.dao.dummyTask",
       "onExitHook": null,
       "dependencies": [
         {
@@ -43,7 +43,7 @@
       "name": "forkState",
       "description": "fork_state_2",
       "onEntryHook": null,
-      "task": "com.flipkart.flux.dao.DummyTask",
+      "task": "com.flipkart.flux.dao.dummyTask",
       "onExitHook": null,
       "dependencies": [
         {
@@ -63,7 +63,7 @@
       "name": "joinState",
       "description": "join state - depends on above 2",
       "onEntryHook": null,
-      "task": "com.flipkart.flux.dao.DummyTask",
+      "task": "com.flipkart.flux.dao.dummyTask",
       "onExitHook": null,
       "dependencies": [
         {

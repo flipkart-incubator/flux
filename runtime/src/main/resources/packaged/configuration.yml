@@ -23,9 +23,6 @@ Api:
   service.baseURL: "http://localhost"
 
 routers:
-  someRouter:
-    totalInstances: 100
-    maxInstancesPerNode: 3
   default:
     totalInstances: 10
     maxInstancesPerNode: 2
@@ -37,3 +34,6 @@ runtime:
     configname: application.conf
     maxGatewayActorCreateRetries : 10
     noOfRedriverWorkers : 50
+
+deploymentType: directory
+deploymentUnitsPath: "/tmp/workflows/"

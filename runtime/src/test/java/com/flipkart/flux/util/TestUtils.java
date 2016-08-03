@@ -26,10 +26,10 @@ public class TestUtils {
         String dummyOutputEvent;
         dummyOutputEvent = objectMapper.writeValueAsString(standardStateMachineOutputEvent());
         Set<String> state4Events = new HashSet<String>(){{ add("event2"); add("event3"); }};
-        State state1 = new State(1l, "test_state1", "test_state_desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.DummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.emptySet(), 5l, 100l, null, Status.initialized, null, 0l);
-        State state2 = new State(1l, "test_state2", "test_state_desc2", "com.flipkart.flux.dao.TestOnEntryHook", "com.flipkart.flux.dao.TestTask", "com.flipkart.flux.dao.TestOnExitHook", Collections.singleton("event1"), 3l, 100l, dummyOutputEvent, Status.initialized, null, 0l);
-        State state3 = new State(1l, "test_state3", "test_state_desc3", "com.flipkart.flux.dao.TestOnEntryHook", "com.flipkart.flux.dao.TestTask", "com.flipkart.flux.dao.TestOnExitHook", Collections.singleton("event1"), 3l, 100l, null, Status.initialized, null, 0l);
-        State state4 = new State(1l, "test_state4", "test_state_desc4", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.DummyTask", "com.flipkart.flux.dao.DummyOnExitHook", state4Events, 5l, 100l,null, Status.initialized, null, 0l);
+        State state1 = new State(1l, "test_state1", "test_state_desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.emptySet(), 5l, 100l, null, Status.initialized, null, 0l);
+        State state2 = new State(1l, "test_state2", "test_state_desc2", "com.flipkart.flux.dao.TestOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_testTask_event1", "com.flipkart.flux.dao.TestOnExitHook", Collections.singleton("event1"), 3l, 100l, dummyOutputEvent, Status.initialized, null, 0l);
+        State state3 = new State(1l, "test_state3", "test_state_desc3", "com.flipkart.flux.dao.TestOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_testTask_event1", "com.flipkart.flux.dao.TestOnExitHook", Collections.singleton("event1"), 3l, 100l, null, Status.initialized, null, 0l);
+        State state4 = new State(1l, "test_state4", "test_state_desc4", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask_event2_event3", "com.flipkart.flux.dao.DummyOnExitHook", state4Events, 5l, 100l,null, Status.initialized, null, 0l);
         Set<State> states = new HashSet<State>(){{
             add(state1);
             add(state2);
@@ -45,8 +45,8 @@ public class TestUtils {
         dummyOutputEvent = objectMapper.writeValueAsString(standardStateMachineOutputEvent());
         Set<String> state4Events = new HashSet<String>(){{ add("event2"); add("event3"); }};
         State state1 = new State(1l, "test_state1", "test_state_desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.DummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.emptySet(), 5l, 100l, null, Status.initialized, null, 0l);
-        State state2 = new State(1l, "test_state2", "test_state_desc2", "com.flipkart.flux.dao.TestOnEntryHook", "com.flipkart.flux.dao.TestTask", "com.flipkart.flux.dao.TestOnExitHook", Collections.singleton("event1"), 3l, 100l, dummyOutputEvent, Status.initialized, null, 0l);
-        State state3 = new State(1l, "test_state3", "test_state_desc3", "com.flipkart.flux.dao.TestOnEntryHook", "com.flipkart.flux.dao.TestTask", "com.flipkart.flux.dao.TestOnExitHook", Collections.singleton("event1"), 3l, 100l, null, Status.initialized, null, 0l);
+        State state2 = new State(1l, "test_state2", "test_state_desc2", "com.flipkart.flux.dao.TestOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_testTask_event1", "com.flipkart.flux.dao.TestOnExitHook", Collections.singleton("event1"), 3l, 100l, dummyOutputEvent, Status.initialized, null, 0l);
+        State state3 = new State(1l, "test_state3", "test_state_desc3", "com.flipkart.flux.dao.TestOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_testTask_event1", "com.flipkart.flux.dao.TestOnExitHook", Collections.singleton("event1"), 3l, 100l, null, Status.initialized, null, 0l);
         State state4 = new State(1l, "test_state4", "test_state_desc4", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.DummyTask", "com.flipkart.flux.dao.DummyOnExitHook", state4Events, 5l, 100l,null, Status.initialized, null, 0l);
         setProperty(state1, "id", 1L);
         setProperty(state2, "id", 2L);
@@ -58,7 +58,9 @@ public class TestUtils {
             add(state3);
             add(state4);
         }};
-        return new StateMachine(1l,"test_state_machine","test_description", states, "magic_number_1");
+        StateMachine stateMachine = new StateMachine(1l,"test_state_machine","test_description", states, "magic_number_1");
+        setProperty(stateMachine, "id", 1L);
+        return stateMachine;
     }
 
     public static EventDefinition standardStateMachineOutputEvent() {

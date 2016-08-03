@@ -15,6 +15,7 @@ package com.flipkart.flux.initializer;
 
 import com.flipkart.flux.MigrationUtil.MigrationsRunner;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
+import com.flipkart.flux.deploymentunit.ExecutableRegistryPopulator;
 import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.HibernateModule;
@@ -107,12 +108,12 @@ public class FluxInitializer {
         logger.debug("loading flux runtime container");
         final ConfigModule configModule = new ConfigModule(configUrl);
         fluxRuntimeContainer.modules(
-            configModule,
-            new HibernateModule(),
-            new ContainerModule(),
-            new TaskModule(),
-            new FluxClientInterceptorModule()
-            );
+                configModule,
+                new HibernateModule(),
+                new ContainerModule(),
+                new TaskModule(),
+                new FluxClientInterceptorModule()
+        );
         fluxRuntimeContainer.registerConfigurationProvider(configModule.getConfigProvider());
         fluxRuntimeContainer.prepare();
     }
@@ -122,6 +123,8 @@ public class FluxInitializer {
     	long start = System.currentTimeMillis();
         //load flux runtime container
         loadFluxRuntimeContainer();
+        // populates the executable registry with the task methods available in all deployment units
+        final ExecutableRegistryPopulator executableRegistryPopulator = this.fluxRuntimeContainer.getComponentContext().getInstance(ExecutableRegistryPopulator.class);
         // this ensures component booter is up and initialised
         final OrderedComponentBooter instance = this.fluxRuntimeContainer.getComponentContext().getInstance(OrderedComponentBooter.class);
         final Object[] displayArgs = {
