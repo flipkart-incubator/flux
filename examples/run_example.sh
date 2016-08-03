@@ -23,6 +23,10 @@ cp src/main/resources/flux_config.yml $DEPLOYMENT_UNIT_PATH/$DEPLOYMENT_UNIT_NAM
 
 echo "Starting flux runtime"
 java -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" &
+FLUX_PID=$!
+
+# kill the flux process which is running in background on ctrl+c
+trap "kill -9 $FLUX_PID" 2
 
 sleep 15
 
@@ -32,6 +36,10 @@ echo "\033[33;32m $(java -cp 'target/examples-1.0-SNAPSHOT.jar:target/dependency
 #Reset the color
 echo "\033[33;0m"
 
-#sleep for 10 seconds before killing flux process
-#sleep 10
-#kill -9 $(lsof -t -i :2551)
+#wait for 3 seconds before displaying the below message so that it would be separated from the flux output
+sleep 3
+echo ""
+echo "(Press Ctrl+C to stop Flux process and exit)"
+
+#wait until user presses ctrl+c
+tail -f /dev/null
