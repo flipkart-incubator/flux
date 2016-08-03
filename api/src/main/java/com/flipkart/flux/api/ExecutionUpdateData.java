@@ -34,17 +34,11 @@ public class ExecutionUpdateData implements Serializable {
 	/* For use by Jackson for deserialization*/
 	public ExecutionUpdateData() {
 	}
-	public ExecutionUpdateData(Long stateMachineId, Long taskId, Status status) {
+    public ExecutionUpdateData(Long stateMachineId, Long taskId, Status status, long retrycount, long currentRetryCount) {
 		this.stateMachineId = stateMachineId;
 		this.taskId = taskId;
 		this.status = status;
-	}
-	public ExecutionUpdateData(Long stateMachineId, Long taskId, Status status, long retrycount) {
-		this(stateMachineId, taskId,status);
 		this.retrycount = retrycount;
-	}
-    public ExecutionUpdateData(Long stateMachineId, Long taskId, Status status, long retrycount, long currentRetryCount) {
-        this(stateMachineId, taskId, status, retrycount);
         this.currentRetryCount = currentRetryCount;
     }
 
