@@ -66,8 +66,8 @@ public class ContainerModule extends AbstractModule {
 	@Singleton
 	WebAppContext getDashboardWebAppContext() {
 		String path = null;
-		File[] files = FileLocator.findDirectories("WEB-INF", null);
-		for (File file : files) {
+        File[] files = FileLocator.findDirectories("packaged/webapps/dashboard/WEB-INF", null);
+        for (File file : files) {
 			// we need only WEB-INF from runtime project 
 			String fileToString = file.toString();
 			if (fileToString.contains(".jar!") && fileToString.startsWith("file:/")) {
