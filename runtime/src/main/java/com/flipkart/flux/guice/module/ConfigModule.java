@@ -24,6 +24,8 @@ import com.google.inject.binder.LinkedBindingBuilder;
 import com.google.inject.name.Names;
 import org.apache.commons.configuration.Configuration;
 import org.eclipse.jetty.util.ConcurrentHashSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -38,6 +40,9 @@ import java.util.stream.Collectors;
  * @author kartik.bommepally
  */
 public class ConfigModule extends AbstractModule {
+
+    /** Logger instance for this class*/
+    private static final Logger logger = LoggerFactory.getLogger(ConfigModule.class);
 
     private URL configUrl;
     private final ConfigurationProvider configProvider;
@@ -96,11 +101,16 @@ public class ConfigModule extends AbstractModule {
     @Named("deploymentUnits")
     public Map<String, DeploymentUnit> getAllDeploymentUnits(DeploymentUnitUtil deploymentUnitUtil) throws Exception {
         Map<String, DeploymentUnit> deploymentUnits = new HashMap<>();
-        List<String> deploymentUnitNames = deploymentUnitUtil.getAllDeploymentUnitNames();
-        for(String deploymentUnitName : deploymentUnitNames) {
-            DeploymentUnitClassLoader deploymentUnitClassLoader = deploymentUnitUtil.getClassLoader(deploymentUnitName);
-            Set<Method> taskMethods = deploymentUnitUtil.getTaskMethods(deploymentUnitClassLoader);
-            deploymentUnits.put(deploymentUnitName, new DeploymentUnit(deploymentUnitName, deploymentUnitClassLoader, taskMethods));
+
+        try {
+            List<String> deploymentUnitNames = deploymentUnitUtil.getAllDeploymentUnitNames();
+            for (String deploymentUnitName : deploymentUnitNames) {
+                DeploymentUnitClassLoader deploymentUnitClassLoader = deploymentUnitUtil.getClassLoader(deploymentUnitName);
+                Set<Method> taskMethods = deploymentUnitUtil.getTaskMethods(deploymentUnitClassLoader);
+                deploymentUnits.put(deploymentUnitName, new DeploymentUnit(deploymentUnitName, deploymentUnitClassLoader, taskMethods));
+            }
+        } catch (NullPointerException e) {
+            logger.error("No deployment units found at location mentioned in configuration.yml - deploymentUnitsPath key");
         }
         return deploymentUnits;
     }
