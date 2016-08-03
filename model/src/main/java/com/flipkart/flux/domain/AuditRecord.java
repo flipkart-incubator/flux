@@ -36,7 +36,7 @@ public class AuditRecord {
     private Long stateId;
 
     /** The State execution retry count */
-    private int retryAttempt;
+    private Long retryAttempt;
 
     /** The State execution status */
     @Enumerated(EnumType.STRING)
@@ -54,7 +54,7 @@ public class AuditRecord {
 
     /** Constructors */
     protected AuditRecord(){}
-    public AuditRecord(Long stateMachineInstanceId, Long stateId, int retryAttempt, Status stateStatus, Status stateRollbackStatus,
+    public AuditRecord(Long stateMachineInstanceId, Long stateId, Long retryAttempt, Status stateStatus, Status stateRollbackStatus,
                        String errors) {
         this.stateMachineInstanceId = stateMachineInstanceId;
         this.stateId = stateId;
@@ -80,10 +80,10 @@ public class AuditRecord {
     public void setStateId(Long stateId) {
         this.stateId = stateId;
     }
-    public int getRetryAttempt() {
+    public Long getRetryAttempt() {
         return retryAttempt;
     }
-    public void setRetryAttempt(int retryAttempt) {
+    public void setRetryAttempt(Long retryAttempt) {
         this.retryAttempt = retryAttempt;
     }
     public Status getStateStatus() {
@@ -115,7 +115,7 @@ public class AuditRecord {
 
         AuditRecord that = (AuditRecord) o;
 
-        if (retryAttempt != that.retryAttempt) return false;
+        if (retryAttempt != null ? !retryAttempt.equals(that.retryAttempt) : that.retryAttempt != null) return false;
         if (stateId != null ? !stateId.equals(that.stateId) : that.stateId != null) return false;
         if (stateMachineInstanceId != null ? !stateMachineInstanceId.equals(that.stateMachineInstanceId) : that.stateMachineInstanceId != null)
             return false;
@@ -129,7 +129,7 @@ public class AuditRecord {
     public int hashCode() {
         int result = stateMachineInstanceId != null ? stateMachineInstanceId.hashCode() : 0;
         result = 31 * result + (stateId != null ? stateId.hashCode() : 0);
-        result = 31 * result + retryAttempt;
+        result = 31 * result + (retryAttempt != null ? retryAttempt.hashCode() : 0);
         result = 31 * result + (stateStatus != null ? stateStatus.hashCode() : 0);
         result = 31 * result + (stateRollbackStatus != null ? stateRollbackStatus.hashCode() : 0);
         return result;

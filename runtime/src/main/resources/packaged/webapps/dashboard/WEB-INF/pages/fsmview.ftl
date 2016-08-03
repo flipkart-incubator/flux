@@ -23,15 +23,32 @@
             <div class="Cell">
                 <input class="form-control" type="text" placeholder="FSM Id" id="fsm-id"/>
             </div>
-            <div class="Cell"><button class="btn btn-sm btn-primary" onclick="getFSMData()">Show FSM</button></div>
+            <div class="Cell"><button class="btn btn-sm btn-primary" onclick="getFSMData()" id="get-fsm-data">Show FSM</button></div>
         </div>
     </div>
     <div>&nbsp;</div>
     <div>&nbsp;</div>
     <div id="alert-msg" class="alert alert-danger fade in" style="margin-left: 130px;"></div>
     <div>&nbsp;</div>
-    <div id="graph-div">
-        <div class="paper" id="fsmcanvas" style="width: 1200px; height: 600px; overflow: auto;"></div>
+    <div>
+        <div id="graph-div" style="float: left">
+            <div class="paper" id="fsmcanvas" style="width: 1200px; height: 600px; overflow: auto;"></div>
+        </div>
+        <div id="Legend">
+            <table class="table" style="width: 10%;">
+                <tr><th style="border-top: none">Legend</th></tr>
+                <tr><td style="border-top: none; vertical-align: middle"><div class="initialized">&nbsp;</div></td><td style="border-top: none;">&nbsp;Initialized</td></tr>
+                <tr><td style="border-top: none; vertical-align: middle"><div class="running">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Running </td></tr>
+                <tr><td style="border-top: none; vertical-align: middle"><div class="completed">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Completed</td></tr>
+                <tr><td style="border-top: none; vertical-align: middle"><div class="cancelled">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Cancelled</td></tr>
+                <tr><td style="border-top: none; vertical-align: middle"><div class="errored">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Errored </td></tr>
+                <tr><td style="border-top: none; vertical-align: middle"><div class="sidelined">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Sidelined</td></tr>
+            </table>
+        </div>
+
+        <div id="audit-div">
+            <!-- audit table creation is done from java script -->
+        </div>
     </div>
 
     <script type="text/javascript">
@@ -50,6 +67,128 @@
 	        	return true;
 	        }		        
         });
+
+        //creates Audit records table and attaches it to audit-div
+        function createAuditTable(adjacencyList, auditData) {
+
+            var stateIdToNameMap = {};
+            _.each(adjacencyList, function(edgeData,vertexIdentifier){
+                var sourceVertex = vertexIdentifier.split(":");
+                stateIdToNameMap[sourceVertex[0]] = sourceVertex[1]; //stateId as key and stateName as value
+            });
+
+            var auditDiv = document.getElementById("audit-div");
+
+            auditDiv.innerHTML = "";
+
+            var table = document.createElement("table");
+            table.className = "table table-hover";
+
+            table.border = '1';
+
+            var tableHead = document.createElement("thead");
+            table.appendChild(tableHead);
+
+            var tr = document.createElement("tr");
+            tableHead.appendChild(tr);
+
+            var stateId = document.createElement("th");
+            stateId.appendChild(document.createTextNode("State Id"));
+            tr.appendChild(stateId);
+
+            var stateName = document.createElement("th");
+            stateName.appendChild(document.createTextNode("State Name"));
+            tr.appendChild(stateName);
+
+            var retryAttempt = document.createElement("th");
+            retryAttempt.appendChild(document.createTextNode("Retry Attempt"));
+            tr.appendChild(retryAttempt);
+
+            var status = document.createElement("th");
+            status.appendChild(document.createTextNode("Status"));
+            tr.appendChild(status);
+
+            var rollbackStatus = document.createElement("th");
+            rollbackStatus.appendChild(document.createTextNode("Rollback Status"));
+            tr.appendChild(rollbackStatus);
+
+            var errors = document.createElement("th");
+            errors.appendChild(document.createTextNode("Errors"));
+            tr.appendChild(errors);
+
+            var createdAt = document.createElement("th");
+            createdAt.appendChild(document.createTextNode("Created At"));
+            tr.appendChild(createdAt);
+
+            var tableBody = document.createElement("tbody");
+            table.appendChild(tableBody);
+
+            _.each(auditData, function(auditRecord) {
+                tr = document.createElement("tr");
+                tableBody.appendChild(tr);
+
+                var td = document.createElement("td");
+                td.appendChild(document.createTextNode(auditRecord.stateId));
+                tr.appendChild(td);
+
+                td = document.createElement("td");
+                td.appendChild(document.createTextNode(stateIdToNameMap[auditRecord.stateId]));
+                tr.appendChild(td);
+
+                td = document.createElement("td");
+                td.appendChild(document.createTextNode(auditRecord.retryAttempt));
+                tr.appendChild(td);
+
+                td = document.createElement("td");
+                td.appendChild(document.createTextNode(auditRecord.stateStatus));
+                tr.appendChild(td);
+
+                td = document.createElement("td");
+                td.appendChild(document.createTextNode(auditRecord.stateRollbackStatus));
+                tr.appendChild(td);
+
+                td = document.createElement("td");
+                td.appendChild(document.createTextNode(auditRecord.errors));
+                tr.appendChild(td);
+
+                td = document.createElement("td");
+                td.appendChild(document.createTextNode(JSON.stringify(new Date(auditRecord.createdAt))));
+                tr.appendChild(td);
+
+                var rowColor = getRowColor(auditRecord.stateStatus);
+                if(rowColor != null)
+                    tr.className = rowColor;
+
+                //todo: assign color code based on rollback status as well
+            });
+
+            auditDiv.appendChild(table);
+        }
+
+        // Returns row color for audit record based on status, color setting is done by specifying bootstrap class name for the element.
+        function getRowColor(status) {
+            var rowColor = null;
+            switch (status) {
+                case 'initialized':
+                    break; //let it be default
+                case 'running':
+                    rowColor = 'active';
+                    break;
+                case 'completed':
+                    rowColor = 'success';
+                    break;
+                case 'cancelled':
+                    rowColor = 'warning';
+                    break;
+                case 'errored':
+                    rowColor = 'danger';
+                    break;
+                case 'sidelined':
+                    rowColor = 'danger';
+                    break;
+            }
+            return rowColor;
+        }
 
         // Build the DAG from the specified adjacency list
         function buildGraphFromAdjacencyList(adjacencyList,initStateEdges) {
@@ -194,6 +333,8 @@
                     document.getElementById("graph-div").style.display = 'block';
                     document.getElementById("alert-msg").style.display = 'none';
                     layout(data.fsmGraphData,data.initStateEdges);
+                    createAuditTable(data.fsmGraphData,data.auditData);
+                    document.getElementById("Legend").style.display = 'block';
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) {
                     alert("Status: " + textStatus); alert("Error: " + errorThrown);
@@ -203,6 +344,16 @@
 
         document.getElementById("graph-div").style.display = 'none';
         document.getElementById("alert-msg").style.display = 'none';
+        document.getElementById("Legend").style.display = 'none';
+
+        //on pressing Enter key while "fsm-id" text box is in focus, click "get-fsm-data" button
+        document.getElementById("fsm-id")
+                .addEventListener("keyup", function(event) {
+                    event.preventDefault();
+                    if (event.keyCode == 13) {
+                        document.getElementById("get-fsm-data").click();
+                    }
+                });
 
     </script>
 

@@ -13,25 +13,23 @@
  */
 package com.flipkart.flux.impl.task;
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.flipkart.flux.api.Status;
-import com.flipkart.flux.api.core.FluxError;
-import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
-
 import akka.actor.OneForOneStrategy;
 import akka.actor.Props;
 import akka.actor.SupervisorStrategy;
 import akka.pattern.Backoff;
 import akka.pattern.BackoffSupervisor;
+import com.flipkart.flux.api.ExecutionUpdateData;
+import com.flipkart.flux.api.Status;
+import com.flipkart.flux.api.core.FluxError;
+import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
+
+import javax.inject.Inject;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * <code>AkkaTaskSupervisor</code> creates a supervisor for {@link AkkaTask} instances. This supervisor uses an Exponential BackOff
@@ -83,8 +81,8 @@ public class AkkaTaskSupervisor {
 					        			LOGGER.warn("Aborting retries for Task Id : {}. Retry count exceeded : {}", fe.getExecutionContextMeta().getTaskId(), 
 					        					fe.getExecutionContextMeta().getAttemptedNoOfRetries());
 					        			// update the Flux runtime to mark the Task as sidelined
-					        			fluxRuntimeConnector.updateExecutionStatus(fe.getExecutionContextMeta().getStateMachineId(), 
-					        					fe.getExecutionContextMeta().getTaskId(), Status.sidelined);
+					        			fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(fe.getExecutionContextMeta().getStateMachineId(), 
+					        					fe.getExecutionContextMeta().getTaskId(), Status.sidelined, 0, fe.getExecutionContextMeta().getAttemptedNoOfRetries()));
 					        			return SupervisorStrategy.stop();
 					        		}
 					        	} else { 

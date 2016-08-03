@@ -29,6 +29,7 @@ import akka.cluster.ClusterEvent.CurrentClusterState;
 import akka.cluster.ClusterEvent.LeaderChanged;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import akka.remote.RemoteActorRefProvider;
 import akka.routing.ActorRefRoutee;
 import akka.routing.RoundRobinRoutingLogic;
 import akka.routing.Routee;
@@ -76,6 +77,14 @@ public class AkkaRedriverTask extends UntypedActor {
 	}
 	
 	/**
+	 * The Akka Actor callback method. De-Registers for Cluster events
+	 * @see akka.actor.UntypedActor#postStop()
+	 */
+	public void postStop() {
+		cluster.unsubscribe(getSelf());
+	}
+	
+	/**
 	 * The Akka Actor callback method for processing redriver commands and cluster leader changes
 	 * @see akka.actor.UntypedActor#onReceive(java.lang.Object)
 	 */
@@ -117,11 +126,11 @@ public class AkkaRedriverTask extends UntypedActor {
 	 * @param leaderAddress the fully qualified leader address
 	 */
 	private void checkAndSetAsLeader(Address leaderAddress) {
-		Address selfAddress = getSelf().path().address();
+		Address selfAddress = ((RemoteActorRefProvider)getContext().system().provider()).transport().defaultAddress();
 		if (leaderAddress.equals(selfAddress)) {
 			if (!this.isLeader.get()) {
 				this.isLeader.set(true);
-				logger.info("Promoting Actor : {} as the leader for cluster-wide redriver Scheduler", leaderAddress);
+				logger.info("Promoting Actor at address : {} as the leader for cluster-wide redriver Scheduler", leaderAddress);
 				// notify the scheduler to load all scheduled tasks
 				// register this actor for callbacks when redriver times elapse for registered tasks
 			}

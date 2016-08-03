@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS `AuditRecords` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
   `stateMachineInstanceId` BIGINT NOT NULL,
   `stateId` BIGINT NOT NULL,
-  `retryAttempt` TINYINT UNSIGNED DEFAULT NULL,
+  `retryAttempt` INT UNSIGNED DEFAULT NULL,
   `stateStatus` VARCHAR(100) DEFAULT NULL,
   `stateRollbackStatus` VARCHAR(100) DEFAULT NULL,
   `errors` VARCHAR(1000) DEFAULT NULL,
