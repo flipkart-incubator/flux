@@ -1,6 +1,13 @@
 #!/bin/bash
-[ $# -lt 1 ] && echo "Usage `basename $0` <Example FQN>" && exit 1
+[ $# -lt 1 ] && echo "Usage `basename $0` <Example FQN> <debug> <debug_port>" && exit 1
 EXAMPLE_FQN=$1
+DEBUG=$2
+
+if [[ $# -ge 2 && "debug" == $DEBUG ]]; then
+    [ $# -lt 3 ] && echo "Debug port not found. Usage `basename $0` <Example FQN> <debug> <debug_port>" && exit 1
+fi
+
+DEBUG_PORT=$3
 DEPLOYMENT_UNIT_PATH=/tmp/workflows
 DEPLOYMENT_UNIT_NAME=wf1
 
@@ -21,9 +28,15 @@ cp target/examples-1.0-SNAPSHOT.jar $DEPLOYMENT_UNIT_PATH/$DEPLOYMENT_UNIT_NAME/
 cp target/dependency/* $DEPLOYMENT_UNIT_PATH/$DEPLOYMENT_UNIT_NAME/lib
 cp src/main/resources/flux_config.yml $DEPLOYMENT_UNIT_PATH/$DEPLOYMENT_UNIT_NAME/
 
-echo "Starting flux runtime"
-java -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" &
-FLUX_PID=$!
+if [[ $# -ge 2 && "debug" == $DEBUG ]]; then
+    echo "Starting flux runtime in debug mode. Debug port: $DEBUG_PORT"
+    java -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=$DEBUG_PORT,suspend=n -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" &
+    FLUX_PID=$!
+else
+    echo "Starting flux runtime"
+    java -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" &
+    FLUX_PID=$!
+fi
 
 # kill the flux process which is running in background on ctrl+c
 trap "kill -9 $FLUX_PID" 2
