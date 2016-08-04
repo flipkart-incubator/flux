@@ -28,7 +28,7 @@ Additionally, you can also inspect individual state machine execution DAGs and a
 
 ![Manual-trigger](https://github.com/flipkart-incubator/flux/raw/master/docs/fsm_graph.jpg)
 
-![Audit] (https://github.com/flipkart-incubator/flux/raw/master/docs/audit.png)
+![Audit] (https://github.com/flipkart-incubator/flux/raw/master/docs/audit_records.png)
 
 
 ## Documentation and Examples
