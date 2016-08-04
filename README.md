@@ -24,7 +24,7 @@ Additionally, you can also inspect individual state machine execution DAGs and a
 
 ![Serial-Workflow](https://github.com/flipkart-incubator/flux/raw/master/docs/Flux-serial-workflow.png)
 
-![Fork-Join](https://github.com/flipkart-incubator/flux/raw/master/docs/Flux-fork-join.png)
+![Fork-Join](https://github.com/flipkart-incubator/flux/blob/master/docs/Flux-fork-join-workflow.png)
 
 ![Manual-trigger](https://github.com/flipkart-incubator/flux/raw/master/docs/fsm_graph.jpg)
 
