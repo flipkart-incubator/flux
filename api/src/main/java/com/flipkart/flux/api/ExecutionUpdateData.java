@@ -29,6 +29,7 @@ public class ExecutionUpdateData implements Serializable {
 	private Status status;
 	private long retrycount = 0;
     private long currentRetryCount = 0;
+    private String errorMessage;
 	
 	/** Constructors*/
 	/* For use by Jackson for deserialization*/
@@ -40,6 +41,10 @@ public class ExecutionUpdateData implements Serializable {
 		this.status = status;
 		this.retrycount = retrycount;
         this.currentRetryCount = currentRetryCount;
+    }
+    public ExecutionUpdateData(Long stateMachineId, Long taskId, Status status, long retrycount, long currentRetryCount, String errorMessage) {
+        this(stateMachineId, taskId, status, retrycount, currentRetryCount);
+        this.errorMessage = errorMessage;
     }
 
     /** Accessors*/
@@ -57,5 +62,8 @@ public class ExecutionUpdateData implements Serializable {
 	}
     public long getCurrentRetryCount() {
         return currentRetryCount;
+    }
+    public String getErrorMessage() {
+        return errorMessage;
     }
 }

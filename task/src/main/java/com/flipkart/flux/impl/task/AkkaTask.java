@@ -126,7 +126,8 @@ public class AkkaTask extends UntypedActor {
                 } catch (Exception e) {
                     // mark the task outcome as execution failure
                     fluxRuntimeConnector.updateExecutionStatus(
-                            new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.errored, taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
+                            new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.errored,
+                                    taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount(), e.getMessage()));
                 } finally {
                     if (outputEvent != null) {
                         getSender().tell(outputEvent, getContext().parent()); // we send back the parent Supervisor Actor as the sender

@@ -183,7 +183,8 @@ public class StateMachineResource {
 				updateStatus = com.flipkart.flux.domain.Status.sidelined;
 				break;
     	}
-		this.workFlowExecutionController.updateExecutionStatus(machineId, stateId, updateStatus, executionUpdateData.getRetrycount(), executionUpdateData.getCurrentRetryCount());
+		this.workFlowExecutionController.updateExecutionStatus(machineId, stateId, updateStatus, executionUpdateData.getRetrycount(),
+                executionUpdateData.getCurrentRetryCount(), executionUpdateData.getErrorMessage());
     	return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
     }
     
