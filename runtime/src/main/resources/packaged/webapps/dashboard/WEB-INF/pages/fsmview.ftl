@@ -32,7 +32,7 @@
     <div>&nbsp;</div>
     <div>
         <div id="graph-div" style="float: left">
-            <div class="paper" id="fsmcanvas" style="width: 1200px; height: 600px; overflow: auto;"></div>
+            <div class="paper" id="fsmcanvas" style="width: 1000px; height: 500px; overflow: auto;"></div>
         </div>
         <div id="Legend">
             <table class="table" style="width: 10%;">
