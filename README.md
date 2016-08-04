@@ -22,11 +22,11 @@ Flux allows you to monitor real-time execution of all running state machine task
 
 Additionally, you can also inspect individual state machine execution DAGs and audit data:
 
-![Serial-Workflow](https://github.com/flipkart-incubator/flux/raw/master/docs/Flux-serial-workflow.png)
+<img src="https://github.com/flipkart-incubator/flux/raw/master/docs/Flux-serial-workflow.png" width=500">
 
-![Fork-Join](https://github.com/flipkart-incubator/flux/blob/master/docs/Flux-fork-join-workflow.png)
+<img src="https://github.com/flipkart-incubator/flux/blob/master/docs/Flux-fork-join-workflow.png" width="500">
 
-![Manual-trigger](https://github.com/flipkart-incubator/flux/raw/master/docs/fsm_graph.jpg)
+<img src="https://github.com/flipkart-incubator/flux/raw/master/docs/fsm_graph.jpg" width="500">
 
 ![Audit] (https://github.com/flipkart-incubator/flux/raw/master/docs/audit_records.png)
 
