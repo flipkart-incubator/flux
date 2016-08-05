@@ -95,7 +95,13 @@ public class FluxInitializer {
                 fluxInitializer.start();
                 break;
             case "migrate" :
-                fluxInitializer.migrate();
+                if (args.length < 3) {
+                    throw new RuntimeException("<migrate> must be followed with db name");
+                }
+                if (!args[2].equals("flux") || args[2].equals("flux_redriver")) {
+                    throw new RuntimeException("<migrate> works only for 'flux' or 'flux_redriver'");
+                }
+                fluxInitializer.migrate(args[2]);
                 break;
         }
     }
@@ -135,11 +141,13 @@ public class FluxInitializer {
         logger.info("** Flux startup complete **");
     }
 
-    /** Helper method to perform migrations*/
-    private void migrate() {
+    /** Helper method to perform migrations
+     * @param dbName - name of the database to run migrations on
+     * */
+    private void migrate(String dbName) {
         loadFluxRuntimeContainer();
         MigrationsRunner migrationsRunner = fluxRuntimeContainer.getComponentContext().getInstance(MigrationsRunner.class);
-        migrationsRunner.migrate();
+        migrationsRunner.migrate(dbName);
     }
 
 }

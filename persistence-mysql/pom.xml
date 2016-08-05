@@ -73,7 +73,7 @@
                 <artifactId>liquibase-maven-plugin</artifactId>
                 <version>3.4.2</version>
                 <configuration>
-                    <changeLogFile>migrations.xml</changeLogFile>
+                    <changeLogFile>flux/migrations.xml</changeLogFile>
                     <driver>com.mysql.jdbc.Driver</driver>
                     <url>jdbc:mysql://localhost:3306/flux</url>
                     <username>root</username>
