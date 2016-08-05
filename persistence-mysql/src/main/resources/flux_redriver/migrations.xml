@@ -20,5 +20,5 @@
          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd"
         >
 
-    <includeAll path="persistence-mysql/src/main/resources/redriver/migrations" />
+    <includeAll path="persistence-mysql/src/main/resources/flux_redriver/migrations" />
 </databaseChangeLog>

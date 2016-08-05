@@ -2,6 +2,9 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
+    <properties>
+        <liquibase-maven-plugin.dbname>flux</liquibase-maven-plugin.dbname>
+    </properties>
     <parent>
         <groupId>com.flipkart</groupId>
         <artifactId>flux</artifactId>
@@ -73,9 +76,9 @@
                 <artifactId>liquibase-maven-plugin</artifactId>
                 <version>3.4.2</version>
                 <configuration>
-                    <changeLogFile>flux/migrations.xml</changeLogFile>
+                    <changeLogFile>${liquibase-maven-plugin.dbname}/migrations.xml</changeLogFile>
                     <driver>com.mysql.jdbc.Driver</driver>
-                    <url>jdbc:mysql://localhost:3306/flux</url>
+                    <url>jdbc:mysql://localhost:3306/${liquibase-maven-plugin.dbname}</url>
                     <username>root</username>
                     <dropFirst>false</dropFirst>
                     <promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>
