@@ -161,6 +161,11 @@ public class WorkFlowExecutionController {
         return stateMachinesDAO.findByCorrelationId(correlationId);
     }
 
+    /**
+     * Triggers the execution of executableStates using Akka router
+     * @param stateMachineInstanceId the state machine identifier
+     * @param executableStates states whose all dependencies are met
+     */
     private void executeStates(Long stateMachineInstanceId, Set<State> executableStates) {
         executableStates.forEach((state ->  {
             final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),

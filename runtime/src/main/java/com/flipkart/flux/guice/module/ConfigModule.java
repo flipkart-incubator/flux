@@ -58,6 +58,10 @@ public class ConfigModule extends AbstractModule {
         }
     }
 
+    /**
+     * Performs concrete bindings for interfaces
+     * @see com.google.inject.AbstractModule#configure()
+     */
     @Override
     protected void configure() {
         bind(ConfigurationProvider.class).toInstance(configProvider);

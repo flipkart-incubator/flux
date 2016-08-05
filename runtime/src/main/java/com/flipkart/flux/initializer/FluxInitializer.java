@@ -35,6 +35,7 @@ import static com.flipkart.flux.constant.RuntimeConstants.CONFIGURATION_YML;
  * <code>FluxInitializer</code> initializes the Flux runtime using the various Guice modules via Polyguice
  * @author shyam.akirala
  * @author regunath.balasubramanian
+ * @author yogesh.nachnani
  */
 public class FluxInitializer {
 

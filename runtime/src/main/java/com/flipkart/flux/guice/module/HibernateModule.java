@@ -50,6 +50,10 @@ public class HibernateModule extends AbstractModule {
 
     public static final String HIBERNATE_NAME_SPACE = "Hibernate";
 
+    /**
+     * Performs concrete bindings for interfaces
+     * @see com.google.inject.AbstractModule#configure()
+     */
     @Override
     protected void configure() {
         //bind entity classes

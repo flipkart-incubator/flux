@@ -31,12 +31,14 @@ public class DeploymentUnit {
     /** Tasks which belong to the deployment unit*/
     private Set<Method> taskMethods;
 
+    /** Constructor*/
     public DeploymentUnit(String name, DeploymentUnitClassLoader deploymentUnitClassLoader, Set<Method> taskMethods) {
         this.name = name;
         this.deploymentUnitClassLoader = deploymentUnitClassLoader;
         this.taskMethods = taskMethods;
     }
 
+    /** Accessor methods*/
     public String getName() {
         return name;
     }
