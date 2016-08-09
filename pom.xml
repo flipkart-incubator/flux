@@ -63,6 +63,7 @@
 
     <modules>
         <module>model</module>
+        <module>redriver</module>
         <module>persistence-mysql</module>
         <module>runtime</module>
         <module>task</module>
