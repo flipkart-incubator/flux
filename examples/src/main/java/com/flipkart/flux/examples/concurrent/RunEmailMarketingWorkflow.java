@@ -21,6 +21,12 @@ import com.google.inject.Injector;
 /**
  * This class can be used to run and observe the email marketing workflow.
  * This or a similar class like this is _not_ required to be present in your actual production jar
+ *
+ * To run this example, run the shell script run_example.sh with this class's fqn as below
+ * > sh run_example.sh com.flipkart.flux.examples.concurrent.RunEmailMarketingWorkflow
+ *
+ * you can debug the workflow execution in flux by starting it in debug mode as below and attaching it to your IDE
+ * > sh run_example.sh com.flipkart.flux.examples.concurrent.RunEmailMarketingWorkflow debug <debug_port_number>
  */
 public class RunEmailMarketingWorkflow  {
     public static void main(String... args) throws Exception {

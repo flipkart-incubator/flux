@@ -21,7 +21,7 @@
                 <label class="label"> Enter FSM ID </label>
             </div>
             <div class="Cell">
-                <input class="form-control" type="text" placeholder="FSM Id" id="fsm-id"/>
+                <input class="form-control" type="text" placeholder="FSM Id or Correlation Id" id="fsm-id"/>
             </div>
             <div class="Cell"><button class="btn btn-sm btn-primary" onclick="getFSMData()" id="get-fsm-data">Show FSM</button></div>
         </div>
@@ -337,7 +337,7 @@
                     document.getElementById("Legend").style.display = 'block';
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) {
-                    alert("Status: " + textStatus); alert("Error: " + errorThrown);
+                    alert("Status: " + XMLHttpRequest.status + " Response:" + XMLHttpRequest.responseText);
                 }
             });
         }

@@ -50,6 +50,10 @@ public class HibernateModule extends AbstractModule {
 
     public static final String FLUX_HIBERNATE_CONFIG_NAME_SPACE = "flux.Hibernate";
 
+    /**
+     * Performs concrete bindings for interfaces
+     * @see com.google.inject.AbstractModule#configure()
+     */
     @Override
     protected void configure() {
         //bind entity classes

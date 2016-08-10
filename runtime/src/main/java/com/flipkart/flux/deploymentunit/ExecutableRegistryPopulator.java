@@ -48,6 +48,7 @@ public class ExecutableRegistryPopulator implements Initializable {
 
     private ExecutableRegistry executableRegistry;
 
+    /** Map with key as deployment unit name and value as corresponding {@link DeploymentUnit}*/
     private Map<String, DeploymentUnit> deploymentUnitsMap;
 
     @Inject

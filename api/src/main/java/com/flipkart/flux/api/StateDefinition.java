@@ -43,7 +43,6 @@ public class StateDefinition {
     private String task;
 
     /** Name of Hook class that will be executed on exit of this state*/
-
     private String onExitHook;
 
     /** Retry count for task execution*/    

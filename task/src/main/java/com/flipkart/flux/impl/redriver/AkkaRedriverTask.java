@@ -103,15 +103,16 @@ public class AkkaRedriverTask extends UntypedActor {
 			TaskRedriverDetails redriverDetails = (TaskRedriverDetails)message;
 			switch(redriverDetails.getAction()) {
 			case Register:
-				logger.info("Register task : {} for redriver with time : {}", redriverDetails.getTaskId(), redriverDetails.getRedriverDelay());
-				// register the Task with the redriver scheduler
+				logger.debug("Register task : {} for redriver with time : {}", redriverDetails.getTaskId(), redriverDetails.getRedriverDelay());
+				// TODO: register the Task with the redriver scheduler
 				break;
 			case Deregister:
-				logger.info("DeRegister task : {} with redriver", redriverDetails.getTaskId());
-				// de-register the Task with the redriver scheduler
+				logger.debug("DeRegister task : {} with redriver", redriverDetails.getTaskId());
+				// TODO: de-register the Task with the redriver scheduler
 				break;
 			case Redrive:
 				// Redrive the Task using the Redriver Router
+				logger.debug("Redrive task with Id : {} ", redriverDetails.getTaskId());
 				this.router.route(message, getSelf());
 				break;
 			}
@@ -131,9 +132,12 @@ public class AkkaRedriverTask extends UntypedActor {
 			if (!this.isLeader.get()) {
 				this.isLeader.set(true);
 				logger.info("Promoting Actor at address : {} as the leader for cluster-wide redriver Scheduler", leaderAddress);
-				// notify the scheduler to load all scheduled tasks
-				// register this actor for callbacks when redriver times elapse for registered tasks
+				// TODO : notify the scheduler to load all scheduled tasks because it has become the leader
 			}
+		} else {
+			this.isLeader.set(false);
+			logger.info("Demoting Actor at address : {} as the leader for cluster-wide redriver Scheduler", leaderAddress);
+			// TODO : notify the scheduler to unload all scheduled tasks as it is no longer the leader
 		}
 	}	
 }

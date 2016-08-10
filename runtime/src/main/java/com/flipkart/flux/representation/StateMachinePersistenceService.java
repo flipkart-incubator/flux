@@ -86,6 +86,11 @@ public class StateMachinePersistenceService {
         return stateMachine;
     }
 
+    /**
+     * creates event domain objects from event definitions.
+     * @param eventDataMap
+     * @return set of events
+     */
     private Set<Event> createAllEvents(Map<EventDefinition, EventData> eventDataMap) {
         Set<Event> allEvents = new HashSet<>();
         for (Map.Entry<EventDefinition, EventData> currentEventDefinitionAndData : eventDataMap.entrySet()) {

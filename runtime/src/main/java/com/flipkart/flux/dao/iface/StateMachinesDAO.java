@@ -35,5 +35,6 @@ public interface StateMachinesDAO {
     /** Retrieves set of state machines by Name and version*/
     Set<StateMachine> findByNameAndVersion(String stateMachineName, Long Version);
 
+    /** Retrieves state machine by it's unique correlationId*/
     StateMachine findByCorrelationId(String correlationId);
 }

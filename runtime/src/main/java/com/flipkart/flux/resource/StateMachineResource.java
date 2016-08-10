@@ -13,32 +13,6 @@
 
 package com.flipkart.flux.resource;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
-import javax.transaction.Transactional;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import com.flipkart.flux.dao.iface.AuditDAO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
@@ -46,6 +20,7 @@ import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
+import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.Event;
@@ -55,6 +30,21 @@ import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.google.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Named;
+import javax.inject.Singleton;
+import javax.transaction.Transactional;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -224,7 +214,7 @@ public class StateMachineResource {
     @GET
     @Path("/{machineId}/fsmdata")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getFsmGraphData(@PathParam("machineId") Long machineId) throws IOException {
+    public Response getFsmGraphData(@PathParam("machineId") String machineId) throws IOException {
         return Response.status(200).entity(getGraphData(machineId))
                 .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT")
@@ -233,15 +223,27 @@ public class StateMachineResource {
                 .build();
     }
 
-    private FsmGraph getGraphData(Long fsmId) throws IOException {
-        StateMachine stateMachine = stateMachinesDAO.findById(fsmId);
+    /** Retrieves fsm graph data based on FSM Id or correlation id*/
+    private FsmGraph getGraphData(String machineId) throws IOException {
+        Long fsmId = null;
+        try {
+            fsmId = Long.valueOf(machineId);
+        } catch (NumberFormatException ignored) {}
+
+        StateMachine stateMachine;
+
+        if (fsmId != null) {
+            stateMachine = stateMachinesDAO.findById(fsmId);
+        } else { //if fsmId is null, that means the passed id is correlation id
+            stateMachine = stateMachinesDAO.findByCorrelationId(machineId);
+        }
 
         if(stateMachine == null) {
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).entity("State machine with Id: "+machineId+" not found").build());
         }
         final FsmGraph fsmGraph = new FsmGraph();
 
-        Map<String,Event> stateMachineEvents = eventsDAO.findBySMInstanceId(fsmId).stream().collect(
+        Map<String,Event> stateMachineEvents = eventsDAO.findBySMInstanceId(stateMachine.getId()).stream().collect(
             Collectors.<Event, String, Event>toMap(Event::getName, (event -> event)));
         Set<String> allOutputEventNames = new HashSet<>();
 
@@ -283,7 +285,7 @@ public class StateMachineResource {
             fsmGraph.addInitStateEdge(initEdge);
         });
 
-        fsmGraph.setAuditData(auditDAO.findBySMInstanceId(fsmId));
+        fsmGraph.setAuditData(auditDAO.findBySMInstanceId(stateMachine.getId()));
 
         return fsmGraph;
     }
