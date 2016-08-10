@@ -32,4 +32,8 @@ public class MessageDao {
     public List<ScheduledMessage> retrieveAll(ScheduledMessage scheduledMessage) {
         return Collections.emptyList();
     }
+
+    public void deleteInBatch(List<String> messageIdsToDelete) {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
 }

@@ -13,11 +13,29 @@
 
 package com.flipkart.flux.redriver.service;
 
+import com.codahale.metrics.InstrumentedExecutorService;
+import com.codahale.metrics.InstrumentedScheduledExecutorService;
+import com.codahale.metrics.SharedMetricRegistries;
+import com.flipkart.flux.Constants;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.polyguice.core.Disposable;
+import com.flipkart.polyguice.core.Initializable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
 
 /**
  * Wrapper around the Message Persistence layer.
@@ -25,18 +43,60 @@ import javax.inject.Singleton;
  * & also guard against race conditions where we have multiple
  */
 @Singleton
-public class MessageManagerService {
+public class MessageManagerService implements Disposable,Initializable {
     private final MessageDao messageDao;
+    private final Long batchDeleteInterval;
+    private final Integer batchSize;
+    private final ConcurrentLinkedQueue<ScheduledMessage> messagesToDelete;
+    private static final Logger logger = LoggerFactory.getLogger(MessageManagerService.class);
+    private final InstrumentedScheduledExecutorService scheduledExecutorService;
 
     @Inject
-    public MessageManagerService(MessageDao messageDao) {
+    public MessageManagerService(MessageDao messageDao,
+                                 @Named("redriver.batchdelete.interval.ms") Long batchDeleteInterval,
+                                 @Named("redriver.batchdelete.batchsize") Integer batchSize) {
         this.messageDao = messageDao;
+        this.batchDeleteInterval = batchDeleteInterval;
+        this.batchSize = batchSize;
+        this.messagesToDelete = new ConcurrentLinkedQueue<>();
+        scheduledExecutorService =
+            new InstrumentedScheduledExecutorService(Executors.newScheduledThreadPool(2), SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME));
     }
 
     public void saveMessage(ScheduledMessage message) {
         messageDao.save(message);
     }
     public void scheduleForRemoval(ScheduledMessage message) {
+        this.messagesToDelete.add(message);
+    }
 
+    @Override
+    public void dispose() {
+        scheduledExecutorService.shutdown();
+        try {
+            scheduledExecutorService.awaitTermination(2,TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            logger.error("Could not shutdown scheduled executor service",e);
+        }
+    }
+
+
+    @Override
+    public void initialize() {
+        scheduledExecutorService.scheduleAtFixedRate(() -> {
+            int i = 0;
+            ScheduledMessage currentMessageToDelete = null;
+            List<String> messageIdsToDelete = new ArrayList<>(batchSize);
+            do {
+                currentMessageToDelete = this.messagesToDelete.poll();
+                if (currentMessageToDelete != null) {
+                    messageIdsToDelete.add(currentMessageToDelete.getMessageId());
+                }
+                i++;
+            } while (currentMessageToDelete != null && i < batchSize);
+            if (!messageIdsToDelete.isEmpty()) {
+                messageDao.deleteInBatch(messageIdsToDelete);
+            }
+        }, 0l, batchDeleteInterval, TimeUnit.MILLISECONDS);
     }
 }
