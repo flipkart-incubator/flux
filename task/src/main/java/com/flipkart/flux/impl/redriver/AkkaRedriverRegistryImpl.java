@@ -92,5 +92,14 @@ public class AkkaRedriverRegistryImpl implements RedriverRegistry, Initializable
 		this.redriverActorProxy.tell(new TaskRedriverDetails(taskId, TaskRedriverDetails.RegisterAction.Deregister), 
 				ActorRef.noSender());
 	}
+	
+	/**
+	 * RedriverRegistry method. Re-drives the Task identified by the Task Id.
+	 * @see com.flipkart.flux.api.redriver.RedriverRegistry#redriveTask(java.lang.Long)
+	 */
+	public void redriveTask(Long taskId) {
+		this.redriverActorProxy.tell(new TaskRedriverDetails(taskId, TaskRedriverDetails.RegisterAction.Redrive), 
+				ActorRef.noSender());
+	}
 
 }

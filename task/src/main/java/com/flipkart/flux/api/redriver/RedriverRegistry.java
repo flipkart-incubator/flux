@@ -37,4 +37,10 @@ public interface RedriverRegistry {
 	 * @param taskId the Task State identifier
 	 */
 	public void deRegisterTask(Long taskId);
+	
+	/**
+	 * Re-drives i.e. re-runs the Task identified by the specified Task Id
+	 * @param taskId identifier for the Task to re-drive/re-run 
+	 */
+	public void redriveTask(Long taskId);
 }
