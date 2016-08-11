@@ -14,26 +14,45 @@
 package com.flipkart.flux.redriver.dao;
 
 import com.flipkart.flux.redriver.model.ScheduledMessage;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.Collections;
 import java.util.List;
 
 /**
  * Db interactions for <code>ScheduledMessage</code>s
  */
+@Singleton
 public class MessageDao {
 
-    public void save(ScheduledMessage scheduledMessage) {
-        // todo
-    }
-    public void delete(ScheduledMessage scheduledMessage) {
+    private SessionFactory sessionFactory;
 
+    @Inject
+    public MessageDao(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
     }
+
+    public void save(ScheduledMessage scheduledMessage) {
+        currentSession().save(scheduledMessage);
+    }
+
     public List<ScheduledMessage> retrieveAll(ScheduledMessage scheduledMessage) {
-        return Collections.emptyList();
+        return currentSession().createCriteria(ScheduledMessage.class).list();
     }
 
     public void deleteInBatch(List<Long> messageIdsToDelete) {
         throw new UnsupportedOperationException("not implemented yet");
+        // todo
     }
+    /**
+     * Provides the session which is bound to current thread.
+     * @return Session
+     */
+    private Session currentSession() {
+        return sessionFactory.getCurrentSession();
+    }
+
 }

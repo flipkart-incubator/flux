@@ -24,7 +24,6 @@ import java.io.Serializable;
  */
 // TODO : Keep this as a generic message that takes a Serializable "data". Presently binding it only to our usecase
 @Entity
-@Table(name="message", uniqueConstraints = @UniqueConstraint(columnNames = "name"))
 public class ScheduledMessage implements Serializable {
 
     @Id
