@@ -135,7 +135,7 @@
         <dependency>
             <groupId>javax.transaction</groupId>
             <artifactId>javax.transaction-api</artifactId>
-            <version>1.2</version>
+            <version>${javax.transaction-api.version}</version>
         </dependency>
         <!-- DI dependencies -->
         <dependency>
@@ -185,11 +185,6 @@
         </dependency>
 
         <!-- Polyguice dependencies-->
-        <dependency>
-            <groupId>com.flipkart.polyguice</groupId>
-            <artifactId>polyguice-core</artifactId>
-            <version>${polyguice.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.flipkart.polyguice</groupId>
             <artifactId>polyguice-config</artifactId>
