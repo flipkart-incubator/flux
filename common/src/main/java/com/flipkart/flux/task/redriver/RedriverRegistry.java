@@ -11,12 +11,10 @@
  * limitations under the License.
  *
  */
-package com.flipkart.flux.api.redriver;
-
-import com.flipkart.flux.api.core.Task;
+package com.flipkart.flux.task.redriver;
 
 /**
- * <code>RedriverRegistry</code> defines behavior for a Flux re-driver registry that executes stalled/zombie {@link Task} instances 
+ * <code>RedriverRegistry</code> defines behavior for a Flux re-driver registry that executes stalled/zombie {@see Task} instances
  * including those that missed an execution schedule because of node failure in the Flux cluster.
  * 
  * @author regunath.balasubramanian

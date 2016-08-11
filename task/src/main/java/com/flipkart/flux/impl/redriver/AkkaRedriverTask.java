@@ -55,6 +55,9 @@ public class AkkaRedriverTask extends UntypedActor {
 	/** The Router instance that manages local redriver task execution Actors */
 	private Router router;
 
+	/** The message scheduler used to register redriver tasks */
+
+
 	/**
 	 * Constructor for this class. Creates a router with list of RedriverWorker instances
 	 */

@@ -13,7 +13,6 @@
 
 package com.flipkart.flux.redriver.service;
 
-import com.codahale.metrics.InstrumentedScheduledExecutorService;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import org.junit.Before;
@@ -23,10 +22,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyListOf;
@@ -51,9 +46,9 @@ public class MessageManagerServiceTest {
         messageManagerService = new MessageManagerService(messageDao,500l,10);
         messageManagerService.initialize(); // Will be called by polyguice in the production env
 
-        messageManagerService.scheduleForRemoval(new ScheduledMessage("testMessage1", "fooBar", 1l, "url1"));
-        messageManagerService.scheduleForRemoval(new ScheduledMessage("testMessage2", "fooBar", 1l, "url1"));
-        messageManagerService.scheduleForRemoval(new ScheduledMessage("testMessage3", "fooBar", 1l, "url1"));
+        messageManagerService.scheduleForRemoval(new ScheduledMessage("testMessage1", 123l, 1l));
+        messageManagerService.scheduleForRemoval(new ScheduledMessage("testMessage2", 123l, 1l));
+        messageManagerService.scheduleForRemoval(new ScheduledMessage("testMessage3", 123l, 1l));
 
         verifyZeroInteractions(messageDao);
 
@@ -67,9 +62,9 @@ public class MessageManagerServiceTest {
         messageManagerService = new MessageManagerService(messageDao,500l,2);
         messageManagerService.initialize(); // Will be called by polyguice in the production env
 
-        messageManagerService.scheduleForRemoval(new ScheduledMessage("testMessage1", "fooBar", 1l, "url1"));
-        messageManagerService.scheduleForRemoval(new ScheduledMessage("testMessage2", "fooBar", 1l, "url1"));
-        messageManagerService.scheduleForRemoval(new ScheduledMessage("testMessage3", "fooBar", 1l, "url1"));
+        messageManagerService.scheduleForRemoval(new ScheduledMessage("testMessage1", 123l, 1l));
+        messageManagerService.scheduleForRemoval(new ScheduledMessage("testMessage2", 123l, 1l));
+        messageManagerService.scheduleForRemoval(new ScheduledMessage("testMessage3", 123l, 1l));
 
         verifyZeroInteractions(messageDao);
 
@@ -80,25 +75,5 @@ public class MessageManagerServiceTest {
         verify(messageDao,times(1)).deleteInBatch(Arrays.asList("testMessage3"));
 
 
-    }
-
-    @Test
-    public void testExecutorPool() throws Exception {
-        final ExecutorService executorService = Executors.newFixedThreadPool(1);
-        final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);
-
-        final Future<Object> result = executorService.submit(() -> {
-            throw new RuntimeException("fooBarBaaz");
-        });
-
-        Thread.sleep(200l);
-
-        System.out.println("Done:" + result.isDone());
-        final Future<Object> result2 = executorService.submit(() -> {
-            System.out.println("Yo man");
-            return null;
-        });
-        Thread.sleep(200l);
-        System.out.println("result2.isDone() = " + result2.isDone());
     }
 }

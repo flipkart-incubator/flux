@@ -18,18 +18,17 @@ import java.io.Serializable;
 /**
  * A message that will be sent to a particular actor denoted by the url at the scheduled time
  */
+// TODO : Keep this as a generic message that takes a Serializable "data". Presently binding it only to our usecase
 public class ScheduledMessage implements Serializable {
 
     private final String messageId;
-    private final String url;
-    private final Serializable data;
+    private final Long taskId;
     private final long scheduledTime;
 
-    public ScheduledMessage(String messageId, Serializable data, Long scheduledTime, String url) {
+    public ScheduledMessage(String messageId, Long taskId, Long scheduledTime) {
         this.messageId = messageId;
-        this.data = data;
+        this.taskId = taskId;
         this.scheduledTime = scheduledTime;
-        this.url = url;
     }
 
     public long getScheduledTime() {
@@ -45,16 +44,14 @@ public class ScheduledMessage implements Serializable {
 
         if (scheduledTime != that.scheduledTime) return false;
         if (!messageId.equals(that.messageId)) return false;
-        if (!url.equals(that.url)) return false;
-        return !(data != null ? !data.equals(that.data) : that.data != null);
+        return !(taskId != null ? !taskId.equals(that.taskId) : that.taskId != null);
 
     }
 
     @Override
     public int hashCode() {
         int result = messageId.hashCode();
-        result = 31 * result + url.hashCode();
-        result = 31 * result + (data != null ? data.hashCode() : 0);
+        result = 31 * result + (taskId != null ? taskId.hashCode() : 0);
         result = 31 * result + (int) (scheduledTime ^ (scheduledTime >>> 32));
         return result;
     }
@@ -62,14 +59,25 @@ public class ScheduledMessage implements Serializable {
     @Override
     public String toString() {
         return "ScheduledMessage{" +
-            "data=" + data +
-            ", messageId='" + messageId + '\'' +
-            ", url='" + url + '\'' +
+            "messageId='" + messageId + '\'' +
+            ", taskId=" + taskId +
             ", scheduledTime=" + scheduledTime +
             '}';
     }
 
     public String getMessageId() {
         return messageId;
+    }
+
+    public boolean shouldRunNow() {
+        return scheduledTime <= System.currentTimeMillis();
+    }
+
+    public Long timeLeftToRun() {
+        return scheduledTime - System.currentTimeMillis();
+    }
+
+    public Long getTaskId() {
+        return taskId;
     }
 }

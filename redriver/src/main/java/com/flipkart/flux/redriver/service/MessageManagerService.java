@@ -13,10 +13,8 @@
 
 package com.flipkart.flux.redriver.service;
 
-import com.codahale.metrics.InstrumentedExecutorService;
 import com.codahale.metrics.InstrumentedScheduledExecutorService;
 import com.codahale.metrics.SharedMetricRegistries;
-import com.flipkart.flux.Constants;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.polyguice.core.Disposable;
@@ -28,9 +26,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
