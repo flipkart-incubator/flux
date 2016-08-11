@@ -49,9 +49,8 @@ public class TaskAndEvents implements Serializable {
     /* The current retry count*/
     private long currentRetryCount;
 
-    public TaskAndEvents() {
-    }
-
+    /** constructors*/
+    public TaskAndEvents() {}
     public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, EventData[] events, Long stateMachineId, String outputEvent, long retryCount) {
     	this.taskName = taskName;
         this.taskIdentifier = taskIdentifier;

@@ -32,7 +32,7 @@ public class AkkaRedriverWorker extends UntypedActor {
 	/** Logger instance for this class*/
     private LoggingAdapter logger = Logging.getLogger(getContext().system(), this);
 
-    /** The Flux Runtime Connector instance for dispatching processed EventS and execution status updates*/
+    /** The Flux Runtime Connector instance for getting required objects from Flux Runtime*/
     @Inject
     private static FluxRuntimeConnector fluxRuntimeConnector;
 
