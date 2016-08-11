@@ -12,11 +12,16 @@
  */
 package com.flipkart.flux.impl.redriver;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
+import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.message.TaskRedriverDetails;
 
 import akka.actor.UntypedActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+
+import javax.inject.Inject;
 
 /**
  * Actor for redriving Tasks
@@ -26,7 +31,14 @@ public class AkkaRedriverWorker extends UntypedActor {
 	
 	/** Logger instance for this class*/
     private LoggingAdapter logger = Logging.getLogger(getContext().system(), this);
-	
+
+    /** The Flux Runtime Connector instance for dispatching processed EventS and execution status updates*/
+    @Inject
+    private static FluxRuntimeConnector fluxRuntimeConnector;
+
+    /** ObjectMapper instance for JSON deserialization*/
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
 	/**
 	 * Actor call back method for executing stalled Tasks 
 	 * @see akka.actor.UntypedActor#onReceive(java.lang.Object)
@@ -35,6 +47,10 @@ public class AkkaRedriverWorker extends UntypedActor {
 		if (message instanceof TaskRedriverDetails && 
 				((TaskRedriverDetails)message).getAction().equals(TaskRedriverDetails.RegisterAction.Redrive)) {
 			// Check if the Task has stalled. If yes, recreate the appropriate TaskAndEvents and drive the task
+            Long taskId = ((TaskRedriverDetails) message).getTaskId();
+            TaskAndEvents taskAndEvents = objectMapper.readValue(fluxRuntimeConnector.getSerializedTaskAndEventsByTaskId(taskId), TaskAndEvents.class);
+
+
 		}else {
 			logger.error("Redriver Task Wroker received a message that it cannot process (or) a non-redriver action. Message type received is : {}", message.getClass().getName());
 			unhandled(message);

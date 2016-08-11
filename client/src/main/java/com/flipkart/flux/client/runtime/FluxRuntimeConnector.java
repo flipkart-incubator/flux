@@ -18,6 +18,8 @@ import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.StateMachineDefinition;
 
+import java.io.IOException;
+
 /**
  * Used to connect with the core Flux Runtime
  * This class hides the actual API call to the Flux runtime
@@ -51,5 +53,11 @@ public interface FluxRuntimeConnector {
      * @param taskId identifier for the Task whose retry count is to be updated
      */
     void incrementExecutionRetries(Long stateMachineId, Long taskId);
-    
+
+    /**
+     * Retrieves TaskAndEvents object from Flux Runtime by connecting over Http.
+     * @param taskId the task/state identifier
+     * @return serialized TaskAndEvents as json string
+     */
+    String getSerializedTaskAndEventsByTaskId(Long taskId) throws IOException;
 }

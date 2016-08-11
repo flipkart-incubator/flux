@@ -19,9 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.StateMachineDefinition;
-import com.flipkart.flux.api.Status;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.ByteArrayEntity;
@@ -29,6 +29,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.util.EntityUtils;
 
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayOutputStream;
@@ -126,6 +127,18 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         httpResponse = postOverHttp(null,  "/" + stateMachineId + "/" + taskId + "/retries/inc");
         HttpClientUtils.closeQuietly(httpResponse);
 	}
+
+    /**
+     * Interface method implementation. Retrieves TaskAndEvents object from Flux Runtime API through http get and returns as json string.
+     */
+    @Override
+    public String getSerializedTaskAndEventsByTaskId(Long taskId) throws IOException {
+        CloseableHttpResponse httpResponse = null;
+        httpResponse = getOverHttp("/"+"taskandevents"+"/"+taskId);
+        String taskAndEventsJson = EntityUtils.toString(httpResponse.getEntity());
+        HttpClientUtils.closeQuietly(httpResponse);
+        return taskAndEventsJson;
+    }
 	
 	/** Helper method to post data over Http */
     private CloseableHttpResponse postOverHttp(Object dataToPost, String pathSuffix)  {
@@ -151,5 +164,28 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         }
         return httpResponse;
     }
+
+    /** Helper method to get data over Http*/
+    private CloseableHttpResponse getOverHttp(String pathSuffix) {
+        CloseableHttpResponse httpResponse = null;
+        HttpGet httpGet = new HttpGet(fluxEndpoint + pathSuffix);
+        System.out.println("get api:"+ fluxEndpoint + pathSuffix);
+        try {
+            httpResponse = closeableHttpClient.execute(httpGet);
+            final int statusCode = httpResponse.getStatusLine().getStatusCode();
+            if (statusCode >= Response.Status.OK.getStatusCode() && statusCode < Response.Status.MOVED_PERMANENTLY.getStatusCode() ) {
+                // all is well, TODO write a trace level log
+            } else {
+                // TODO: log status line here
+                throw new RuntimeCommunicationException("Did not receive a valid response from Flux core while doing Http Get");
+            }
+        } catch (IOException e) {
+            // TODO log exception here
+            e.printStackTrace();
+            throw new RuntimeCommunicationException("Could not communicate with Flux runtime");
+        }
+        return httpResponse;
+    }
+
 
 }
