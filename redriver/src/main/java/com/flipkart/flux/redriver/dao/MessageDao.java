@@ -33,7 +33,7 @@ public class MessageDao {
         return Collections.emptyList();
     }
 
-    public void deleteInBatch(List<String> messageIdsToDelete) {
+    public void deleteInBatch(List<Long> messageIdsToDelete) {
         throw new UnsupportedOperationException("not implemented yet");
     }
 }

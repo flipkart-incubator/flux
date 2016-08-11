@@ -61,9 +61,9 @@ public class MessageScheduler {
         this.schedulerThread.resumeJobExecution();
     }
 
-    public void removeMessage(String messageId) {
+    public void removeMessage(Long taskId) {
         final Optional<ScheduledMessage> scheduledMessageOptional
-            = this.messages.stream().filter((m) -> m.getMessageId().equals(messageId)).findFirst();
+            = this.messages.stream().filter((m) -> m.getTaskId().equals(taskId)).findFirst();
         if (scheduledMessageOptional.isPresent()) {
             final ScheduledMessage message = scheduledMessageOptional.get();
             /* It is important that we delete from priority queue first. Its okay even if we the schedule for removal call fails.

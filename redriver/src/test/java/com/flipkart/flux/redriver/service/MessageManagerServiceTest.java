@@ -46,14 +46,14 @@ public class MessageManagerServiceTest {
         messageManagerService = new MessageManagerService(messageDao,500l,10);
         messageManagerService.initialize(); // Will be called by polyguice in the production env
 
-        messageManagerService.scheduleForRemoval(new ScheduledMessage("testMessage1", 123l, 1l));
-        messageManagerService.scheduleForRemoval(new ScheduledMessage("testMessage2", 123l, 1l));
-        messageManagerService.scheduleForRemoval(new ScheduledMessage("testMessage3", 123l, 1l));
+        messageManagerService.scheduleForRemoval(new ScheduledMessage(123l, 1l));
+        messageManagerService.scheduleForRemoval(new ScheduledMessage(123l, 1l));
+        messageManagerService.scheduleForRemoval(new ScheduledMessage(123l, 1l));
 
         verifyZeroInteractions(messageDao);
 
         Thread.sleep(700l);
-        verify(messageDao,times(1)).deleteInBatch(anyListOf(String.class));
+        verify(messageDao,times(1)).deleteInBatch(anyListOf(Long.class));
 
     }
 
@@ -62,17 +62,17 @@ public class MessageManagerServiceTest {
         messageManagerService = new MessageManagerService(messageDao,500l,2);
         messageManagerService.initialize(); // Will be called by polyguice in the production env
 
-        messageManagerService.scheduleForRemoval(new ScheduledMessage("testMessage1", 123l, 1l));
-        messageManagerService.scheduleForRemoval(new ScheduledMessage("testMessage2", 123l, 1l));
-        messageManagerService.scheduleForRemoval(new ScheduledMessage("testMessage3", 123l, 1l));
+        messageManagerService.scheduleForRemoval(new ScheduledMessage(121l, 1l));
+        messageManagerService.scheduleForRemoval(new ScheduledMessage(122l, 1l));
+        messageManagerService.scheduleForRemoval(new ScheduledMessage(123l, 1l));
 
         verifyZeroInteractions(messageDao);
 
         Thread.sleep(700l);
-        verify(messageDao,times(1)).deleteInBatch(Arrays.asList("testMessage1","testMessage2"));
+        verify(messageDao,times(1)).deleteInBatch(Arrays.asList(121l,122l));
 
         Thread.sleep(700l);
-        verify(messageDao,times(1)).deleteInBatch(Arrays.asList("testMessage3"));
+        verify(messageDao,times(1)).deleteInBatch(Arrays.asList(123l));
 
 
     }

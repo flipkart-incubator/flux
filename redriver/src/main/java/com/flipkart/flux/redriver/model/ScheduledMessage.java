@@ -13,20 +13,30 @@
 
 package com.flipkart.flux.redriver.model;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import java.io.Serializable;
 
 /**
  * A message that will be sent to a particular actor denoted by the url at the scheduled time
  */
 // TODO : Keep this as a generic message that takes a Serializable "data". Presently binding it only to our usecase
+@Entity
+@Table(name="message", uniqueConstraints = @UniqueConstraint(columnNames = "name"))
 public class ScheduledMessage implements Serializable {
 
-    private final String messageId;
-    private final Long taskId;
-    private final long scheduledTime;
+    @Id
+    private Long taskId;
+    private long scheduledTime;
 
-    public ScheduledMessage(String messageId, Long taskId, Long scheduledTime) {
-        this.messageId = messageId;
+    /* For Hibernate */
+    ScheduledMessage() {
+    }
+
+    public ScheduledMessage(Long taskId, Long scheduledTime) {
+        this();
         this.taskId = taskId;
         this.scheduledTime = scheduledTime;
     }
@@ -43,15 +53,13 @@ public class ScheduledMessage implements Serializable {
         ScheduledMessage that = (ScheduledMessage) o;
 
         if (scheduledTime != that.scheduledTime) return false;
-        if (!messageId.equals(that.messageId)) return false;
-        return !(taskId != null ? !taskId.equals(that.taskId) : that.taskId != null);
+        return taskId.equals(that.taskId);
 
     }
 
     @Override
     public int hashCode() {
-        int result = messageId.hashCode();
-        result = 31 * result + (taskId != null ? taskId.hashCode() : 0);
+        int result = taskId.hashCode();
         result = 31 * result + (int) (scheduledTime ^ (scheduledTime >>> 32));
         return result;
     }
@@ -59,14 +67,9 @@ public class ScheduledMessage implements Serializable {
     @Override
     public String toString() {
         return "ScheduledMessage{" +
-            "messageId='" + messageId + '\'' +
             ", taskId=" + taskId +
             ", scheduledTime=" + scheduledTime +
             '}';
-    }
-
-    public String getMessageId() {
-        return messageId;
     }
 
     public boolean shouldRunNow() {

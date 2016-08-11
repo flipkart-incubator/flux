@@ -82,11 +82,11 @@ public class MessageManagerService implements Disposable,Initializable {
         scheduledExecutorService.scheduleAtFixedRate(() -> {
             int i = 0;
             ScheduledMessage currentMessageToDelete = null;
-            List<String> messageIdsToDelete = new ArrayList<>(batchSize);
+            List<Long> messageIdsToDelete = new ArrayList<>(batchSize);
             do {
                 currentMessageToDelete = this.messagesToDelete.poll();
                 if (currentMessageToDelete != null) {
-                    messageIdsToDelete.add(currentMessageToDelete.getMessageId());
+                    messageIdsToDelete.add(currentMessageToDelete.getTaskId());
                 }
                 i++;
             } while (currentMessageToDelete != null && i < batchSize);

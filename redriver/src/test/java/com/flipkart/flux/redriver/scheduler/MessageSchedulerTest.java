@@ -48,7 +48,7 @@ public class MessageSchedulerTest {
 
     @Test
     public void testAddMessage_shouldAddToDbAndPriorityQueue() throws Exception {
-        final ScheduledMessage testMessage = new ScheduledMessage("1234", 121l, 200l);
+        final ScheduledMessage testMessage = new ScheduledMessage(121l, 200l);
         messageScheduler.addMessage(testMessage);
 
         verify(messageManagerService, times(1)).saveMessage(testMessage);
@@ -59,11 +59,11 @@ public class MessageSchedulerTest {
 
     @Test
     public void testRemoveMessage_shouldRemoveFromPriorityQueueAndScheduleForRemoval() throws Exception {
-        final ScheduledMessage testMessage = new ScheduledMessage("1234", 121l, 200l);
+        final ScheduledMessage testMessage = new ScheduledMessage(121l, 200l);
         PriorityQueue<ScheduledMessage> localMessageQueue = new PriorityQueue<>();
         localMessageQueue.add(testMessage);
         messageScheduler = new MessageScheduler(messageManagerService, localMessageQueue, redriverRegistry);
-        messageScheduler.removeMessage("1234");
+        messageScheduler.removeMessage(121l);
 
         assertTrue(localMessageQueue.isEmpty());
 
@@ -75,7 +75,7 @@ public class MessageSchedulerTest {
     public void testRemoveMessage_shouldBeGracefullInFaceOfUnknownMessageId() throws Exception {
         final PriorityQueue<ScheduledMessage> localMessageQueue = new PriorityQueue<>();
         messageScheduler = new MessageScheduler(messageManagerService, localMessageQueue, redriverRegistry);
-        messageScheduler.removeMessage("1234");
+        messageScheduler.removeMessage(123l);
         assertTrue(localMessageQueue.isEmpty());
         verifyZeroInteractions(messageManagerService);
     }
@@ -84,12 +84,12 @@ public class MessageSchedulerTest {
     public void testScheduledExecution() throws Exception {
         messageScheduler =  new MessageScheduler(messageManagerService,redriverRegistry);
         final long currTime = System.currentTimeMillis();
-        messageScheduler.addMessage(new ScheduledMessage("tm1",121l, currTime+1000l));
-        messageScheduler.addMessage(new ScheduledMessage("tm2",122l, currTime+1000l));
+        messageScheduler.addMessage(new ScheduledMessage(121l, currTime+1000l));
+        messageScheduler.addMessage(new ScheduledMessage(122l, currTime+1000l));
         messageScheduler.start();
         verifyZeroInteractions(redriverRegistry); // Nothing scheduled yet
-        messageScheduler.addMessage(new ScheduledMessage("tm3", 123l, currTime + 1000l));
-        messageScheduler.addMessage(new ScheduledMessage("tm4", 124l, currTime + 2000l));
+        messageScheduler.addMessage(new ScheduledMessage(123l, currTime + 1000l));
+        messageScheduler.addMessage(new ScheduledMessage(124l, currTime + 2000l));
         Thread.sleep(1100l);
         verify(redriverRegistry,times(1)).redriveTask(121l);
         verify(redriverRegistry,times(1)).redriveTask(122l);
@@ -104,8 +104,8 @@ public class MessageSchedulerTest {
     public void testRemovalAfterExecution() throws Exception {
         messageScheduler =  new MessageScheduler(messageManagerService,redriverRegistry);
         final long currTime = System.currentTimeMillis();
-        final ScheduledMessage testMessage1 = new ScheduledMessage("tm1", 121l, currTime + 800l);
-        final ScheduledMessage testMessage2 = new ScheduledMessage("tm2", 122l, currTime + 800l);
+        final ScheduledMessage testMessage1 = new ScheduledMessage(121l, currTime + 800l);
+        final ScheduledMessage testMessage2 = new ScheduledMessage(122l, currTime + 800l);
         messageScheduler.addMessage(testMessage1);
         messageScheduler.addMessage(testMessage2);
         messageScheduler.start();
