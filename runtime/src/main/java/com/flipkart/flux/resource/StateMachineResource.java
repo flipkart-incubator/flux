@@ -23,10 +23,12 @@ import com.flipkart.flux.controller.WorkFlowExecutionController;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.impl.RAMContext;
+import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.google.inject.Inject;
@@ -70,6 +72,8 @@ public class StateMachineResource {
 
     StateMachinesDAO stateMachinesDAO;
 
+    StatesDAO statesDAO;
+
     EventsDAO eventsDAO;
 
     AuditDAO auditDAO;
@@ -78,10 +82,11 @@ public class StateMachineResource {
 
     @Inject
     public StateMachineResource(EventsDAO eventsDAO, StateMachinePersistenceService stateMachinePersistenceService,
-                                AuditDAO auditDAO, StateMachinesDAO stateMachinesDAO, WorkFlowExecutionController workFlowExecutionController) {
+                                AuditDAO auditDAO, StateMachinesDAO stateMachinesDAO, StatesDAO statesDAO, WorkFlowExecutionController workFlowExecutionController) {
         this.eventsDAO = eventsDAO;
         this.stateMachinePersistenceService = stateMachinePersistenceService;
         this.stateMachinesDAO = stateMachinesDAO;
+        this.statesDAO = statesDAO;
         this.auditDAO = auditDAO;
         this.workFlowExecutionController = workFlowExecutionController;
         objectMapper = new ObjectMapper();
@@ -192,6 +197,25 @@ public class StateMachineResource {
                             ) throws Exception {
     	this.workFlowExecutionController.incrementExecutionRetries(machineId, stateId);
     	return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
+    }
+
+    /**
+     * Constructs TaskAndEvents object and returns it for the provided task id.
+     * @param taskId the task/state identifier
+     * @return Response with TaskAndEvents object
+     * @throws Exception
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/taskandevents/{taskId}")
+    public Response getTaskAndEventsByTaskId(@PathParam("taskId") Long taskId) throws Exception {
+        State state = statesDAO.findById(taskId);
+
+        TaskAndEvents taskAndEvents = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
+                eventsDAO.findByEventNamesAndSMId(state.getDependencies(), state.getStateMachineId()).toArray(new EventData[]{}),
+                state.getStateMachineId(), state.getOutputEvent(), state.getRetryCount(), state.getAttemptedNoOfRetries());
+
+        return Response.status(Response.Status.OK.getStatusCode()).entity(taskAndEvents).build();
     }
     
     /**
