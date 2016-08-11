@@ -169,7 +169,6 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     private CloseableHttpResponse getOverHttp(String pathSuffix) {
         CloseableHttpResponse httpResponse = null;
         HttpGet httpGet = new HttpGet(fluxEndpoint + pathSuffix);
-        System.out.println("get api:"+ fluxEndpoint + pathSuffix);
         try {
             httpResponse = closeableHttpClient.execute(httpGet);
             final int statusCode = httpResponse.getStatusLine().getStatusCode();
