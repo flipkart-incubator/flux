@@ -44,7 +44,7 @@ public class MessageScheduler {
 
     @Inject
     public MessageScheduler(MessageManagerService messageManagerService,RedriverRegistry redriverRegistry) {
-        this(messageManagerService, new PriorityQueue<>(new ScheduledMessageComparator()),redriverRegistry);
+        this(messageManagerService, new PriorityQueue<>(new ScheduledMessageComparator()), redriverRegistry);
     }
 
 
@@ -98,29 +98,39 @@ public class MessageScheduler {
                         return;
                     }
                 }
-
-                final ScheduledMessage highestPriorityMessage = messages.peek();
-
-                if (highestPriorityMessage != null) {
-                    if (highestPriorityMessage.shouldRunNow()) {
-                        /*
-                            Now, it may so happen that the "messageToSend" is different from the earlier highestPriority message
-                            This is okay since this message is perhaps added at a later instance and is of even higher priority
-                            than the previous highestPriorityMessage and hence is eligible to run by transitivity
-                         */
-                        final ScheduledMessage messageToSend = messages.poll();
-                        redriverRegistry.redriveTask(messageToSend.getTaskId());
-                        messageManagerService.scheduleForRemoval(messageToSend);
-                    } else {
-                        Long timeLeft = highestPriorityMessage.timeLeftToRun();
-                        if (timeLeft > 0) {
-                            logger.info("Next job run only at {}",new Date(highestPriorityMessage.getScheduledTime()));
-                            sleep(timeLeft);
-                        }
-                    }
-                } else {
-                    pauseJobExecution();
+                try {
+                    _run();
+                } catch (RuntimeException e) {
+                    logger.error("Encountered exception during execution",e);
+                } catch (InterruptedException e) {
+                    /* The thread is interrupted, best to bail now. */
+                    logger.error("We were interrupted",e);
                 }
+            }
+        }
+
+        private void _run() throws InterruptedException {
+            final ScheduledMessage highestPriorityMessage = messages.peek();
+
+            if (highestPriorityMessage != null) {
+                if (highestPriorityMessage.shouldRunNow()) {
+                    /*
+                        Now, it may so happen that the "messageToSend" is different from the earlier highestPriority message
+                        This is okay since this message is perhaps added at a later instance and is of even higher priority
+                        than the previous highestPriorityMessage and hence is eligible to run by transitivity
+                     */
+                    final ScheduledMessage messageToSend = messages.poll();
+                    redriverRegistry.redriveTask(messageToSend.getTaskId());
+                    messageManagerService.scheduleForRemoval(messageToSend);
+                } else {
+                    Long timeLeft = highestPriorityMessage.timeLeftToRun();
+                    if (timeLeft > 0) {
+                        logger.info("Next job run only at {}",new Date(highestPriorityMessage.getScheduledTime()));
+                        sleep(timeLeft);
+                    }
+                }
+            } else {
+                pauseJobExecution();
             }
         }
 
@@ -137,13 +147,9 @@ public class MessageScheduler {
             }
         }
 
-        private void sleep(Long timeLeft) {
-            try {
-                synchronized (lock) {
-                    lock.wait(timeLeft);
-                }
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+        private void sleep(Long timeLeft) throws InterruptedException {
+            synchronized (lock) {
+                lock.wait(timeLeft);
             }
         }
 
