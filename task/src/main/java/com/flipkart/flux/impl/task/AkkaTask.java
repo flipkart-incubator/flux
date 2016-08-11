@@ -34,6 +34,8 @@ import com.flipkart.flux.impl.message.HookAndEvents;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
+import com.netflix.hystrix.exception.HystrixRuntimeException.FailureType;
+
 import scala.Option;
 import scala.concurrent.duration.FiniteDuration;
 
@@ -117,11 +119,18 @@ public class AkkaTask extends UntypedActor {
                     fluxRuntimeConnector.updateExecutionStatus(
                             new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.completed, taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
                 } catch (HystrixRuntimeException hre) {
-                    if (taskExecutor.isResponseTimedOut()) {
+                	FailureType ft = hre.getFailureType();
+                	// we signal a timeout for any of Timeout, ThreadPool Rejection or Short-Circuit - all of these may go through with time and retry
+                	if (ft.equals(FailureType.REJECTED_THREAD_EXECUTION) || ft.equals(FailureType.SHORTCIRCUIT) || ft.equals(FailureType.TIMEOUT)) {
                         throw new FluxError(FluxError.ErrorType.timeout, "Execution timeout for : " + task.getName(),
                                 null, false,
                                 new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(),
                                         taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
+                    } else {
+                        // mark the task outcome as execution failure
+                        fluxRuntimeConnector.updateExecutionStatus(
+                                new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.errored,
+                                        taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount(), hre.getMessage()));
                     }
                 } catch (Exception e) {
                     // mark the task outcome as execution failure
