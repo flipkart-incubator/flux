@@ -153,6 +153,7 @@ public class StateMachineResource {
      */
     @POST
     @Path("/{machineId}/{stateId}/status")
+    @Transactional
     public Response updateStatus(@PathParam("machineId") Long machineId,
                                 @PathParam("stateId") Long stateId,
                                 ExecutionUpdateData executionUpdateData
@@ -192,6 +193,7 @@ public class StateMachineResource {
      */
     @POST
     @Path("/{machineId}/{stateId}/retries/inc")
+    @Transactional
     public Response incrementRetry(@PathParam("machineId") Long machineId,
                                 @PathParam("stateId") Long stateId
                             ) throws Exception {
