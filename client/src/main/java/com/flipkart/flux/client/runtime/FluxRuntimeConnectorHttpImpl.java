@@ -129,12 +129,12 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
 	}
 
     /**
-     * Interface method implementation. Retrieves TaskAndEvents object from Flux Runtime API through http get and returns as json string.
+     * Interface method implementation. Retrieves SerializedRedriverTask object from Flux Runtime API through http get and returns as json string.
      */
     @Override
-    public String getSerializedTaskAndEventsByTaskId(Long taskId) throws IOException {
+    public String getSerializedRedriverTaskByTaskId(Long taskId) throws IOException {
         CloseableHttpResponse httpResponse = null;
-        httpResponse = getOverHttp("/"+"taskandevents"+"/"+taskId);
+        httpResponse = getOverHttp("/"+"redrivertask"+"/"+taskId);
         String taskAndEventsJson = EntityUtils.toString(httpResponse.getEntity());
         HttpClientUtils.closeQuietly(httpResponse);
         return taskAndEventsJson;

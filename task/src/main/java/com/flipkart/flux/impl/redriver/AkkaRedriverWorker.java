@@ -12,14 +12,18 @@
  */
 package com.flipkart.flux.impl.redriver;
 
+import akka.actor.ActorRef;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
+import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.impl.message.SerializedRedriverTask;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.message.TaskRedriverDetails;
 
 import akka.actor.UntypedActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import com.flipkart.flux.impl.task.registry.RouterRegistry;
 
 import javax.inject.Inject;
 
@@ -36,6 +40,10 @@ public class AkkaRedriverWorker extends UntypedActor {
     @Inject
     private static FluxRuntimeConnector fluxRuntimeConnector;
 
+    /** The RouterRegistry instance to look up Routers from*/
+    @Inject
+    private static RouterRegistry routerRegistry;
+
     /** ObjectMapper instance for JSON deserialization*/
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -48,12 +56,31 @@ public class AkkaRedriverWorker extends UntypedActor {
 				((TaskRedriverDetails)message).getAction().equals(TaskRedriverDetails.RegisterAction.Redrive)) {
 			// Check if the Task has stalled. If yes, recreate the appropriate TaskAndEvents and drive the task
             Long taskId = ((TaskRedriverDetails) message).getTaskId();
-            TaskAndEvents taskAndEvents = objectMapper.readValue(fluxRuntimeConnector.getSerializedTaskAndEventsByTaskId(taskId), TaskAndEvents.class);
+            SerializedRedriverTask redriverTask = objectMapper.readValue(fluxRuntimeConnector.getSerializedRedriverTaskByTaskId(taskId), SerializedRedriverTask.class);
+            TaskAndEvents taskAndEvents = redriverTask.getTaskAndEvents();
 
-
+            if(taskAndEvents.getRetryCount() > taskAndEvents.getCurrentRetryCount() && isTaskRedrivable(redriverTask.getTaskStatus())) {
+                //send message to Task Router to trigger task execution
+                logger.info("Redriver Task Worker is redriving a task with Id: {}", taskAndEvents.getTaskId());
+                String taskIdentifier = taskAndEvents.getTaskIdentifier();
+                int secondUnderscorePosition = taskIdentifier.indexOf('_', taskIdentifier.indexOf('_') + 1);
+                String routerName = taskIdentifier.substring(0, secondUnderscorePosition == -1 ? taskIdentifier.length() : secondUnderscorePosition); //the name of router would be classFQN_taskMethodName
+                ActorRef router = routerRegistry.getRouter(routerName);
+                router.tell(taskAndEvents, ActorRef.noSender());
+            }
 		}else {
-			logger.error("Redriver Task Wroker received a message that it cannot process (or) a non-redriver action. Message type received is : {}", message.getClass().getName());
+			logger.error("Redriver Task Worker received a message that it cannot process (or) a non-redriver action. Message type received is : {}", message.getClass().getName());
 			unhandled(message);
 		}
 	}
+
+    /**
+     * Returns whether a task is redrivable based on it's status.
+     */
+    private boolean isTaskRedrivable(Status taskStatus) {
+        return !(taskStatus.equals(Status.completed) ||
+                taskStatus.equals(Status.sidelined) ||
+                taskStatus.equals(Status.errored) ||
+                taskStatus.equals(Status.cancelled));
+    }
 }

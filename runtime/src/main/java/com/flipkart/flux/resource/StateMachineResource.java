@@ -28,9 +28,11 @@ import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.impl.RAMContext;
+import com.flipkart.flux.impl.message.SerializedRedriverTask;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
+import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -209,15 +211,17 @@ public class StateMachineResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/taskandevents/{taskId}")
-    public Response getTaskAndEventsByTaskId(@PathParam("taskId") Long taskId) throws Exception {
+    @Path("/redrivertask/{taskId}")
+    public Response getSerializedRedriverTaskByTaskId(@PathParam("taskId") Long taskId) throws Exception {
         State state = statesDAO.findById(taskId);
 
         TaskAndEvents taskAndEvents = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
                 eventsDAO.findByEventNamesAndSMId(state.getDependencies(), state.getStateMachineId()).toArray(new EventData[]{}),
                 state.getStateMachineId(), state.getOutputEvent(), state.getRetryCount(), state.getAttemptedNoOfRetries());
 
-        return Response.status(Response.Status.OK.getStatusCode()).entity(taskAndEvents).build();
+        SerializedRedriverTask redriverTask = new SerializedRedriverTask(taskAndEvents, state.getStatus());
+
+        return Response.status(Response.Status.OK.getStatusCode()).entity(redriverTask).build();
     }
     
     /**
@@ -356,5 +360,5 @@ public class StateMachineResource {
         }
         return sb.toString().trim();
     }
-    
+
 }

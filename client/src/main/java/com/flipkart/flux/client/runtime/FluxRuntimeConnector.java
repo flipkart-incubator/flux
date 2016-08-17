@@ -55,9 +55,9 @@ public interface FluxRuntimeConnector {
     void incrementExecutionRetries(Long stateMachineId, Long taskId);
 
     /**
-     * Retrieves TaskAndEvents object from Flux Runtime by connecting over Http.
+     * Retrieves SerializedRedriverTask object from Flux Runtime by connecting over Http.
      * @param taskId the task/state identifier
-     * @return serialized TaskAndEvents as json string
+     * @return SerializedRedriverTask as json string
      */
-    String getSerializedTaskAndEventsByTaskId(Long taskId) throws IOException;
+    String getSerializedRedriverTaskByTaskId(Long taskId) throws IOException;
 }
