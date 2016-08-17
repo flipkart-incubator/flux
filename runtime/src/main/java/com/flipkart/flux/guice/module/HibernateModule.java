@@ -48,7 +48,7 @@ import java.util.Properties;
  */
 public class HibernateModule extends AbstractModule {
 
-    public static final String HIBERNATE_NAME_SPACE = "Hibernate";
+    public static final String FLUX_HIBERNATE_CONFIG_NAME_SPACE = "flux.Hibernate";
 
     /**
      * Performs concrete bindings for interfaces
@@ -94,7 +94,7 @@ public class HibernateModule extends AbstractModule {
     public Configuration getConfiguration(YamlConfiguration yamlConfiguration) {
         Configuration configuration = new Configuration();
         addAnnotatedClassesAndTypes(configuration);
-        org.apache.commons.configuration.Configuration hibernateConfig = yamlConfiguration.subset(HIBERNATE_NAME_SPACE);
+        org.apache.commons.configuration.Configuration hibernateConfig = yamlConfiguration.subset(FLUX_HIBERNATE_CONFIG_NAME_SPACE);
         Iterator<String> propertyKeys = hibernateConfig.getKeys();
         Properties configProperties = new Properties();
         while (propertyKeys.hasNext()) {

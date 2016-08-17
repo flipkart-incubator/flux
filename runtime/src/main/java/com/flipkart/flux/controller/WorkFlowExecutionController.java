@@ -15,7 +15,7 @@ package com.flipkart.flux.controller;
 
 import akka.actor.ActorRef;
 import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.redriver.RedriverRegistry;
+import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;

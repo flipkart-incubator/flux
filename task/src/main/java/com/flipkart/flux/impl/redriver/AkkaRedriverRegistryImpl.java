@@ -20,7 +20,7 @@ import akka.cluster.singleton.ClusterSingletonManager;
 import akka.cluster.singleton.ClusterSingletonManagerSettings;
 import akka.cluster.singleton.ClusterSingletonProxy;
 import akka.cluster.singleton.ClusterSingletonProxySettings;
-import com.flipkart.flux.api.redriver.RedriverRegistry;
+import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.impl.boot.ActorSystemManager;
 import com.flipkart.flux.impl.message.TaskRedriverDetails;
 import com.flipkart.polyguice.core.Initializable;
@@ -77,7 +77,7 @@ public class AkkaRedriverRegistryImpl implements RedriverRegistry, Initializable
 
 	/**
 	 * RedriverRegistry method. Registers the Task with the redriver
-	 * @see com.flipkart.flux.api.redriver.RedriverRegistry#registerTask(java.lang.Long, long)
+	 * @see RedriverRegistry#registerTask(java.lang.Long, long)
 	 */
 	public void registerTask(Long taskId, long redriverDelay) {
 		this.redriverActorProxy.tell(new TaskRedriverDetails(taskId, redriverDelay, TaskRedriverDetails.RegisterAction.Register), 
@@ -86,7 +86,7 @@ public class AkkaRedriverRegistryImpl implements RedriverRegistry, Initializable
 
 	/**
 	 * RedriverRegistry method. Un-Registers the Task with the redriver
-	 * @see com.flipkart.flux.api.redriver.RedriverRegistry#deRegisterTask(java.lang.Long)
+	 * @see RedriverRegistry#deRegisterTask(java.lang.Long)
 	 */
 	public void deRegisterTask(Long taskId) {
 		this.redriverActorProxy.tell(new TaskRedriverDetails(taskId, TaskRedriverDetails.RegisterAction.Deregister), 
@@ -95,7 +95,7 @@ public class AkkaRedriverRegistryImpl implements RedriverRegistry, Initializable
 	
 	/**
 	 * RedriverRegistry method. Re-drives the Task identified by the Task Id.
-	 * @see com.flipkart.flux.api.redriver.RedriverRegistry#redriveTask(java.lang.Long)
+	 * @see RedriverRegistry#redriveTask(java.lang.Long)
 	 */
 	public void redriveTask(Long taskId) {
 		this.redriverActorProxy.tell(new TaskRedriverDetails(taskId, TaskRedriverDetails.RegisterAction.Redrive), 
