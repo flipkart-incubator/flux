@@ -11,30 +11,31 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.module;
+package com.flipkart.flux.guice.module;
 
-import com.flipkart.flux.deploymentunit.DeploymentUnit;
 import com.flipkart.flux.deploymentunit.DeploymentUnitUtil;
-import com.flipkart.flux.deploymentunit.DummyDeploymentUnitUtil;
-import com.flipkart.flux.guice.module.DeploymentUnitModule;
-import com.google.inject.AbstractModule;
+import com.flipkart.flux.deploymentunit.DirectoryBasedDeploymentUnitUtil;
+import com.flipkart.flux.deploymentunit.NoOpDeploymentUnitUtil;
 import com.google.inject.Provider;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 
-/**
- * <code>DeploymentUnitTestModule</code> is a {@link AbstractModule} used in E2E tests for creating dummy deployment units.
- * @author shyam.akirala
- */
-public class DeploymentUnitTestModule extends DeploymentUnitModule implements Provider<DeploymentUnitUtil>{
-    @Override
-    protected void configure() {
-        bind(DeploymentUnitUtil.class).toProvider(this).in(Singleton.class);
+public class DeploymentUnitUtilProvider implements Provider<DeploymentUnitUtil> {
+
+    private DeploymentUnitUtil deploymentUnitUtil;
+
+    @Inject
+    public DeploymentUnitUtilProvider(@Named("deploymentType") String deploymentType, @Named("deploymentUnitsPath") String deploymentUnitsPath ) {
+        if("directory".equals(deploymentType)) {
+            deploymentUnitUtil = new DirectoryBasedDeploymentUnitUtil(deploymentUnitsPath);
+        } else {
+            deploymentUnitUtil = new NoOpDeploymentUnitUtil();
+        }
     }
+
     @Override
     public DeploymentUnitUtil get() {
-        return new DummyDeploymentUnitUtil();
+        return deploymentUnitUtil;
     }
 }

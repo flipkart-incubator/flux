@@ -58,6 +58,11 @@
             <artifactId>javax.transaction-api</artifactId>
             <version>${javax.transaction-api.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.flipkart.polyguice</groupId>
+            <artifactId>polyguice-config</artifactId>
+            <version>${polyguice.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

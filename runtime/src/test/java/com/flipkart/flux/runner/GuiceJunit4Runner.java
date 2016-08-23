@@ -15,10 +15,9 @@ package com.flipkart.flux.runner;
 
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.constant.RuntimeConstants;
-import com.flipkart.flux.guice.module.ConfigModule;
-import com.flipkart.flux.guice.module.ContainerModule;
-import com.flipkart.flux.guice.module.HibernateModule;
+import com.flipkart.flux.guice.module.*;
 import com.flipkart.flux.impl.boot.TaskModule;
+import com.flipkart.flux.module.DeploymentUnitTestModule;
 import com.flipkart.flux.module.RuntimeTestModule;
 import com.flipkart.polyguice.core.support.Polyguice;
 import org.junit.runners.BlockJUnit4ClassRunner;
@@ -38,7 +37,7 @@ public class GuiceJunit4Runner extends BlockJUnit4ClassRunner {
         URL configUrl = GuiceJunit4Runner.class.getClassLoader().getResource(RuntimeConstants.CONFIGURATION_YML);
         polyguice = new Polyguice();
         final ConfigModule configModule = new ConfigModule(configUrl);
-        polyguice.modules(configModule, new HibernateModule(), new ContainerModule(), new TaskModule(), new FluxClientInterceptorModule(), new RuntimeTestModule());
+        polyguice.modules(configModule, new DeploymentUnitModule(), new HibernateModule(), new ContainerModule(), new TaskModule(), new FluxClientInterceptorModule(), new RuntimeTestModule(), new AkkaModule());
         polyguice.registerConfigurationProvider(configModule.getConfigProvider());
         polyguice.prepare();
     }

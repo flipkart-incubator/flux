@@ -187,11 +187,6 @@
         <!-- Polyguice dependencies-->
         <dependency>
             <groupId>com.flipkart.polyguice</groupId>
-            <artifactId>polyguice-config</artifactId>
-            <version>${polyguice.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.flipkart.polyguice</groupId>
             <artifactId>polyguice-akka</artifactId>
             <version>${polyguice.version}</version>
         </dependency>
