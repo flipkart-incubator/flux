@@ -14,12 +14,21 @@
 
 package com.flipkart.flux.integration;
 
+import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.deploymentunit.ExecutableRegistryPopulator;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.guice.module.AkkaModule;
+import com.flipkart.flux.guice.module.ContainerModule;
+import com.flipkart.flux.guice.module.HibernateModule;
+import com.flipkart.flux.impl.boot.TaskModule;
 import com.flipkart.flux.initializer.OrderedComponentBooter;
+import com.flipkart.flux.module.DeploymentUnitTestModule;
+import com.flipkart.flux.module.RuntimeTestModule;
 import com.flipkart.flux.rule.DbClearRule;
-import com.flipkart.flux.runner.DeploymentUnitGuiceJunit4Runner;
+import com.flipkart.flux.runner.GuiceJunit4Runner;
+import com.flipkart.flux.runner.Modules;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,7 +38,8 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DeploymentUnitGuiceJunit4Runner.class)
+@RunWith(GuiceJunit4Runner.class)
+@Modules({DeploymentUnitTestModule.class,HibernateModule.class,RuntimeTestModule.class,ContainerModule.class,AkkaModule.class,TaskModule.class,FluxClientInterceptorModule.class})
 public class E2ETest {
 
     @Inject
@@ -47,6 +57,11 @@ public class E2ETest {
 
     @Inject
     OrderedComponentBooter orderedComponentBooter;
+
+    /** Needed to populate deployment units before beginning the test */
+    @Inject
+    ExecutableRegistryPopulator executableRegistryPopulator;
+
 
     @Test
     public void testSimpleWorkflowE2E() throws Exception {

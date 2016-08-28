@@ -2,15 +2,23 @@ package com.flipkart.flux.resource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.guice.module.AkkaModule;
+import com.flipkart.flux.guice.module.ContainerModule;
+import com.flipkart.flux.guice.module.HibernateModule;
+import com.flipkart.flux.impl.boot.TaskModule;
 import com.flipkart.flux.initializer.OrderedComponentBooter;
+import com.flipkart.flux.module.DeploymentUnitTestModule;
+import com.flipkart.flux.module.RuntimeTestModule;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.flipkart.flux.rule.DbClearRule;
-import com.flipkart.flux.runner.DeploymentUnitGuiceJunit4Runner;
+import com.flipkart.flux.runner.GuiceJunit4Runner;
+import com.flipkart.flux.runner.Modules;
 import com.flipkart.flux.util.TestUtils;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
@@ -25,7 +33,8 @@ import javax.ws.rs.core.Response;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DeploymentUnitGuiceJunit4Runner.class)
+@RunWith(GuiceJunit4Runner.class)
+@Modules({DeploymentUnitTestModule.class,HibernateModule.class,RuntimeTestModule.class,ContainerModule.class,AkkaModule.class,TaskModule.class,FluxClientInterceptorModule.class})
 public class StateMachineResourceTest {
 
     @Inject
