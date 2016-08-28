@@ -27,7 +27,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.text.MessageFormat;
 
-import static com.flipkart.flux.constant.RuntimeConstants.CONFIGURATION_YML;
+import static com.flipkart.flux.Constants.CONFIGURATION_YML;
 
 /**
  * <code>FluxInitializer</code> initializes the Flux runtime using the various Guice modules via Polyguice

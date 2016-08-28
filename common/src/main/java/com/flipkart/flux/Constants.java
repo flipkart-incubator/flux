@@ -15,4 +15,12 @@ package com.flipkart.flux;
 
 public interface Constants {
     String METRIC_REGISTRY_NAME = "mainMetricRegistry";
+    /**
+     * Root for all the configs.
+     */
+    String CONFIG_ROOT = "packaged";
+    /**
+     * Configuration yml resource path.
+     */
+    String CONFIGURATION_YML = CONFIG_ROOT + "/configuration.yml";
 }
