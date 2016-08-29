@@ -22,7 +22,7 @@ import java.io.*;
 import java.util.Map;
 
 /**
- * <code>WorkflowExecutionDemo</code> is a helper class used to run a sample workflow.
+ * <code>WorkflowExecutionDemo</code> is a helper class used to run a sample/user workflow.
  *
  * Usage: WorkflowExecutionDemo <module_name> <workflow_class_fqn>
  *          module_name : name of user module in which workflow code is present, for ex: examples
@@ -33,18 +33,24 @@ import java.util.Map;
  */
 public class WorkflowExecutionDemo {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 
-        if(args.length < 2) {
-            System.err.println("Usage: WorkflowExecutionDemo <module_name> <workflow_class_fqn>");
-            System.exit(1);
+        try {
+
+            if (args.length < 2) {
+                System.err.println("Usage: WorkflowExecutionDemo <module_name> <workflow_class_fqn>");
+                System.exit(1);
+            }
+
+            String moduleName = args[0];
+            String workflowClassFQN = args[1];
+            String configFileName = "flux_config.yml"; //the configuration file name is flux_config.yml, to match production setup
+
+            runExample(moduleName, workflowClassFQN, configFileName);
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        String moduleName = args[0];
-        String workflowClassFQN = args[1];
-        String configFileName = "flux_config.yml"; //the configuration file name is flux_config.yml, to match production setup
-
-        runExample(moduleName, workflowClassFQN, configFileName);
     }
 
     /**
@@ -93,24 +99,20 @@ public class WorkflowExecutionDemo {
      * @param command shell command to run
      * @return shell command's output
      */
-    private static String executeCommand(String command) {
+    private static String executeCommand(String command) throws IOException, InterruptedException {
 
         StringBuilder output = new StringBuilder();
 
         Process p;
-        try {
-            p = Runtime.getRuntime().exec(command);
-            p.waitFor();
-            BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(p.getInputStream()));
 
-            String line = "";
-            while ((line = reader.readLine())!= null) {
-                output.append(line).append("\n");
-            }
+        p = Runtime.getRuntime().exec(command);
+        p.waitFor();
+        BufferedReader reader =
+                new BufferedReader(new InputStreamReader(p.getInputStream()));
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        String line = "";
+        while ((line = reader.readLine())!= null) {
+            output.append(line).append("\n");
         }
 
         return output.toString();
