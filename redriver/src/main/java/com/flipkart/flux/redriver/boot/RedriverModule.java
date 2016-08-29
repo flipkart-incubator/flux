@@ -22,9 +22,13 @@ import com.flipkart.polyguice.config.YamlConfiguration;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.matcher.Matchers;
+import com.google.inject.name.Names;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
+import javax.inject.Named;
+import javax.transaction.Transactional;
 import java.util.Iterator;
 import java.util.Properties;
 
@@ -40,7 +44,10 @@ public class RedriverModule extends AbstractModule {
 
     @Override
     protected void configure() {
-
+        final SessionFactoryProvider sessionFactoryProvider = new SessionFactoryProvider();
+        requestInjection(sessionFactoryProvider);
+        bind(SessionFactory.class).annotatedWith(Names.named("redriverSessionFactory")).toProvider(sessionFactoryProvider).in(Singleton.class);
+        bindInterceptor(Matchers.inPackage(Package.getPackage("com.flipkart.flux.redriver.dao")), Matchers.annotatedWith(Transactional.class), new TransactionInterceptor(sessionFactoryProvider));
     }
 
     @Provides
@@ -55,6 +62,7 @@ public class RedriverModule extends AbstractModule {
      */
     @Provides
     @Singleton
+    @Named("redriverHibernateConfiguration")
     public Configuration getConfiguration(YamlConfiguration yamlConfiguration) {
         Configuration configuration = new Configuration();
         addAnnotatedClassesAndTypes(configuration);
@@ -74,12 +82,4 @@ public class RedriverModule extends AbstractModule {
         configuration.addAnnotatedClass(ScheduledMessage.class);
     }
 
-    /**
-     * Provides SessionFactory singleton.
-     */
-    @Provides
-    @Singleton
-    public SessionFactory getSessionFactory(Configuration configuration) {
-        return configuration.buildSessionFactory();
-    }
 }

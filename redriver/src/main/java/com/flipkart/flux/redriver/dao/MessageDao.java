@@ -19,6 +19,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 import java.util.List;
@@ -32,7 +33,7 @@ public class MessageDao {
     private SessionFactory sessionFactory;
 
     @Inject
-    public MessageDao(SessionFactory sessionFactory) {
+    public MessageDao(@Named("redriverSessionFactory") SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
     }
 

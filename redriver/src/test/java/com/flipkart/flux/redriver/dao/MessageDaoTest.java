@@ -27,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.inject.Named;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,6 +39,7 @@ public class MessageDaoTest {
     MessageDao messageDao;
 
     @Inject
+    @Named("redriverSessionFactory")
     SessionFactory sessionFactory;
 
     @Before

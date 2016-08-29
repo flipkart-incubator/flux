@@ -14,15 +14,28 @@
 package com.flipkart.flux.redriver.boot;
 
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
-import com.google.inject.AbstractModule;
-import com.google.inject.matcher.Matchers;
 import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
 
-import javax.transaction.Transactional;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Provider;
 
-public class RedriverTestModule extends AbstractModule {
+public class SessionFactoryProvider implements Provider<SessionFactory> {
+
+    @Inject
+    @Named("redriverHibernateConfiguration")
+    Configuration fluxRedriverHibernateConfiguration;
+
+    private volatile SessionFactory sessionFactory;
+
     @Override
-    protected void configure() {
-        install(new RedriverModule());
+    public SessionFactory get() {
+        if (sessionFactory == null) {
+            synchronized (this) {
+                sessionFactory = fluxRedriverHibernateConfiguration.buildSessionFactory();
+            }
+        }
+        return sessionFactory;
     }
 }
