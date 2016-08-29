@@ -23,11 +23,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MessageManagerServiceTest {
