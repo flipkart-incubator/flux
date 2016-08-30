@@ -26,6 +26,7 @@ import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
+import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.type.BlobType;
 import com.flipkart.flux.type.SetJsonType;
 import com.flipkart.flux.type.StoreFQNType;
@@ -34,6 +35,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.matcher.Matchers;
+import com.google.inject.name.Named;
+import com.google.inject.name.Names;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
@@ -62,10 +65,19 @@ public class HibernateModule extends AbstractModule {
         bind(StateMachinesDAO.class).to(StateMachinesDAOImpl.class).in(Singleton.class);
         bind(StatesDAO.class).to(StatesDAOImpl.class).in(Singleton.class);
 
+        /* Create a module-local sessionFactory provider
+            This is needed since the redriver module requires another session factory to be present which connects to another database
+         */
+        final SessionFactoryProvider sessionFactoryProvider = new SessionFactoryProvider();
+        requestInjection(sessionFactoryProvider);
+        bind(SessionFactory.class).toProvider(sessionFactoryProvider).in(Singleton.class);
+
         //bind Transactional Interceptor to intercept methods which are annotated with javax.transaction.Transactional
-        TransactionInterceptor transactionInterceptor = new TransactionInterceptor();
-        requestInjection(transactionInterceptor);
-        bindInterceptor(Matchers.any(), Matchers.annotatedWith(Transactional.class), transactionInterceptor);
+        final TransactionInterceptor transactionInterceptor = new TransactionInterceptor(sessionFactoryProvider);
+        // Weird way of getting a package but java.lang.Package.getName(<String>) was no working for some reason.
+        // todo [yogesh] dig deeper and fix this ^
+        bindInterceptor(Matchers.not(Matchers.inPackage(MessageDao.class.getPackage())),
+            Matchers.annotatedWith(Transactional.class), transactionInterceptor);
     }
 
     /**
@@ -91,6 +103,7 @@ public class HibernateModule extends AbstractModule {
      */
     @Provides
     @Singleton
+    @Named("fluxHibernateConfiguration")
     public Configuration getConfiguration(YamlConfiguration yamlConfiguration) {
         Configuration configuration = new Configuration();
         addAnnotatedClassesAndTypes(configuration);
@@ -106,12 +119,4 @@ public class HibernateModule extends AbstractModule {
         return configuration;
     }
 
-    /**
-     * Provides SessionFactory singleton.
-     */
-    @Provides
-    @Singleton
-    public SessionFactory getSessionFactory(Configuration configuration) {
-        return configuration.buildSessionFactory();
-    }
 }

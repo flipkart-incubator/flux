@@ -20,6 +20,15 @@ import java.util.HashSet;
 
 import javax.inject.Inject;
 
+import com.flipkart.flux.client.FluxClientInterceptorModule;
+import com.flipkart.flux.guice.module.AkkaModule;
+import com.flipkart.flux.guice.module.ContainerModule;
+import com.flipkart.flux.guice.module.DeploymentUnitModule;
+import com.flipkart.flux.guice.module.HibernateModule;
+import com.flipkart.flux.impl.boot.TaskModule;
+import com.flipkart.flux.module.DeploymentUnitTestModule;
+import com.flipkart.flux.module.RuntimeTestModule;
+import com.flipkart.flux.runner.Modules;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,6 +54,7 @@ import junit.framework.Assert;
  * @author kartik.bommepally
  */
 @RunWith(GuiceJunit4Runner.class)
+@Modules({DeploymentUnitTestModule.class,HibernateModule.class,RuntimeTestModule.class,ContainerModule.class,AkkaModule.class,TaskModule.class,FluxClientInterceptorModule.class})
 public class EventsDAOTest {
 
     @Inject

@@ -58,6 +58,17 @@
             <artifactId>javax.transaction-api</artifactId>
             <version>${javax.transaction-api.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.flipkart.polyguice</groupId>
+            <artifactId>polyguice-config</artifactId>
+            <version>${polyguice.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -82,10 +93,15 @@
                             <addClasspath>true</addClasspath>
                         </manifest>
                     </archive>
-                    <includes>
-                        <include>com/**/*</include>
-                    </includes>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>

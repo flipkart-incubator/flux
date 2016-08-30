@@ -14,12 +14,14 @@
 package com.flipkart.flux.redriver.dao;
 
 import com.flipkart.flux.redriver.model.ScheduledMessage;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
-import java.util.Collections;
+import javax.transaction.Transactional;
 import java.util.List;
 
 /**
@@ -31,21 +33,25 @@ public class MessageDao {
     private SessionFactory sessionFactory;
 
     @Inject
-    public MessageDao(SessionFactory sessionFactory) {
+    public MessageDao(@Named("redriverSessionFactory") SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
     }
 
+    @Transactional
     public void save(ScheduledMessage scheduledMessage) {
         currentSession().save(scheduledMessage);
     }
 
-    public List<ScheduledMessage> retrieveAll(ScheduledMessage scheduledMessage) {
+    @Transactional
+    public List<ScheduledMessage> retrieveAll() {
         return currentSession().createCriteria(ScheduledMessage.class).list();
     }
 
+    @Transactional
     public void deleteInBatch(List<Long> messageIdsToDelete) {
-        throw new UnsupportedOperationException("not implemented yet");
-        // todo
+        final Query deleteQuery = currentSession().createQuery("delete ScheduledMessage s where s.taskId in :msgList ");
+        deleteQuery.setParameterList("msgList",messageIdsToDelete);
+        deleteQuery.executeUpdate();
     }
     /**
      * Provides the session which is bound to current thread.

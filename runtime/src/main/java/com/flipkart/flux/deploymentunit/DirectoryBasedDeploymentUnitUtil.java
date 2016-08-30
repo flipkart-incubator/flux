@@ -47,8 +47,11 @@ public class DirectoryBasedDeploymentUnitUtil implements DeploymentUnitUtil {
     private static final String SLASH = "/";
 
     /** Location of deployment units on the system*/
-    @Inject(optional=true) @Named("deploymentUnitsPath")
     private String deploymentUnitsPath;
+
+    public DirectoryBasedDeploymentUnitUtil(String deploymentUnitsPath) {
+        this.deploymentUnitsPath = deploymentUnitsPath;
+    }
 
     /** Lists all deployment unit names by directory scanning*/
     public List<String> getAllDeploymentUnitNames() {

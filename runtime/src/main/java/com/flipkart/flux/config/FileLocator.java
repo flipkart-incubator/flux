@@ -15,6 +15,7 @@
  */
 package com.flipkart.flux.config;
 
+import com.flipkart.flux.Constants;
 import com.flipkart.flux.constant.RuntimeConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-import static com.flipkart.flux.constant.RuntimeConstants.CONFIG_ROOT;
+import static com.flipkart.flux.Constants.CONFIG_ROOT;
 
 /**
 *
@@ -192,7 +193,7 @@ public class FileLocator {
 		if (file.exists()) {
 			if (file.isDirectory()) {
 				if (!isConfigFolder) {
-					isConfigFolder = file.getName().equalsIgnoreCase(RuntimeConstants.CONFIG_ROOT);
+					isConfigFolder = file.getName().equalsIgnoreCase(Constants.CONFIG_ROOT);
 				}
 				File[] files = file.listFiles();
 				for (int i = 0; i < files.length; i++) {

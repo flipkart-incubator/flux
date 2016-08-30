@@ -13,7 +13,6 @@
 
 package com.flipkart.flux.redriver.scheduler;
 
-import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.flux.redriver.model.ScheduledMessageComparator;
 import com.flipkart.flux.redriver.service.MessageManagerService;
