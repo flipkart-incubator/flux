@@ -17,6 +17,7 @@ import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.redriver.model.ScheduledMessage;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -24,6 +25,7 @@ import org.hibernate.context.internal.ManagedSessionContext;
 import org.junit.rules.ExternalResource;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 
 /**
@@ -34,22 +36,31 @@ import javax.inject.Singleton;
 public class DbClearRule extends ExternalResource{
 
     private SessionFactory sessionFactory;
+    private final SessionFactory redriverSessionFactory;
 
-    /** List of entity tables which need to be cleared*/
-    private static Class[] tables = {StateMachine.class, State.class, AuditRecord.class, Event.class};
+    /** List of entity tables which need to be cleared from flux db*/
+    private static Class[] fluxTables = {StateMachine.class, State.class, AuditRecord.class, Event.class};
+
+    /** List of entity tables which need to be cleared from flux redriver db*/
+    private static Class[] fluxRedriverTables = {ScheduledMessage.class};
+
 
     @Inject
-    public DbClearRule(SessionFactory sessionFactory) {
+    public DbClearRule(SessionFactory sessionFactory,
+                       @Named("redriverSessionFactory") SessionFactory redriverSessionFactory
+                       ) {
         this.sessionFactory = sessionFactory;
+        this.redriverSessionFactory = redriverSessionFactory;
     }
 
     @Override
     protected void before() throws Throwable {
-        clearDb();
+        clearDb(fluxTables,sessionFactory);
+        clearDb(fluxRedriverTables,redriverSessionFactory);
     }
 
-    /** Clears all the tables which are mentioned in the tables array*/
-    private void clearDb() {
+    /** Clears all given tables which are mentioned using the given sessionFactory*/
+    private void clearDb(Class[] tables, SessionFactory sessionFactory) {
         Session session = sessionFactory.openSession();
         ManagedSessionContext.bind(session);
         Transaction tx = session.beginTransaction();

@@ -11,16 +11,20 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux;
+package com.flipkart.flux.runner;
 
-public interface Constants {
-    String METRIC_REGISTRY_NAME = "mainMetricRegistry";
-    /**
-     * Root for all the configs.
-     */
-    String CONFIG_ROOT = "packaged";
-    /**
-     * Configuration yml resource path.
-     */
-    String CONFIGURATION_YML = CONFIG_ROOT + "/configuration.yml";
+import com.flipkart.polyguice.core.support.Polyguice;
+import com.google.inject.AbstractModule;
+
+import java.lang.annotation.*;
+
+/**
+ * Used to specify the {@link AbstractModule}s to be used while creating the {@link Polyguice} container to be used
+ * to inject dependencies in the given test
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Documented
+public @interface Modules {
+    Class<? extends AbstractModule>[] value();
 }

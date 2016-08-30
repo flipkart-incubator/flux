@@ -34,6 +34,10 @@ import akka.routing.ActorRefRoutee;
 import akka.routing.RoundRobinRoutingLogic;
 import akka.routing.Routee;
 import akka.routing.Router;
+import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.flux.redriver.scheduler.MessageScheduler;
+
+import javax.inject.Inject;
 
 /**
  * <code>AkkaRedriverTask</code> is an Akka {@link UntypedActor} that uses a cluster singleton scheduler to execute redrivers for
@@ -56,7 +60,8 @@ public class AkkaRedriverTask extends UntypedActor {
 	private Router router;
 
 	/** The message scheduler used to register redriver tasks */
-
+	@Inject
+	private static MessageScheduler messageScheduler;
 
 	/**
 	 * Constructor for this class. Creates a router with list of RedriverWorker instances
@@ -107,11 +112,11 @@ public class AkkaRedriverTask extends UntypedActor {
 			switch(redriverDetails.getAction()) {
 			case Register:
 				logger.debug("Register task : {} for redriver with time : {}", redriverDetails.getTaskId(), redriverDetails.getRedriverDelay());
-				// TODO: register the Task with the redriver scheduler
+				messageScheduler.addMessage(new ScheduledMessage(redriverDetails.getTaskId(),System.currentTimeMillis() + redriverDetails.getRedriverDelay()));
 				break;
 			case Deregister:
 				logger.debug("DeRegister task : {} with redriver", redriverDetails.getTaskId());
-				// TODO: de-register the Task with the redriver scheduler
+				messageScheduler.removeMessage(redriverDetails.getTaskId());
 				break;
 			case Redrive:
 				// Redrive the Task using the Redriver Router
@@ -135,12 +140,12 @@ public class AkkaRedriverTask extends UntypedActor {
 			if (!this.isLeader.get()) {
 				this.isLeader.set(true);
 				logger.info("Promoting Actor at address : {} as the leader for cluster-wide redriver Scheduler", leaderAddress);
-				// TODO : notify the scheduler to load all scheduled tasks because it has become the leader
+				messageScheduler.start();
 			}
 		} else {
 			this.isLeader.set(false);
 			logger.info("Demoting Actor at address : {} as the leader for cluster-wide redriver Scheduler", leaderAddress);
-			// TODO : notify the scheduler to unload all scheduled tasks as it is no longer the leader
+			messageScheduler.stop();
 		}
 	}	
 }

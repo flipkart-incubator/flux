@@ -16,9 +16,7 @@ package com.flipkart.flux.initializer;
 import com.flipkart.flux.MigrationUtil.MigrationsRunner;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.deploymentunit.ExecutableRegistryPopulator;
-import com.flipkart.flux.guice.module.ConfigModule;
-import com.flipkart.flux.guice.module.ContainerModule;
-import com.flipkart.flux.guice.module.HibernateModule;
+import com.flipkart.flux.guice.module.*;
 import com.flipkart.flux.impl.boot.TaskModule;
 import com.flipkart.polyguice.core.support.Polyguice;
 import org.slf4j.Logger;
@@ -29,7 +27,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.text.MessageFormat;
 
-import static com.flipkart.flux.constant.RuntimeConstants.CONFIGURATION_YML;
+import static com.flipkart.flux.Constants.CONFIGURATION_YML;
 
 /**
  * <code>FluxInitializer</code> initializes the Flux runtime using the various Guice modules via Polyguice
@@ -118,6 +116,8 @@ public class FluxInitializer {
                 configModule,
                 new HibernateModule(),
                 new ContainerModule(),
+                new DeploymentUnitModule(),
+                new AkkaModule(),
                 new TaskModule(),
                 new FluxClientInterceptorModule()
         );

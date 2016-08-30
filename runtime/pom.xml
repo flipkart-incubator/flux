@@ -71,6 +71,14 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.flipkart.flux</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Third party dependencies -->
 
         <dependency>
@@ -185,11 +193,6 @@
         </dependency>
 
         <!-- Polyguice dependencies-->
-        <dependency>
-            <groupId>com.flipkart.polyguice</groupId>
-            <artifactId>polyguice-config</artifactId>
-            <version>${polyguice.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.flipkart.polyguice</groupId>
             <artifactId>polyguice-akka</artifactId>

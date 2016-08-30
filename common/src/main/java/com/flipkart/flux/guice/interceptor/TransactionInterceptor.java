@@ -22,6 +22,8 @@ import org.hibernate.Transaction;
 import org.hibernate.context.internal.ManagedSessionContext;
 
 import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Provider;
 
 /**
  * <code>TransactionInterceptor</code> is a {@link MethodInterceptor} implementation to provide
@@ -47,8 +49,11 @@ import javax.inject.Inject;
  */
 public class TransactionInterceptor implements MethodInterceptor {
 
-    @Inject
-    private SessionFactory sessionFactory;
+    private Provider<SessionFactory> sessionFactoryProvider;
+
+    public TransactionInterceptor(Provider<SessionFactory> sessionFactoryProvider) {
+        this.sessionFactoryProvider = sessionFactoryProvider;
+    }
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
@@ -57,12 +62,12 @@ public class TransactionInterceptor implements MethodInterceptor {
 
         Session session = null;
         try {
-            session = sessionFactory.getCurrentSession();
+            session = sessionFactoryProvider.get().getCurrentSession();
         } catch (HibernateException e) {}
 
         if (session == null) {
             //start a new session and transaction if current session is null
-            session = sessionFactory.openSession();
+            session = sessionFactoryProvider.get().openSession();
             ManagedSessionContext.bind(session);
             transaction = session.getTransaction();
             transaction.begin();
@@ -85,7 +90,7 @@ public class TransactionInterceptor implements MethodInterceptor {
             throw e;
         } finally {
             if (transaction != null && session != null) {
-                ManagedSessionContext.unbind(sessionFactory);
+                ManagedSessionContext.unbind(sessionFactoryProvider.get());
                 session.close();
             }
         }
