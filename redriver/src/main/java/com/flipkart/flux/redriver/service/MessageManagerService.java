@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -50,10 +49,10 @@ public class MessageManagerService implements Disposable,Initializable {
 
     @Inject
     public MessageManagerService(MessageDao messageDao,
-                                 @Named("redriver.batchdelete.interval.ms") Long batchDeleteInterval,
+                                 @Named("redriver.batchdelete.intervalms") Integer batchDeleteInterval,
                                  @Named("redriver.batchdelete.batchsize") Integer batchSize) {
         this.messageDao = messageDao;
-        this.batchDeleteInterval = batchDeleteInterval;
+        this.batchDeleteInterval = Long.valueOf(batchDeleteInterval);
         this.batchSize = batchSize;
         this.messagesToDelete = new ConcurrentLinkedQueue<>();
         scheduledExecutorService =

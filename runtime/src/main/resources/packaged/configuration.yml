@@ -46,5 +46,10 @@ runtime:
     maxGatewayActorCreateRetries : 10
     noOfRedriverWorkers : 50
 
+redriver:
+  batchdelete:
+    batchsize: 2
+    intervalms: 1000
+
 deploymentType: directory
 deploymentUnitsPath: "/tmp/workflows/"

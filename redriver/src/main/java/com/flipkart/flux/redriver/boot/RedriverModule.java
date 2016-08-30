@@ -17,6 +17,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SharedMetricRegistries;
 import com.flipkart.flux.Constants;
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
+import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import com.google.inject.AbstractModule;
@@ -47,7 +48,7 @@ public class RedriverModule extends AbstractModule {
         final SessionFactoryProvider sessionFactoryProvider = new SessionFactoryProvider();
         requestInjection(sessionFactoryProvider);
         bind(SessionFactory.class).annotatedWith(Names.named("redriverSessionFactory")).toProvider(sessionFactoryProvider).in(Singleton.class);
-        bindInterceptor(Matchers.inPackage(Package.getPackage("com.flipkart.flux.redriver.dao")), Matchers.annotatedWith(Transactional.class), new TransactionInterceptor(sessionFactoryProvider));
+        bindInterceptor(Matchers.inPackage(MessageDao.class.getPackage()), Matchers.annotatedWith(Transactional.class), new TransactionInterceptor(sessionFactoryProvider));
     }
 
     @Provides
