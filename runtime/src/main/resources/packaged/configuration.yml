@@ -47,4 +47,4 @@ runtime:
     noOfRedriverWorkers : 50
 
 deploymentType: directory
-deploymentUnitsPath: "/opt/workflows/"
+deploymentUnitsPath: "/tmp/workflows/"
