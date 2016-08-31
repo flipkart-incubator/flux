@@ -35,7 +35,9 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.core.UriBuilder;
 import java.io.File;
+import java.net.InetAddress;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 
 import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
 
@@ -120,21 +122,19 @@ public class ContainerModule extends AbstractModule {
 	/**
 	 * Creates the Jetty server instance for the Flux API endpoint.
 	 * @param port where the service is available.
-	 * @param baseURL base url where the service is located.
 	 * @return Jetty Server instance
 	 */
 	@Named("APIJettyServer")
 	@Provides
 	@Singleton
 	Server getAPIJettyServer(@Named("Api.service.port") int port,
-							 @Named("Api.service.baseURL") String baseURL,
 							 @Named("APIResourceConfig")ResourceConfig resourceConfig,
-							 ObjectMapper objectMapper) throws URISyntaxException {
+							 ObjectMapper objectMapper) throws URISyntaxException, UnknownHostException {
 		//todo-ashish figure out some way of setting acceptor/worker threads
 		JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
 		provider.setMapper(objectMapper);
 		resourceConfig.register(provider);
-		final Server server = JettyHttpContainerFactory.createServer(UriBuilder.fromUri(baseURL + RuntimeConstants.API_CONTEXT_PATH).port(port).build(), resourceConfig);
+		final Server server = JettyHttpContainerFactory.createServer(UriBuilder.fromUri("http://" + InetAddress.getLocalHost().getHostAddress()+ RuntimeConstants.API_CONTEXT_PATH).port(port).build(), resourceConfig);
 		server.setStopAtShutdown(true);
 		return server;
 	}

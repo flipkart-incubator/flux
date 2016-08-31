@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
 
+import static com.flipkart.flux.Constants.CONFIGURATION_YML;
+
 /**
  * <code>ConfigModule</code> is a Guice {@link AbstractModule} implementation used for wiring flux configuration.
  * @author kartik.bommepally
@@ -33,8 +35,9 @@ public class ConfigModule extends AbstractModule {
     private final ConfigurationProvider configProvider;
     private final YamlConfiguration yamlConfiguration;
 
-    public ConfigModule(URL configUrl) {
+    public ConfigModule() {
         try {
+            URL configUrl = this.getClass().getClassLoader().getResource(CONFIGURATION_YML);
             configProvider = new ApacheCommonsConfigProvider().location(configUrl);
             yamlConfiguration = new YamlConfiguration(configUrl);
         } catch (IOException e) {

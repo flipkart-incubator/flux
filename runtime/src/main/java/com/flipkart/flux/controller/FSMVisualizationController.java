@@ -15,13 +15,17 @@
  */
 package com.flipkart.flux.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletRequest;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import static com.flipkart.flux.constant.RuntimeConstants.FSM_VIEW;
 
@@ -34,10 +38,19 @@ import static com.flipkart.flux.constant.RuntimeConstants.FSM_VIEW;
 @Controller
 public class FSMVisualizationController {
 
-    private static final Logger logger = LoggerFactory.getLogger(FSMVisualizationController.class);
+    /* Guice injector which provides flux configuration using com.flipkart.flux.guice.module.ConfigModule */
+    private Injector configInjector;
+
+    /* Constructor*/
+    public FSMVisualizationController(Injector configInjector) {
+        this.configInjector = configInjector;
+    }
 
     @RequestMapping(value = {"/fsmview"}, method = RequestMethod.GET)
-    public String fsmview(HttpServletRequest request) {
+    public String fsmview(ModelMap modelMap, HttpServletRequest request) throws UnknownHostException {
+        int fluxApiPort = configInjector.getInstance(Key.get(Integer.class, Names.named("Api.service.port")));
+        String fluxApiUrl = "http://" + InetAddress.getLocalHost().getHostAddress() + ":" + fluxApiPort;
+        modelMap.addAttribute("flux_api_url", fluxApiUrl);
         return FSM_VIEW;
     }
 

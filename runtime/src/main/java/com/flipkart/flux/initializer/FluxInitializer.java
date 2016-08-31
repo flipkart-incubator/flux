@@ -23,11 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
-import java.net.URL;
 import java.net.UnknownHostException;
 import java.text.MessageFormat;
-
-import static com.flipkart.flux.Constants.CONFIGURATION_YML;
 
 /**
  * <code>FluxInitializer</code> initializes the Flux runtime using the various Guice modules via Polyguice
@@ -62,20 +59,15 @@ public class FluxInitializer {
 	/** The Polyguice DI container */
     private Polyguice fluxRuntimeContainer;
     
-    /** THe URL for configuring Polyguice*/
-    private final URL configUrl;
-
     /**
      * Constructor for this class
-     * @param config the Config resource for initializing Flux
      */
-    public FluxInitializer(String config) {
+    public FluxInitializer() {
     	try {
     		this.hostName = InetAddress.getLocalHost().getHostName();
     	} catch (UnknownHostException e) {
     		//ignore the exception, not critical information
     	}        
-    	configUrl = this.getClass().getClassLoader().getResource(config);
         this.fluxRuntimeContainer = new Polyguice();
     }
 
@@ -84,11 +76,10 @@ public class FluxInitializer {
      */
     public static void main(String[] args) throws Exception {
         String command = "start";
-        String config  = CONFIGURATION_YML;
         if (args != null && args.length> 0) {
             command = args[0];
         }
-        final FluxInitializer fluxInitializer = new FluxInitializer(config);
+        final FluxInitializer fluxInitializer = new FluxInitializer();
         switch (command) {
             case "start" :
                 fluxInitializer.start();
@@ -111,7 +102,7 @@ public class FluxInitializer {
      */
     private void loadFluxRuntimeContainer() {
         logger.debug("loading flux runtime container");
-        final ConfigModule configModule = new ConfigModule(configUrl);
+        final ConfigModule configModule = new ConfigModule();
         fluxRuntimeContainer.modules(
                 configModule,
                 new HibernateModule(),

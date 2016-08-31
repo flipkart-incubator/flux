@@ -13,7 +13,6 @@
 
 package com.flipkart.flux.runner;
 
-import com.flipkart.flux.Constants;
 import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.polyguice.core.support.Polyguice;
 import com.google.inject.AbstractModule;
@@ -42,7 +41,7 @@ import java.util.function.Function;
 public class GuiceJunit4Runner extends BlockJUnit4ClassRunner {
 //        polyguice.modules(configModule, new DeploymentUnitModule(), new HibernateModule(), new ContainerModule(), new TaskModule(), new FluxClientInterceptorModule(), new RuntimeTestModule(), new AkkaModule());
     static final Map<Set<Class<? extends AbstractModule>>,Polyguice> polyguiceMap = new HashMap<>();
-    static final ConfigModule configModule = new ConfigModule(GuiceJunit4Runner.class.getClassLoader().getResource(Constants.CONFIGURATION_YML));
+    static final ConfigModule configModule = new ConfigModule();
     /**
      * Creates a BlockJUnit4ClassRunner to run {@code klass}
      *

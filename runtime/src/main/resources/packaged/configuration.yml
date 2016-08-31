@@ -31,7 +31,6 @@ Api:
   service.acceptors: 5
   service.selectors: 10
   service.workers: 25
-  service.baseURL: "http://localhost"
 
 routers:
   default:

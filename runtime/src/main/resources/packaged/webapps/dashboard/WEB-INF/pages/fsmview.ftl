@@ -327,7 +327,7 @@
 
         function getFSMData() {
             $.ajax({
-                url: 'http://localhost:9998/api/machines/'+document.getElementById("fsm-id").value+'/fsmdata',
+                url: '${flux_api_url}/api/machines/'+document.getElementById("fsm-id").value+'/fsmdata',
                 type: 'GET',
                 success: function(data, status, jqXHR) {
                     document.getElementById("graph-div").style.display = 'block';
