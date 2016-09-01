@@ -20,6 +20,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.binder.LinkedBindingBuilder;
 import com.google.inject.name.Names;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
@@ -28,6 +29,7 @@ import static com.flipkart.flux.Constants.CONFIGURATION_YML;
 
 /**
  * <code>ConfigModule</code> is a Guice {@link AbstractModule} implementation used for wiring flux configuration.
+ *
  * @author kartik.bommepally
  */
 public class ConfigModule extends AbstractModule {
@@ -37,7 +39,13 @@ public class ConfigModule extends AbstractModule {
 
     public ConfigModule() {
         try {
-            URL configUrl = this.getClass().getClassLoader().getResource(CONFIGURATION_YML);
+            URL configUrl = null;
+            String fluxConfigFile = System.getProperty("fluxConfigFile");
+            if (fluxConfigFile != null) {
+                configUrl = new File(fluxConfigFile).toURI().toURL();
+            } else {
+                configUrl = this.getClass().getClassLoader().getResource(CONFIGURATION_YML);
+            }
             configProvider = new ApacheCommonsConfigProvider().location(configUrl);
             yamlConfiguration = new YamlConfiguration(configUrl);
         } catch (IOException e) {
@@ -47,6 +55,7 @@ public class ConfigModule extends AbstractModule {
 
     /**
      * Performs concrete bindings for interfaces
+     *
      * @see com.google.inject.AbstractModule#configure()
      */
     @Override
@@ -58,10 +67,11 @@ public class ConfigModule extends AbstractModule {
     /**
      * Binds individual flattened key-value properties in the configuration yml
      * file. So one can directly inject something like this:
+     *
      * @Named("Hibernate.hibernate.jdbcDriver") String jdbcDriver OR
      * @Named("Dashboard.service.port") int port
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private void bindConfigProperties() {
         bind(YamlConfiguration.class).toInstance(yamlConfiguration);
         Iterator<String> propertyKeys = yamlConfiguration.getKeys();
