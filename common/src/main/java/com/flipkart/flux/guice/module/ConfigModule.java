@@ -40,7 +40,7 @@ public class ConfigModule extends AbstractModule {
     public ConfigModule() {
         try {
             URL configUrl = null;
-            String fluxConfigFile = System.getProperty("fluxConfigFile");
+            String fluxConfigFile = System.getProperty("flux.configurationFile");
             if (fluxConfigFile != null) {
                 configUrl = new File(fluxConfigFile).toURI().toURL();
             } else {
