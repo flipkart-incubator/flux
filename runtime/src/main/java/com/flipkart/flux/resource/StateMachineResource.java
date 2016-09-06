@@ -27,6 +27,7 @@ import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.impl.message.SerializedRedriverTask;
 import com.flipkart.flux.impl.message.TaskAndEvents;
@@ -251,6 +252,21 @@ public class StateMachineResource {
                 .header("Access-Control-Allow-Credentials", "true")
                 .header("Access-Control-Allow-Headers", "Content-Type, Accept")
                 .build();
+    }
+
+    /**
+     *
+     * @param stateMachineId
+     * @param stateId
+     * @return
+     */
+    @PUT
+    @Path("/{stateMachineId}/{stateId}/unsideline")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response unSidelinedStates(@PathParam("stateMachineId") Long stateMachineId, @PathParam("stateId") Long stateId) {
+        this.workFlowExecutionController.updateUnsidelinedStatus(stateMachineId, stateId);
+
+        return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
     }
 
     /** Retrieves fsm graph data based on FSM Id or correlation id*/
