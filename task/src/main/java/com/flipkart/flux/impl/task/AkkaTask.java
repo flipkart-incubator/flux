@@ -122,6 +122,10 @@ public class AkkaTask extends UntypedActor {
                 	FailureType ft = hre.getFailureType();
                 	// we signal a timeout for any of Timeout, ThreadPool Rejection or Short-Circuit - all of these may go through with time and retry
                 	if (ft.equals(FailureType.REJECTED_THREAD_EXECUTION) || ft.equals(FailureType.SHORTCIRCUIT) || ft.equals(FailureType.TIMEOUT)) {
+                        // update flux runtime with task outcome as timeout
+                        fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(
+                                taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.errored, taskAndEvent.getRetryCount(),
+                                taskAndEvent.getCurrentRetryCount(), "Execution timeout for : " + task.getName()));
                         throw new FluxError(FluxError.ErrorType.timeout, "Execution timeout for : " + task.getName(),
                                 null, false,
                                 new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(),
