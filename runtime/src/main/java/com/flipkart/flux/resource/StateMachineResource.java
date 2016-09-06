@@ -27,13 +27,11 @@ import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.impl.message.SerializedRedriverTask;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
-import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -255,7 +253,7 @@ public class StateMachineResource {
     }
 
     /**
-     *
+     * This api unsideline states and trigger the execution.
      * @param stateMachineId
      * @param stateId
      * @return
@@ -263,8 +261,8 @@ public class StateMachineResource {
     @PUT
     @Path("/{stateMachineId}/{stateId}/unsideline")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response unSidelinedStates(@PathParam("stateMachineId") Long stateMachineId, @PathParam("stateId") Long stateId) {
-        this.workFlowExecutionController.updateUnsidelinedStatus(stateMachineId, stateId);
+    public Response unsidelineState(@PathParam("stateMachineId") Long stateMachineId, @PathParam("stateId") Long stateId) {
+        this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
 
         return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
     }

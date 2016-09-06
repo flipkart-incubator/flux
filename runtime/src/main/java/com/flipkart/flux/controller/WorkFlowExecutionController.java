@@ -151,11 +151,11 @@ public class WorkFlowExecutionController {
     }
 
     /**
-     *
+     * Unsideline state and trigger execution states.
      * @param stateMachineId
      * @param stateId
      */
-    public void updateUnsidelinedStatus(Long stateMachineId, Long stateId) {
+    public void unsidelineState(Long stateMachineId, Long stateId) {
         State state = this.statesDAO.findById(stateId);
 
         if (state.getStatus() == Status.sidelined) {
@@ -163,8 +163,10 @@ public class WorkFlowExecutionController {
             state.setAttemptedNoOfRetries(0L);
 
             this.statesDAO.updateState(state);
+
+            this.executeStates(stateMachineId, Sets.newHashSet(Arrays.asList(state)));
         }
-        this.executeStates(stateMachineId, Sets.newHashSet(Arrays.asList(this.statesDAO.findById(stateId))));
+
 
     }
     /**
