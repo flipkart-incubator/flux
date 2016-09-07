@@ -253,7 +253,7 @@ public class StateMachineResource {
     }
 
     /**
-     * This api unsideline states and trigger the execution.
+     * This api unsidelines a single state and triggers its execution.
      * @param stateMachineId
      * @param stateId
      * @return

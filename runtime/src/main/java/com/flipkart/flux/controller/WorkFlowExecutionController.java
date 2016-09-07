@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.transaction.Transactional;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -151,10 +152,11 @@ public class WorkFlowExecutionController {
     }
 
     /**
-     * Unsideline state and trigger execution states.
+     * Unsideline a state and triggers its execution.
      * @param stateMachineId
      * @param stateId
      */
+    @Transactional
     public void unsidelineState(Long stateMachineId, Long stateId) {
         State state = this.statesDAO.findById(stateId);
 
