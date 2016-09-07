@@ -156,7 +156,6 @@ public class WorkFlowExecutionController {
      * @param stateMachineId
      * @param stateId
      */
-    @Transactional
     public void unsidelineState(Long stateMachineId, Long stateId) {
         State state = this.statesDAO.findById(stateId);
 
