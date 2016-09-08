@@ -26,11 +26,13 @@ import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -148,6 +150,25 @@ public class WorkFlowExecutionController {
         }
     }
 
+    /**
+     * Unsideline a state and triggers its execution.
+     * @param stateMachineId
+     * @param stateId
+     */
+    public void unsidelineState(Long stateMachineId, Long stateId) {
+        State state = this.statesDAO.findById(stateId);
+
+        if (state.getStatus() == Status.sidelined) {
+            state.setStatus(Status.unsidelined);
+            state.setAttemptedNoOfRetries(0L);
+
+            this.statesDAO.updateState(state);
+
+            this.executeStates(stateMachineId, Sets.newHashSet(Arrays.asList(state)));
+        }
+
+
+    }
     /**
      * Increments the no. of execution retries for the specified State machine's Task
      * @param stateMachineId the state machine identifier

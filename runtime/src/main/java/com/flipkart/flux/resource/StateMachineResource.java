@@ -32,7 +32,6 @@ import com.flipkart.flux.impl.message.SerializedRedriverTask;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
-import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -251,6 +250,22 @@ public class StateMachineResource {
                 .header("Access-Control-Allow-Credentials", "true")
                 .header("Access-Control-Allow-Headers", "Content-Type, Accept")
                 .build();
+    }
+
+    /**
+     * This api unsidelines a single state and triggers its execution.
+     * @param stateMachineId
+     * @param stateId
+     * @return
+     */
+    @PUT
+    @Path("/{stateMachineId}/{stateId}/unsideline")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response unsidelineState(@PathParam("stateMachineId") Long stateMachineId, @PathParam("stateId") Long stateId) {
+        this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
+
+        return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
     }
 
     /** Retrieves fsm graph data based on FSM Id or correlation id*/
