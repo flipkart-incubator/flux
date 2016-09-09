@@ -103,13 +103,13 @@ public class AkkaTask extends UntypedActor {
         if (TaskAndEvents.class.isAssignableFrom(message.getClass())) {
             TaskAndEvents taskAndEvent = (TaskAndEvents)message;
             logger.debug("Received directive {}", taskAndEvent);
-            AbstractTask task = this.taskRegistry.retrieveTask(taskAndEvent.getTaskIdentifier());
+            AbstractTask task = AkkaTask.taskRegistry.retrieveTask(taskAndEvent.getTaskIdentifier());
             if (task != null) {
                 // update the Flux runtime with status of the Task as running
                 fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(
                         taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.running, taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
                 // Execute any pre-exec HookS
-                this.executeHooks(this.taskRegistry.getPreExecHooks(task), taskAndEvent.getEvents());
+                this.executeHooks(AkkaTask.taskRegistry.getPreExecHooks(task), taskAndEvent.getEvents());
                 final String outputEventName = getOutputEventName(taskAndEvent);
                 final TaskExecutor taskExecutor = new TaskExecutor(task, taskAndEvent.getEvents(), taskAndEvent.getStateMachineId(), outputEventName);
                 Event outputEvent = null;
@@ -122,6 +122,10 @@ public class AkkaTask extends UntypedActor {
                 	FailureType ft = hre.getFailureType();
                 	// we signal a timeout for any of Timeout, ThreadPool Rejection or Short-Circuit - all of these may go through with time and retry
                 	if (ft.equals(FailureType.REJECTED_THREAD_EXECUTION) || ft.equals(FailureType.SHORTCIRCUIT) || ft.equals(FailureType.TIMEOUT)) {
+                        // update flux runtime with task outcome as timeout
+                        fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(
+                                taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.errored, taskAndEvent.getRetryCount(),
+                                taskAndEvent.getCurrentRetryCount(), "Execution timeout for : " + task.getName()));
                         throw new FluxError(FluxError.ErrorType.timeout, "Execution timeout for : " + task.getName(),
                                 null, false,
                                 new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(),
@@ -143,7 +147,7 @@ public class AkkaTask extends UntypedActor {
                     }
                 }
                 // Execute any post-exec HookS
-                this.executeHooks(this.taskRegistry.getPostExecHooks(task), taskAndEvent.getEvents());
+                this.executeHooks(AkkaTask.taskRegistry.getPostExecHooks(task), taskAndEvent.getEvents());
             } else {
                 logger.error("Task received EventS that it cannot process. Events received are : {}",TaskRegistry.getEventsKey(taskAndEvent.getEvents()));
             }

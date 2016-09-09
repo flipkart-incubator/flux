@@ -19,5 +19,5 @@ package com.flipkart.flux.api;
  * @author regunath.balasubramanian
  */
 public enum  Status {
-    initialized, running, completed, cancelled, errored, sidelined; //possible statuses of execution
+    initialized, running, completed, cancelled, errored, sidelined, unsidelined; //possible statuses of execution
 }
