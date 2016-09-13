@@ -23,6 +23,7 @@ import org.apache.commons.configuration.Configuration;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.io.File;
 import java.sql.DriverManager;
 import java.util.Properties;
 
@@ -47,7 +48,9 @@ public class MigrationsRunner {
             Class.forName("com.mysql.jdbc.Driver").newInstance();
             java.sql.Connection connection = DriverManager.getConnection(url, properties);
             Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
-            Liquibase liquibase = new Liquibase("persistence-mysql/src/main/resources/"+dbName+"/migrations.xml", new FileSystemResourceAccessor(), database);
+            ClassLoader classLoader = getClass().getClassLoader();
+            File file = new File(classLoader.getResource(dbName+"/migrations.xml").getFile());
+            Liquibase liquibase = new Liquibase(file.getCanonicalPath(), new FileSystemResourceAccessor(), database);
             liquibase.update(new Contexts());
         } catch (Exception e) {
             System.err.println("Unable to perform database migration.");
