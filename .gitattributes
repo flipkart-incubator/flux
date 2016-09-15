@@ -1,0 +1,7 @@
+jquery-1.4.2.min.js linguist-vendored
+jquery.validate-1.7.0.min.js linguist-vendored
+runtime/src/main/resources/packaged/webapps/dashboard/WEB-INF/pages/resources/codemirror/lib/* linguist-vendored
+runtime/src/main/resources/packaged/webapps/dashboard/WEB-INF/fsm-dashboard/js/* linguist-vendored
+runtime/src/main/resources/packaged/webapps/dashboard/WEB-INF/fsm-dashboard/css/* linguist-vendored
+runtime/src/main/resources/packaged/webapps/dashboard/WEB-INF/hystrix-dashboard/js/* linguist-vendored
+
