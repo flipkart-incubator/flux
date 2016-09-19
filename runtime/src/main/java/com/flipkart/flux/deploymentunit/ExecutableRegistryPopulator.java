@@ -32,6 +32,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * <code>ExecutableRegistryPopulator</code> reads the available deployment units and puts the methods
@@ -61,11 +62,60 @@ public class ExecutableRegistryPopulator implements Initializable {
     @Override
     public void initialize() {
 
-        //for each deployment unit
-        for(Map.Entry<String, DeploymentUnit> deploymentUnitEntry : deploymentUnitsMap.entrySet()) {
-            try {
-                DeploymentUnit deploymentUnit = deploymentUnitEntry.getValue();
+        //count down latch to parallelly populate executable registry from multiple deployment units
+        CountDownLatch duCountDownLatch = new CountDownLatch(deploymentUnitsMap.size());
 
+        //for each deployment unit, start a new thread which populates executable registry
+        for(Map.Entry<String, DeploymentUnit> deploymentUnitEntry : deploymentUnitsMap.entrySet()) {
+            new Thread(new ExecutableRegistryLoader(deploymentUnitEntry.getKey(), deploymentUnitEntry.getValue(), duCountDownLatch)).start();
+        }
+
+        try {
+            duCountDownLatch.await(); //wait until all deployment units' tasks are loaded into executable registry
+        } catch (InterruptedException e) {
+            LOGGER.error("Unable to populate executable registry. Deployment unit count down latch has been interrupted. Exception: {}", e.getMessage());
+            throw new FluxError(FluxError.ErrorType.runtime, "Unable to populate executable registry. Deployment unit count down latch has been interrupted.", e);
+        }
+    }
+
+    /**
+     * Loads {@Link ClassLoaderInjector} class into given deployment unit's class loader and returns it.
+     * @param deploymentUnitClassLoader
+     * @return ClassLoaderInjector class
+     */
+    private Class loadClassLoaderInjector(DeploymentUnitClassLoader deploymentUnitClassLoader) {
+        try {
+            //Convert the class into bytes
+            byte[] classBytes = IOUtils.toByteArray(this.getClass().getResourceAsStream("/com/flipkart/flux/deploymentunit/ClassLoaderInjector.class"));
+
+            return deploymentUnitClassLoader.defineClass(ClassLoaderInjector.class.getCanonicalName(), classBytes);
+
+        } catch (Exception e) {
+            LOGGER.error("Unable to load class ClassLoaderInjector into deployment unit's class loader. Exception: {}" , e.getMessage());
+            throw new FluxError(FluxError.ErrorType.runtime, "Unable to load class ClassLoaderInjector into deployment unit's class loader.", e);
+        }
+    }
+
+    /**
+     * <code>ExecutableRegistryLoader</code> loads tasks of a deployment unit in {@link executableRegistry}
+     */
+    private class ExecutableRegistryLoader implements Runnable {
+
+        private String deploymentUnitName;
+
+        private DeploymentUnit deploymentUnit;
+
+        private CountDownLatch duCountDownLatch;
+
+        ExecutableRegistryLoader(String deploymentUnitName, DeploymentUnit deploymentUnit, CountDownLatch duCountDownLatch) {
+            this.deploymentUnitName = deploymentUnitName;
+            this.deploymentUnit = deploymentUnit;
+            this.duCountDownLatch = duCountDownLatch;
+        }
+
+        @Override
+        public void run() {
+            try {
                 //get required classes from deployment unit class loader
                 DeploymentUnitClassLoader classLoader = deploymentUnit.getDeploymentUnitClassLoader();
                 Class taskClass = classLoader.loadClass(Task.class.getCanonicalName());
@@ -100,29 +150,14 @@ public class ExecutableRegistryPopulator implements Initializable {
                     Object singletonMethodOwner = getInstanceMethod.invoke(injectorClassInstance, method.getDeclaringClass());
                     executableRegistry.registerTask(taskIdentifier, new TaskExecutableImpl(singletonMethodOwner, method, timeout, classLoader));
                 }
+
+                //count down the latch once the deployment unit's tasks are loaded into executable registry
+                duCountDownLatch.countDown();
+
             } catch (Exception e) {
-                LOGGER.error("Unable to populate Executable Registry for deployment unit: {}. Exception: {}", deploymentUnitEntry.getKey(), e.getMessage());
-                throw new FluxError(FluxError.ErrorType.runtime, "Unable to populate Executable Registry for deployment unit: "+deploymentUnitEntry.getKey(), e);
+                LOGGER.error("Unable to populate Executable Registry for deployment unit: {}. Exception: {}", deploymentUnitName, e.getMessage());
+                throw new FluxError(FluxError.ErrorType.runtime, "Unable to populate Executable Registry for deployment unit: "+deploymentUnitName, e);
             }
-        }
-
-    }
-
-    /**
-     * Loads {@Link ClassLoaderInjector} class into given deployment unit's class loader and returns it.
-     * @param deploymentUnitClassLoader
-     * @return ClassLoaderInjector class
-     */
-    private Class loadClassLoaderInjector(DeploymentUnitClassLoader deploymentUnitClassLoader) {
-        try {
-            //Convert the class into bytes
-            byte[] classBytes = IOUtils.toByteArray(this.getClass().getResourceAsStream("/com/flipkart/flux/deploymentunit/ClassLoaderInjector.class"));
-
-            return deploymentUnitClassLoader.defineClass(ClassLoaderInjector.class.getCanonicalName(), classBytes);
-
-        } catch (Exception e) {
-            LOGGER.error("Unable to load class ClassLoaderInjector into deployment unit's class loader. Exception: {}" , e.getMessage());
-            throw new RuntimeException("Unable to load class ClassLoaderInjector into deployment unit's class loader. Exception: " + e.getMessage());
         }
     }
 
