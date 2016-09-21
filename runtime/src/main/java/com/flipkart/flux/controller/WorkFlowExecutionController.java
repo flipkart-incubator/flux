@@ -151,7 +151,7 @@ public class WorkFlowExecutionController {
     }
 
     /**
-     * Unsideline a state and triggers its execution.
+     * Unsidelines a state and triggers its execution.
      * @param stateMachineId
      * @param stateId
      */
