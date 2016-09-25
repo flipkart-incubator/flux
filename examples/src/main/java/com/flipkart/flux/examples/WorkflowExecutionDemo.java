@@ -29,6 +29,11 @@ import java.util.Map;
  *          workflow_class_fqn: fully qualified name of main class which triggers user workflow execution at client side
  *                              ex: com.flipkart.flux.examples.concurrent.RunEmailMarketingWorkflow
  *
+ * This demo class requires maven to copy dependencies to create a sample deployment unit structure.
+ * If maven is NOT present on the class path pass it's absolute location as third argument
+ *
+ *      for ex: WorkflowExecutionDemo <module_name> <workflow_class_fqn> /opt/apache-maven-3.3.3/bin/mvn
+ *
  * @author shyam.akirala
  */
 public class WorkflowExecutionDemo {
@@ -46,7 +51,9 @@ public class WorkflowExecutionDemo {
             String workflowClassFQN = args[1];
             String configFileName = "flux_config.yml"; //the configuration file name is flux_config.yml, to match production setup
 
-            runExample(moduleName, workflowClassFQN, configFileName);
+            String mavenPath = args.length > 2 ? args[2] : "mvn";
+
+            runExample(moduleName, workflowClassFQN, configFileName, mavenPath);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -62,10 +69,10 @@ public class WorkflowExecutionDemo {
      *                       @see flux/examples/src/main/resources/flux_config.yml for example.
      * @throws Exception
      */
-    private static void runExample(String moduleName, String workflowClassFQN, String configFileName) throws Exception {
+    private static void runExample(String moduleName, String workflowClassFQN, String configFileName, String mavenPath) throws Exception {
 
         //copy dependencies to module's target directory
-        executeCommand("mvn -pl " + moduleName + " -q package dependency:copy-dependencies -DincludeScope=runtime -DskipTests");
+        executeCommand(mavenPath+" -pl " + moduleName + " -q package dependency:copy-dependencies -DincludeScope=runtime -DskipTests");
 
         //get deployment path from configuration.yml
         FileReader reader = new FileReader(WorkflowExecutionDemo.class.getResource("/packaged/configuration.yml").getFile());
