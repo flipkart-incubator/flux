@@ -71,7 +71,8 @@ public class TaskInterceptor implements MethodInterceptor {
 
         //throw exception if state machine and state versions doesn't match
         if(localContext.isWorkflowInterception() && localContext.getStateMachineDef().getVersion() != taskAnnotation.version()) {
-            throw new VersionMismatchException("Mismatch between State machine and state versions for State: "+method.getDeclaringClass().getName()+"."+generateStateIdentifier(method)+". StateMachine version: "+localContext.getStateMachineDef().getVersion()+". State version: "+taskAnnotation.version());
+            throw new VersionMismatchException("Mismatch between State machine and state versions for State: "+method.getDeclaringClass().getName()+"."
+                    +generateStateIdentifier(method)+". StateMachine version: "+localContext.getStateMachineDef().getVersion()+". State version: "+taskAnnotation.version());
         }
         /* Contribute to the ongoing state machine definition */
         localContext.registerNewState(taskAnnotation.version(), generateStateIdentifier(method), null, null, taskIdentifier, taskAnnotation.retries(), taskAnnotation.timeout(), dependencySet, outputEventDefintion);
