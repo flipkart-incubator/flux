@@ -76,20 +76,20 @@ public class SimpleWorkflowForTest {
         return 1;
     }
 
-    @Task(version = 2,retries = 2,timeout = 2000l)
+    @Task(version = 1,retries = 2,timeout = 2000l)
     public StringEvent simpleStringModifyingTask(StringEvent someString) {
         return new StringEvent("randomBs" + someString);
     }
 
-    @Task(version = 2, retries = 2, timeout = 2000l)
+    @Task(version = 1, retries = 2, timeout = 2000l)
     public StringEvent waitForExternalEvent(@ExternalEvent("someExternalEvent") StringEvent someString,IntegerEvent integerEvent) {
         return new StringEvent(integerEvent.anInteger.toString() + someString);
     }
-    @Task(version = 2, retries = 2, timeout = 2000l)
+    @Task(version = 1, retries = 2, timeout = 2000l)
     public StringEvent waitForExternalEvent(@ExternalEvent("someExternalEvent") StringEvent someString) {
         return new StringEvent(someString.toString());
     }
-    @Task(version = 2, retries = 2, timeout = 2000l)
+    @Task(version = 1, retries = 2, timeout = 2000l)
     public StringEvent waitForExternalEvent(@ExternalEvent("someExternalEvent") IntegerEvent integerEvent) {
         return new StringEvent(integerEvent.anInteger.toString());
     }
@@ -101,7 +101,7 @@ public class SimpleWorkflowForTest {
         return new IntegerEvent(i.anInteger+2);
     }
 
-    @Task(version = 3, retries = 0, timeout = 1000l)
+    @Task(version = 1, retries = 0, timeout = 1000l)
     public void someTaskWithIntegerAndString(StringEvent someString, IntegerEvent someInteger) {
         //blah
     }
@@ -131,7 +131,7 @@ public class SimpleWorkflowForTest {
         final Method simpleStringModifyingTaskMethod = SimpleWorkflowForTest.class.getDeclaredMethod("simpleStringModifyingTask", StringEvent.class);
         final EventDefinition expectedInputForStringModifyingTask = new EventDefinition(STRING_EVENT_NAME+"0","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
         final EventDefinition outputOfStringModifyingTask = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent2", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
-        expectedStateDefs.add(new StateDefinition(2l, "simpleStringModifyingTask", null, null,
+        expectedStateDefs.add(new StateDefinition(1l, "simpleStringModifyingTask", null, null,
             new MethodId(simpleStringModifyingTaskMethod).toString(), null,
             2l, 2000l, Collections.singleton(expectedInputForStringModifyingTask), outputOfStringModifyingTask));
 
@@ -148,7 +148,7 @@ public class SimpleWorkflowForTest {
 
         expectedEventDefsForIntStringTask.add(outputOfStringModifyingTask);
         expectedEventDefsForIntStringTask.add(outputOfSimpleAdditionTask);
-        expectedStateDefs.add(new StateDefinition(3l, "someTaskWithIntegerAndString", null,
+        expectedStateDefs.add(new StateDefinition(1l, "someTaskWithIntegerAndString", null,
             null, new MethodId(someTaskWithIntegerAndStringMethod).toString(), null,
             0l, 1000l, expectedEventDefsForIntStringTask, null));
 

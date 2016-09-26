@@ -74,7 +74,7 @@ public class TaskInterceptorTest {
             Collections.singleton(new EventDefinition(STRING_EVENT_NAME+"0","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
         final EventDefinition expectedOutput = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent1","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
         verify(localContext, times(1)).
-            registerNewState(2l, "simpleStringModifyingTask", null, null,
+            registerNewState(1l, "simpleStringModifyingTask", null, null,
                 new MethodId(invokedMethod).toString(), 2l, 2000l, expectedDependency, expectedOutput);
     }
 
@@ -92,7 +92,7 @@ public class TaskInterceptorTest {
         }};
         EventDefinition expectedOutput = null; // Since the method returns void
         verify(localContext, times(1)).
-            registerNewState(3l, "someTaskWithIntegerAndString", null, null,
+            registerNewState(1l, "someTaskWithIntegerAndString", null, null,
                 new MethodId(invokedMethod).toString(), 0l, 1000l, expectedDependencies, expectedOutput);
 
     }
@@ -170,7 +170,7 @@ public class TaskInterceptorTest {
             }};
         final EventDefinition expectedOutput = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent1","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
         verify(localContext, times(1)).
-            registerNewState(2l, "waitForExternalEvent", null, null,
+            registerNewState(1l, "waitForExternalEvent", null, null,
                 new MethodId(invokedMethod).toString(), 2l, 2000l, expectedDependency, expectedOutput);
     }
 
