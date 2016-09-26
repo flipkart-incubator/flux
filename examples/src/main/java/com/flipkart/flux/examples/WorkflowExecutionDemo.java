@@ -117,9 +117,19 @@ public class WorkflowExecutionDemo {
         BufferedReader reader =
                 new BufferedReader(new InputStreamReader(p.getInputStream()));
 
+        //prints the output of the process
         String line = "";
         while ((line = reader.readLine())!= null) {
             output.append(line).append("\n");
+        }
+
+        BufferedReader stdError = new BufferedReader(new
+                InputStreamReader(p.getErrorStream()));
+
+        //prints the error stream of the process
+        String errorLine = "";
+        while ((errorLine = stdError.readLine()) != null) {
+            System.out.println(errorLine);
         }
 
         return output.toString();
