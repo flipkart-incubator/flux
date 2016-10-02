@@ -11,25 +11,15 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.deploymentunit;
-
-import java.net.URL;
-import java.net.URLClassLoader;
+package com.flipkart.flux.examples.externalevents;
 
 /**
- * <code>DeploymentUnitClassLoader</code> extends {@link java.net.URLClassLoader} and used by Flux runtime to create class loader for a Deployment Unit.
  * @author shyam.akirala
  */
-public class DeploymentUnitClassLoader extends URLClassLoader{
+public class SellerVerificationWorkflowLifeCycleManager {
 
-    /** constructor */
-    DeploymentUnitClassLoader(URL[] urls, ClassLoader parent) {
-        super(urls, parent);
-    }
-
-    /** Defines a Class from it's bytes */
-    public Class defineClass(String name, byte[] bytes) {
-        return super.defineClass(name, bytes, 0, bytes.length);
+    public void init() {
+        System.out.println("Init: Seller verification deployment unit...........");
     }
 
 }

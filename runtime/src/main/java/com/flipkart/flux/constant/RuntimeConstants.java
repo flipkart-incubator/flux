@@ -36,4 +36,8 @@ public class RuntimeConstants {
 
     /** default timeout for a task */ //todo: move it to configuration file
     public static final Long defaultTaskTimeout = 1000l;
+
+    /** Deployment unit constants */
+    public static final String GUICE_MODULE_CLASS = "guiceModuleClass";
+    public static final String DU_LIFECYCLE_CLASS = "lifeCycleClass";
 }

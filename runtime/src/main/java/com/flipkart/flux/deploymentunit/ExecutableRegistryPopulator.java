@@ -45,16 +45,13 @@ public class ExecutableRegistryPopulator implements Initializable {
     /** Logger for this class*/
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutableRegistryPopulator.class);
 
-    private DeploymentUnitUtil deploymentUnitUtil;
-
     private ExecutableRegistry executableRegistry;
 
     /** Map with key as deployment unit name and value as corresponding {@link DeploymentUnit}*/
     private Map<String, DeploymentUnit> deploymentUnitsMap;
 
     @Inject
-    public ExecutableRegistryPopulator(DeploymentUnitUtil deploymentUnitUtil, @ManagedEnv ExecutableRegistry executableRegistry, @Named("deploymentUnits")Map<String, DeploymentUnit> deploymentUnitsMap) {
-        this.deploymentUnitUtil = deploymentUnitUtil;
+    public ExecutableRegistryPopulator(@ManagedEnv ExecutableRegistry executableRegistry, @Named("deploymentUnits")Map<String, DeploymentUnit> deploymentUnitsMap) {
         this.executableRegistry = executableRegistry;
         this.deploymentUnitsMap = deploymentUnitsMap;
     }
@@ -75,24 +72,6 @@ public class ExecutableRegistryPopulator implements Initializable {
         } catch (InterruptedException e) {
             LOGGER.error("Unable to populate executable registry. Deployment unit count down latch has been interrupted. Exception: {}", e.getMessage());
             throw new FluxError(FluxError.ErrorType.runtime, "Unable to populate executable registry. Deployment unit count down latch has been interrupted.", e);
-        }
-    }
-
-    /**
-     * Loads {@Link ClassLoaderInjector} class into given deployment unit's class loader and returns it.
-     * @param deploymentUnitClassLoader
-     * @return ClassLoaderInjector class
-     */
-    private Class loadClassLoaderInjector(DeploymentUnitClassLoader deploymentUnitClassLoader) {
-        try {
-            //Convert the class into bytes
-            byte[] classBytes = IOUtils.toByteArray(this.getClass().getResourceAsStream("/com/flipkart/flux/deploymentunit/ClassLoaderInjector.class"));
-
-            return deploymentUnitClassLoader.defineClass(ClassLoaderInjector.class.getCanonicalName(), classBytes);
-
-        } catch (Exception e) {
-            LOGGER.error("Unable to load class ClassLoaderInjector into deployment unit's class loader. Exception: {}" , e.getMessage());
-            throw new FluxError(FluxError.ErrorType.runtime, "Unable to load class ClassLoaderInjector into deployment unit's class loader.", e);
         }
     }
 
@@ -119,19 +98,6 @@ public class ExecutableRegistryPopulator implements Initializable {
                 //get required classes from deployment unit class loader
                 DeploymentUnitClassLoader classLoader = deploymentUnit.getDeploymentUnitClassLoader();
                 Class taskClass = classLoader.loadClass(Task.class.getCanonicalName());
-                Class injectorClass = loadClassLoaderInjector(classLoader);
-                Method getInstanceMethod = injectorClass.getMethod("getInstance", Class.class);
-                Class guiceModuleClass = classLoader.loadClass("com.google.inject.Module");
-
-                Object injectorClassInstance;
-                String DUModuleClassFQN = String.valueOf(deploymentUnitUtil.getProperties(classLoader).getProperty("guiceModuleClass"));
-
-                //check if user has specified any guice module class name in deployment unit configuration file, if not create an empty injector
-                if(DUModuleClassFQN == null || DUModuleClassFQN.trim().isEmpty() || DUModuleClassFQN.equals("null"))
-                    injectorClassInstance = injectorClass.newInstance();
-                else {
-                    injectorClassInstance = injectorClass.getConstructor(guiceModuleClass).newInstance(classLoader.loadClass(DUModuleClassFQN).newInstance());
-                }
 
                 Set<Method> taskMethods = deploymentUnit.getTaskMethods();
                 //for every task method found in the deployment unit create an executable and keep it in executable registry
@@ -147,7 +113,7 @@ public class ExecutableRegistryPopulator implements Initializable {
                         }
                     }
 
-                    Object singletonMethodOwner = getInstanceMethod.invoke(injectorClassInstance, method.getDeclaringClass());
+                    Object singletonMethodOwner = deploymentUnit.getInstance(method.getDeclaringClass());
                     executableRegistry.registerTask(taskIdentifier, new TaskExecutableImpl(singletonMethodOwner, method, timeout, classLoader));
                 }
 
@@ -160,5 +126,4 @@ public class ExecutableRegistryPopulator implements Initializable {
             }
         }
     }
-
 }

@@ -13,7 +13,11 @@
 
 package com.flipkart.flux.guice.module;
 
-import com.flipkart.flux.deploymentunit.*;
+import com.flipkart.flux.api.core.FluxError;
+import com.flipkart.flux.deploymentunit.DeploymentUnit;
+import com.flipkart.flux.deploymentunit.DeploymentUnitClassLoader;
+import com.flipkart.flux.deploymentunit.DeploymentUnitUtil;
+import com.flipkart.polyguice.config.YamlConfiguration;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import org.slf4j.Logger;
@@ -22,10 +26,11 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * A place for all DeploymentUnit related guice-foo
@@ -45,18 +50,59 @@ public class DeploymentUnitModule extends AbstractModule {
     @Singleton
     @Named("deploymentUnits")
     public Map<String, DeploymentUnit> getAllDeploymentUnits(DeploymentUnitUtil deploymentUnitUtil) throws Exception {
-        Map<String, DeploymentUnit> deploymentUnits = new HashMap<>();
+        Map<String, DeploymentUnit> deploymentUnits = new ConcurrentHashMap<>();
 
         try {
             List<String> deploymentUnitNames = deploymentUnitUtil.getAllDeploymentUnitNames();
+            CountDownLatch duLoadingLatch = new CountDownLatch(deploymentUnitNames.size());
+
             for (String deploymentUnitName : deploymentUnitNames) {
-                DeploymentUnitClassLoader deploymentUnitClassLoader = deploymentUnitUtil.getClassLoader(deploymentUnitName);
-                Set<Method> taskMethods = deploymentUnitUtil.getTaskMethods(deploymentUnitClassLoader);
-                deploymentUnits.put(deploymentUnitName, new DeploymentUnit(deploymentUnitName, deploymentUnitClassLoader, taskMethods));
+                new Thread(new DeploymentUnitLoader(deploymentUnitUtil, deploymentUnitName, deploymentUnits, duLoadingLatch)).start();
             }
+
+            duLoadingLatch.await(); //wait until all deployment units are loaded
+
         } catch (NullPointerException e) {
-            logger.error("No deployment units found at location mentioned in configuration.yml - deploymentUnitsPath key");
+            throw new FluxError(FluxError.ErrorType.runtime, "No deployment units found at location mentioned in configuration.yml - deploymentUnitsPath key", e);
+        } catch (InterruptedException e) {
+            throw new FluxError(FluxError.ErrorType.runtime, "Error occurred while counting down the latch in Deployment unit loader", e);
         }
         return deploymentUnits;
+    }
+
+    /**
+     * <code>DeploymentUnitLoader</code> class used to initialize a deployment unit and put it into deployment units map.
+     */
+    private class DeploymentUnitLoader implements Runnable {
+
+        private DeploymentUnitUtil deploymentUnitUtil;
+
+        private String deploymentUnitName;
+
+        private Map<String, DeploymentUnit> deploymentUnitsMap;
+
+        private CountDownLatch countDownLatch;
+
+        DeploymentUnitLoader(DeploymentUnitUtil deploymentUnitUtil, String deploymentUnitName, Map<String, DeploymentUnit> deploymentUnitsMap, CountDownLatch countDownLatch) {
+            this.deploymentUnitUtil = deploymentUnitUtil;
+            this.deploymentUnitName = deploymentUnitName;
+            this.deploymentUnitsMap = deploymentUnitsMap;
+            this.countDownLatch = countDownLatch;
+        }
+
+        @Override
+        public void run() {
+            try {
+                DeploymentUnitClassLoader deploymentUnitClassLoader = deploymentUnitUtil.getClassLoader(deploymentUnitName);
+                Set<Method> taskMethods = deploymentUnitUtil.getTaskMethods(deploymentUnitClassLoader);
+                YamlConfiguration configuration = deploymentUnitUtil.getProperties(deploymentUnitClassLoader);
+                deploymentUnitsMap.put(deploymentUnitName, new DeploymentUnit(deploymentUnitName, deploymentUnitClassLoader, taskMethods, configuration));
+
+                //count down the latch once the deployment unit is loaded
+                countDownLatch.countDown();
+            } catch (Exception e) {
+                throw new FluxError(FluxError.ErrorType.runtime, "Error occurred while loading Deployment Unit: "+deploymentUnitName, e);
+            }
+        }
     }
 }
