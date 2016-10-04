@@ -70,9 +70,9 @@ public class E2EWorkflowTest {
         /* verify registration in executable registry */
         final Map<String,Method> identifierToMethodMap = (Map<String, Method>) ReflectionTestUtils.getField(executableRegistry, "identifierToMethodMap");
         assertThat(identifierToMethodMap.keySet()).containsOnlyOnce(
-            new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleStringModifyingTask", StringEvent.class)).toString(),
-            new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("someTaskWithIntegerAndString", StringEvent.class, IntegerEvent.class)).toString(),
-            new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleAdditionTask", IntegerEvent.class)).toString()
+            new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleStringModifyingTask", StringEvent.class)).toString()+"_version1",
+            new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("someTaskWithIntegerAndString", StringEvent.class, IntegerEvent.class)).toString()+"_version1",
+            new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleAdditionTask", IntegerEvent.class)).toString()+"_version1"
         );
     }
 

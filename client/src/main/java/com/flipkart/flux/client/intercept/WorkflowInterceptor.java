@@ -66,7 +66,8 @@ public class WorkflowInterceptor implements MethodInterceptor {
             final Workflow[] workFlowAnnotations = method.getAnnotationsByType(Workflow.class);
             checkForBadSignatures(invocation);
             final String correlationId = checkForCorrelationId(invocation.getArguments());
-            localContext.registerNew(new MethodId(method).toString(), workFlowAnnotations[0].version(), workFlowAnnotations[0].description(),correlationId);
+            Workflow workflow = workFlowAnnotations[0];
+            localContext.registerNew(generateWorkflowIdentifier(method, workflow), workflow.version(), workflow.description(),correlationId);
             registerEventsForArguments(invocation.getArguments());
             invocation.proceed();
             connector.submitNewWorkflow(localContext.getStateMachineDef());
@@ -163,7 +164,10 @@ public class WorkflowInterceptor implements MethodInterceptor {
                 throw new IllegalSignatureException(new MethodId(method), "Parameter types should implement the Event interface. Collections of events are also not allowed");
             }
         }
+    }
 
+    private String generateWorkflowIdentifier(Method method, Workflow workflow) {
+        return new MethodId(method).toString() + "_version" + workflow.version();
     }
 
 }

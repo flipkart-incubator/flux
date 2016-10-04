@@ -136,16 +136,21 @@ public class ExecutableRegistryPopulator implements Initializable {
                 Set<Method> taskMethods = deploymentUnit.getTaskMethods();
                 //for every task method found in the deployment unit create an executable and keep it in executable registry
                 for(Method method : taskMethods) {
-                    String taskIdentifier = new MethodId(method).toString();
                     Annotation taskAnnotation = method.getAnnotationsByType(taskClass)[0];
                     Class<? extends Annotation> annotationType = taskAnnotation.annotationType();
                     long timeout = RuntimeConstants.defaultTaskTimeout;
+                    long version = 0;
                     for (Method annotationMethod : annotationType.getDeclaredMethods()) {
                         Object value = annotationMethod.invoke(taskAnnotation, (Object[])null);
                         if(annotationMethod.getName().equals("timeout")) { //todo: find a way get Task.timeout() name
                             timeout = (Long) value;
                         }
+                        if(annotationMethod.getName().equals("version")) {
+                            version = (Long) value;
+                        }
                     }
+
+                    String taskIdentifier = new MethodId(method).toString() + "_version" + version;
 
                     Object singletonMethodOwner = getInstanceMethod.invoke(injectorClassInstance, method.getDeclaringClass());
                     executableRegistry.registerTask(taskIdentifier, new TaskExecutableImpl(singletonMethodOwner, method, timeout, classLoader));

@@ -83,14 +83,14 @@ public class LocalExecutableRegistryImplTest {
         /* actual test */
         final Executable expectedExecutable = new ExecutableImpl(simpleWorkflowForTest, simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", StringEvent.class), 2000l);
         assertThat(
-            localExecutableRegistry.getTask("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent_com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"))
+            localExecutableRegistry.getTask("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent_com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent_version1"))
         .isEqualTo(expectedExecutable);
         org.mockito.Mockito.verify(injector,times(1)).getInstance(Class.forName("com.flipkart.flux.client.intercept.SimpleWorkflowForTest"));
     }
 
     @Test(expected = UnknownIdentifierException.class)
     public void testTaskRetrieval_shouldBombOnUnknownClasses() throws Exception {
-        localExecutableRegistry.getTask("com.Foo.NonExistent.Class_someMethodName_com.Foo.NonExistant.SomeReturnType");
+        localExecutableRegistry.getTask("com.Foo.NonExistent.Class_someMethodName_com.Foo.NonExistant.SomeReturnType_version1");
     }
 
     @Test(expected = UnknownIdentifierException.class)

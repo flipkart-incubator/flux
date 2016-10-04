@@ -64,7 +64,7 @@ public class TaskInterceptor implements MethodInterceptor {
         }
         final Method method = invocation.getMethod();
         final Task taskAnnotation = method.getAnnotationsByType(Task.class)[0];
-        final String taskIdentifier = generateTaskIdentifier(method);
+        final String taskIdentifier = generateTaskIdentifier(method, taskAnnotation);
         final Set<EventDefinition> dependencySet = generateDependencySet(invocation.getArguments(),method.getParameterAnnotations(),method.getParameterTypes());
         final Object proxyReturnObject = createProxyReturnObject(method);
         final EventDefinition outputEventDefintion = generateOutputEventDefintion(proxyReturnObject);
@@ -169,7 +169,7 @@ public class TaskInterceptor implements MethodInterceptor {
         return method.getName();
     }
 
-    private String generateTaskIdentifier(Method method) {
-        return new MethodId(method).toString();
+    private String generateTaskIdentifier(Method method,Task task) {
+        return new MethodId(method).toString() +"_version" + task.version();
     }
 }
