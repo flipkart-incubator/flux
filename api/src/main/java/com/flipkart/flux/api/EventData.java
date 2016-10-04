@@ -15,12 +15,14 @@ package com.flipkart.flux.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.io.Serializable;
+
 /**
  * <code>EventData</code> represents the event which would be submitted to flux runtime from inside/outside world.
  * This is useful for data transfer purpose only.
  * @author shyam.akirala
  */
-public class EventData {
+public class EventData implements Serializable {
 
     /** Name of the event */
     private String name;
