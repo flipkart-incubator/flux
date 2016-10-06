@@ -12,11 +12,13 @@
  */
 package com.flipkart.flux.impl.message;
 
+import java.io.Serializable;
+
 /**
  * Data holder for Task Redriver message 
  * @author regunath.balasubramanian
  */
-public class TaskRedriverDetails {
+public class TaskRedriverDetails implements Serializable {
 	
 	/** Permitted actions*/
 	public static enum RegisterAction {
