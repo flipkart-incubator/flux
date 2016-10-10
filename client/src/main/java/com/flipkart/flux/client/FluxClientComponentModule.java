@@ -35,8 +35,8 @@ import javax.inject.Singleton;
  * <pre><code>
  * {@literal @}Produces
  * {@literal @}Singleton
- *  FluxConfiguration providesFluxConfiguration(AppConfiguration configuration) {
- *    return configuration.getFluxConfiguration();
+ *  FluxClientConfiguration providesFluxClientConfiguration(AppConfiguration configuration) {
+ *    return configuration.getFluxClientConfiguration();
  *  }
  * </code>
  * </pre>
