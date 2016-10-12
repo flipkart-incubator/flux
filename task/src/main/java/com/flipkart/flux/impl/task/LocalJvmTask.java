@@ -88,14 +88,25 @@ public class LocalJvmTask extends AbstractTask {
 
             Method writeValueAsString = objectMapper.getMethod("writeValueAsString", Object.class);
 
-            final Object returnObject = toInvoke.execute(parameters);
             SerializedEvent serializedEvent = null;
-            if (returnObject != null) {
-                serializedEvent = new SerializedEvent(returnObject.getClass().getCanonicalName(), (String) writeValueAsString.invoke(objectMapperInstance, returnObject));
+
+            try {
+                //set current thread contextClassLoader to Deployment Unit classloader
+                Thread.currentThread().setContextClassLoader(((TaskExecutableImpl) toInvoke).getDeploymentUnitClassLoader());
+
+                final Object returnObject = toInvoke.execute(parameters);
+                if (returnObject != null) {
+                    serializedEvent = new SerializedEvent(returnObject.getClass().getCanonicalName(), (String) writeValueAsString.invoke(objectMapperInstance, returnObject));
+                }
+            } finally {
+                //reset the current thread contextClassLoader to Flux app class loader
+                Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
             }
-            return new Pair<>(serializedEvent,null);
+
+            return new Pair<>(serializedEvent, null);
+
         } catch (Exception e) {
-            logger.warn("Bad things happened while trying to execute {}",toInvoke,e);
+            logger.error("Bad things happened while trying to execute {}",toInvoke,e);
             return new Pair<>(null,new FluxError(FluxError.ErrorType.runtime,e.getMessage(),e));
         }
     }
