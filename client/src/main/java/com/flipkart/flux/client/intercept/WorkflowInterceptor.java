@@ -26,6 +26,7 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -45,7 +46,7 @@ public class WorkflowInterceptor implements MethodInterceptor {
     @Inject
     private LocalContext localContext;
     @Inject
-    private FluxRuntimeConnector connector;
+    private Provider<FluxRuntimeConnector> connector;
 
     private final ObjectMapper objectMapper;
 
@@ -53,7 +54,7 @@ public class WorkflowInterceptor implements MethodInterceptor {
         this.objectMapper = new ObjectMapper();
     }
 
-    public WorkflowInterceptor(LocalContext localContext, FluxRuntimeConnector connector) {
+    public WorkflowInterceptor(LocalContext localContext, Provider<FluxRuntimeConnector> connector) {
         this();
         this.localContext = localContext;
         this.connector = connector;
@@ -69,7 +70,7 @@ public class WorkflowInterceptor implements MethodInterceptor {
             localContext.registerNew(new MethodId(method).toString(), workFlowAnnotations[0].version(), workFlowAnnotations[0].description(),correlationId);
             registerEventsForArguments(invocation.getArguments());
             invocation.proceed();
-            connector.submitNewWorkflow(localContext.getStateMachineDef());
+            connector.get().submitNewWorkflow(localContext.getStateMachineDef());
             return null ; // TODO, return a proxy object
         }
         finally {
