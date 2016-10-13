@@ -46,7 +46,7 @@ public class WorkflowInterceptor implements MethodInterceptor {
     @Inject
     private LocalContext localContext;
     @Inject
-    private Provider<FluxRuntimeConnector> connector;
+    private Provider<FluxRuntimeConnector> connectorProvider;
 
     private final ObjectMapper objectMapper;
 
@@ -54,10 +54,10 @@ public class WorkflowInterceptor implements MethodInterceptor {
         this.objectMapper = new ObjectMapper();
     }
 
-    public WorkflowInterceptor(LocalContext localContext, Provider<FluxRuntimeConnector> connector) {
+    public WorkflowInterceptor(LocalContext localContext, Provider<FluxRuntimeConnector> connectorProvider) {
         this();
         this.localContext = localContext;
-        this.connector = connector;
+        this.connectorProvider = connectorProvider;
     }
 
     @Override
@@ -70,7 +70,7 @@ public class WorkflowInterceptor implements MethodInterceptor {
             localContext.registerNew(new MethodId(method).toString(), workFlowAnnotations[0].version(), workFlowAnnotations[0].description(),correlationId);
             registerEventsForArguments(invocation.getArguments());
             invocation.proceed();
-            connector.get().submitNewWorkflow(localContext.getStateMachineDef());
+            connectorProvider.get().submitNewWorkflow(localContext.getStateMachineDef());
             return null ; // TODO, return a proxy object
         }
         finally {
