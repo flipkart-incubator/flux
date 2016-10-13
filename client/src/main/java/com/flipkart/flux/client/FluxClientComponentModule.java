@@ -13,20 +13,35 @@
 
 package com.flipkart.flux.client;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+
+import com.flipkart.flux.client.config.FluxClientConfiguration;
 import com.flipkart.flux.client.guice.annotation.IsolatedEnv;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.client.registry.LocalExecutableRegistryImpl;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
 import com.flipkart.flux.client.runtime.LocalContext;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
 
 import javax.inject.Singleton;
 
 /**
- * <code>FluxClientComponentModule</code> is a Guice {@link AbstractModule} implementation
- * which wires and provides classes to support task execution.
+ * <code>FluxClientComponentModule</code> is a Guice {@link AbstractModule} implementation which
+ * wires and provides classes to support task execution.
+ *
+ * <p> Ensure that you have a provider for the FluxClientConfiguration in one of your application's
+ * guice Module. Example:
+ * <pre><code>
+ * {@literal @}Produces
+ * {@literal @}Singleton
+ *  FluxClientConfiguration providesFluxClientConfiguration(AppConfiguration configuration) {
+ *    return configuration.getFluxClientConfiguration();
+ *  }
+ * </code>
+ * </pre>
+ * </p>
+ *
  * @author yogesh.nachnani
  * @author shyam.akirala
  */
@@ -39,8 +54,10 @@ public class FluxClientComponentModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public FluxRuntimeConnector provideFluxRuntimeConnector( ){
-        return new FluxRuntimeConnectorHttpImpl(1000l,1000l,"http://localhost:9998/api/machines");
+    public FluxRuntimeConnector provideFluxRuntimeConnector(FluxClientConfiguration configuration) {
+        return new FluxRuntimeConnectorHttpImpl(configuration.getConnectionTimeout(),
+                                                configuration.getSocketTimeout(),
+                                                configuration.getUrl() + "/api/machines");
     }
 
     @Provides
