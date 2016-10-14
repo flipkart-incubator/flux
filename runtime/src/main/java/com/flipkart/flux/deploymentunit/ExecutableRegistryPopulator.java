@@ -123,6 +123,8 @@ public class ExecutableRegistryPopulator implements Initializable {
                 Method getInstanceMethod = injectorClass.getMethod("getInstance", Class.class);
                 Class guiceModuleClass = classLoader.loadClass("com.google.inject.Module");
 
+                Object objectMapperInstance = deploymentUnit.getObjectMapperInstance();
+
                 Object injectorClassInstance;
                 String DUModuleClassFQN = String.valueOf(deploymentUnitUtil.getProperties(classLoader).getProperty("guiceModuleClass"));
 
@@ -148,7 +150,7 @@ public class ExecutableRegistryPopulator implements Initializable {
                     }
 
                     Object singletonMethodOwner = getInstanceMethod.invoke(injectorClassInstance, method.getDeclaringClass());
-                    executableRegistry.registerTask(taskIdentifier, new TaskExecutableImpl(singletonMethodOwner, method, timeout, classLoader));
+                    executableRegistry.registerTask(taskIdentifier, new TaskExecutableImpl(singletonMethodOwner, method, timeout, classLoader, objectMapperInstance));
                 }
 
                 //count down the latch once the deployment unit's tasks are loaded into executable registry
