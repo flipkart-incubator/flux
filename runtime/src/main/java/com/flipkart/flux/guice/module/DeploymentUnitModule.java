@@ -14,6 +14,7 @@
 package com.flipkart.flux.guice.module;
 
 import com.flipkart.flux.deploymentunit.*;
+import com.flipkart.polyguice.config.YamlConfiguration;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import org.slf4j.Logger;
@@ -52,7 +53,8 @@ public class DeploymentUnitModule extends AbstractModule {
             for (String deploymentUnitName : deploymentUnitNames) {
                 DeploymentUnitClassLoader deploymentUnitClassLoader = deploymentUnitUtil.getClassLoader(deploymentUnitName);
                 Set<Method> taskMethods = deploymentUnitUtil.getTaskMethods(deploymentUnitClassLoader);
-                deploymentUnits.put(deploymentUnitName, new DeploymentUnit(deploymentUnitName, deploymentUnitClassLoader, taskMethods));
+                YamlConfiguration configuration = deploymentUnitUtil.getProperties(deploymentUnitClassLoader);
+                deploymentUnits.put(deploymentUnitName, new DeploymentUnit(deploymentUnitName, deploymentUnitClassLoader, taskMethods, configuration));
             }
         } catch (NullPointerException e) {
             logger.error("No deployment units found at location mentioned in configuration.yml - deploymentUnitsPath key");
