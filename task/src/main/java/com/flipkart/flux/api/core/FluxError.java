@@ -29,9 +29,9 @@ public class FluxError extends RuntimeException {
 	/** Default Fill in stack trace setting*/
 	private static final boolean DEFAULT_FILL_IN_STACK_TRACE = true;
 
-    /** Enum of errro types*/
+    /** Enum of error types*/
     public enum ErrorType {
-        runtime,timeout
+        runtime,timeout,retriable
     }
     
 	/** The type of error*/
