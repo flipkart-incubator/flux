@@ -14,11 +14,11 @@
 package com.flipkart.flux.client.exception;
 
 /**
- * <code>FluxRetriableException</code> indicates an Exception on occurrence of it Flux Runtime retries task execution if
+ * <code>FluxRetriableException</code> indicates an exception on occurrence of it Flux Runtime retries task execution if
  * the task has not exhausted the configured number of retries.
  *
  * For ex:
- *      {@literal @}Task(version = 1, retires = 2, timeout = 1000)
+ *      {@literal @}Task(version = 1, retries = 2, timeout = 1000)
  *      public Object Task1() {
  *          try {
  *              // do some stuff
@@ -29,7 +29,7 @@ package com.flipkart.flux.client.exception;
  *
  * @author shyam.akirala
  */
-public class FluxRetriableException extends RuntimeException {
+public final class FluxRetriableException extends RuntimeException {
 
     /** Constructors */
     public FluxRetriableException(String message) {

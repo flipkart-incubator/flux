@@ -100,7 +100,6 @@ public class AkkaTask extends UntypedActor {
      * @see akka.actor.UntypedActor#onReceive(java.lang.Object)
      */
     public void onReceive(Object message) throws Exception {
-        //todo actor can take a call when to throw TaskResumableException
         if (TaskAndEvents.class.isAssignableFrom(message.getClass())) {
             TaskAndEvents taskAndEvent = (TaskAndEvents)message;
             logger.debug("Received directive {}", taskAndEvent);
