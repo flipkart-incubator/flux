@@ -57,7 +57,7 @@ public class FluxClientComponentModule extends AbstractModule {
     public FluxRuntimeConnector provideFluxRuntimeConnector(FluxClientConfiguration configuration) {
         return new FluxRuntimeConnectorHttpImpl(configuration.getConnectionTimeout(),
                                                 configuration.getSocketTimeout(),
-                                                configuration.getUrl() + "/api/machines");
+                                                configuration.getFluxRuntimeUrl() + "/api/machines");
     }
 
     @Provides

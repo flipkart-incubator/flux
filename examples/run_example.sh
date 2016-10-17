@@ -24,7 +24,7 @@ mkdir -p $DEPLOYMENT_UNIT_PATH/$DEPLOYMENT_UNIT_NAME/main
 mkdir -p $DEPLOYMENT_UNIT_PATH/$DEPLOYMENT_UNIT_NAME/lib
 
 echo "Copying jars to deployment unit"
-cp target/examples-1.0-SNAPSHOT.jar $DEPLOYMENT_UNIT_PATH/$DEPLOYMENT_UNIT_NAME/main
+cp target/examples-1.0.1-SNAPSHOT.jar $DEPLOYMENT_UNIT_PATH/$DEPLOYMENT_UNIT_NAME/main
 cp target/dependency/* $DEPLOYMENT_UNIT_PATH/$DEPLOYMENT_UNIT_NAME/lib
 cp src/main/resources/flux_config.yml $DEPLOYMENT_UNIT_PATH/$DEPLOYMENT_UNIT_NAME/
 
@@ -45,7 +45,7 @@ sleep 15
 
 echo "Running $EXAMPLE_FQN for you "
 #The below code prints the lines in green color
-echo "\033[33;32m $(java -cp 'target/examples-1.0-SNAPSHOT.jar:target/dependency/*' $EXAMPLE_FQN)"
+echo "\033[33;32m $(java -cp 'target/examples-1.0.1-SNAPSHOT.jar:target/dependency/*' $EXAMPLE_FQN)"
 #Reset the color
 echo "\033[33;0m"
 
