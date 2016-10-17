@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
+import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
+
 /**
  * <code>ExecutableRegistryPopulator</code> reads the available deployment units and puts the methods
  * which are annotated with {@link com.flipkart.flux.client.model.Task} in Executable Registry for the later execution.
@@ -150,7 +152,7 @@ public class ExecutableRegistryPopulator implements Initializable {
                         }
                     }
 
-                    String taskIdentifier = new MethodId(method).toString() + "_version" + version;
+                    String taskIdentifier = new MethodId(method).toString() + _VERSION + version;
 
                     Object singletonMethodOwner = getInstanceMethod.invoke(injectorClassInstance, method.getDeclaringClass());
                     executableRegistry.registerTask(taskIdentifier, new TaskExecutableImpl(singletonMethodOwner, method, timeout, classLoader));

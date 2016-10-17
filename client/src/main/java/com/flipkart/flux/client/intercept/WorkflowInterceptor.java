@@ -32,6 +32,8 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
+
 /**
  * This intercepts the invocation to <code>@Workflow</code> methods.
  * The interception mechanism helps create a state machine definition that is later submitted to the Flux orchestrator
@@ -167,7 +169,7 @@ public class WorkflowInterceptor implements MethodInterceptor {
     }
 
     private String generateWorkflowIdentifier(Method method, Workflow workflow) {
-        return new MethodId(method).toString() + "_version" + workflow.version();
+        return new MethodId(method).toString() + _VERSION + workflow.version();
     }
 
 }

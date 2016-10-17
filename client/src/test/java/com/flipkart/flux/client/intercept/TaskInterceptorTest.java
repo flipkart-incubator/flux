@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
 import static com.flipkart.flux.client.intercept.SimpleWorkflowForTest.INTEGER_EVENT_NAME;
 import static com.flipkart.flux.client.intercept.SimpleWorkflowForTest.STRING_EVENT_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -75,7 +76,7 @@ public class TaskInterceptorTest {
         final EventDefinition expectedOutput = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent1","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
         verify(localContext, times(1)).
             registerNewState(1l, "simpleStringModifyingTask", null, null,
-                new MethodId(invokedMethod).toString()+"_version1", 2l, 2000l, expectedDependency, expectedOutput);
+                new MethodId(invokedMethod).toString()+_VERSION+"1", 2l, 2000l, expectedDependency, expectedOutput);
     }
 
     @Test
@@ -93,7 +94,7 @@ public class TaskInterceptorTest {
         EventDefinition expectedOutput = null; // Since the method returns void
         verify(localContext, times(1)).
             registerNewState(1l, "someTaskWithIntegerAndString", null, null,
-                new MethodId(invokedMethod).toString()+"_version1", 0l, 1000l, expectedDependencies, expectedOutput);
+                new MethodId(invokedMethod).toString()+_VERSION+"1", 0l, 1000l, expectedDependencies, expectedOutput);
 
     }
 
@@ -134,7 +135,7 @@ public class TaskInterceptorTest {
         final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", StringEvent.class);
         taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod, simpleWorkflowForTest));
         final Executable expectedExecutable = new ExecutableImpl(simpleWorkflowForTest, invokedMethod, 2000l);
-        verify(executableRegistry, times(1)).registerTask(new MethodId(invokedMethod).toString()+"_version1", expectedExecutable);
+        verify(executableRegistry, times(1)).registerTask(new MethodId(invokedMethod).toString()+_VERSION+"1", expectedExecutable);
     }
 
     @Test
@@ -171,7 +172,7 @@ public class TaskInterceptorTest {
         final EventDefinition expectedOutput = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent1","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
         verify(localContext, times(1)).
             registerNewState(1l, "waitForExternalEvent", null, null,
-                new MethodId(invokedMethod).toString()+"_version1", 2l, 2000l, expectedDependency, expectedOutput);
+                new MethodId(invokedMethod).toString()+_VERSION+"1", 2l, 2000l, expectedDependency, expectedOutput);
     }
 
     @Test(expected = IllegalInvocationException.class)

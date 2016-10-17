@@ -32,6 +32,8 @@ import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
+
 /**
  * This intercepts the invocation to <code>@Task</code> methods
  * It executes the actual method in case it has been explicitly invoked by the Flux runtime via RPC
@@ -170,6 +172,6 @@ public class TaskInterceptor implements MethodInterceptor {
     }
 
     private String generateTaskIdentifier(Method method,Task task) {
-        return new MethodId(method).toString() +"_version" + task.version();
+        return new MethodId(method).toString() + _VERSION + task.version();
     }
 }
