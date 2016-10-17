@@ -30,18 +30,27 @@ import java.net.URLClassLoader;
  */
 public class TaskExecutableImpl implements Executable {
 
+    /** Task method which is annotated with {@link com.flipkart.flux.client.model.Task} */
     private final Method toInvoke;
+
+    /** Object of the class which is used to invoke the above method 'toInvoke' */
     private final Object singletonMethodOwner;
+
+    /** timeout of the task */
     private final long timeout;
 
-    /**Class loader of the deployment unit to which 'toInvoke' belongs */
+    /** Singleton ObjectMapper instance of the deployment unit */
+    private final Object objectMapperInstance;
+
+    /** Class loader of the deployment unit to which 'toInvoke' belongs */
     private final URLClassLoader deploymentUnitClassLoader;
 
-    public TaskExecutableImpl(Object singletonMethodOwner, Method toInvoke, long timeout, URLClassLoader classLoader) {
+    public TaskExecutableImpl(Object singletonMethodOwner, Method toInvoke, long timeout, URLClassLoader classLoader, Object objectMapperInstance) {
         this.singletonMethodOwner = singletonMethodOwner;
         this.toInvoke = toInvoke;
         this.timeout = timeout;
         this.deploymentUnitClassLoader = classLoader;
+        this.objectMapperInstance = objectMapperInstance;
     }
 
     @Override
@@ -96,5 +105,9 @@ public class TaskExecutableImpl implements Executable {
 
     public URLClassLoader getDeploymentUnitClassLoader() {
         return deploymentUnitClassLoader;
+    }
+
+    public Object getObjectMapperInstance() {
+        return objectMapperInstance;
     }
 }
