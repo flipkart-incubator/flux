@@ -28,6 +28,7 @@ import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.Status;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.api.core.Task;
+import com.flipkart.flux.client.exception.FluxRetriableException;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.impl.message.HookAndEvents;
@@ -131,10 +132,30 @@ public class AkkaTask extends UntypedActor {
                                 new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(),
                                         taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
                     } else {
-                        // mark the task outcome as execution failure
-                        fluxRuntimeConnector.updateExecutionStatus(
-                                new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.errored,
-                                        taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount(), hre.getMessage()));
+                        //check if the exception hierarchy has FluxRetriableException, if yes trigger retry
+                        boolean isFluxRetriableException = false;
+                        Throwable cause = hre.getCause();
+                        while(cause != null) {
+                            if(cause.getClass().getName().equals(FluxRetriableException.class.getName())) {
+                                isFluxRetriableException = true;
+                                break;
+                            }
+                            cause = cause.getCause();
+                        }
+                        if(isFluxRetriableException) {
+                            // mark the task outcome as execution failure
+                            fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(
+                                    taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.errored, taskAndEvent.getRetryCount(),
+                                    taskAndEvent.getCurrentRetryCount(), cause.getMessage()));
+                            throw new FluxError(FluxError.ErrorType.retriable, cause.getMessage(), null, false,
+                                    new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(),
+                                            taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
+                        } else {
+                            // mark the task outcome as execution failure
+                            fluxRuntimeConnector.updateExecutionStatus(
+                                    new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.errored,
+                                            taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount(), hre.getMessage()));
+                        }
                     }
                 } catch (Exception e) {
                     // mark the task outcome as execution failure

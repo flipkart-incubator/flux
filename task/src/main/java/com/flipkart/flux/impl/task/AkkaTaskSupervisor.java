@@ -72,10 +72,10 @@ public class AkkaTaskSupervisor {
 						new OneForOneStrategy((int)maxRetries, Duration.Inf(), t -> {
 					        if (t instanceof FluxError) {
 					        	FluxError fe = (FluxError)t;
-					        	if (fe.getType().equals(FluxError.ErrorType.timeout)) {
+					        	if (fe.getType().equals(FluxError.ErrorType.timeout) || fe.getType().equals(FluxError.ErrorType.retriable)) {
 					        		if (fe.getExecutionContextMeta().getAttemptedNoOfRetries() < fe.getExecutionContextMeta().getMaxRetries()) {
-						        		LOGGER.info("Retrying execution of Task. Retry count = {}, Cause = {} ",fe.getExecutionContextMeta().getAttemptedNoOfRetries(), 
-						        				fe.getMessage());
+						        		LOGGER.info("Retrying execution of Task Id: {}. Retry count = {}, Cause = {} ", fe.getExecutionContextMeta().getTaskId(),
+												fe.getExecutionContextMeta().getAttemptedNoOfRetries(), fe.getMessage());
 						        		return SupervisorStrategy.restart();
 					        		} else {
 					        			LOGGER.warn("Aborting retries for Task Id : {}. Retry count exceeded : {}", fe.getExecutionContextMeta().getTaskId(), 
