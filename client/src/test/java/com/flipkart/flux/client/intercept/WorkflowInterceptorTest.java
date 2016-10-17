@@ -35,6 +35,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.lang.reflect.Method;
 import java.util.Collection;
 
+import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
 import static com.flipkart.flux.client.utils.TestUtil.dummyInvocation;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
@@ -63,8 +64,8 @@ public class WorkflowInterceptorTest {
     public void shouldRegisterNewDefinitionWithLocalContext() throws Throwable {
         final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("simpleDummyWorkflow", StringEvent.class, IntegerEvent.class);
         workflowInterceptor.invoke(dummyInvocation(invokedMethod));
-        final String expectedMethodIdentifer = new MethodId(invokedMethod).toString();
-        Mockito.verify(localContext, times(1)).registerNew(expectedMethodIdentifer, 1, "",null);
+        final String expectedWorkflowIdentifer = new MethodId(invokedMethod).toString() + _VERSION + "1";
+        Mockito.verify(localContext, times(1)).registerNew(expectedWorkflowIdentifer, 1, "",null);
     }
 
     @Test
@@ -122,7 +123,7 @@ public class WorkflowInterceptorTest {
         /* invoke method */
         workflowInterceptor.invoke(dummyInvocation(invokedMethod,new Object[]{testStringEvent,testIntegerEvent}));
         /* verifications */
-        verify(localContext,times(1)).registerNew(new MethodId(invokedMethod).toString(),1,"","aContextId");
+        verify(localContext,times(1)).registerNew(new MethodId(invokedMethod).toString()+_VERSION+"1",1,"","aContextId");
     }
 
     @Test(expected = IllegalSignatureException.class)
@@ -143,7 +144,7 @@ public class WorkflowInterceptorTest {
         final StringEvent wfParam2 = new StringEvent("foobar2");
         final MethodInvocation invocation = dummyInvocation(SimpleWorkflowForTest.class.getDeclaredMethod("simpleDummyWorkflow", StringEvent[].class), new Object[]{new StringEvent[]{wfParam1,wfParam2}});
         workflowInterceptor.invoke(invocation);
-        verify(localContext,times(1)).registerNew(new MethodId(invocation.getMethod()).toString(), 1l, "",null);
+        verify(localContext,times(1)).registerNew(new MethodId(invocation.getMethod()).toString()+_VERSION+"1", 1l, "",null);
         final EventData expectedData1 = new EventData("someName" /*cuz were using mock localContext */, "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent", objectMapper.writeValueAsString(wfParam1), WorkflowInterceptor.CLIENT);
         final EventData expectedData2 = new EventData("someName", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent", objectMapper.writeValueAsString(wfParam2), WorkflowInterceptor.CLIENT);
         verify(localContext,times(1)).addEvents(expectedData1,expectedData2);

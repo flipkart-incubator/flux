@@ -32,6 +32,8 @@ import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
+
 /**
  * This intercepts the invocation to <code>@Task</code> methods
  * It executes the actual method in case it has been explicitly invoked by the Flux runtime via RPC
@@ -64,7 +66,7 @@ public class TaskInterceptor implements MethodInterceptor {
         }
         final Method method = invocation.getMethod();
         final Task taskAnnotation = method.getAnnotationsByType(Task.class)[0];
-        final String taskIdentifier = generateTaskIdentifier(method);
+        final String taskIdentifier = generateTaskIdentifier(method, taskAnnotation);
         final Set<EventDefinition> dependencySet = generateDependencySet(invocation.getArguments(),method.getParameterAnnotations(),method.getParameterTypes());
         final Object proxyReturnObject = createProxyReturnObject(method);
         final EventDefinition outputEventDefintion = generateOutputEventDefintion(proxyReturnObject);
@@ -169,7 +171,7 @@ public class TaskInterceptor implements MethodInterceptor {
         return method.getName();
     }
 
-    private String generateTaskIdentifier(Method method) {
-        return new MethodId(method).toString();
+    private String generateTaskIdentifier(Method method,Task task) {
+        return new MethodId(method).toString() + _VERSION + task.version();
     }
 }

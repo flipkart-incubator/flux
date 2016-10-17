@@ -33,6 +33,8 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
+
 /**
  * This intercepts the invocation to <code>@Workflow</code> methods.
  * The interception mechanism helps create a state machine definition that is later submitted to the Flux orchestrator
@@ -67,7 +69,8 @@ public class WorkflowInterceptor implements MethodInterceptor {
             final Workflow[] workFlowAnnotations = method.getAnnotationsByType(Workflow.class);
             checkForBadSignatures(invocation);
             final String correlationId = checkForCorrelationId(invocation.getArguments());
-            localContext.registerNew(new MethodId(method).toString(), workFlowAnnotations[0].version(), workFlowAnnotations[0].description(),correlationId);
+            Workflow workflow = workFlowAnnotations[0];
+            localContext.registerNew(generateWorkflowIdentifier(method, workflow), workflow.version(), workflow.description(),correlationId);
             registerEventsForArguments(invocation.getArguments());
             invocation.proceed();
             connectorProvider.get().submitNewWorkflow(localContext.getStateMachineDef());
@@ -164,7 +167,10 @@ public class WorkflowInterceptor implements MethodInterceptor {
                 throw new IllegalSignatureException(new MethodId(method), "Parameter types should implement the Event interface. Collections of events are also not allowed");
             }
         }
+    }
 
+    private String generateWorkflowIdentifier(Method method, Workflow workflow) {
+        return new MethodId(method).toString() + _VERSION + workflow.version();
     }
 
 }

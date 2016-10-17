@@ -56,7 +56,9 @@ public class LocalExecutableRegistryImpl implements ExecutableRegistry {
         final Executable cachedExecutable = this.identifierToMethodMap.get(taskIdentifier);
         if (cachedExecutable == null) {
             try {
-                final MethodId methodId = MethodId.fromIdentifier(taskIdentifier);
+                //taskIdentifier would be of form methodIdentifier_version<no>, so removing _version<no> and passing the remaining string
+                final MethodId methodId = MethodId.fromIdentifier(taskIdentifier.substring(0, taskIdentifier.lastIndexOf('_')));
+
                 final Class<?> clazz = Class.forName(methodId.getClassName());
                 final Object classInstance = this.injector.getInstance(clazz);
                 final Method methodToInvoke = clazz.getDeclaredMethod(methodId.getMethodName(), methodId.getParameterTypes());

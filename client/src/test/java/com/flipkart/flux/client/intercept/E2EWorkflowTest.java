@@ -34,6 +34,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -70,9 +71,9 @@ public class E2EWorkflowTest {
         /* verify registration in executable registry */
         final Map<String,Method> identifierToMethodMap = (Map<String, Method>) ReflectionTestUtils.getField(executableRegistry, "identifierToMethodMap");
         assertThat(identifierToMethodMap.keySet()).containsOnlyOnce(
-            new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleStringModifyingTask", StringEvent.class)).toString(),
-            new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("someTaskWithIntegerAndString", StringEvent.class, IntegerEvent.class)).toString(),
-            new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleAdditionTask", IntegerEvent.class)).toString()
+            new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleStringModifyingTask", StringEvent.class)).toString()+_VERSION+"1",
+            new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("someTaskWithIntegerAndString", StringEvent.class, IntegerEvent.class)).toString()+_VERSION+"1",
+            new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleAdditionTask", IntegerEvent.class)).toString()+_VERSION+"1"
         );
     }
 
