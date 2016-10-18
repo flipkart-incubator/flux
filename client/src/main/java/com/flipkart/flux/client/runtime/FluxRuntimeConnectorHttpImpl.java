@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.StateMachineDefinition;
+
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -50,9 +51,9 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     private final String fluxEndpoint;
     private final ObjectMapper objectMapper;
 
-    public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint) {
-        objectMapper = new ObjectMapper();
+    public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint, ObjectMapper objectMapper) {
         this.fluxEndpoint = fluxEndpoint;
+        this.objectMapper = objectMapper;
         RequestConfig clientConfig = RequestConfig.custom()
             .setConnectTimeout((connectionTimeout).intValue())
             .setSocketTimeout((socketTimeout).intValue())

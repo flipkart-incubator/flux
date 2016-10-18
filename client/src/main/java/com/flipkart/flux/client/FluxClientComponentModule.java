@@ -16,6 +16,7 @@ package com.flipkart.flux.client;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.client.config.FluxClientConfiguration;
 import com.flipkart.flux.client.guice.annotation.IsolatedEnv;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
@@ -54,10 +55,12 @@ public class FluxClientComponentModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public FluxRuntimeConnector provideFluxRuntimeConnector(FluxClientConfiguration configuration) {
+    public FluxRuntimeConnector provideFluxRuntimeConnector(FluxClientConfiguration configuration,
+                                                            ObjectMapper objectMapper) {
         return new FluxRuntimeConnectorHttpImpl(configuration.getConnectionTimeout(),
                                                 configuration.getSocketTimeout(),
-                                                configuration.getFluxRuntimeUrl() + "/api/machines");
+                                                configuration.getFluxRuntimeUrl() + "/api/machines",
+                                                objectMapper);
     }
 
     @Provides

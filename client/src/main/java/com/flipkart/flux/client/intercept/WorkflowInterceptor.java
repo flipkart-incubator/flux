@@ -50,10 +50,10 @@ public class WorkflowInterceptor implements MethodInterceptor {
     @Inject
     private Provider<FluxRuntimeConnector> connectorProvider;
 
-    private final ObjectMapper objectMapper;
+    @Inject
+    private ObjectMapper objectMapper;
 
     public WorkflowInterceptor() {
-        this.objectMapper = new ObjectMapper();
     }
 
     public WorkflowInterceptor(LocalContext localContext, Provider<FluxRuntimeConnector> connectorProvider) {
