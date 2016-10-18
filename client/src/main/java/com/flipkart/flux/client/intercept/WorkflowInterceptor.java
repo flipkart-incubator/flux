@@ -14,6 +14,8 @@
 
 package com.flipkart.flux.client.intercept;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
@@ -50,16 +52,18 @@ public class WorkflowInterceptor implements MethodInterceptor {
     @Inject
     private Provider<FluxRuntimeConnector> connectorProvider;
 
-    private final ObjectMapper objectMapper;
+    @Inject
+    private Provider<ObjectMapper> objectMapperProvider;
 
     public WorkflowInterceptor() {
-        this.objectMapper = new ObjectMapper();
     }
 
-    public WorkflowInterceptor(LocalContext localContext, Provider<FluxRuntimeConnector> connectorProvider) {
+    @VisibleForTesting
+    public WorkflowInterceptor(LocalContext localContext, Provider<FluxRuntimeConnector> connectorProvider, Provider<ObjectMapper> objectMapperProvider) {
         this();
         this.localContext = localContext;
         this.connectorProvider = connectorProvider;
+        this.objectMapperProvider = objectMapperProvider;
     }
 
     @Override
@@ -137,7 +141,8 @@ public class WorkflowInterceptor implements MethodInterceptor {
 
     private void addToEventDataArray(EventData[] eventDatas, int i, Object anObject) throws JsonProcessingException {
         final String eventName = localContext.generateEventName((Event) anObject);
-        eventDatas[i] = new EventData(eventName, anObject.getClass().getName(), objectMapper.writeValueAsString(anObject), CLIENT);
+        eventDatas[i] = new EventData(eventName, anObject.getClass().getName(),
+                                      objectMapperProvider.get().writeValueAsString(anObject), CLIENT);
     }
 
 

@@ -56,8 +56,9 @@ public class WorkflowInterceptorTest {
 
     @Before
     public void setUp() throws Exception {
-        workflowInterceptor = new WorkflowInterceptor(localContext,() -> fluxRuntimeConnector);
         objectMapper = new ObjectMapper();
+        workflowInterceptor = new WorkflowInterceptor(localContext,() -> fluxRuntimeConnector,
+                                                      () -> objectMapper);
     }
 
     @Test
