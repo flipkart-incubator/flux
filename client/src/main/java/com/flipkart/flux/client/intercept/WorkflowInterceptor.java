@@ -53,17 +53,17 @@ public class WorkflowInterceptor implements MethodInterceptor {
     private Provider<FluxRuntimeConnector> connectorProvider;
 
     @Inject
-    private Provider<ObjectMapper> objectMapper;
+    private Provider<ObjectMapper> objectMapperProvider;
 
     public WorkflowInterceptor() {
     }
 
     @VisibleForTesting
-    public WorkflowInterceptor(LocalContext localContext, Provider<FluxRuntimeConnector> connectorProvider, Provider<ObjectMapper> objectMapper) {
+    public WorkflowInterceptor(LocalContext localContext, Provider<FluxRuntimeConnector> connectorProvider, Provider<ObjectMapper> objectMapperProvider) {
         this();
         this.localContext = localContext;
         this.connectorProvider = connectorProvider;
-        this.objectMapper = objectMapper;
+        this.objectMapperProvider = objectMapperProvider;
     }
 
     @Override
@@ -142,7 +142,7 @@ public class WorkflowInterceptor implements MethodInterceptor {
     private void addToEventDataArray(EventData[] eventDatas, int i, Object anObject) throws JsonProcessingException {
         final String eventName = localContext.generateEventName((Event) anObject);
         eventDatas[i] = new EventData(eventName, anObject.getClass().getName(),
-                                      objectMapper.get().writeValueAsString(anObject), CLIENT);
+                                      objectMapperProvider.get().writeValueAsString(anObject), CLIENT);
     }
 
 
