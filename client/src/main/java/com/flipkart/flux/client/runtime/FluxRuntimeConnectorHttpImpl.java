@@ -14,6 +14,8 @@
 
 package com.flipkart.flux.client.runtime;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
@@ -50,6 +52,11 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     private final CloseableHttpClient closeableHttpClient;
     private final String fluxEndpoint;
     private final ObjectMapper objectMapper;
+
+    @VisibleForTesting
+    public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint) {
+        this(connectionTimeout, socketTimeout, fluxEndpoint, new ObjectMapper());
+    }
 
     public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint, ObjectMapper objectMapper) {
         this.fluxEndpoint = fluxEndpoint;
