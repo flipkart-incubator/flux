@@ -14,14 +14,12 @@
 
 package com.flipkart.flux.client.runtime;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.StateMachineDefinition;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -32,7 +30,6 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.util.EntityUtils;
 
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayOutputStream;
@@ -137,15 +134,13 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
 	}
 
     /**
-     * Interface method implementation. Retrieves SerializedRedriverTask object from Flux Runtime API through http get and returns as json string.
+     * Interface method implementation. Posts to Flux Runtime API to redrive a task.
      */
     @Override
-    public String getSerializedRedriverTaskByTaskId(Long taskId) throws IOException {
+    public void redriveTask(Long taskId) {
         CloseableHttpResponse httpResponse = null;
-        httpResponse = getOverHttp("/"+"redrivertask"+"/"+taskId);
-        String taskAndEventsJson = EntityUtils.toString(httpResponse.getEntity());
+        httpResponse = postOverHttp(null,  "/redrivetask/" + taskId);
         HttpClientUtils.closeQuietly(httpResponse);
-        return taskAndEventsJson;
     }
 	
 	/** Helper method to post data over Http */

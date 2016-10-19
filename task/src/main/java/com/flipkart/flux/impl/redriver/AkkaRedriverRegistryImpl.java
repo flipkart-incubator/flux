@@ -72,7 +72,7 @@ public class AkkaRedriverRegistryImpl implements RedriverRegistry, Initializable
 		ClusterSingletonProxySettings proxySettings =
 			    ClusterSingletonProxySettings.create(actorSystem);
 		this.redriverActorProxy = actorSystem.actorOf(ClusterSingletonProxy.props("/user/redriverActor",
-			    proxySettings), "redriverActorProxy");		
+			    proxySettings), "redriverActorProxy");
 	}
 
 	/**

@@ -32,10 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * <code>WorkFlowExecutionController</code> controls the execution flow of a given state machine
@@ -234,4 +231,24 @@ public class WorkFlowExecutionController {
         return executableStates;
     }
 
+    /**
+     * Performs task execution if the task is stalled and no.of retries are not exhausted
+     */
+    public void redriveTask(Long taskId) {
+        State state = statesDAO.findById(taskId);
+        if(isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() < state.getRetryCount()) {
+            logger.info("Redriving a task with Id: {}", state.getId());
+            executeStates(state.getStateMachineId(), Collections.singleton(state));
+        }
+    }
+
+    /**
+     * Returns whether a task is redrivable based on it's status.
+     */
+    private boolean isTaskRedrivable(Status taskStatus) {
+        return !(taskStatus.equals(Status.completed) ||
+                taskStatus.equals(Status.sidelined) ||
+                taskStatus.equals(Status.errored) ||
+                taskStatus.equals(Status.cancelled));
+    }
 }

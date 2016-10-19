@@ -18,8 +18,6 @@ import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.StateMachineDefinition;
 
-import java.io.IOException;
-
 /**
  * Used to connect with the core Flux Runtime
  * This class hides the actual API call to the Flux runtime
@@ -55,9 +53,8 @@ public interface FluxRuntimeConnector {
     void incrementExecutionRetries(Long stateMachineId, Long taskId);
 
     /**
-     * Retrieves SerializedRedriverTask object from Flux Runtime by connecting over Http.
+     * Posts to Flux Runtime by connecting over Http to redrive a task.
      * @param taskId the task/state identifier
-     * @return SerializedRedriverTask as json string
      */
-    String getSerializedRedriverTaskByTaskId(Long taskId) throws IOException;
+    void redriveTask(Long taskId);
 }

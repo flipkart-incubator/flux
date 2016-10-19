@@ -28,8 +28,6 @@ import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.impl.RAMContext;
-import com.flipkart.flux.impl.message.SerializedRedriverTask;
-import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.google.inject.Inject;
@@ -203,24 +201,17 @@ public class StateMachineResource {
     }
 
     /**
-     * Constructs TaskAndEvents object and returns it for the provided task id.
+     * Triggers task execution if the task is stalled and no.of retries are not exhausted.
      * @param taskId the task/state identifier
-     * @return Response with TaskAndEvents object
-     * @throws Exception
      */
-    @GET
+    @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/redrivertask/{taskId}")
-    public Response getSerializedRedriverTaskByTaskId(@PathParam("taskId") Long taskId) throws Exception {
-        State state = statesDAO.findById(taskId);
+    @Path("/redrivetask/{taskId}")
+    public Response redriveTask(@PathParam("taskId") Long taskId) throws Exception {
 
-        TaskAndEvents taskAndEvents = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
-                eventsDAO.findByEventNamesAndSMId(state.getDependencies(), state.getStateMachineId()).toArray(new EventData[]{}),
-                state.getStateMachineId(), state.getOutputEvent(), state.getRetryCount(), state.getAttemptedNoOfRetries());
+        this.workFlowExecutionController.redriveTask(taskId);
 
-        SerializedRedriverTask redriverTask = new SerializedRedriverTask(taskAndEvents, state.getStatus());
-
-        return Response.status(Response.Status.OK.getStatusCode()).entity(redriverTask).build();
+        return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
     }
     
     /**
