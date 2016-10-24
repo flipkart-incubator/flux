@@ -13,8 +13,8 @@
 
 package com.flipkart.flux.api;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * <Code>StateDefinition</Code> models a State, an action associated with the state and the list of dependencies for the state transition to occur.
@@ -52,19 +52,19 @@ public class StateDefinition {
     private Long timeout;
     
     /** The list of EventDefinitionS that this state definition is dependent on for a transition into*/
-    private Set<EventDefinition> dependencies;
+    private List<EventDefinition> dependencies;
 
 	private EventDefinition outputEvent;
 
 	/* Used only by Jackson */
 	StateDefinition() {
 		super();
-		this.dependencies = new HashSet<>();
+		this.dependencies = new LinkedList<>();
 	}
 
 	/** Constructor*/
 	public StateDefinition(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
-						   Long retryCount, Long timeout, Set<EventDefinition> dependencies, EventDefinition outputEvent) {
+						   Long retryCount, Long timeout, List<EventDefinition> dependencies, EventDefinition outputEvent) {
 		this();
 		this.version = version;
 		this.name = name;
@@ -127,10 +127,10 @@ public class StateDefinition {
 	public void setTimeout(Long timeout) {
 		this.timeout = timeout;
 	}
-	public Set<EventDefinition> getDependencies() {
+	public List<EventDefinition> getDependencies() {
 		return dependencies;
 	}
-	public void setDependencies(Set<EventDefinition> dependencies) {
+	public void setDependencies(List<EventDefinition> dependencies) {
 		this.dependencies = dependencies;
 	}
 

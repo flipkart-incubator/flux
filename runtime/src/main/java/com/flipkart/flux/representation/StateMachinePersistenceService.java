@@ -25,6 +25,8 @@ import com.flipkart.flux.domain.*;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -112,8 +114,8 @@ public class StateMachinePersistenceService {
      */
     private State convertStateDefinitionToState(StateDefinition stateDefinition)    {
         try {
-            Set<EventDefinition> eventDefinitions = stateDefinition.getDependencies();
-            HashSet<String> events = new HashSet<>();
+            List<EventDefinition> eventDefinitions = stateDefinition.getDependencies();
+            List<String> events = new LinkedList<>();
             if(eventDefinitions != null) {
                 for(EventDefinition e : eventDefinitions) {
                     events.add(e.getName());

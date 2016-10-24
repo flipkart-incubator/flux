@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS `States` (
   `dependencies` VARCHAR(1000) DEFAULT NULL,
   `stateMachineId` BIGINT,
   `onEntryHook` varchar(500) DEFAULT NULL,
-  `task` VARCHAR(500) DEFAULT NULL,
+  `task` VARCHAR(1000) DEFAULT NULL,
   `onExitHook` varchar(500) DEFAULT NULL,
   `outputEvent` varchar(500) DEFAULT NULL,
   `retryCount` INT UNSIGNED DEFAULT 0,

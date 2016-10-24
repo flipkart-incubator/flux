@@ -92,7 +92,7 @@ public class WorkFlowExecutionControllerTest {
         final EventData testEventData = new EventData("event1", "foo", "someStringData", "runtime");
         when(eventsDAO.findBySMIdAndName(1l, "event1")).thenReturn(new Event("event1", "foo", Event.EventStatus.pending, 1l, null, null));
         EventData[] expectedEvents = new EventData[]{new EventData("event1","someType","someStringData","runtime")};
-        when(eventsDAO.findByEventNamesAndSMId(Collections.singleton("event1"),1l)).thenReturn(Arrays.asList(expectedEvents));
+        when(eventsDAO.findByEventNamesAndSMId(Collections.singletonList("event1"),1l)).thenReturn(Arrays.asList(expectedEvents));
         when(eventsDAO.findTriggeredEventsNamesBySMId(1l)).thenReturn(Collections.singletonList("event1"));
         workFlowExecutionController.postEvent(testEventData, 1l, null);
 

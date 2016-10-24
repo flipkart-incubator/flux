@@ -90,10 +90,10 @@ public class LocalContextTest {
         localContext.registerNew("fooBar", 1, "someDescription",null);
         EventDefinition dummyDependency = new EventDefinition("someName","com.blah.some.Event");
         EventDefinition dummyOutput = new EventDefinition("someOutput","com.blah.some.Event");
-        localContext.registerNewState(1l, "someState", null, "com.blah.some.Hook", "com.blah.some.Task", 1l, 1000l, Collections.singleton(dummyDependency), dummyOutput);
+        localContext.registerNewState(1l, "someState", null, "com.blah.some.Hook", "com.blah.some.Task", 1l, 1000l, Collections.singletonList(dummyDependency), dummyOutput);
         StateDefinition expectedStateDefinition = new StateDefinition(1l,"someState",null,
             "com.blah.some.Hook", "com.blah.some.Task", "com.blah.some.Hook",
-            1l, 1000l, Collections.singleton(dummyDependency), dummyOutput);
+            1l, 1000l, Collections.singletonList(dummyDependency), dummyOutput);
         assertThat(tlStateMachineDef.get()).isEqualTo(new StateMachineDefinition("someDescription", "fooBar", 1l, Collections.singleton(expectedStateDefinition), new HashSet<>(), null));
     }
 

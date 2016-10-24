@@ -27,14 +27,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
- * <code>SetJsonType</code> is a Hibernate {@link UserType} implementation to store {@link java.util.Set} as json in DB
+ * <code>ListJsonType</code> is a Hibernate {@link UserType} implementation to store {@link java.util.List} as json in DB
  * @author shyam.akirala
  */
-public class SetJsonType implements UserType, Serializable {
+public class ListJsonType implements UserType, Serializable {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -76,7 +76,7 @@ public class SetJsonType implements UserType, Serializable {
         String value = rs.getString(names[0]);
 
         if (value == null) {
-            return new HashSet<String>();
+            return new LinkedList<String>();
         }
 
         try {
@@ -113,7 +113,7 @@ public class SetJsonType implements UserType, Serializable {
     }
 
     protected Object deSerialize(String value) throws IOException {
-        return MAPPER.readValue(value, new TypeReference<Set<Object>>() {});
+        return MAPPER.readValue(value, new TypeReference<List<Object>>() {});
     }
 
     protected String serialize(Object value) throws JsonProcessingException {

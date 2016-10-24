@@ -25,10 +25,7 @@ import com.flipkart.flux.client.model.*;
 
 import javax.inject.Singleton;
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
 
@@ -135,18 +132,18 @@ public class SimpleWorkflowForTest {
         final EventDefinition outputOfStringModifyingTask = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent2", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
         expectedStateDefs.add(new StateDefinition(1l, "simpleStringModifyingTask", null, null,
             new MethodId(simpleStringModifyingTaskMethod).toString()+_VERSION+"1", null,
-            2l, 2000l, Collections.singleton(expectedInputForStringModifyingTask), outputOfStringModifyingTask));
+            2l, 2000l, Collections.singletonList(expectedInputForStringModifyingTask), outputOfStringModifyingTask));
 
         final Method simpleAdditionTaskMethod = SimpleWorkflowForTest.class.getDeclaredMethod("simpleAdditionTask", IntegerEvent.class);
         final EventDefinition expectedInputForSimpleAdditionTask = new EventDefinition(INTEGER_EVENT_NAME+"1", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent");
         final EventDefinition outputOfSimpleAdditionTask = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent3", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent");
         expectedStateDefs.add(new StateDefinition(1l, "simpleAdditionTask", null, null,
             new MethodId(simpleAdditionTaskMethod).toString()+_VERSION+"1", null,
-            2l, 3000l, Collections.singleton(expectedInputForSimpleAdditionTask), outputOfSimpleAdditionTask));
+            2l, 3000l, Collections.singletonList(expectedInputForSimpleAdditionTask), outputOfSimpleAdditionTask));
 
 
         final Method someTaskWithIntegerAndStringMethod = SimpleWorkflowForTest.class.getDeclaredMethod("someTaskWithIntegerAndString", StringEvent.class, IntegerEvent.class);
-        final Set<EventDefinition> expectedEventDefsForIntStringTask = new HashSet<>();
+        final List<EventDefinition> expectedEventDefsForIntStringTask = new LinkedList<>();
 
         expectedEventDefsForIntStringTask.add(outputOfStringModifyingTask);
         expectedEventDefsForIntStringTask.add(outputOfSimpleAdditionTask);
