@@ -17,6 +17,7 @@ import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
 import org.hibernate.Criteria;
+import org.hibernate.Query;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -26,7 +27,6 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * <code>EventsDAOImpl</code> is an implementation of {@link EventsDAO} which uses Hibernate to perform operations.
@@ -90,13 +90,20 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    public List<EventData> findByEventNamesAndSMId(Set<String> eventNames, Long stateMachineInstanceId) {
+    public List<EventData> findByEventNamesAndSMId(List<String> eventNames, Long stateMachineInstanceId) {
         if (eventNames.isEmpty()) {
             return new ArrayList<>();
         }
-        Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
-                .add(Restrictions.in("name", eventNames));
-        List<Event> readEvents = criteria.list();
+        StringBuilder eventNamesString = new StringBuilder();
+        for(int i=0; i<eventNames.size(); i++) {
+            eventNamesString.append("\'"+eventNames.get(i)+"\'");
+            if(i!=eventNames.size()-1)
+                eventNamesString.append(", ");
+        }
+        //retrieves and returns the events in the order of eventNames
+        Query hqlQuery = currentSession().createQuery("from Event where stateMachineInstanceId = :SMID and name in (" + eventNamesString.toString()
+                + ") order by field(name, " + eventNamesString.toString() + ")").setParameter("SMID", stateMachineInstanceId);
+        List<Event> readEvents = hqlQuery.list();
         LinkedList<EventData> readEventsDTOs = new LinkedList<EventData>();
         for (Event event : readEvents) {
         	readEventsDTOs.add(new EventData(event.getName(), event.getType(),event.getEventData(), event.getEventSource()));

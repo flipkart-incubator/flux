@@ -66,23 +66,16 @@ public class LocalJvmTask extends AbstractTask {
         Object[] parameters = new Object[events.length];
         Class<?>[] parameterTypes = toInvoke.getParameterTypes();
         try {
-            /* TODO
-            While this works for methods with all unique param types, it
-            will fail for methods where we have mutliple params of the same type.
-             */
             ClassLoader classLoader = ((TaskExecutableImpl)toInvoke).getDeploymentUnitClassLoader();
             Object objectMapperInstance = ((TaskExecutableImpl)toInvoke).getObjectMapperInstance();
             Class objectMapper = objectMapperInstance.getClass();
 
-            for (int i = 0 ; i < parameterTypes.length ; i++) {
-                for (EventData anEvent : events) {
-                    if(Class.forName(anEvent.getType(), true, classLoader).equals(parameterTypes[i])) {
-                        parameters[i] = objectMapper.getMethod("readValue", String.class, Class.class).invoke(objectMapperInstance, anEvent.getData(), Class.forName(anEvent.getType(), true, classLoader));
-                    }
-                }
-                if (parameters[i] == null) {
-                    logger.warn("Could not find a paramter of type {} in event list {}",parameterTypes[i],events);
-                    throw new RuntimeException("Could not find a paramter of type " + parameterTypes[i]);
+            for (int i = 0 ; i < parameterTypes.length; i++) {
+                if(Class.forName(events[i].getType(), true, classLoader).equals(parameterTypes[i])) {
+                    parameters[i] = objectMapper.getMethod("readValue", String.class, Class.class).invoke(objectMapperInstance, events[i].getData(), Class.forName(events[i].getType(), true, classLoader));
+                } else {
+                    logger.warn("Parameter type {} did not match with event type {}",parameterTypes[i], events[i]);
+                    throw new RuntimeException("Could not find a parameter of type " + parameterTypes[i]);
                 }
             }
 

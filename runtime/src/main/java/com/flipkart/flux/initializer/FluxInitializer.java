@@ -103,6 +103,7 @@ public class FluxInitializer {
     private void loadFluxRuntimeContainer() {
         logger.debug("loading flux runtime container");
         final ConfigModule configModule = new ConfigModule();
+        fluxRuntimeContainer.scanPackage("com.flipkart.flux");
         fluxRuntimeContainer.modules(
                 configModule,
                 new HibernateModule(),

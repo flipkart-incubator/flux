@@ -34,9 +34,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
@@ -71,8 +69,8 @@ public class TaskInterceptorTest {
         final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("simpleStringModifyingTask", StringEvent.class);
         taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod, new Object[]{new StringEvent("someEvent")}));
 
-        final Set<EventDefinition> expectedDependency =
-            Collections.singleton(new EventDefinition(STRING_EVENT_NAME+"0","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
+        final List<EventDefinition> expectedDependency =
+            Collections.singletonList(new EventDefinition(STRING_EVENT_NAME+"0","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
         final EventDefinition expectedOutput = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent1","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
         verify(localContext, times(1)).
             registerNewState(1l, "simpleStringModifyingTask", null, null,
@@ -87,7 +85,7 @@ public class TaskInterceptorTest {
         /* Third task intercepted */
         taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod, new Object[]{new StringEvent("someEvent"), new IntegerEvent(1)}));
         /* Verifications */
-        final Set<EventDefinition> expectedDependencies = new HashSet<EventDefinition>() {{
+        final List<EventDefinition> expectedDependencies = new LinkedList<EventDefinition>() {{
             add(new EventDefinition(STRING_EVENT_NAME+"0", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
             add(new EventDefinition(INTEGER_EVENT_NAME+"1", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent"));
         }};
@@ -165,7 +163,7 @@ public class TaskInterceptorTest {
         taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod,new Object[]{null,new IntegerEvent(1)}));
 
         /* verification */
-        final Set<EventDefinition> expectedDependency = new HashSet<EventDefinition>() {{
+        final List<EventDefinition> expectedDependency = new LinkedList<EventDefinition>() {{
             add(new EventDefinition("someExternalEvent", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
             add(new EventDefinition(INTEGER_EVENT_NAME + "0", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent"));
             }};

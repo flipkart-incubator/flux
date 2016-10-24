@@ -18,6 +18,8 @@ import org.hibernate.annotations.Type;
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -57,9 +59,9 @@ public class State {
     private Long retryCount;
     /** Timeout for state transition*/
     private Long timeout;
-    /** Set of event names this state is dependent on*/
-    @Type(type = "SetJsonType")
-    private Set<String> dependencies;
+    /** List of event names this state is dependent on*/
+    @Type(type = "ListJsonType")
+    private List<String> dependencies;
 
     private String outputEvent;
 
@@ -85,9 +87,9 @@ public class State {
     /** Constructors */
     protected State() {
         super();
-        dependencies = new HashSet<>();
+        dependencies = new LinkedList<>();
     }
-    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, Set<String> dependencies,
+    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, List<String> dependencies,
                  Long retryCount, Long timeout, String outputEvent, Status status, Status rollbackStatus, Long attemptedNoOfRetries) {
         this();
         this.version = version;
@@ -160,10 +162,10 @@ public class State {
     public void setOnExitHook(String onExitHook) {
         this.onExitHook = onExitHook;
     }
-    public Set<String> getDependencies() {
+    public List<String> getDependencies() {
         return dependencies;
     }
-    public void setDependencies(Set<String> dependencies) {
+    public void setDependencies(List<String> dependencies) {
         this.dependencies = dependencies;
     }
     public Long getRetryCount() {

@@ -29,8 +29,8 @@ import org.aopalliance.intercept.MethodInvocation;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
 
 import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
 
@@ -67,7 +67,7 @@ public class TaskInterceptor implements MethodInterceptor {
         final Method method = invocation.getMethod();
         final Task taskAnnotation = method.getAnnotationsByType(Task.class)[0];
         final String taskIdentifier = generateTaskIdentifier(method, taskAnnotation);
-        final Set<EventDefinition> dependencySet = generateDependencySet(invocation.getArguments(),method.getParameterAnnotations(),method.getParameterTypes());
+        final List<EventDefinition> dependencySet = generateDependencySet(invocation.getArguments(),method.getParameterAnnotations(),method.getParameterTypes());
         final Object proxyReturnObject = createProxyReturnObject(method);
         final EventDefinition outputEventDefintion = generateOutputEventDefintion(proxyReturnObject);
 
@@ -130,8 +130,8 @@ public class TaskInterceptor implements MethodInterceptor {
         }
     }
 
-    private Set<EventDefinition> generateDependencySet(Object[] arguments, Annotation[][] parameterAnnotations, Class<?>[] parameterTypes) {
-        Set<EventDefinition> eventDefinitions = new HashSet<>();
+    private List<EventDefinition> generateDependencySet(Object[] arguments, Annotation[][] parameterAnnotations, Class<?>[] parameterTypes) {
+        List<EventDefinition> eventDefinitions = new LinkedList<>();
         for (int i = 0; i < arguments.length ; i++) {
             Object argument = arguments[i];
             ExternalEvent externalEventAnnotation = checkForExternalEventAnnotation(parameterAnnotations[i]);
@@ -155,7 +155,6 @@ public class TaskInterceptor implements MethodInterceptor {
             }
         }
         return eventDefinitions;
-
     }
 
     private ExternalEvent checkForExternalEventAnnotation(Annotation[] givenParameterAnnotations) {
