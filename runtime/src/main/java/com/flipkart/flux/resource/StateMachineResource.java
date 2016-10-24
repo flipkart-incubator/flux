@@ -112,6 +112,8 @@ public class StateMachineResource {
         // 2. initialize and start State Machine
         workFlowExecutionController.initAndStart(stateMachine);
 
+        logger.info("Created state machine with Id: {} and correlation Id: {}", stateMachine.getId(), stateMachine.getCorrelationId());
+
         // 3. Return machineId
         return Response.status(Response.Status.CREATED.getStatusCode()).entity(stateMachine.getId()).build();
     }
@@ -131,6 +133,8 @@ public class StateMachineResource {
                                 @QueryParam("searchField") String searchField,
                                 EventData eventData
                             ) throws Exception {
+        logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
+
         if (searchField != null) {
             if (!searchField.equals(CORRELATION_ID)) {
                 return Response.status(Response.Status.BAD_REQUEST).build();

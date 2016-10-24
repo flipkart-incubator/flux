@@ -190,7 +190,6 @@ public class WorkFlowExecutionController {
                     eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId).toArray(new EventData[]{}),
                     stateMachineInstanceId,
                     state.getOutputEvent(), state.getRetryCount());
-            logger.debug("Sending msg {} for state machine {}", msg, stateMachineInstanceId);
 
             // register the Task with the redriver
             if (state.getRetryCount() > 0) {
@@ -204,6 +203,8 @@ public class WorkFlowExecutionController {
             int secondUnderscorePosition = taskName.indexOf('_', taskName.indexOf('_') + 1);
             String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition); //the name of router would be classFQN_taskMethodName
             ActorRef router = this.routerRegistry.getRouter(routerName);
+
+            logger.info("Sending msg to router: {} to execute state machine: {} task: {}", router.path(), stateMachineInstanceId, msg.getTaskId());
             router.tell(msg, ActorRef.noSender());
         }));
     }
@@ -237,7 +238,7 @@ public class WorkFlowExecutionController {
     public void redriveTask(Long taskId) {
         State state = statesDAO.findById(taskId);
         if(isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() < state.getRetryCount()) {
-            logger.info("Redriving a task with Id: {}", state.getId());
+            logger.info("Redriving a task with Id: {} for state machine: {}", state.getId(), state.getStateMachineId());
             executeStates(state.getStateMachineId(), Collections.singleton(state));
         }
     }
