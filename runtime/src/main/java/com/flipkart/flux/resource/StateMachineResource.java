@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.resource;
 
+import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
@@ -102,6 +103,7 @@ public class StateMachineResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Transactional
+    @Timed
     public Response createStateMachine(StateMachineDefinition stateMachineDefinition) throws Exception {
         // 1. Convert to StateMachine (domain object) and save in DB
         if(stateMachineDefinition == null)
@@ -129,6 +131,7 @@ public class StateMachineResource {
 
     @POST
     @Path("/{machineId}/context/events")
+    @Timed
     public Response submitEvent(@PathParam("machineId") String machineId,
                                 @QueryParam("searchField") String searchField,
                                 EventData eventData
@@ -157,6 +160,7 @@ public class StateMachineResource {
     @POST
     @Path("/{machineId}/{stateId}/status")
     @Transactional
+    @Timed
     public Response updateStatus(@PathParam("machineId") Long machineId,
                                 @PathParam("stateId") Long stateId,
                                 ExecutionUpdateData executionUpdateData
@@ -211,6 +215,7 @@ public class StateMachineResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/redrivetask/{taskId}")
+    @Timed
     public Response redriveTask(@PathParam("taskId") Long taskId) throws Exception {
 
         this.workFlowExecutionController.redriveTask(taskId);

@@ -256,6 +256,11 @@
             <version>${akka.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-jersey2</artifactId>
+            <version>${codahale.metrics.version}</version>
+        </dependency>
 
     </dependencies>
 

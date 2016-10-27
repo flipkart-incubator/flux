@@ -16,13 +16,16 @@
 
 package com.flipkart.flux.guice.module;
 
+import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.jersey2.InstrumentedResourceMethodApplicationListener;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.flipkart.flux.config.FileLocator;
 import com.flipkart.flux.constant.RuntimeConstants;
-import com.flipkart.flux.resource.StatusResource;
 import com.flipkart.flux.resource.FluxResource;
 import com.flipkart.flux.resource.StateMachineResource;
+import com.flipkart.flux.resource.StatusResource;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import org.eclipse.jetty.server.Server;
@@ -147,9 +150,18 @@ public class ContainerModule extends AbstractModule {
 											   StateMachineResource stateMachineResource,
 											   StatusResource statusResource) {
 		ResourceConfig resourceConfig = new ResourceConfig();
+
+		//Register codahale metrics and publish to jmx
+		MetricRegistry metricRegistry = new MetricRegistry();
+		resourceConfig.register(new InstrumentedResourceMethodApplicationListener(metricRegistry));
+		JmxReporter jmxReporter = JmxReporter.forRegistry(metricRegistry).build();
+
+		//register resources
 		resourceConfig.register(fluxUIResource);
 		resourceConfig.register(stateMachineResource);
 		resourceConfig.register(statusResource);
+
+		jmxReporter.start();
 		return resourceConfig;
 	}
 
