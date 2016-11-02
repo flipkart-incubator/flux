@@ -23,8 +23,13 @@ import java.util.Random;
  */
 public class UserVerificationService {
 
-    @Task(version = 1, timeout = 1000l)
+    @Task(version = 1, timeout = 1000l, retries = 2)
     public UserVerificationStatus verifyUser(UserData userData) {
+        try {
+            Thread.sleep(20);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         final boolean resultOfRigorousVerification = new Random(System.currentTimeMillis()).nextBoolean();
         return new UserVerificationStatus(userData.getUserId(), resultOfRigorousVerification);
     }

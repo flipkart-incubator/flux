@@ -47,7 +47,7 @@ runtime:
 
 redriver:
   batchdelete:
-    batchsize: 2
+    batchsize: 50
     intervalms: 1000
 
 deploymentType: directory

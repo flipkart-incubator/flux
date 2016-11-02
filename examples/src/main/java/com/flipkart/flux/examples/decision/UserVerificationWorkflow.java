@@ -69,6 +69,11 @@ public class UserVerificationWorkflow {
      */
     @Task(version = 1, timeout = 1000l, retries = 2)
     public void checkVerificationStatus(UserVerificationStatus userVerificationStatus) {
+        try {
+            Thread.sleep(20);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         if (userVerificationStatus.isVerifiedUser()) {
             notificationService.sendWelcomeEmail(userVerificationStatus.getUserId());
         } else {

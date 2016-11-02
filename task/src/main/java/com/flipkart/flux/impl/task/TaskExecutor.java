@@ -54,7 +54,8 @@ public class TaskExecutor extends HystrixCommand<Event> {
         		.withGroupKey(HystrixCommandGroupKey.Factory.asKey(task.getTaskGroupName()))
                 .andCommandKey(HystrixCommandKey.Factory.asKey(task.getName()))
                 .andThreadPoolKey(HystrixThreadPoolKey.Factory.asKey(task.getName() + "-TP")) // creating a new thread pool per task by appending "-TP" to the task name
-                .andThreadPoolPropertiesDefaults(HystrixThreadPoolProperties.Setter().withCoreSize(task.getExecutionConcurrency()))
+                .andThreadPoolPropertiesDefaults(HystrixThreadPoolProperties.Setter().withCoreSize(task.getExecutionConcurrency())
+																					.withMaxQueueSize(10).withQueueSizeRejectionThreshold(10))
                 .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
                 		.withExecutionIsolationStrategy(ExecutionIsolationStrategy.THREAD)
                 		.withExecutionTimeoutInMilliseconds(task.getExecutionTimeout())));

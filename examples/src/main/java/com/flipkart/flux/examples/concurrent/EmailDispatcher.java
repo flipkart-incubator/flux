@@ -33,9 +33,14 @@ public class EmailDispatcher {
         random = new Random();
     }
 
-    @Task(version = 1, timeout = 1000l)
+    @Task(version = 1, timeout = 1000l, retries = 2)
     public EmailAcknowledgement sendEmail(Email email) {
         System.out.println("[EmailMarketingWorkflow] Sending email " + email);
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return new EmailAcknowledgement(random.nextBoolean());
     }
 

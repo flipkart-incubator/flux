@@ -15,7 +15,6 @@ package com.flipkart.flux.controller;
 
 import akka.actor.ActorRef;
 import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
@@ -26,6 +25,7 @@ import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
+import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -204,6 +204,9 @@ public class WorkFlowExecutionController {
             String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition); //the name of router would be classFQN_taskMethodName
             ActorRef router = this.routerRegistry.getRouter(routerName);
 
+            if(router == null) {
+                throw new RuntimeException("No router found with name: " + routerName);
+            }
             logger.info("Sending msg to router: {} to execute state machine: {} task: {}", router.path(), stateMachineInstanceId, msg.getTaskId());
             router.tell(msg, ActorRef.noSender());
         }));

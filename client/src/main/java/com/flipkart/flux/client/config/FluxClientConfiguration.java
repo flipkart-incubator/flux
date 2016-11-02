@@ -30,7 +30,7 @@ package com.flipkart.flux.client.config;
  */
 public class FluxClientConfiguration {
 
-    private String fluxRuntimeUrl = "http://localhost:9998";
+    private String fluxRuntimeUrl = "http://10.33.157.76:9998";
     private long socketTimeout = 1000;
     private long connectionTimeout = 1000;
 

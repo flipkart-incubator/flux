@@ -15,6 +15,7 @@ package com.flipkart.flux.examples.concurrent;
 
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
+import com.flipkart.flux.examples.perf.PerfWorkflow;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -34,11 +35,19 @@ public class RunEmailMarketingWorkflow  {
         /* Initialise _your_ module*/
         final Injector injector = Guice.createInjector(new FluxClientComponentModule(), new FluxClientInterceptorModule());
 
+        for (int i = 0; i < 1; i++) {
+            long now = System.currentTimeMillis();
         /* Note that we are using guice aop for now, hence your workflow instances need to use guice */
-        final EmailMarketingWorkflow emailMarketingWorkflow = injector.getInstance(EmailMarketingWorkflow.class);
+//            EmailMarketingWorkflow emailMarketingWorkflow = injector.getInstance(EmailMarketingWorkflow.class);
+
         /* Lets invoke our workflow */
-        System.out.println("[Main] Starting workflow execution");
-        emailMarketingWorkflow.sendEmails(new Email("someBody","someone@flipkart.com"),new Email("someMore","someoneElse@fk.com"));
+//            System.out.println("[Main] Starting workflow execution");
+//            emailMarketingWorkflow.sendEmails(new Email("someBody", "someone@flipkart.com"), new Email("someMore", "someoneElse@fk.com"));
         /* Observe the logs and see how different emails are sent from different threads! Its magic! */
+            PerfWorkflow perfWorkflow = injector.getInstance(PerfWorkflow.class);
+            perfWorkflow.perfWorkflow();
+
+            System.out.println("time taken for invoking: " + (System.currentTimeMillis() - now) );
+        }
     }
 }

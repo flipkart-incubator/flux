@@ -11,22 +11,24 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.examples.decision;
+package com.flipkart.flux.examples.perf;
 
-import com.flipkart.flux.client.model.Task;
+import com.flipkart.flux.client.model.Event;
 
 /**
- * In a real case, this may talk to a database to perform CRUD operations on user data
+ * @author shyam.akirala
  */
-public class UserDataService {
+public class FluxPackage implements Event {
+    String string;
 
-    @Task(version = 1, timeout = 1000l, retries = 2)
-    public UserData retrieveUserData(UserId userId) {
-        try {
-            Thread.sleep(20);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return new UserData("someEmail@gmail.com","someName", userId);
+    public FluxPackage() {
+    }
+
+    public FluxPackage(String string) {
+        this.string = string;
+    }
+
+    public String getString() {
+        return string;
     }
 }
