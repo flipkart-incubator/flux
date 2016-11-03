@@ -53,7 +53,7 @@ public class LocalJvmTask extends AbstractTask {
     @Override
     public int getExecutionConcurrency() {
         /* TODO - pull from deployment unit/ client definition */
-        return 10;
+        return 25;
     }
 
     @Override
