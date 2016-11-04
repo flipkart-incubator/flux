@@ -60,6 +60,6 @@ public class DummyDeploymentUnitUtil implements DeploymentUnitUtil {
 
     @Override
     public YamlConfiguration getProperties(DeploymentUnitClassLoader classLoader) throws Exception {
-        return new YamlConfiguration(this.getClass().getClassLoader().getResource("packaged/configuration.yml"));
+        return new YamlConfiguration(this.getClass().getClassLoader().getResource("flux_config.yml"));
     }
 }

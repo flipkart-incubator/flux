@@ -18,7 +18,7 @@ import com.flipkart.polyguice.config.YamlConfiguration;
 import org.apache.commons.io.IOUtils;
 
 import java.lang.reflect.Method;
-import java.util.Set;
+import java.util.*;
 
 /**
  * <code>DeploymentUnit</code> represents a Deployment Unit.
@@ -111,5 +111,15 @@ public class DeploymentUnit {
 
     public Object getInjectorClassInstance() {
         return injectorClassInstance;
+    }
+
+    public Map<String, Object> getTaskConfiguration(String taskPrefix) {
+        Iterator<String> allKeys = configuration.getKeys("taskConfig." + taskPrefix);
+        Map<String, Object> config = new HashMap<>();
+        while(allKeys.hasNext()) {
+            String nextKey = allKeys.next();
+            config.put(nextKey.replaceFirst("taskConfig." + taskPrefix + ".", ""), configuration.getProperty(nextKey));
+        }
+        return config;
     }
 }
