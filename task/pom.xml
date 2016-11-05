@@ -104,7 +104,7 @@
 		  <groupId>com.typesafe.akka</groupId>
 		  <artifactId>akka-cluster-metrics_2.11</artifactId>
 		  <version>${akka.cluster.metrics.version}</version>
-		</dependency>	
+		</dependency>
 		<dependency>
 	      <groupId>io.kamon</groupId>
 	      <artifactId>kamon-core_2.11</artifactId>
@@ -114,12 +114,22 @@
 	      <groupId>io.kamon</groupId>
 	      <artifactId>kamon-akka_2.11</artifactId>
 	      <version>${kamon.version}</version>
-	    </dependency>	 
+	    </dependency>
+        <dependency>
+            <groupId>io.kamon</groupId>
+            <artifactId>kamon-akka-remote_akka-2.4_2.11</artifactId>
+            <version>${kamon.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.kamon</groupId>
+            <artifactId>kamon-jmx_2.11</artifactId>
+            <version>${kamon.version}</version>
+        </dependency>
 		<dependency>
 			<groupId>org.aspectj</groupId>
 			<artifactId>aspectjweaver</artifactId>
-			<version>1.8.1</version>
-		</dependency>	
+			<version>1.8.9</version>
+		</dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
