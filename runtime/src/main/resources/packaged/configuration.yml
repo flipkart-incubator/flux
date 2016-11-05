@@ -35,7 +35,7 @@ Api:
 routers:
   default:
     totalInstances: 10
-    maxInstancesPerNode: 2
+    maxInstancesPerNode: 4
 
 runtime:
   actorsystem:
@@ -47,7 +47,7 @@ runtime:
 
 redriver:
   batchdelete:
-    batchsize: 2
+    batchsize: 50
     intervalms: 1000
 
 deploymentType: directory
