@@ -76,21 +76,23 @@ public class MessageScheduler {
 
     public void start() {
         if (schedulerThread.getState() == Thread.State.NEW) {
-            addOldMessagesToPriorityQueue();
-            schedulerThread.start();
-        } else {
-            if (schedulerThread.getState() == Thread.State.TERMINATED) {
-                synchronized (this) {
-                    if(schedulerThread.getState() == Thread.State.TERMINATED) {
-                        logger.info("Scheduler thread is in Terminated state. Starting a new Scheduler thread.");
-                        schedulerThread = new SchedulerThread();
-                        addOldMessagesToPriorityQueue();
-                        schedulerThread.start();
-                    }
+            synchronized (this) {
+                if (schedulerThread.getState() == Thread.State.NEW) {
+                    addOldMessagesToPriorityQueue();
+                    schedulerThread.start();
                 }
-            } else {
-                logger.warn("Scheduler thread start request discarded. Scheduler thread's current state: {}", schedulerThread.getState());
             }
+        } else if (schedulerThread.getState() == Thread.State.TERMINATED) {
+            synchronized (this) {
+                if (schedulerThread.getState() == Thread.State.TERMINATED) {
+                    logger.info("Scheduler thread is in Terminated state. Starting a new Scheduler thread.");
+                    schedulerThread = new SchedulerThread();
+                    addOldMessagesToPriorityQueue();
+                    schedulerThread.start();
+                }
+            }
+        } else {
+            logger.warn("Scheduler thread start request discarded. Scheduler thread's current state: {}", schedulerThread.getState());
         }
     }
 
@@ -98,7 +100,9 @@ public class MessageScheduler {
         schedulerThread.halt();
     }
 
-    /** Retrieves all messages from ScheduledMessages table and adds them to priority queue */
+    /**
+     * Retrieves all messages from ScheduledMessages table and adds them to priority queue
+     */
     private void addOldMessagesToPriorityQueue() {
         List<ScheduledMessage> scheduledMessagesInDB = messageManagerService.retrieveAll();
         messages.addAll(scheduledMessagesInDB);
