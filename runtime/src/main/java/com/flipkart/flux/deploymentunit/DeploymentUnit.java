@@ -16,9 +16,10 @@ package com.flipkart.flux.deploymentunit;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.configuration.Configuration;
 
 import java.lang.reflect.Method;
-import java.util.Set;
+import java.util.*;
 
 /**
  * <code>DeploymentUnit</code> represents a Deployment Unit.
@@ -111,5 +112,9 @@ public class DeploymentUnit {
 
     public Object getInjectorClassInstance() {
         return injectorClassInstance;
+    }
+
+    public Configuration getTaskConfiguration() {
+        return configuration.subset("taskConfig");
     }
 }

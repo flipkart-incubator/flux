@@ -39,16 +39,20 @@ public class TaskExecutableImpl implements Executable {
     /** timeout of the task */
     private final long timeout;
 
+    /** max allowed no. of concurrently running instances of this task per node */
+    private final int executionConcurrency;
+
     /** Singleton ObjectMapper instance of the deployment unit */
     private final Object objectMapperInstance;
 
     /** Class loader of the deployment unit to which 'toInvoke' belongs */
     private final URLClassLoader deploymentUnitClassLoader;
 
-    public TaskExecutableImpl(Object singletonMethodOwner, Method toInvoke, long timeout, URLClassLoader classLoader, Object objectMapperInstance) {
+    public TaskExecutableImpl(Object singletonMethodOwner, Method toInvoke, long timeout, int executionConcurrency, URLClassLoader classLoader, Object objectMapperInstance) {
         this.singletonMethodOwner = singletonMethodOwner;
         this.toInvoke = toInvoke;
         this.timeout = timeout;
+        this.executionConcurrency = executionConcurrency;
         this.deploymentUnitClassLoader = classLoader;
         this.objectMapperInstance = objectMapperInstance;
     }
@@ -87,6 +91,10 @@ public class TaskExecutableImpl implements Executable {
 
     public long getTimeout() {
         return timeout;
+    }
+
+    public int getExecutionConcurrency() {
+        return executionConcurrency;
     }
 
     @Override
