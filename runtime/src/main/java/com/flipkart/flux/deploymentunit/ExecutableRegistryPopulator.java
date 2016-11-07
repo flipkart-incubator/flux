@@ -21,6 +21,7 @@ import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.guice.annotation.ManagedEnv;
 import com.flipkart.flux.registry.TaskExecutableImpl;
 import com.flipkart.polyguice.core.Initializable;
+import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +47,7 @@ public class ExecutableRegistryPopulator implements Initializable {
 
     /** Logger for this class*/
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutableRegistryPopulator.class);
-    private static final int DEFAULT_EXECUTION_CONCURRENCY = 10;
+    private static final int DEFAULT_TASK_EXECUTION_CONCURRENCY = 10;
 
     private ExecutableRegistry executableRegistry;
 
@@ -108,6 +109,8 @@ public class ExecutableRegistryPopulator implements Initializable {
                 Method getInstanceMethod = injectorClass.getMethod("getInstance", Class.class);
 
                 Set<Method> taskMethods = deploymentUnit.getTaskMethods();
+                Configuration taskConfigs = deploymentUnit.getTaskConfiguration();
+
                 //for every task method found in the deployment unit create an executable and keep it in executable registry
                 for(Method method : taskMethods) {
                     Annotation taskAnnotation = method.getAnnotationsByType(taskClass)[0];
@@ -128,9 +131,8 @@ public class ExecutableRegistryPopulator implements Initializable {
                     String taskIdentifier = methodId.toString() + _VERSION + version;
 
                     /* get concurrency config for this task */
-                    Map<String, Object> taskConfig = deploymentUnit.getTaskConfiguration(methodId.getPrefix());
-                    int taskExecConcurrency = Optional.ofNullable(taskConfig).map(e -> (Integer)e.get("execution.concurrency"))
-                            .orElse(DEFAULT_EXECUTION_CONCURRENCY);
+                    Integer taskExecConcurrency = Optional.ofNullable((Integer)taskConfigs.getProperty(methodId.getPrefix() + ".executionConcurrency"))
+                            .orElse(DEFAULT_TASK_EXECUTION_CONCURRENCY);
 
                     Object singletonMethodOwner = getInstanceMethod.invoke(injectorClassInstance, method.getDeclaringClass());
                     executableRegistry.registerTask(taskIdentifier, new TaskExecutableImpl(singletonMethodOwner, method, timeout, taskExecConcurrency, classLoader, objectMapperInstance));
@@ -145,5 +147,4 @@ public class ExecutableRegistryPopulator implements Initializable {
             }
         }
     }
-
 }

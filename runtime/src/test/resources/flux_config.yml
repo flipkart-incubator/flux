@@ -1,7 +1,5 @@
-#guiceModuleClass: "com.flipkart.flux.examples.externalevents.SellerVerificationWorkflowModule"
 workflowClasses: ["com.flipkart.flux.dao.TestWorkflow",
                   "com.flipkart.flux.integration.SimpleWorkflow"]
 taskConfig:
   com.flipkart.flux.integration.SimpleWorkflow_simpleStringReturningTask:
-    execution:
-      concurrency: 5
+    executionConcurrency: 5

@@ -16,6 +16,7 @@ package com.flipkart.flux.deploymentunit;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.configuration.Configuration;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -113,13 +114,7 @@ public class DeploymentUnit {
         return injectorClassInstance;
     }
 
-    public Map<String, Object> getTaskConfiguration(String taskPrefix) {
-        Iterator<String> allKeys = configuration.getKeys("taskConfig." + taskPrefix);
-        Map<String, Object> config = new HashMap<>();
-        while(allKeys.hasNext()) {
-            String nextKey = allKeys.next();
-            config.put(nextKey.replaceFirst("taskConfig." + taskPrefix + ".", ""), configuration.getProperty(nextKey));
-        }
-        return config;
+    public Configuration getTaskConfiguration() {
+        return configuration.subset("taskConfig");
     }
 }
