@@ -77,8 +77,8 @@ public class MessageScheduler {
     public void start() {
         if (schedulerThread.getState() == Thread.State.NEW) {
             synchronized (this) {
-                if (schedulerThread.getState() == Thread.State.NEW) {
-                    addOldMessagesToPriorityQueue();
+                if(schedulerThread.getState() == Thread.State.NEW) {
+                    new RetrieveThread().start();
                     schedulerThread.start();
                 }
             }
@@ -87,7 +87,7 @@ public class MessageScheduler {
                 if (schedulerThread.getState() == Thread.State.TERMINATED) {
                     logger.info("Scheduler thread is in Terminated state. Starting a new Scheduler thread.");
                     schedulerThread = new SchedulerThread();
-                    addOldMessagesToPriorityQueue();
+                    new RetrieveThread().start();
                     schedulerThread.start();
                 }
             }
@@ -103,9 +103,12 @@ public class MessageScheduler {
     /**
      * Retrieves all messages from ScheduledMessages table and adds them to priority queue
      */
-    private void addOldMessagesToPriorityQueue() {
-        List<ScheduledMessage> scheduledMessagesInDB = messageManagerService.retrieveAll();
-        messages.addAll(scheduledMessagesInDB);
+    private class RetrieveThread extends Thread {
+        @Override
+        public void run() {
+            List<ScheduledMessage> scheduledMessagesInDB = messageManagerService.retrieveAll();
+            messages.addAll(scheduledMessagesInDB);
+        }
     }
 
     private class SchedulerThread extends Thread {
