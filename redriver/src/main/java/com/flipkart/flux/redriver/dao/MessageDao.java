@@ -39,7 +39,7 @@ public class MessageDao {
 
     @Transactional
     public void save(ScheduledMessage scheduledMessage) {
-        currentSession().save(scheduledMessage);
+        currentSession().saveOrUpdate(scheduledMessage);
     }
 
     @Transactional
