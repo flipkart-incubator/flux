@@ -66,6 +66,10 @@ public class MessageManagerService implements Disposable,Initializable {
         this.messagesToDelete.add(message);
     }
 
+    public List<ScheduledMessage> retrieveAll() {
+        return messageDao.retrieveAll();
+    }
+
     @Override
     public void dispose() {
         scheduledExecutorService.shutdown();
