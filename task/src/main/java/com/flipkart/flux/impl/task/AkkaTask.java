@@ -118,12 +118,14 @@ public class AkkaTask extends UntypedActor {
 
                 try {
                     outputEvent = taskExecutor.execute();
+
+                    if(outputEvent != null) {
+                        // after successful task execution, post the generated output event for further processing
+                        fluxRuntimeConnector.submitEvent(new EventData(outputEvent.getName(), outputEvent.getType(), outputEvent.getEventData(), outputEvent.getEventSource()), outputEvent.getStateMachineInstanceId());
+                    }
                     // update the Flux runtime with status of the Task as completed
                     fluxRuntimeConnector.updateExecutionStatus(
                             new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.completed, taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
-
-                    // after successful task execution, post the generated output event for further processing
-                    fluxRuntimeConnector.submitEvent(new EventData(outputEvent.getName(), outputEvent.getType(), outputEvent.getEventData(), outputEvent.getEventSource()), outputEvent.getStateMachineInstanceId());
 
                     // mark completed
                     executionCompleted = true;
@@ -166,6 +168,7 @@ public class AkkaTask extends UntypedActor {
                         }
                     }
                 } catch (RuntimeCommunicationException e) {
+                    logger.error("Task completed but updateStatus/submit failed. ErrorMsg: {}", e.getMessage());
                     // mark the task outcome as execution failure and throw retriable error
                     fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(
                             taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.errored, taskAndEvent.getRetryCount(),
@@ -179,7 +182,7 @@ public class AkkaTask extends UntypedActor {
                             new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.errored,
                                     taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount(), e.getMessage()));
                 } finally {
-                    if (executionCompleted) {
+                    if (executionCompleted && outputEvent != null) {
                         getSender().tell(outputEvent, getContext().parent()); // we send back the parent Supervisor Actor as the sender
                     }
                 }
