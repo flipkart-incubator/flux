@@ -30,6 +30,7 @@ import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.api.core.Task;
 import com.flipkart.flux.client.exception.FluxRetriableException;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
+import com.flipkart.flux.client.runtime.RuntimeCommunicationException;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.impl.message.HookAndEvents;
 import com.flipkart.flux.impl.message.TaskAndEvents;
@@ -48,7 +49,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * <code>AkkaTask</code> is an Akka {@link UntypedActor} that executes {@link Task} instances concurrently. Tasks are executed using a {@link TaskExecutor} where 
- * the execution of {@link Task#execute(com.flipkart.flux.domain.Event...)} is wrapped with a {@link HystrixCommand} to provide isolation and fault tolerance to 
+ * the execution of {@link Task#execute(EventData[])} is wrapped with a {@link HystrixCommand} to provide isolation and fault tolerance to
  * the Flux runtime. 
  *
  * @author regunath.balasubramanian
@@ -113,11 +114,21 @@ public class AkkaTask extends UntypedActor {
                 final String outputEventName = getOutputEventName(taskAndEvent);
                 final TaskExecutor taskExecutor = new TaskExecutor(task, taskAndEvent.getEvents(), taskAndEvent.getStateMachineId(), outputEventName);
                 Event outputEvent = null;
+                boolean executionCompleted = false;
+
                 try {
                     outputEvent = taskExecutor.execute();
+
+                    if(outputEvent != null) {
+                        // after successful task execution, post the generated output event for further processing
+                        fluxRuntimeConnector.submitEvent(new EventData(outputEvent.getName(), outputEvent.getType(), outputEvent.getEventData(), outputEvent.getEventSource()), outputEvent.getStateMachineInstanceId());
+                    }
                     // update the Flux runtime with status of the Task as completed
                     fluxRuntimeConnector.updateExecutionStatus(
                             new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.completed, taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
+
+                    // mark completed
+                    executionCompleted = true;
                 } catch (HystrixRuntimeException hre) {
                 	FailureType ft = hre.getFailureType();
                 	// we signal a timeout for any of Timeout, ThreadPool Rejection or Short-Circuit - all of these may go through with time and retry
@@ -156,13 +167,22 @@ public class AkkaTask extends UntypedActor {
                                             taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount(), hre.getMessage()));
                         }
                     }
+                } catch (RuntimeCommunicationException e) {
+                    logger.error("Task completed but updateStatus/submit failed. ErrorMsg: {}", e.getMessage());
+                    // mark the task outcome as execution failure and throw retriable error
+                    fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(
+                            taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.errored, taskAndEvent.getRetryCount(),
+                            taskAndEvent.getCurrentRetryCount(), e.getMessage()));
+                    throw new FluxError(FluxError.ErrorType.retriable, e.getMessage(), e, false,
+                            new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(),
+                                    taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
                 } catch (Exception e) {
                     // mark the task outcome as execution failure
                     fluxRuntimeConnector.updateExecutionStatus(
                             new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.errored,
                                     taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount(), e.getMessage()));
                 } finally {
-                    if (outputEvent != null) {
+                    if (executionCompleted && outputEvent != null) {
                         getSender().tell(outputEvent, getContext().parent()); // we send back the parent Supervisor Actor as the sender
                     }
                 }
@@ -205,5 +225,4 @@ public class AkkaTask extends UntypedActor {
         final String outputEvent = taskAndEvent.getOutputEvent();
         return outputEvent != null ? objectMapper.readValue(outputEvent, EventDefinition.class).getName() : null;
     }
-
 }

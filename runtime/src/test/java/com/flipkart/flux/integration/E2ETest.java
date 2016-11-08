@@ -14,6 +14,7 @@
 
 package com.flipkart.flux.integration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.client.registry.ExecutableImpl;
