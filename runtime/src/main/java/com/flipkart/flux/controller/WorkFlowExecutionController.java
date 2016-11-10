@@ -155,7 +155,7 @@ public class WorkFlowExecutionController {
     public void unsidelineState(Long stateMachineId, Long stateId) {
         State state = this.statesDAO.findById(stateId);
 
-        if (state.getStatus() == Status.sidelined) {
+        if (state.getStatus() == Status.sidelined || state.getStatus() == Status.errored) {
             state.setStatus(Status.unsidelined);
             state.setAttemptedNoOfRetries(0L);
 
