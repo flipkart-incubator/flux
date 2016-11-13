@@ -54,7 +54,7 @@ public class AkkaRedriverRegistryImpl implements RedriverRegistry, Initializable
      */
     @Inject    
     public AkkaRedriverRegistryImpl(ActorSystemManager actorSystemManager, 
-    		@Named("runtime.actorsystem.noOfRedriverWorkers") int noOfRedriverWorkers) {
+    		@Named("redriver.noOfRedriverWorkers") int noOfRedriverWorkers) {
     	this.actorSystemManager = actorSystemManager;
     	this.noOfRedriverWorkers = noOfRedriverWorkers;
     }

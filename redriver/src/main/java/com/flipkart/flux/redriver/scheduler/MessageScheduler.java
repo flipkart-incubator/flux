@@ -48,7 +48,7 @@ public class MessageScheduler {
     private int noOfPersistenceWorkers;
 
     @Inject
-    public MessageScheduler(MessageManagerService messageManagerService, RedriverRegistry redriverRegistry, @Named("redriver.persistenceWorkers") int noOfPersistenceWorkers) {
+    public MessageScheduler(MessageManagerService messageManagerService, RedriverRegistry redriverRegistry, @Named("redriver.noOfPersistenceWorkers") int noOfPersistenceWorkers) {
         this(messageManagerService, new PriorityQueue<>(new ScheduledMessageComparator()), redriverRegistry, noOfPersistenceWorkers);
     }
 
