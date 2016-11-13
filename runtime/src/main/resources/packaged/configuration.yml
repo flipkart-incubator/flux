@@ -49,6 +49,7 @@ redriver:
   batchdelete:
     batchsize: 50
     intervalms: 1000
+  persistenceWorkers: 10
 
 deploymentType: directory
 deploymentUnitsPath: "/tmp/workflows/"

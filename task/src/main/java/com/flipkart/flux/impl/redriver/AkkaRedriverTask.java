@@ -12,21 +12,7 @@
  */
 package com.flipkart.flux.impl.redriver;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.flipkart.flux.api.core.Task;
-import com.flipkart.flux.impl.message.TaskRedriverDetails;
-
-import akka.actor.ActorRef;
-import akka.actor.Address;
-import akka.actor.Props;
-import akka.actor.Terminated;
-import akka.actor.UntypedActor;
-import akka.cluster.Cluster;
-import akka.cluster.ClusterEvent.CurrentClusterState;
-import akka.cluster.ClusterEvent.LeaderChanged;
+import akka.actor.*;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.remote.RemoteActorRefProvider;
@@ -34,10 +20,15 @@ import akka.routing.ActorRefRoutee;
 import akka.routing.RoundRobinRoutingLogic;
 import akka.routing.Routee;
 import akka.routing.Router;
+import com.flipkart.flux.api.core.Task;
+import com.flipkart.flux.impl.message.TaskRedriverDetails;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.flux.redriver.scheduler.MessageScheduler;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * <code>AkkaRedriverTask</code> is an Akka {@link UntypedActor} that uses a cluster singleton scheduler to execute redrivers for
@@ -53,9 +44,6 @@ public class AkkaRedriverTask extends UntypedActor {
     /** Status to indicate if this instance is the Leader Actor for scheduling*/
     private AtomicBoolean isLeader = new AtomicBoolean(false);
 
-	/** Get a handle to the cluster that this Actor is part of*/
-	private Cluster cluster = Cluster.get(getContext().system());
-	
 	/** The Router instance that manages local redriver task execution Actors */
 	private Router router;
 
@@ -77,19 +65,23 @@ public class AkkaRedriverTask extends UntypedActor {
 	}
 	
 	/**
-	 * The Akka Actor callback method. Registers for Cluster events on Leader changes
+	 * The Akka Actor callback method. Starts Message Scheduler thread which performs Global redriver operations
 	 * @see akka.actor.UntypedActor#preStart()
 	 */
 	public void preStart() {
-		cluster.subscribe(getSelf(),LeaderChanged.class);
+		Address selfAddress = ((RemoteActorRefProvider) getContext().system().provider()).transport().defaultAddress();
+		logger.info("Promoting Actor at address : {} as the leader for cluster-wide redriver Scheduler", selfAddress);
+		messageScheduler.start();
 	}
 	
 	/**
-	 * The Akka Actor callback method. De-Registers for Cluster events
+	 * The Akka Actor callback method. Stops Message Scheduler thread
 	 * @see akka.actor.UntypedActor#postStop()
 	 */
 	public void postStop() {
-		cluster.unsubscribe(getSelf());
+		Address selfAddress = ((RemoteActorRefProvider) getContext().system().provider()).transport().defaultAddress();
+		logger.info("Demoting Actor at address : {} as the leader for cluster-wide redriver Scheduler", selfAddress);
+		messageScheduler.stop();
 	}
 	
 	/**
@@ -97,11 +89,7 @@ public class AkkaRedriverTask extends UntypedActor {
 	 * @see akka.actor.UntypedActor#onReceive(java.lang.Object)
 	 */
 	public void onReceive(Object message) throws Exception {
-		if (message instanceof LeaderChanged) {
-			this.checkAndSetAsLeader(((LeaderChanged)message).getLeader());
-		} else if (message instanceof CurrentClusterState) {
-			this.checkAndSetAsLeader(((CurrentClusterState)message).getLeader());
-		} else if (message instanceof Terminated) {
+		if (message instanceof Terminated) {
 			// add back any terminated RedriverWorker instances
 			this.router = this.router.removeRoutee(((Terminated) message).actor());
 			ActorRef r = getContext().actorOf(Props.create(AkkaRedriverWorker.class));
@@ -130,22 +118,4 @@ public class AkkaRedriverTask extends UntypedActor {
 		}
 	}
 	
-	/**
-	 * Helper to determine if this instance of the Actor is the leader and load the scheduled redriver tasks using the scheduler
-	 * @param leaderAddress the fully qualified leader address
-	 */
-	private void checkAndSetAsLeader(Address leaderAddress) {
-		Address selfAddress = ((RemoteActorRefProvider)getContext().system().provider()).transport().defaultAddress();
-		if (leaderAddress.equals(selfAddress)) {
-			if (!this.isLeader.get()) {
-				this.isLeader.set(true);
-				logger.info("Promoting Actor at address : {} as the leader for cluster-wide redriver Scheduler", leaderAddress);
-				messageScheduler.start();
-			}
-		} else {
-			this.isLeader.set(false);
-			logger.info("Demoting Actor at address : {} as the leader for cluster-wide redriver Scheduler", leaderAddress);
-			messageScheduler.stop();
-		}
-	}	
 }
