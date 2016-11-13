@@ -28,7 +28,6 @@ import com.flipkart.flux.redriver.scheduler.MessageScheduler;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * <code>AkkaRedriverTask</code> is an Akka {@link UntypedActor} that uses a cluster singleton scheduler to execute redrivers for
@@ -41,9 +40,6 @@ public class AkkaRedriverTask extends UntypedActor {
 	/** Logger instance for this class*/
     private LoggingAdapter logger = Logging.getLogger(getContext().system(), this);
     
-    /** Status to indicate if this instance is the Leader Actor for scheduling*/
-    private AtomicBoolean isLeader = new AtomicBoolean(false);
-
 	/** The Router instance that manages local redriver task execution Actors */
 	private Router router;
 
