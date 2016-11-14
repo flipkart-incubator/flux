@@ -14,28 +14,21 @@
 
 package com.flipkart.flux.impl.boot;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import akka.actor.*;
 import com.flipkart.flux.impl.recovery.DeadLetterActor;
-import com.flipkart.polyguice.core.Disposable;
 import com.flipkart.polyguice.core.Initializable;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.DeadLetter;
-import akka.actor.Props;
-import akka.actor.Terminated;
 import kamon.Kamon;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 /**
  * Responsible for bringing up the entire akka runtime
@@ -44,7 +37,7 @@ import scala.concurrent.duration.Duration;
  * @author regunath.balasubramanian
  */
 @Singleton
-public class ActorSystemManager implements Disposable, Initializable {
+public class ActorSystemManager implements Initializable {
 
 	/** Logger for this class*/
 	private static final Logger LOGGER = LoggerFactory.getLogger(ActorSystemManager.class);
@@ -93,21 +86,31 @@ public class ActorSystemManager implements Disposable, Initializable {
         final ActorRef deadLetterActor = system.actorOf(Props.create(DeadLetterActor.class));
         system.eventStream().subscribe(deadLetterActor, DeadLetter.class);        
         this.isInitialised = true;
+
+        registerShutdownHook();
+
     }
 
-    @Override
-    public void dispose() {
-        if(withMetrics) {
-            Kamon.shutdown();
-        }
-        if (system != null) {
-        	Future<Terminated> terminateFut = system.terminate();
-        	try {
-				Await.result(terminateFut, Duration.Inf()); // we'll wait for infinite time. Flux shutdown can decide to kill the JVM
-			} catch (Exception e) {
-				LOGGER.error("Error shutting down Actor system", e);
-			}
-        }
+    private void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(
+                new Thread() {
+                    @Override
+                    public void run() {
+                        if(withMetrics) {
+                            Kamon.shutdown();
+                        }
+                        if (system != null) {
+                            Future<Terminated> terminateFut = system.terminate();
+                            try {
+                                LOGGER.info("Shutting down Actor system");
+                                Await.result(terminateFut, Duration.Inf()); // we'll wait for infinite time. Flux shutdown can decide to kill the JVM
+                            } catch (Exception e) {
+                                LOGGER.error("Error shutting down Actor system", e);
+                            }
+                        }
+                    }
+                }
+        );
     }
 
     public boolean isInitialised() {

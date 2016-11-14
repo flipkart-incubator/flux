@@ -17,7 +17,6 @@ import com.codahale.metrics.InstrumentedScheduledExecutorService;
 import com.codahale.metrics.SharedMetricRegistries;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
-import com.flipkart.polyguice.core.Disposable;
 import com.flipkart.polyguice.core.Initializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +38,7 @@ import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
  * & also guard against race conditions where we have multiple
  */
 @Singleton
-public class MessageManagerService implements Disposable,Initializable {
+public class MessageManagerService implements Initializable {
     private final MessageDao messageDao;
     private final Long batchDeleteInterval;
     private final Integer batchSize;
@@ -70,14 +69,20 @@ public class MessageManagerService implements Disposable,Initializable {
         return messageDao.retrieveAll();
     }
 
-    @Override
-    public void dispose() {
-        scheduledExecutorService.shutdown();
-        try {
-            scheduledExecutorService.awaitTermination(2,TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            logger.error("Could not shutdown scheduled executor service",e);
-        }
+    private void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(
+                new Thread() {
+                    @Override
+                    public void run() {
+                        scheduledExecutorService.shutdown();
+                        try {
+                            scheduledExecutorService.awaitTermination(2,TimeUnit.SECONDS);
+                        } catch (InterruptedException e) {
+                            logger.error("Could not shutdown scheduled executor service",e);
+                        }
+                    }
+                }
+        );
     }
 
 
@@ -98,5 +103,7 @@ public class MessageManagerService implements Disposable,Initializable {
                 messageDao.deleteInBatch(messageIdsToDelete);
             }
         }, 0l, batchDeleteInterval, TimeUnit.MILLISECONDS);
+
+        registerShutdownHook();
     }
 }

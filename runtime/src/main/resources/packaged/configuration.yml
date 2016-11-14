@@ -43,12 +43,13 @@ runtime:
     name: FluxSystem
     configname: application.conf
     maxGatewayActorCreateRetries : 10
-    noOfRedriverWorkers : 50
 
 redriver:
   batchdelete:
     batchsize: 50
     intervalms: 1000
+  noOfRedriverWorkers : 50
+  noOfPersistenceWorkers: 10
 
 deploymentType: directory
 deploymentUnitsPath: "/tmp/workflows/"
