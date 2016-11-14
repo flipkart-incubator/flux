@@ -21,6 +21,7 @@ import org.hibernate.SessionFactory;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.List;
 
 /**
  * <code>StatesDAOImpl</code> is an implementation of {@link StatesDAO} which uses Hibernate to perform operations.
@@ -78,5 +79,18 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Transactional
     public State findById(Long id) {
         return super.findById(State.class, id);
+    }
+
+    @Override
+    @Transactional
+    public List findErroredStates(String stateMachineName, Long fromStateMachineId, Long toStateMachineId) {
+        Query query = currentSession().createQuery("select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
+                "where sm.id between :fromStateMachineId and :toStateMachineId and sm.name = :stateMachineName and state.status in ('errored', 'sidelined', 'cancelled')");
+
+        query.setLong("fromStateMachineId", fromStateMachineId);
+        query.setLong("toStateMachineId", toStateMachineId);
+        query.setString("stateMachineName", stateMachineName);
+
+        return query.list();
     }
 }
