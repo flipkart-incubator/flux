@@ -42,7 +42,7 @@ public class MessageManagerService implements Initializable {
     private final MessageDao messageDao;
     private final Long batchDeleteInterval;
     private final Integer batchSize;
-    private final ConcurrentLinkedQueue<ScheduledMessage> messagesToDelete;
+    private final ConcurrentLinkedQueue<Long> messagesToDelete;
     private static final Logger logger = LoggerFactory.getLogger(MessageManagerService.class);
     private final InstrumentedScheduledExecutorService scheduledExecutorService;
 
@@ -61,8 +61,8 @@ public class MessageManagerService implements Initializable {
     public void saveMessage(ScheduledMessage message) {
         messageDao.save(message);
     }
-    public void scheduleForRemoval(ScheduledMessage message) {
-        this.messagesToDelete.add(message);
+    public void scheduleForRemoval(Long taskId) {
+        this.messagesToDelete.add(taskId);
     }
 
     public List<ScheduledMessage> retrieveAll() {
@@ -85,20 +85,19 @@ public class MessageManagerService implements Initializable {
         );
     }
 
-
     @Override
     public void initialize() {
         scheduledExecutorService.scheduleAtFixedRate(() -> {
             int i = 0;
-            ScheduledMessage currentMessageToDelete = null;
+            Long currentMessageIdToDelete = null;
             List<Long> messageIdsToDelete = new ArrayList<>(batchSize);
             do {
-                currentMessageToDelete = this.messagesToDelete.poll();
-                if (currentMessageToDelete != null) {
-                    messageIdsToDelete.add(currentMessageToDelete.getTaskId());
+                currentMessageIdToDelete = this.messagesToDelete.poll();
+                if (currentMessageIdToDelete != null) {
+                    messageIdsToDelete.add(currentMessageIdToDelete);
                 }
                 i++;
-            } while (currentMessageToDelete != null && i < batchSize);
+            } while (currentMessageIdToDelete != null && i < batchSize);
             if (!messageIdsToDelete.isEmpty()) {
                 messageDao.deleteInBatch(messageIdsToDelete);
             }

@@ -68,17 +68,8 @@ public class MessageSchedulerTest {
 
         assertTrue(localMessageQueue.isEmpty());
 
-        verify(messageManagerService,times(1)).scheduleForRemoval(testMessage);
+        verify(messageManagerService,times(1)).scheduleForRemoval(testMessage.getTaskId());
         verifyNoMoreInteractions(messageManagerService);
-    }
-
-    @Test
-    public void testRemoveMessage_shouldBeGracefullInFaceOfUnknownMessageId() throws Exception {
-        final PriorityQueue<ScheduledMessage> localMessageQueue = new PriorityQueue<>();
-        messageScheduler = new MessageScheduler(messageManagerService, localMessageQueue, redriverRegistry, 10);
-        messageScheduler.removeMessage(123l);
-        assertTrue(localMessageQueue.isEmpty());
-        verifyZeroInteractions(messageManagerService);
     }
 
     @Test
@@ -112,7 +103,7 @@ public class MessageSchedulerTest {
         messageScheduler.start();
         Thread.sleep(1100l);
         verify(redriverRegistry,times(2)).redriveTask(anyLong());
-        verify(messageManagerService,times(1)).scheduleForRemoval(testMessage1);
-        verify(messageManagerService,times(1)).scheduleForRemoval(testMessage2);
+        verify(messageManagerService,times(1)).scheduleForRemoval(testMessage1.getTaskId());
+        verify(messageManagerService,times(1)).scheduleForRemoval(testMessage2.getTaskId());
     }
 }
