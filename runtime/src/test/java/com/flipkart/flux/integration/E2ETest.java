@@ -14,11 +14,16 @@
 
 package com.flipkart.flux.integration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
+import com.flipkart.flux.client.registry.Executable;
+import com.flipkart.flux.client.registry.ExecutableImpl;
+import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.deploymentunit.ExecutableRegistryPopulator;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.guice.annotation.ManagedEnv;
 import com.flipkart.flux.guice.module.AkkaModule;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.HibernateModule;
@@ -26,6 +31,7 @@ import com.flipkart.flux.impl.boot.TaskModule;
 import com.flipkart.flux.initializer.OrderedComponentBooter;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
 import com.flipkart.flux.module.RuntimeTestModule;
+import com.flipkart.flux.registry.TaskExecutableImpl;
 import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
@@ -62,6 +68,9 @@ public class E2ETest {
     @Inject
     ExecutableRegistryPopulator executableRegistryPopulator;
 
+    @Inject
+    @ManagedEnv
+    ExecutableRegistry registry;
 
     @Test
     public void testSimpleWorkflowE2E() throws Exception {
@@ -79,5 +88,14 @@ public class E2ETest {
 
         /** All the events should be in triggered state after execution*/
         assertThat(eventsDAO.findTriggeredEventsNamesBySMId(smId)).hasSize(3);
+    }
+
+    @Test
+    public void testExecConcurrencyValueOfTask() {
+        Executable executable = registry.getTask("com.flipkart.flux.integration.SimpleWorkflow_simpleStringReturningTask_com.flipkart.flux.integration.StringEvent_com.flipkart.flux.integration.StringEvent_version1");
+
+        assertThat(executable).isInstanceOf(TaskExecutableImpl.class);
+        TaskExecutableImpl taskExecutable = (TaskExecutableImpl)executable;
+        assertThat(taskExecutable.getExecutionConcurrency()).isEqualTo(5);
     }
 }

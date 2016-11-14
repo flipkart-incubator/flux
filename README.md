@@ -6,6 +6,7 @@ Flux can be used to build Workflows and Reactive apps that are stateful.
 | Release | Date | Description |
 |:------------|:----------------|:------------|
 | Version 1.0-SNAPSHOT             | Jun 2016      |    First release for user trials
+| Version 1.0.3-SNAPSHOT            | Oct 2016      |    
 
 ## Changelog
 Changelog can be viewed in [CHANGELOG.md](https://github.com/flipkart-incubator/flux/blob/master/CHANGELOG.md) file
@@ -18,18 +19,17 @@ client SDK to build event-driven reactive apps. The runtime allows to run multip
 ## Flux Visualization & Monitoring
 Flux allows you to monitor real-time execution of all running state machine tasks. Default path for dashboard is http://localhost:9999/admin/dashboard
 
-![Monitor](https://github.com/flipkart-incubator/flux/raw/master/docs/Flux-hystrix.png)
+<img src="https://github.com/flipkart-incubator/flux/raw/master/docs/flux-cluster.png" width="800">
 
 Additionally, you can also inspect individual state machine execution DAGs and audit data:
 
-<img src="https://github.com/flipkart-incubator/flux/raw/master/docs/Flux-serial-workflow.png" width=500">
+<img src="https://github.com/flipkart-incubator/flux/raw/master/docs/Flux-serial-workflow.png" width="500">
 
-<img src="https://github.com/flipkart-incubator/flux/blob/master/docs/Flux-fork-join-workflow.png" width="500">
-
-<img src="https://github.com/flipkart-incubator/flux/raw/master/docs/fsm_graph.jpg" width="500">
+<img src="https://github.com/flipkart-incubator/flux/blob/master/docs/Flux-fork-join.png" width="500">
 
 ![Audit] (https://github.com/flipkart-incubator/flux/raw/master/docs/audit_records.png)
 
+Visit https://www.youtube.com/watch?v=DxyNcntnVzQ&feature=youtu.be to see how Flux state machine instance graph and audit look like.
 
 ## Documentation and Examples
 Flux examples are under "examples" module. Each example can be run independently. Flux has very few dependencies and the simplest

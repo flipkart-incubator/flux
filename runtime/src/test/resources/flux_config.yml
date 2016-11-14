@@ -1,0 +1,5 @@
+workflowClasses: ["com.flipkart.flux.dao.TestWorkflow",
+                  "com.flipkart.flux.integration.SimpleWorkflow"]
+taskConfig:
+  com.flipkart.flux.integration.SimpleWorkflow_simpleStringReturningTask:
+    executionConcurrency: 5

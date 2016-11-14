@@ -21,16 +21,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.PriorityQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The scheduler uses an in memory priority queue to prioritise messages by their scheduled time
  * The message with the least scheduled time (i.e, the next message to be picked up) is picked and sent if the current time is
  * greater than or equal to scheduledTime. If not, the scheduler thread sleeps for the difference.
- *
  */
 @Singleton
 public class MessageScheduler {
@@ -40,29 +44,32 @@ public class MessageScheduler {
     private static final Logger logger = LoggerFactory.getLogger(MessageScheduler.class);
     private final RedriverRegistry redriverRegistry;
     private SchedulerThread schedulerThread;
+    private ExecutorService persistenceExecutorService;
+    private int noOfPersistenceWorkers;
 
     @Inject
-    public MessageScheduler(MessageManagerService messageManagerService,RedriverRegistry redriverRegistry) {
-        this(messageManagerService, new PriorityQueue<>(new ScheduledMessageComparator()), redriverRegistry);
+    public MessageScheduler(MessageManagerService messageManagerService, RedriverRegistry redriverRegistry, @Named("redriver.noOfPersistenceWorkers") int noOfPersistenceWorkers) {
+        this(messageManagerService, new PriorityQueue<>(new ScheduledMessageComparator()), redriverRegistry, noOfPersistenceWorkers);
     }
 
-
-    MessageScheduler(MessageManagerService messageManagerService, PriorityQueue<ScheduledMessage> scheduledMessages, RedriverRegistry redriverRegistry) {
+    MessageScheduler(MessageManagerService messageManagerService, PriorityQueue<ScheduledMessage> scheduledMessages, RedriverRegistry redriverRegistry, int noOfPersistenceWorkers) {
         this.messageManagerService = messageManagerService;
         this.messages = scheduledMessages;
         schedulerThread = new SchedulerThread();
         this.redriverRegistry = redriverRegistry;
+        this.noOfPersistenceWorkers = noOfPersistenceWorkers;
+        persistenceExecutorService = Executors.newFixedThreadPool(noOfPersistenceWorkers);
     }
 
     public void addMessage(ScheduledMessage scheduledMessage) {
-        this.messageManagerService.saveMessage(scheduledMessage);
+        persistenceExecutorService.execute(new PersistenceWorker(scheduledMessage));
         this.messages.add(scheduledMessage);
         this.schedulerThread.resumeJobExecution();
     }
 
     public void removeMessage(Long taskId) {
         final Optional<ScheduledMessage> scheduledMessageOptional
-            = this.messages.stream().filter((m) -> m.getTaskId().equals(taskId)).findFirst();
+                = this.messages.stream().filter((m) -> m.getTaskId().equals(taskId)).findFirst();
         if (scheduledMessageOptional.isPresent()) {
             final ScheduledMessage message = scheduledMessageOptional.get();
             /* It is important that we delete from priority queue first. Its okay even if we the schedule for removal call fails.
@@ -75,11 +82,47 @@ public class MessageScheduler {
     }
 
     public void start() {
-        schedulerThread.start();
+        if (schedulerThread.getState() == Thread.State.NEW) {
+            synchronized (this) {
+                if(schedulerThread.getState() == Thread.State.NEW) {
+                    new RetrieveThread().start();
+                    schedulerThread.start();
+                }
+            }
+        } else if (schedulerThread.getState() == Thread.State.TERMINATED) {
+            synchronized (this) {
+                if (schedulerThread.getState() == Thread.State.TERMINATED) {
+                    logger.info("Scheduler thread is in Terminated state. Starting a new Scheduler thread.");
+                    persistenceExecutorService = Executors.newFixedThreadPool(noOfPersistenceWorkers);
+                    schedulerThread = new SchedulerThread();
+                    new RetrieveThread().start();
+                    schedulerThread.start();
+                }
+            }
+        } else {
+            logger.warn("Scheduler thread start request discarded. Scheduler thread's current state: {}", schedulerThread.getState());
+        }
     }
 
     public void stop() {
         schedulerThread.halt();
+        persistenceExecutorService.shutdown();
+        try {
+            persistenceExecutorService.awaitTermination(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            logger.error("Error occurred while terminating Redriver's persistence executor service. Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Retrieves all messages from ScheduledMessages table and adds them to priority queue
+     */
+    private class RetrieveThread extends Thread {
+        @Override
+        public void run() {
+            List<ScheduledMessage> scheduledMessagesInDB = messageManagerService.retrieveAll();
+            messages.addAll(scheduledMessagesInDB);
+        }
     }
 
     private class SchedulerThread extends Thread {
@@ -87,6 +130,7 @@ public class MessageScheduler {
         private Boolean paused = true;
 
         private final Object lock = new Object();
+
         @Override
         public void run() {
             while (true) {
@@ -100,10 +144,10 @@ public class MessageScheduler {
                 try {
                     _run();
                 } catch (RuntimeException e) {
-                    logger.error("Encountered exception during execution",e);
+                    logger.error("Encountered exception during execution", e);
                 } catch (InterruptedException e) {
                     /* The thread is interrupted, best to bail now. */
-                    logger.error("We were interrupted",e);
+                    logger.error("We were interrupted", e);
                 }
             }
         }
@@ -124,7 +168,7 @@ public class MessageScheduler {
                 } else {
                     Long timeLeft = highestPriorityMessage.timeLeftToRun();
                     if (timeLeft > 0) {
-                        logger.info("Next job run only at {}",new Date(highestPriorityMessage.getScheduledTime()));
+                        logger.info("Next job run only at {}", new Date(highestPriorityMessage.getScheduledTime()));
                         sleep(timeLeft);
                     }
                 }
@@ -180,6 +224,23 @@ public class MessageScheduler {
             synchronized (lock) {
                 lock.notifyAll();
             }
+        }
+    }
+
+    /**
+     * Worker thread used to persist {@link ScheduledMessage} in DB
+     */
+    private class PersistenceWorker implements Runnable {
+
+        ScheduledMessage scheduledMessage;
+
+        PersistenceWorker(ScheduledMessage scheduledMessage) {
+            this.scheduledMessage = scheduledMessage;
+        }
+
+        @Override
+        public void run() {
+            messageManagerService.saveMessage(scheduledMessage);
         }
     }
 }

@@ -59,12 +59,9 @@ public class AkkaGatewayTask extends UntypedActor {
 			ActorRef sup = getContext().actorOf(supervisorProps, supName);
 			sup.tell(taskAndEvent, getSelf());
 		} else if (Event.class.isAssignableFrom(message.getClass())) {
-			Event returnedEvent = (Event)message;
 			// relay the Event output from Task execution to the caller ONLY if a Workflow task Actor has been created, which we dont have currently
 			// getContext().parent().tell(message, getSelf()); 
-			getContext().stop(getSender()); // Stop the supervisor actor and its children 
-			// now post the generated output event for further processing
-			fluxRuntimeConnector.submitEvent(new EventData(returnedEvent.getName(), returnedEvent.getType(), returnedEvent.getEventData(), returnedEvent.getEventSource()), returnedEvent.getStateMachineInstanceId());
+			getContext().stop(getSender()); // Stop the supervisor actor and its children
 		} else {
 			logger.error("Task received a message that it cannot process. Only com.flipkart.flux.impl.message.TaskAndEvents is supported. Message type received is : {}", message.getClass().getName());
 			unhandled(message);

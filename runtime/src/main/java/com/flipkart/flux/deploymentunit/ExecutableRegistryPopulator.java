@@ -21,7 +21,7 @@ import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.guice.annotation.ManagedEnv;
 import com.flipkart.flux.registry.TaskExecutableImpl;
 import com.flipkart.polyguice.core.Initializable;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +31,7 @@ import javax.inject.Singleton;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
@@ -46,6 +47,7 @@ public class ExecutableRegistryPopulator implements Initializable {
 
     /** Logger for this class*/
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutableRegistryPopulator.class);
+    private static final int DEFAULT_TASK_EXECUTION_CONCURRENCY = 10;
 
     private ExecutableRegistry executableRegistry;
 
@@ -78,7 +80,7 @@ public class ExecutableRegistryPopulator implements Initializable {
     }
 
     /**
-     * <code>ExecutableRegistryLoader</code> loads tasks of a deployment unit in {@link executableRegistry}
+     * <code>ExecutableRegistryLoader</code> loads tasks of a deployment unit in {@link ExecutableRegistryPopulator#executableRegistry}
      */
     private class ExecutableRegistryLoader implements Runnable {
 
@@ -107,6 +109,8 @@ public class ExecutableRegistryPopulator implements Initializable {
                 Method getInstanceMethod = injectorClass.getMethod("getInstance", Class.class);
 
                 Set<Method> taskMethods = deploymentUnit.getTaskMethods();
+                Configuration taskConfigs = deploymentUnit.getTaskConfiguration();
+
                 //for every task method found in the deployment unit create an executable and keep it in executable registry
                 for(Method method : taskMethods) {
                     Annotation taskAnnotation = method.getAnnotationsByType(taskClass)[0];
@@ -123,10 +127,15 @@ public class ExecutableRegistryPopulator implements Initializable {
                         }
                     }
 
-                    String taskIdentifier = new MethodId(method).toString() + _VERSION + version;
+                    MethodId methodId = new MethodId(method);
+                    String taskIdentifier = methodId.toString() + _VERSION + version;
+
+                    /* get concurrency config for this task */
+                    Integer taskExecConcurrency = Optional.ofNullable((Integer)taskConfigs.getProperty(methodId.getPrefix() + ".executionConcurrency"))
+                            .orElse(DEFAULT_TASK_EXECUTION_CONCURRENCY);
 
                     Object singletonMethodOwner = getInstanceMethod.invoke(injectorClassInstance, method.getDeclaringClass());
-                    executableRegistry.registerTask(taskIdentifier, new TaskExecutableImpl(singletonMethodOwner, method, timeout, classLoader, objectMapperInstance));
+                    executableRegistry.registerTask(taskIdentifier, new TaskExecutableImpl(singletonMethodOwner, method, timeout, taskExecConcurrency, classLoader, objectMapperInstance));
                 }
 
                 //count down the latch once the deployment unit's tasks are loaded into executable registry
@@ -138,5 +147,4 @@ public class ExecutableRegistryPopulator implements Initializable {
             }
         }
     }
-
 }

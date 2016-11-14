@@ -155,7 +155,7 @@ public class WorkFlowExecutionController {
     public void unsidelineState(Long stateMachineId, Long stateId) {
         State state = this.statesDAO.findById(stateId);
 
-        if (state.getStatus() == Status.sidelined) {
+        if (state.getStatus() == Status.sidelined || state.getStatus() == Status.errored) {
             state.setStatus(Status.unsidelined);
             state.setAttemptedNoOfRetries(0L);
 
@@ -204,8 +204,8 @@ public class WorkFlowExecutionController {
             String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition); //the name of router would be classFQN_taskMethodName
             ActorRef router = this.routerRegistry.getRouter(routerName);
 
-            logger.info("Sending msg to router: {} to execute state machine: {} task: {}", router.path(), stateMachineInstanceId, msg.getTaskId());
             router.tell(msg, ActorRef.noSender());
+            logger.info("Sending msg to router: {} to execute state machine: {} task: {}", router.path(), stateMachineInstanceId, msg.getTaskId());
         }));
     }
 

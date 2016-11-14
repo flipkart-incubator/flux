@@ -163,7 +163,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         } catch (IOException e) {
             // TODO log exception here
             e.printStackTrace();
-            throw new RuntimeCommunicationException("Could not communicate with Flux runtime");
+            throw new RuntimeCommunicationException("Could not communicate with Flux runtime: " + fluxEndpoint);
         }
         return httpResponse;
     }
@@ -184,7 +184,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         } catch (IOException e) {
             // TODO log exception here
             e.printStackTrace();
-            throw new RuntimeCommunicationException("Could not communicate with Flux runtime");
+            throw new RuntimeCommunicationException("Could not communicate with Flux runtime: " + fluxEndpoint);
         }
         return httpResponse;
     }

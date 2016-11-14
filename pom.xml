@@ -53,7 +53,7 @@
         <akka.version>2.4.6</akka.version>
         <org.springframework.version>4.2.2.RELEASE</org.springframework.version>
         <akka.cluster.metrics.version>2.4.4</akka.cluster.metrics.version>
-        <kamon.version>0.6.0</kamon.version>
+        <kamon.version>0.6.1</kamon.version>
         <log4j.version>2.5</log4j.version>
         <assertj-core.version>2.0.0</assertj-core.version>
         <jackson.version>2.7.3</jackson.version>
