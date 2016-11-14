@@ -15,7 +15,7 @@ package com.flipkart.flux.examples.externalevents;
 
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
-import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
+import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -29,6 +29,7 @@ public class RunManualSellerVerificationWorkflow {
 
         /* Note that we are using guice aop for now, hence your workflow instances need to use guice */
         final ManualSellerVerificationFlow manualSellerVerificationFlow = injector.getInstance(ManualSellerVerificationFlow.class);
+        FluxRuntimeConnector fluxRuntimeConnector = injector.getInstance(FluxRuntimeConnector.class);
         /* Lets invoke our workflow */
 
         String randomCorrelationId = UUID.randomUUID().toString().substring(0,16);
@@ -52,7 +53,7 @@ public class RunManualSellerVerificationWorkflow {
 
         System.out.println("[Main] Sleeping for 2 seconds before posting data to flux runtime");
         Thread.sleep(2000l); // Just a 2 second wait to ensure that the state machine has been created in flux
-        new FluxRuntimeConnectorHttpImpl(1000l,1000l,"http://localhost:9998/api/machines").submitEvent("sellerVerification", new SellerVerificationStatus(new SellerId(1l), true), randomCorrelationId, "Manual Trigger From Customer Support");
+        fluxRuntimeConnector.submitEvent("sellerVerification", new SellerVerificationStatus(new SellerId(1l), true), randomCorrelationId, "Manual Trigger From Customer Support");
         System.out.println("[Main] Posted data to flux runtime, the workflow should have continued");
 
     }

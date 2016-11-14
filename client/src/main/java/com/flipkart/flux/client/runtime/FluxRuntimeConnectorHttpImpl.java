@@ -19,175 +19,83 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.StateMachineDefinition;
-import com.google.common.annotations.VisibleForTesting;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.HttpClientUtils;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.ContentType;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-
-import javax.ws.rs.core.Response;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 /**
- * RuntimeConnector that connects to runtime over HTTP
- * Internally, this uses Unirest as of now. This makes it difficult to write unit tests for this class,
- * but it does very little so its okay
+ * RuntimeConnector that connects to runtime over HTTP Internally, this uses Unirest as of now. This
+ * makes it difficult to write unit tests for this class, but it does very little so its okay
+ *
  * @author yogesh.nachnani
  */
 public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
 
-    public static final int MAX_TOTAL = 200;
-    public static final int MAX_PER_ROUTE = 20;
     public static final String EXTERNAL = "external";
-    private final CloseableHttpClient closeableHttpClient;
-    private final String fluxEndpoint;
     private final ObjectMapper objectMapper;
+    private final FluxHttpClient fluxHttpClient;
 
-    @VisibleForTesting
-    public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint) {
-        this(connectionTimeout, socketTimeout, fluxEndpoint, new ObjectMapper());
-    }
 
-    public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint, ObjectMapper objectMapper) {
-        this.fluxEndpoint = fluxEndpoint;
+    public FluxRuntimeConnectorHttpImpl(FluxHttpClient fluxHttpClient, ObjectMapper objectMapper) {
+        this.fluxHttpClient = fluxHttpClient;
         this.objectMapper = objectMapper;
-        RequestConfig clientConfig = RequestConfig.custom()
-            .setConnectTimeout((connectionTimeout).intValue())
-            .setSocketTimeout((socketTimeout).intValue())
-            .setConnectionRequestTimeout((socketTimeout).intValue())
-            .build();
-        PoolingHttpClientConnectionManager syncConnectionManager = new PoolingHttpClientConnectionManager();
-        syncConnectionManager.setMaxTotal(MAX_TOTAL);
-        syncConnectionManager.setDefaultMaxPerRoute(MAX_PER_ROUTE);
 
-        closeableHttpClient = HttpClientBuilder.create().setDefaultRequestConfig(clientConfig).setConnectionManager(syncConnectionManager)
-            .build();
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            HttpClientUtils.closeQuietly(closeableHttpClient);
-        }));
     }
 
     @Override
     public void submitNewWorkflow(StateMachineDefinition stateMachineDef) {
-        CloseableHttpResponse httpResponse = null;
-        try {
-            httpResponse = postOverHttp(stateMachineDef, "");
-        } finally {
-            HttpClientUtils.closeQuietly(httpResponse);
-        }
+        fluxHttpClient.postOverHttp(stateMachineDef, "");
     }
 
     @Override
     public void submitEvent(EventData eventData, Long stateMachineId) {
-        CloseableHttpResponse httpResponse = null;
-        try {
-            httpResponse = postOverHttp(eventData, "/" + stateMachineId + "/context/events");
-        } finally {
-            HttpClientUtils.closeQuietly(httpResponse);
-        }
+        fluxHttpClient.postOverHttp(eventData, "/" + stateMachineId + "/context/events");
     }
 
     @Override
-    public void submitEvent(String name,Object data, String correlationId,String eventSource) {
+    public void submitEvent(String name, Object data, String correlationId, String eventSource) {
         final String eventType = data.getClass().getName();
         if (eventSource == null) {
             eventSource = EXTERNAL;
         }
-        CloseableHttpResponse httpResponse = null;
         try {
-            final EventData eventData = new EventData(name, eventType, objectMapper.writeValueAsString(data), eventSource);
-            httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/events?searchField=correlationId");
+            final EventData
+                eventData =
+                new EventData(name, eventType, objectMapper.writeValueAsString(data), eventSource);
+           fluxHttpClient. postOverHttp(eventData,
+                         "/" + correlationId + "/context/events?searchField=correlationId");
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
-        } finally {
-            HttpClientUtils.closeQuietly(httpResponse);
         }
     }
 
-	/**
-	 * Interface method implementation. Updates the status in persistence store by invoking suitable Flux runtime API
-	 * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#updateExecutionStatus(ExecutionUpdateData)
-	 */
-	public void updateExecutionStatus(ExecutionUpdateData executionUpdateData) {
-		CloseableHttpResponse httpResponse = null;
-        httpResponse = postOverHttp(executionUpdateData,  "/" + executionUpdateData.getStateMachineId() + "/" + executionUpdateData.getTaskId() + "/status");
-        HttpClientUtils.closeQuietly(httpResponse);
-	}
+    /**
+     * Interface method implementation. Updates the status in persistence store by invoking suitable
+     * Flux runtime API
+     *
+     * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#updateExecutionStatus(ExecutionUpdateData)
+     */
+    public void updateExecutionStatus(ExecutionUpdateData executionUpdateData) {
+       fluxHttpClient. postOverHttp(executionUpdateData,
+                     "/" + executionUpdateData.getStateMachineId() + "/" + executionUpdateData
+                         .getTaskId() + "/status");
+    }
 
-	/**
-	 * Interface method implementation. Increments the execution retries in persistence by invoking suitable Flux runtime API
-	 * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#incrementExecutionRetries(java.lang.Long, java.lang.Long)
-	 */
-	@Override
-	public void incrementExecutionRetries(Long stateMachineId,Long taskId) {
-		CloseableHttpResponse httpResponse = null;
-        httpResponse = postOverHttp(null,  "/" + stateMachineId + "/" + taskId + "/retries/inc");
-        HttpClientUtils.closeQuietly(httpResponse);
-	}
+    /**
+     * Interface method implementation. Increments the execution retries in persistence by invoking
+     * suitable Flux runtime API
+     *
+     * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#incrementExecutionRetries(java.lang.Long,
+     * java.lang.Long)
+     */
+    @Override
+    public void incrementExecutionRetries(Long stateMachineId, Long taskId) {
+        fluxHttpClient.postOverHttp(null, "/" + stateMachineId + "/" + taskId + "/retries/inc");
+    }
 
     /**
      * Interface method implementation. Posts to Flux Runtime API to redrive a task.
      */
     @Override
     public void redriveTask(Long taskId) {
-        CloseableHttpResponse httpResponse = null;
-        httpResponse = postOverHttp(null,  "/redrivetask/" + taskId);
-        HttpClientUtils.closeQuietly(httpResponse);
+        fluxHttpClient.postOverHttp(null, "/redrivetask/" + taskId);
     }
-	
-	/** Helper method to post data over Http */
-    private CloseableHttpResponse postOverHttp(Object dataToPost, String pathSuffix)  {
-        CloseableHttpResponse httpResponse = null;
-        HttpPost httpPostRequest;
-        httpPostRequest = new HttpPost(fluxEndpoint + pathSuffix);
-        try {
-            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            objectMapper.writeValue(byteArrayOutputStream, dataToPost);
-            httpPostRequest.setEntity(new ByteArrayEntity(byteArrayOutputStream.toByteArray(), ContentType.APPLICATION_JSON));
-            httpResponse = closeableHttpClient.execute(httpPostRequest);
-            final int statusCode = httpResponse.getStatusLine().getStatusCode();
-            if (statusCode >= Response.Status.OK.getStatusCode() && statusCode < Response.Status.MOVED_PERMANENTLY.getStatusCode() ) {
-                // all is well, TODO write a trace level log
-            } else {
-                // TODO: log status line here
-                throw new RuntimeCommunicationException("Did not receive a valid response from Flux core");
-            }
-        } catch (IOException e) {
-            // TODO log exception here
-            e.printStackTrace();
-            throw new RuntimeCommunicationException("Could not communicate with Flux runtime: " + fluxEndpoint);
-        }
-        return httpResponse;
-    }
-
-    /** Helper method to get data over Http*/
-    private CloseableHttpResponse getOverHttp(String pathSuffix) {
-        CloseableHttpResponse httpResponse = null;
-        HttpGet httpGet = new HttpGet(fluxEndpoint + pathSuffix);
-        try {
-            httpResponse = closeableHttpClient.execute(httpGet);
-            final int statusCode = httpResponse.getStatusLine().getStatusCode();
-            if (statusCode >= Response.Status.OK.getStatusCode() && statusCode < Response.Status.MOVED_PERMANENTLY.getStatusCode() ) {
-                // all is well, TODO write a trace level log
-            } else {
-                // TODO: log status line here
-                throw new RuntimeCommunicationException("Did not receive a valid response from Flux core while doing Http Get");
-            }
-        } catch (IOException e) {
-            // TODO log exception here
-            e.printStackTrace();
-            throw new RuntimeCommunicationException("Could not communicate with Flux runtime: " + fluxEndpoint);
-        }
-        return httpResponse;
-    }
-
 
 }

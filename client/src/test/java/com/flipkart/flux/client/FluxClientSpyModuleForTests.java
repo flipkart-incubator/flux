@@ -15,16 +15,20 @@
 package com.flipkart.flux.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.client.config.FluxClientConfiguration;
 import com.flipkart.flux.client.guice.annotation.IsolatedEnv;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.client.registry.LocalExecutableRegistryImpl;
+import com.flipkart.flux.client.runtime.FluxHttpClientImpl;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
 import com.flipkart.flux.client.runtime.LocalContext;
 import com.flipkart.flux.client.utils.TestResourceModule;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.mockito.Mockito;
 
 import javax.inject.Singleton;
@@ -48,6 +52,11 @@ public class FluxClientSpyModuleForTests extends AbstractModule {
     @Provides
     @Singleton
     public FluxRuntimeConnector provideFluxRuntimeConnector( ){
-        return Mockito.spy(new FluxRuntimeConnectorHttpImpl(1000l,1000l,"http://localhost:9091/flux/machines", new ObjectMapper()));
+        ObjectMapper mapper = new ObjectMapper();
+        CloseableHttpClient httpClient =
+            new FluxClientComponentModule().providesHttpClient(new FluxClientConfiguration());
+        FluxHttpClientImpl fluxClient =
+            new FluxHttpClientImpl(mapper, "http://localhost:9091/flux/machines", httpClient);
+        return Mockito.spy(new FluxRuntimeConnectorHttpImpl(fluxClient, mapper));
     }
 }
