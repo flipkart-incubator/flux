@@ -16,6 +16,8 @@ package com.flipkart.flux.dao.iface;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
 
+import java.util.List;
+
 /**
  * <code>StatesDAO</code> interface provides methods to perform CR operations on {@link State}
  * @author shyam.akirala
@@ -39,4 +41,7 @@ public interface StatesDAO {
 
     /** Retrieves a state by it's unique identifier*/
     State findById(Long id);
+
+    /** Retrieves all errored states for the given range of stateMachine ids */
+    List findErroredStates(String stateMachineName, Long fromStateMachineId, Long toStateMachineId);
 }

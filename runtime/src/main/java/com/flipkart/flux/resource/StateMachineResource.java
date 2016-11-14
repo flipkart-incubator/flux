@@ -34,6 +34,7 @@ import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -227,7 +228,6 @@ public class StateMachineResource {
      * Cancel a machine being executed.*
      * @param machineId The machineId to be cancelled
      */
-
     @PUT
     @Path("/{machineId}/cancel")
     public void cancelExecution(@PathParam("machineId") Long machineId) {
@@ -250,6 +250,29 @@ public class StateMachineResource {
                 .header("Access-Control-Allow-Credentials", "true")
                 .header("Access-Control-Allow-Headers", "Content-Type, Accept")
                 .build();
+    }
+
+    /**
+     * Retrieves all errored states for the given range of state machine ids. Max range is 1000.
+     * @param fromStateMachineId starting id for the range
+     * @param toStateMachineId ending id (inclusive)
+     * @return json containing list of [state machine id,  state id, status]
+     */
+    @GET
+    @Path("/{stateMachineName}/states/errored")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getErroredStates(@PathParam("stateMachineName") String stateMachineName,
+                                     @QueryParam("fromSmId") Long fromStateMachineId,
+                                     @QueryParam("toSmId") Long toStateMachineId) {
+        if(fromStateMachineId == null || fromStateMachineId < 0) {
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity("start of the range not provided or invalid").build();
+        }
+
+        long limit = fromStateMachineId + 1000;
+        /* if toStateMachineId is invalid just use fromStateMachineId as the end, otherwise limit the range to max of 1000 */
+        toStateMachineId = (toStateMachineId == null || toStateMachineId < fromStateMachineId) ? fromStateMachineId : Math.min(limit, toStateMachineId);
+
+        return Response.status(200).entity(statesDAO.findErroredStates(stateMachineName, fromStateMachineId, toStateMachineId)).build();
     }
 
     /**
@@ -360,11 +383,11 @@ public class StateMachineResource {
     		return null;
     	}
     	String words = label.replaceAll( // Based on http://stackoverflow.com/questions/2559759/how-do-i-convert-camelcase-into-human-readable-names-in-java
-    			String.format("%s|%s|%s",
-    					"(?<=[A-Z])(?=[A-Z][a-z])",
-    		    	    "(?<=[^A-Z])(?=[A-Z])",
-    		    	    "(?<=[A-Za-z])(?=[^A-Za-z])"
-    		    )," ");
+        String.format("%s|%s|%s",
+                "(?<=[A-Z])(?=[A-Z][a-z])",
+                "(?<=[^A-Z])(?=[A-Z])",
+                "(?<=[A-Za-z])(?=[^A-Za-z])"
+        )," ");
     	StringBuffer sb = new StringBuffer();
         for (String s : words.split(" ")) {
             sb.append(Character.toUpperCase(s.charAt(0)));
