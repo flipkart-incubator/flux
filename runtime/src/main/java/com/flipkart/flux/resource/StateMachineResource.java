@@ -34,7 +34,6 @@ import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
