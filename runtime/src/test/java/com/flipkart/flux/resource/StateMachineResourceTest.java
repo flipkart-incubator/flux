@@ -4,11 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.constant.RuntimeConstants;
-import com.flipkart.flux.controller.WorkFlowExecutionController;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.guice.module.AkkaModule;
@@ -141,5 +139,27 @@ public class StateMachineResourceTest {
         final HttpResponse<String> stringHttpResponse = Unirest.get(STATE_MACHINE_RESOURCE_URL + "/" + stateMachine.getId() + "/fsmdata").header("Content-Type", "application/json").asString();
         assertThat(stringHttpResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         //TODO - we need a better assert here, but since we're using database IDs in the implementation, we cannot simply validate it with a static json
+    }
+
+    @Test
+    public void testGetErroredStates() throws Exception {
+        final StateMachine sm = stateMachinePersistenceService.createStateMachine(objectMapper.readValue(this.getClass().getClassLoader().getResource("state_machine_definition.json"), StateMachineDefinition.class));
+
+        /* mark 1 of the state as errored */
+        sm.getStates().stream().findFirst().get().setStatus(Status.errored);
+        /* persist */
+        final StateMachine firstSM = stateMachinesDAO.create(new StateMachine(sm.getVersion(), sm.getName(), sm.getDescription(), sm.getStates(), "uniqueCorId1"));
+
+        /* change name and persist as 2nd statemachine */
+        final String differentSMName = "differentStateMachine";
+        final StateMachine secondSM = stateMachinesDAO.create(new StateMachine(sm.getVersion(), differentSMName, sm.getDescription(), sm.getStates(), "uniqueCorId2"));
+
+        /* fetch errored states with name "differentStateMachine" */
+        final HttpResponse<String> stringHttpResponse = Unirest.get(STATE_MACHINE_RESOURCE_URL + "/" + differentSMName + "/states/errored?fromSmId=" + firstSM.getId() + "&toSmId=" + (secondSM.getId() + 1)).header("Content-Type", "application/json").asString();
+
+        assertThat(stringHttpResponse.getStatus()).isEqualTo(200);
+        assertThat(stringHttpResponse.getBody()).isEqualTo("[[" + secondSM.getId() + "," +
+                secondSM.getStates().stream().filter(e -> Status.errored.equals(e.getStatus())).findFirst().get().getId() + "," +
+                "\"errored\"]]");
     }
 }

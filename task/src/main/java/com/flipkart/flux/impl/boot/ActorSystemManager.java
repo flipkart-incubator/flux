@@ -15,6 +15,7 @@
 package com.flipkart.flux.impl.boot;
 
 import akka.actor.*;
+import akka.cluster.Cluster;
 import com.flipkart.flux.impl.recovery.DeadLetterActor;
 import com.flipkart.polyguice.core.Initializable;
 import com.typesafe.config.Config;
@@ -100,6 +101,14 @@ public class ActorSystemManager implements Initializable {
                             Kamon.shutdown();
                         }
                         if (system != null) {
+                            Cluster cluster = Cluster.get(system);
+                            Address selfAddress = cluster.selfAddress();
+                            cluster.leave(selfAddress);
+                            try {
+                                Thread.sleep(1000); //we'll wait for a second to allow the node to send cluster leaving message
+                            } catch (InterruptedException e) {
+                                LOGGER.error("Interrupted while waiting for a second before calling Actor system terminate");
+                            }
                             Future<Terminated> terminateFut = system.terminate();
                             try {
                                 LOGGER.info("Shutting down Actor system");
