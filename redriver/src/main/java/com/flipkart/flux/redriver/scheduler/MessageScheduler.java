@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -67,11 +68,15 @@ public class MessageScheduler {
     }
 
     public void removeMessage(Long taskId) {
+        try {
         /* It is important that we delete from priority queue first. Its okay even if we the schedule for removal call fails.
             At most we will send a message that was not supposed to be sent but the receiver should be able to handle
             such cases by consulting its own DB.
         */
-        this.messages.removeIf((m) -> m.getTaskId().equals(taskId));
+            this.messages.removeIf((m) -> m.getTaskId().equals(taskId));
+        } catch (ConcurrentModificationException ex) {
+            logger.warn("Removing from priority queue failed due to concurrent modification exception. Ignoring it!");
+        }
         this.messageManagerService.scheduleForRemoval(taskId);
     }
 
@@ -138,7 +143,7 @@ public class MessageScheduler {
                 try {
                     _run();
                 } catch (RuntimeException e) {
-                    logger.error("Encountered exception during execution", e);
+                    logger.error("Encountered exception during execution. Error: " + e.getMessage(), e);
                 } catch (InterruptedException e) {
                     /* The thread is interrupted, best to bail now. */
                     logger.error("We were interrupted", e);
