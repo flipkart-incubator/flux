@@ -14,7 +14,6 @@
 package com.flipkart.flux.redriver.service;
 
 import com.flipkart.flux.redriver.dao.MessageDao;
-import com.flipkart.flux.redriver.model.ScheduledMessage;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,9 +42,9 @@ public class MessageManagerServiceTest {
         messageManagerService = new MessageManagerService(messageDao,500,10);
         messageManagerService.initialize(); // Will be called by polyguice in the production env
 
-        messageManagerService.scheduleForRemoval(new ScheduledMessage(123l, 1l));
-        messageManagerService.scheduleForRemoval(new ScheduledMessage(123l, 1l));
-        messageManagerService.scheduleForRemoval(new ScheduledMessage(123l, 1l));
+        messageManagerService.scheduleForRemoval(123l);
+        messageManagerService.scheduleForRemoval(123l);
+        messageManagerService.scheduleForRemoval(123l);
 
         verifyZeroInteractions(messageDao);
 
@@ -59,9 +58,9 @@ public class MessageManagerServiceTest {
         messageManagerService = new MessageManagerService(messageDao,500,2);
         messageManagerService.initialize(); // Will be called by polyguice in the production env
 
-        messageManagerService.scheduleForRemoval(new ScheduledMessage(121l, 1l));
-        messageManagerService.scheduleForRemoval(new ScheduledMessage(122l, 1l));
-        messageManagerService.scheduleForRemoval(new ScheduledMessage(123l, 1l));
+        messageManagerService.scheduleForRemoval(121l);
+        messageManagerService.scheduleForRemoval(122l);
+        messageManagerService.scheduleForRemoval(123l);
 
         verifyZeroInteractions(messageDao);
 
