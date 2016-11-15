@@ -105,7 +105,7 @@ public class ActorSystemManager implements Initializable {
                             Address selfAddress = cluster.selfAddress();
                             cluster.leave(selfAddress);
                             try {
-                                Thread.sleep(1000); //we'll wait for a second to allow the node to send cluster leaving message
+                                Thread.sleep(5000); //we'll wait for five seconds to allow the node to send cluster leaving message
                             } catch (InterruptedException e) {
                                 LOGGER.error("Interrupted while waiting for a second before calling Actor system terminate");
                             }
