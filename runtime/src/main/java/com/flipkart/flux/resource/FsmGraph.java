@@ -38,6 +38,12 @@ public class FsmGraph {
     @JsonProperty
     private List<AuditRecord> auditData;
 
+    @JsonProperty
+    private Long stateMachineId;
+
+    @JsonProperty
+    private String correlationId;
+
     public FsmGraph(){
         this.fsmGraphData = new HashMap<>();
         this.initStateEdges = new HashSet<>();
@@ -61,6 +67,14 @@ public class FsmGraph {
 
     public void setAuditData(List<AuditRecord> auditData) {
         this.auditData = auditData;
+    }
+
+    public void setStateMachineId(Long stateMachineId) {
+        this.stateMachineId = stateMachineId;
+    }
+
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
     }
 
     @Override

@@ -287,6 +287,8 @@ public class StateMachineResource {
             throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).entity("State machine with Id: "+machineId+" not found").build());
         }
         final FsmGraph fsmGraph = new FsmGraph();
+        fsmGraph.setStateMachineId(stateMachine.getId());
+        fsmGraph.setCorrelationId(stateMachine.getCorrelationId());
 
         Map<String,Event> stateMachineEvents = eventsDAO.findBySMInstanceId(stateMachine.getId()).stream().collect(
             Collectors.<Event, String, Event>toMap(Event::getName, (event -> event)));

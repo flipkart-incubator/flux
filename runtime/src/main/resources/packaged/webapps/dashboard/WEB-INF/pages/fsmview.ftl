@@ -34,16 +34,30 @@
         <div id="graph-div" style="float: left">
             <div class="paper" id="fsmcanvas" style="width: 1000px; height: 500px; overflow: auto;"></div>
         </div>
-        <div id="Legend">
-            <table class="table" style="width: 10%;">
-                <tr><th style="border-top: none">Legend</th></tr>
-                <tr><td style="border-top: none; vertical-align: middle"><div class="initialized">&nbsp;</div></td><td style="border-top: none;">&nbsp;Initialized</td></tr>
-                <tr><td style="border-top: none; vertical-align: middle"><div class="running">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Running </td></tr>
-                <tr><td style="border-top: none; vertical-align: middle"><div class="completed">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Completed</td></tr>
-                <tr><td style="border-top: none; vertical-align: middle"><div class="cancelled">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Cancelled</td></tr>
-                <tr><td style="border-top: none; vertical-align: middle"><div class="errored">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Errored </td></tr>
-                <tr><td style="border-top: none; vertical-align: middle"><div class="sidelined">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Sidelined</td></tr>
-            </table>
+        <div>
+            <div id="id-div">
+                <table class="table" style="width: 10%">
+                    <tr>
+                        <th align="left" style="border-top: none; vertical-align: middle;">FSM Id:</th>
+                        <td id="fsmId" align="left" style="border-top: none; vertical-align: middle;"></td>
+                    </tr>
+                    <tr>
+                        <th align="left" style="border-top: none; vertical-align: middle;">Correlation Id:</th>
+                        <td id="correlationId" align="left" style="border-top: none; vertical-align: middle;"></td>
+                    </tr>
+                </table>
+            </div>
+            <div id="legend">
+                <table class="table" style="width: 10%;">
+                    <tr><th style="border-top: none">Legend</th></tr>
+                    <tr><td style="border-top: none; vertical-align: middle"><div class="initialized">&nbsp;</div></td><td style="border-top: none;">&nbsp;Initialized</td></tr>
+                    <tr><td style="border-top: none; vertical-align: middle"><div class="running">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Running </td></tr>
+                    <tr><td style="border-top: none; vertical-align: middle"><div class="completed">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Completed</td></tr>
+                    <tr><td style="border-top: none; vertical-align: middle"><div class="cancelled">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Cancelled</td></tr>
+                    <tr><td style="border-top: none; vertical-align: middle"><div class="errored">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Errored </td></tr>
+                    <tr><td style="border-top: none; vertical-align: middle"><div class="sidelined">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Sidelined</td></tr>
+                </table>
+            </div>
         </div>
 
         <div id="audit-div">
@@ -60,12 +74,12 @@
             height: 4000,
             gridSize: 1,
             model: graph,
-	        interactive: function(cellView) { 
+	        interactive: function(cellView) {
 	        	if (cellView.model.isLink()) { // we dont want links to be interactive
 	        		return false;
-	        	} 
+	        	}
 	        	return true;
-	        }		        
+	        }
         });
 
         //creates Audit records table and attaches it to audit-div
@@ -203,13 +217,13 @@
 	            	case 'initialized':
 	            		stateColor = '#33ccff';
 	            		break;
-	            	case 'running': 
+	            	case 'running':
 	            		stateColor = '#cc99ff';
 	            		break;
 	            	case 'completed':
 	            		stateColor = '#33cc33';
 	            		break;
-	            	case 'cancelled': 
+	            	case 'cancelled':
 	            		stateColor = '#993333';
 	            		break;
 	            	case 'errored':
@@ -325,6 +339,11 @@
             });
         }
 
+        function displayIds(fsmId, correlationId) {
+            document.getElementById("fsmId").innerHTML = fsmId;
+            document.getElementById("correlationId").innerHTML = correlationId;
+        }
+
         function getFSMData() {
             $.ajax({
                 url: '${flux_api_url}/api/machines/'+document.getElementById("fsm-id").value+'/fsmdata',
@@ -334,7 +353,9 @@
                     document.getElementById("alert-msg").style.display = 'none';
                     layout(data.fsmGraphData,data.initStateEdges);
                     createAuditTable(data.fsmGraphData,data.auditData);
-                    document.getElementById("Legend").style.display = 'block';
+                    displayIds(data.stateMachineId, data.correlationId);
+                    document.getElementById("id-div").style.display = 'block';
+                    document.getElementById("legend").style.display = 'block';
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) {
                     alert("Status: " + XMLHttpRequest.status + " Response:" + XMLHttpRequest.responseText);
@@ -344,7 +365,8 @@
 
         document.getElementById("graph-div").style.display = 'none';
         document.getElementById("alert-msg").style.display = 'none';
-        document.getElementById("Legend").style.display = 'none';
+        document.getElementById("id-div").style.display = 'none';
+        document.getElementById("legend").style.display = 'none';
 
         //on pressing Enter key while "fsm-id" text box is in focus, click "get-fsm-data" button
         document.getElementById("fsm-id")
