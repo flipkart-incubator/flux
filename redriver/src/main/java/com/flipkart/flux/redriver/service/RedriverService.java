@@ -67,11 +67,17 @@ public class RedriverService {
     }
 
     public void start() {
+        final long initialDelay = 10000l;
         synchronized (this) {
             if (scheduledFuture == null || scheduledFuture.isDone()) {
                 scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
-                    redrive();
-                }, 0l, batchReadInterval, TimeUnit.MILLISECONDS);
+                    try {
+                        redrive();
+                    }
+                    catch(Exception e) {
+                        logger.error("Error while running redrive", e);
+                    }
+                }, initialDelay, batchReadInterval, TimeUnit.MILLISECONDS);
                 logger.info("RedriverService started");
             }
         }
@@ -90,13 +96,13 @@ public class RedriverService {
 
     private void redrive() {
         int offset = 0;
-        List<ScheduledMessage> messages = Collections.EMPTY_LIST;
+        List<ScheduledMessage> messages;
         long now = System.currentTimeMillis();
         do {
             messages = messageService.retrieveOldest(offset, batchSize);
             messages.stream().filter(e -> e.getScheduledTime() < now).forEach(e -> redriverRegistry.redriveTask(e.getTaskId()));
             offset += batchSize;
-            // repeat if we found batchSize tasks and all were redriven
+            // get next batch if we found batchSize tasks and all were redriven
         } while (messages.size() == batchSize && messages.get(messages.size() - 1).getScheduledTime() < now);
     }
 }
