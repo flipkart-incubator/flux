@@ -15,22 +15,25 @@ package com.flipkart.flux.redriver.boot;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SharedMetricRegistries;
-import com.flipkart.flux.Constants;
+import com.flipkart.flux.persistence.DataSourceType;
+import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
+import com.flipkart.flux.persistence.impl.SessionFactoryContextImpl;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.polyguice.config.YamlConfiguration;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
+import com.google.inject.*;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Names;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.transaction.Transactional;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 
 import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
@@ -45,10 +48,8 @@ public class RedriverModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        final SessionFactoryProvider sessionFactoryProvider = new SessionFactoryProvider();
-        requestInjection(sessionFactoryProvider);
-        bind(SessionFactory.class).annotatedWith(Names.named("redriverSessionFactory")).toProvider(sessionFactoryProvider).in(Singleton.class);
-        bindInterceptor(Matchers.inPackage(MessageDao.class.getPackage()), Matchers.annotatedWith(Transactional.class), new TransactionInterceptor(sessionFactoryProvider));
+        Provider<SessionFactoryContext> provider = getProvider(Key.get(SessionFactoryContext.class, Names.named("redriverSessionFactoryContext")));
+        bindInterceptor(Matchers.inPackage(MessageDao.class.getPackage()), Matchers.annotatedWith(Transactional.class), new TransactionInterceptor(provider));
     }
 
     @Provides
@@ -79,8 +80,17 @@ public class RedriverModule extends AbstractModule {
         return configuration;
     }
 
+    @Provides
+    @Singleton
+    @Named("redriverSessionFactoryContext")
+    public SessionFactoryContext getSessionFactoryProvider(@Named("redriverHibernateConfiguration") Configuration configuration) {
+        SessionFactory sessionFactory = configuration.buildSessionFactory();
+        Map<DataSourceType, SessionFactory> map = new HashMap<>();
+        map.put(DataSourceType.READ_WRITE, sessionFactory);
+        return new SessionFactoryContextImpl(map, DataSourceType.READ_WRITE);
+    }
+
     private void addAnnotatedClassesAndTypes(Configuration configuration) {
         configuration.addAnnotatedClass(ScheduledMessage.class);
     }
-
 }

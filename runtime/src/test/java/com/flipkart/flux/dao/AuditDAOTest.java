@@ -29,13 +29,15 @@ import com.flipkart.flux.module.RuntimeTestModule;
 import com.flipkart.flux.rule.DbClearWithTestSMRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * <code>AuditDAOTest</code> class tests the functionality of {@link AuditDAO} using JUnit tests.
@@ -68,6 +70,6 @@ public class AuditDAOTest {
         Long recordId = auditDAO.create(auditRecord).getId();
 
         AuditRecord auditRecord1 = auditDAO.findById(recordId);
-        Assert.assertEquals(auditRecord, auditRecord1);
+        assertThat(auditRecord1).isEqualTo(auditRecord);
     }
 }

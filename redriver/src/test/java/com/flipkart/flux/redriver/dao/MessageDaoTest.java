@@ -14,6 +14,7 @@
 package com.flipkart.flux.redriver.dao;
 
 import com.flipkart.flux.guice.module.ConfigModule;
+import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.redriver.boot.RedriverTestModule;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
@@ -39,21 +40,23 @@ public class MessageDaoTest {
     MessageDao messageDao;
 
     @Inject
-    @Named("redriverSessionFactory")
-    SessionFactory sessionFactory;
+    @Named("redriverSessionFactoryContext")
+    SessionFactoryContext sessionFactory;
 
     @Before
     public void setUp() throws Exception {
-        Session session = sessionFactory.openSession();
+        sessionFactory.setDefaultAsCurrent();
+        Session session = sessionFactory.getCurrent().openSession();
         ManagedSessionContext.bind(session);
         Transaction tx = session.beginTransaction();
         try {
-            sessionFactory.getCurrentSession().createSQLQuery("delete from ScheduledMessages").executeUpdate();
+            sessionFactory.getCurrent().getCurrentSession().createSQLQuery("delete from ScheduledMessages").executeUpdate();
             tx.commit();
         } finally {
             if(session != null) {
-                ManagedSessionContext.unbind(sessionFactory);
+                ManagedSessionContext.unbind(sessionFactory.getCurrent());
                 session.close();
+                sessionFactory.clearCurrent();
             }
         }
     }

@@ -16,9 +16,10 @@ package com.flipkart.flux.dao;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.google.inject.name.Named;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
-import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
@@ -35,8 +36,8 @@ import java.util.List;
 public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Inject
-    public EventsDAOImpl(SessionFactory sessionFactory) {
-        super(sessionFactory);
+    public EventsDAOImpl(@Named("fluxSessionFactoryContext") SessionFactoryContext sessionFactoryContext) {
+        super(sessionFactoryContext);
     }
 
     @Override

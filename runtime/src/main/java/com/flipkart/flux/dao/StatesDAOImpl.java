@@ -16,8 +16,11 @@ package com.flipkart.flux.dao;
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.persistence.DataSourceType;
+import com.flipkart.flux.persistence.SelectDataSource;
+import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.google.inject.name.Named;
 import org.hibernate.Query;
-import org.hibernate.SessionFactory;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -30,8 +33,8 @@ import java.util.List;
 public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Inject
-    public StatesDAOImpl(SessionFactory sessionFactory) {
-        super(sessionFactory);
+    public StatesDAOImpl(@Named("fluxSessionFactoryContext") SessionFactoryContext sessionFactoryContext) {
+        super(sessionFactoryContext);
     }
 
     @Override
@@ -83,6 +86,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
+    @SelectDataSource(DataSourceType.READ_ONLY)
     public List findErroredStates(String stateMachineName, Long fromStateMachineId, Long toStateMachineId) {
         Query query = currentSession().createQuery("select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
                 "where sm.id between :fromStateMachineId and :toStateMachineId and sm.name = :stateMachineName and state.status in ('errored', 'sidelined', 'cancelled')");

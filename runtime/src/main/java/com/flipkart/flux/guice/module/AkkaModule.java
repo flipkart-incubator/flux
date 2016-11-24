@@ -66,7 +66,6 @@ public class AkkaModule extends AbstractModule {
                 routerConfigMap.put(routerName, taskExecConcurrency);
             }
         }
-
         return routerConfigMap;
     }
 

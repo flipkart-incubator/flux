@@ -15,8 +15,9 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.google.inject.name.Named;
 import org.hibernate.Criteria;
-import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
 
 import javax.inject.Inject;
@@ -32,8 +33,8 @@ import java.util.Set;
 public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements StateMachinesDAO {
 
     @Inject
-    public StateMachinesDAOImpl(SessionFactory sessionFactory) {
-        super(sessionFactory);
+    public StateMachinesDAOImpl(@Named("fluxSessionFactoryContext") SessionFactoryContext sessionFactoryContext) {
+        super(sessionFactoryContext);
     }
 
     @Override
