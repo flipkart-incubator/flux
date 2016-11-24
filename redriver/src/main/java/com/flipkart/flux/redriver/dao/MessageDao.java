@@ -13,10 +13,10 @@
 
 package com.flipkart.flux.redriver.dao;
 
+import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import org.hibernate.Query;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -30,11 +30,11 @@ import java.util.List;
 @Singleton
 public class MessageDao {
 
-    private SessionFactory sessionFactory;
+    private SessionFactoryContext sessionFactoryContext;
 
     @Inject
-    public MessageDao(@Named("redriverSessionFactory") SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
+    public MessageDao(@Named("redriverSessionFactoryContext") SessionFactoryContext sessionFactoryContext) {
+        this.sessionFactoryContext = sessionFactoryContext;
     }
 
     @Transactional
@@ -58,7 +58,6 @@ public class MessageDao {
      * @return Session
      */
     private Session currentSession() {
-        return sessionFactory.getCurrentSession();
+        return sessionFactoryContext.getCurrent().getCurrentSession();
     }
-
 }
