@@ -25,22 +25,27 @@ import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.persistence.DataSourceType;
+import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
+import com.flipkart.flux.persistence.impl.SessionFactoryContextImpl;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.type.BlobType;
 import com.flipkart.flux.type.ListJsonType;
 import com.flipkart.flux.type.StoreFQNType;
 import com.flipkart.polyguice.config.YamlConfiguration;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
+import com.google.inject.*;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Named;
+import com.google.inject.name.Names;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
+import javax.inject.Provider;
 import javax.transaction.Transactional;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -51,6 +56,7 @@ import java.util.Properties;
 public class HibernateModule extends AbstractModule {
 
     public static final String FLUX_HIBERNATE_CONFIG_NAME_SPACE = "flux.Hibernate";
+    public static final String FLUX_READ_ONLY_HIBERNATE_CONFIG_NAME_SPACE = "fluxReadOnly.Hibernate";
 
     /**
      * Performs concrete bindings for interfaces
@@ -64,19 +70,45 @@ public class HibernateModule extends AbstractModule {
         bind(StateMachinesDAO.class).to(StateMachinesDAOImpl.class).in(Singleton.class);
         bind(StatesDAO.class).to(StatesDAOImpl.class).in(Singleton.class);
 
-        /* Create a module-local sessionFactory provider
-            This is needed since the redriver module requires another session factory to be present which connects to another database
-         */
-        final SessionFactoryProvider sessionFactoryProvider = new SessionFactoryProvider();
-        requestInjection(sessionFactoryProvider);
-        bind(SessionFactory.class).toProvider(sessionFactoryProvider).in(Singleton.class);
-
         //bind Transactional Interceptor to intercept methods which are annotated with javax.transaction.Transactional
-        final TransactionInterceptor transactionInterceptor = new TransactionInterceptor(sessionFactoryProvider);
+        Provider<SessionFactoryContext> provider = getProvider(Key.get(SessionFactoryContext.class, Names.named("fluxSessionFactoryContext")));
+        final TransactionInterceptor transactionInterceptor = new TransactionInterceptor(provider);
         // Weird way of getting a package but java.lang.Package.getName(<String>) was no working for some reason.
         // todo [yogesh] dig deeper and fix this ^
         bindInterceptor(Matchers.not(Matchers.inPackage(MessageDao.class.getPackage())),
             Matchers.annotatedWith(Transactional.class), transactionInterceptor);
+    }
+
+    /**
+     * Creates hibernate configuration from the configuration yaml properties.
+     * Since the yaml properties are already flattened in input param <code>yamlConfiguration</code>
+     * the method loops over them to selectively pick Hibernate specific properties.
+     */
+    @Provides
+    @Singleton
+    @Named("fluxHibernateConfiguration")
+    public Configuration getConfiguration(YamlConfiguration yamlConfiguration) {
+        return getConfiguration(yamlConfiguration, FLUX_HIBERNATE_CONFIG_NAME_SPACE);
+    }
+
+    @Provides
+    @Singleton
+    @Named("fluxReadOnlyHibernateConfiguration")
+    public Configuration getReadOnlyConfiguration(YamlConfiguration yamlConfiguration) {
+        return getConfiguration(yamlConfiguration, FLUX_READ_ONLY_HIBERNATE_CONFIG_NAME_SPACE);
+    }
+
+    @Provides
+    @Singleton
+    @Named("fluxSessionFactoryContext")
+    public SessionFactoryContext getSessionFactoryProvider(@Named("fluxHibernateConfiguration") Configuration configuration,
+                                                            @Named("fluxReadOnlyHibernateConfiguration") Configuration readOnlyConfiguration) {
+        SessionFactory sessionFactory = configuration.buildSessionFactory();
+        SessionFactory readOnlysessionFactory = readOnlyConfiguration.buildSessionFactory();
+        Map<DataSourceType, SessionFactory> map = new HashMap<>();
+        map.put(DataSourceType.READ_WRITE, sessionFactory);
+        map.put(DataSourceType.READ_ONLY, readOnlysessionFactory);
+        return new SessionFactoryContextImpl(map, DataSourceType.READ_WRITE);
     }
 
     /**
@@ -95,18 +127,10 @@ public class HibernateModule extends AbstractModule {
         configuration.addAnnotatedClass(StateMachine.class);
     }
 
-    /**
-     * Creates hibernate configuration from the configuration yaml properties.
-     * Since the yaml properties are already flattened in input param <code>yamlConfiguration</code>
-     * the method loops over them to selectively pick Hibernate specific properties.
-     */
-    @Provides
-    @Singleton
-    @Named("fluxHibernateConfiguration")
-    public Configuration getConfiguration(YamlConfiguration yamlConfiguration) {
+    private Configuration getConfiguration(YamlConfiguration yamlConfiguration, String prefix) {
         Configuration configuration = new Configuration();
         addAnnotatedClassesAndTypes(configuration);
-        org.apache.commons.configuration.Configuration hibernateConfig = yamlConfiguration.subset(FLUX_HIBERNATE_CONFIG_NAME_SPACE);
+        org.apache.commons.configuration.Configuration hibernateConfig = yamlConfiguration.subset(prefix);
         Iterator<String> propertyKeys = hibernateConfig.getKeys();
         Properties configProperties = new Properties();
         while (propertyKeys.hasNext()) {
@@ -117,5 +141,4 @@ public class HibernateModule extends AbstractModule {
         configuration.addProperties(configProperties);
         return configuration;
     }
-
 }

@@ -15,8 +15,9 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
+import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.google.inject.name.Named;
 import org.hibernate.Criteria;
-import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
 
 import javax.inject.Inject;
@@ -30,8 +31,8 @@ import java.util.List;
 public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
 
     @Inject
-    public AuditDAOImpl(SessionFactory sessionFactory) {
-        super(sessionFactory);
+    public AuditDAOImpl(@Named("fluxSessionFactoryContext") SessionFactoryContext sessionFactoryContext) {
+        super(sessionFactoryContext);
     }
 
     @Override
@@ -53,6 +54,4 @@ public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
     public AuditRecord findById(Long id) {
         return super.findById(AuditRecord.class, id);
     }
-
-
 }

@@ -65,7 +65,6 @@ import java.util.stream.Collectors;
             Set<Method> taskMethods = deploymentUnitEntry.getValue().getTaskMethods();
             routerNames.addAll(taskMethods.stream().map(method -> new MethodId(method).getPrefix()).collect(Collectors.toList()));
         }
-
         return routerNames;
     }
 

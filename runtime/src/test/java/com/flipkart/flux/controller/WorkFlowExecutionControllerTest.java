@@ -84,7 +84,7 @@ public class WorkFlowExecutionControllerTest {
     @After
     public void tearDown() throws Exception {
         mockActor.stop();
-        actorSystem.shutdown();
+        actorSystem.terminate();
     }
 
     @Test
