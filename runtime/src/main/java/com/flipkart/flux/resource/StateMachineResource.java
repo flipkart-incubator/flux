@@ -267,7 +267,7 @@ public class StateMachineResource {
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity("start of the range not provided or invalid").build();
         }
 
-        long limit = fromStateMachineId + 1000;
+        long limit = fromStateMachineId + 1_000_000;
         /* if toStateMachineId is invalid just use fromStateMachineId as the end, otherwise limit the range to max of 1000 */
         toStateMachineId = (toStateMachineId == null || toStateMachineId < fromStateMachineId) ? fromStateMachineId : Math.min(limit, toStateMachineId);
 
