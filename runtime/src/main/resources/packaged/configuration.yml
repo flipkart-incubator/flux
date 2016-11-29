@@ -48,7 +48,9 @@ redriver:
   batchdelete:
     batchsize: 50
     intervalms: 1000
-  noOfRedriverWorkers : 50
+  batchread:
+    batchsize: 100
+    intervalms: 20000
   noOfPersistenceWorkers: 10
 
 deploymentType: directory
