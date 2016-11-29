@@ -11,13 +11,13 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.deploymentunit;
+package com.flipkart.flux.deploymentunit.iface;
 
-import com.flipkart.polyguice.config.YamlConfiguration;
+import com.flipkart.flux.deploymentunit.DeploymentUnit;
 
-import java.lang.reflect.Method;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
-import java.util.Set;
 
 /**
  * <code>DeploymentUnitUtil</code> performs operations on deployment units.
@@ -31,16 +31,8 @@ import java.util.Set;
  */
 public interface DeploymentUnitUtil {
 
-    /** Lists all deployment units available*/
-    List<String> getAllDeploymentUnitNames();
+    /** Lists the paths of all deployment units available */
+    List<Path> listAllDirectoryUnits() throws IOException;
 
-    /** Returns the class loader for passed deployment unit*/
-    DeploymentUnitClassLoader getClassLoader(String deploymentUnitName) throws Exception;
-
-    /** Returns set of methods which are annotated with @Task in the passed deployment unit*/
-    Set<Method> getTaskMethods(DeploymentUnitClassLoader classLoader) throws Exception;
-
-    /** Reads flux_config.yml and returns YamlConfiguration object for the passed deployment unit*/
-    YamlConfiguration getProperties(DeploymentUnitClassLoader classLoader) throws Exception;
-
+    DeploymentUnit getDeploymentUnit(Path directory) throws Exception;
 }

@@ -54,4 +54,9 @@ public class TaskExecutableRegistryImpl implements ExecutableRegistry {
     public void registerTask(String taskIdentifier, Executable method) {
         this.identifierToMethodMap.put(taskIdentifier,method);
     }
+
+    @Override
+    public void unregisterTask(String taskIdentifier) {
+        this.identifierToMethodMap.remove(taskIdentifier);
+    }
 }

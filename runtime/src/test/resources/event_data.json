@@ -1,6 +1,6 @@
 {
-  "name": "event1",
-  "type": "foo",
-  "data": "{\"key\":\"value\"}",
-  "eventSource": "test_state1"
+  "name": "event0",
+  "type": "java.lang.String",
+  "data": "42",
+  "eventSource": null
 }

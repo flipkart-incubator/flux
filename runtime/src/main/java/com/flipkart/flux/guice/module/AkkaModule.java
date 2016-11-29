@@ -15,6 +15,7 @@ package com.flipkart.flux.guice.module;
 
 import com.flipkart.flux.client.intercept.MethodId;
 import com.flipkart.flux.deploymentunit.DeploymentUnit;
+import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import org.apache.commons.configuration.Configuration;
@@ -24,7 +25,6 @@ import javax.inject.Singleton;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -44,29 +44,27 @@ public class AkkaModule extends AbstractModule {
 
     /**
      * Returns map of all the available routers and actors per router,
-     * currently a router is created per Task of deployment unit //todo: handle dynamic deployments
+     * currently a router is created per Task of deployment unit
      */
     @Provides
     @Singleton
     @Named("routerConfigMap")
-    public Map<String, Integer> getRouterConfigs(@Named("deploymentUnits") Map<String, DeploymentUnit> deploymentUnitsMap,
+    public Map<String, Integer> getRouterConfigs(DeploymentUnitsManager deploymentUnitsManager,
                                                  @Named("routers.default.instancesPerNode") int defaultNoOfActors) {
         Map<String, Integer> routerConfigMap = new ConcurrentHashMap<>();
 
         //add all deployment units' routers
-        for (Map.Entry<String, DeploymentUnit> deploymentUnitEntry : deploymentUnitsMap.entrySet()) {
-            DeploymentUnit deploymentUnit = deploymentUnitEntry.getValue();
-            Set<Method> taskMethods = deploymentUnit.getTaskMethods();
+        for (DeploymentUnit deploymentUnit : deploymentUnitsManager.getAllDeploymentUnits()) {
+            Map<String, Method> taskMethods = deploymentUnit.getTaskMethods();
             Configuration taskConfiguration = deploymentUnit.getTaskConfiguration();
-
-            for (Method taskMethod : taskMethods) {
+            for (Method taskMethod : taskMethods.values()) {
                 String routerName = new MethodId(taskMethod).getPrefix();
                 Integer taskExecConcurrency = Optional.ofNullable((Integer) taskConfiguration.getProperty(routerName + ".executionConcurrency"))
                         .orElse(defaultNoOfActors);
                 routerConfigMap.put(routerName, taskExecConcurrency);
             }
         }
+
         return routerConfigMap;
     }
-
 }
