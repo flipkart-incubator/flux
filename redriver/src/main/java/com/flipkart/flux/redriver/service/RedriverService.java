@@ -35,6 +35,8 @@ import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
 /**
  * The service uses a scheduler to read the oldest message with fixed delay and redrives them if necessary. The task will
  * be scheduled for execution if the current time is greater than or equal to scheduledTime.
+ *
+ * @author gaurav.ashok
  */
 @Singleton
 public class RedriverService {
@@ -60,6 +62,7 @@ public class RedriverService {
         this.messageService = messageService;
 
         ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
+        // remove the task from scheduler on cancel
         executor.setRemoveOnCancelPolicy(true);
         scheduledExecutorService =
                 new InstrumentedScheduledExecutorService(Executors.unconfigurableScheduledExecutorService(executor),

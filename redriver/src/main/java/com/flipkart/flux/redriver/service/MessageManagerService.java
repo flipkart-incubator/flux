@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.redriver.service;
 
+import com.codahale.metrics.InstrumentedExecutorService;
 import com.codahale.metrics.InstrumentedScheduledExecutorService;
 import com.codahale.metrics.SharedMetricRegistries;
 import com.flipkart.flux.redriver.dao.MessageDao;
@@ -37,19 +38,22 @@ import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
  * Wrapper around the Message Persistence layer.
  * Current implementation provides for a deferred delete to reduce the number of calls made to the database
  * & also guard against race conditions where we have multiple
+ *
+ * @author gaurav.ashok
  */
 @Singleton
 public class MessageManagerService implements Initializable {
 
     private static final Logger logger = LoggerFactory.getLogger(MessageManagerService.class);
-    private static final String scheduledExectorSvcName = "redriver-batch-delete-executor-svc";
+    private static final String scheduledDeletionSvcName = "redriver-batch-delete-executor-svc";
+    private static final String taskRegisterSvcName = "redriver-task-register-executor-svc";
 
     private final MessageDao messageDao;
     private final Integer batchDeleteInterval;
     private final Integer batchSize;
     private final ConcurrentLinkedQueue<Long> messagesToDelete;
-    private final InstrumentedScheduledExecutorService scheduledExecutorService;
-    private final ExecutorService persistenceExecutorService;
+    private final InstrumentedScheduledExecutorService scheduledDeletionService;
+    private final InstrumentedExecutorService persistenceExecutorService;
 
     @Inject
     public MessageManagerService(MessageDao messageDao,
@@ -60,9 +64,10 @@ public class MessageManagerService implements Initializable {
         this.batchDeleteInterval = batchDeleteInterval;
         this.batchSize = batchSize;
         this.messagesToDelete = new ConcurrentLinkedQueue<>();
-        scheduledExecutorService =
-            new InstrumentedScheduledExecutorService(Executors.newScheduledThreadPool(2), SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME), scheduledExectorSvcName);
-        persistenceExecutorService = Executors.newFixedThreadPool(noOfPersistenceWorkers);
+        scheduledDeletionService =
+            new InstrumentedScheduledExecutorService(Executors.newScheduledThreadPool(2), SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME), scheduledDeletionSvcName);
+        persistenceExecutorService =
+            new InstrumentedExecutorService(Executors.newFixedThreadPool(noOfPersistenceWorkers), SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME), taskRegisterSvcName);
     }
 
     public List<ScheduledMessage> retrieveOldest(int offset, int count) {
@@ -78,7 +83,7 @@ public class MessageManagerService implements Initializable {
 
     @Override
     public void initialize() {
-        scheduledExecutorService.scheduleAtFixedRate(() -> {
+        scheduledDeletionService.scheduleAtFixedRate(() -> {
             Long currentMessageIdToDelete = null;
             List<Long> messageIdsToDelete = new ArrayList<>(batchSize);
 
@@ -91,7 +96,7 @@ public class MessageManagerService implements Initializable {
             }
         }, 0l, batchDeleteInterval, TimeUnit.MILLISECONDS);
 
-        registerShutdownHook(scheduledExecutorService, 2, "Could not shutdown executorService " + scheduledExectorSvcName);
+        registerShutdownHook(scheduledDeletionService, 2, "Could not shutdown executorService " + scheduledDeletionSvcName);
         registerShutdownHook(persistenceExecutorService, 5, "Error occurred while terminating Redriver's persistence executor service");
     }
 
