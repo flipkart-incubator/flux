@@ -124,7 +124,6 @@ public class FluxInitializer {
         loadFluxRuntimeContainer();
         // this ensures component booter is up and initialised
         final OrderedComponentBooter instance = this.fluxRuntimeContainer.getComponentContext().getInstance(OrderedComponentBooter.class);
-        // load executables from
         final Object[] displayArgs = {
 				(System.currentTimeMillis() - start),
 				this.hostName,
