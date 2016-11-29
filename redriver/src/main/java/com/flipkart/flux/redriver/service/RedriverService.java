@@ -46,6 +46,7 @@ public class RedriverService {
 
     private Integer batchReadInterval;
     private Integer batchSize;
+    private Long initialDelay = 10000L;
     private MessageManagerService messageService;
     private ScheduledFuture scheduledFuture;
     private final RedriverRegistry redriverRegistry;
@@ -70,7 +71,7 @@ public class RedriverService {
     }
 
     public void start() {
-        final long initialDelay = 10000l;
+
         synchronized (this) {
             if (scheduledFuture == null || scheduledFuture.isDone()) {
                 scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
@@ -107,5 +108,9 @@ public class RedriverService {
             offset += batchSize;
             // get next batch if we found batchSize tasks and all were redriven
         } while (messages.size() == batchSize && messages.get(messages.size() - 1).getScheduledTime() < now);
+    }
+
+    public void setInitialDelay(Long initialDelay) {
+        this.initialDelay = initialDelay;
     }
 }

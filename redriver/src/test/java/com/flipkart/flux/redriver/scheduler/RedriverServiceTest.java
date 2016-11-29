@@ -48,6 +48,7 @@ public class RedriverServiceTest {
     @Before
     public void setUp() throws Exception {
         redriverService = new RedriverService(messageManagerService, redriverRegistry, 500, batchSize);
+        redriverService.setInitialDelay(0L);
     }
 
     @Test
