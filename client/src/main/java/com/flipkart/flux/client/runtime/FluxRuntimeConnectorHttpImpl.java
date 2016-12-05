@@ -22,7 +22,6 @@ import com.flipkart.flux.api.StateMachineDefinition;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.ByteArrayEntity;
@@ -158,36 +157,16 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
                 // all is well, TODO write a trace level log
             } else {
                 // TODO: log status line here
+                HttpClientUtils.closeQuietly(httpResponse);
                 throw new RuntimeCommunicationException("Did not receive a valid response from Flux core");
             }
         } catch (IOException e) {
             // TODO log exception here
             e.printStackTrace();
+            HttpClientUtils.closeQuietly(httpResponse);
             throw new RuntimeCommunicationException("Could not communicate with Flux runtime: " + fluxEndpoint);
         }
         return httpResponse;
     }
-
-    /** Helper method to get data over Http*/
-    private CloseableHttpResponse getOverHttp(String pathSuffix) {
-        CloseableHttpResponse httpResponse = null;
-        HttpGet httpGet = new HttpGet(fluxEndpoint + pathSuffix);
-        try {
-            httpResponse = closeableHttpClient.execute(httpGet);
-            final int statusCode = httpResponse.getStatusLine().getStatusCode();
-            if (statusCode >= Response.Status.OK.getStatusCode() && statusCode < Response.Status.MOVED_PERMANENTLY.getStatusCode() ) {
-                // all is well, TODO write a trace level log
-            } else {
-                // TODO: log status line here
-                throw new RuntimeCommunicationException("Did not receive a valid response from Flux core while doing Http Get");
-            }
-        } catch (IOException e) {
-            // TODO log exception here
-            e.printStackTrace();
-            throw new RuntimeCommunicationException("Could not communicate with Flux runtime: " + fluxEndpoint);
-        }
-        return httpResponse;
-    }
-
 
 }
