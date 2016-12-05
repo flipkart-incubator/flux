@@ -44,6 +44,9 @@ public class FsmGraph {
     @JsonProperty
     private String correlationId;
 
+    @JsonProperty
+    private Long fsmVersion;
+
     public FsmGraph(){
         this.fsmGraphData = new HashMap<>();
         this.initStateEdges = new HashSet<>();
@@ -75,6 +78,10 @@ public class FsmGraph {
 
     public void setCorrelationId(String correlationId) {
         this.correlationId = correlationId;
+    }
+
+    public void setFsmVersion(Long fsmVersion) {
+        this.fsmVersion = fsmVersion;
     }
 
     @Override

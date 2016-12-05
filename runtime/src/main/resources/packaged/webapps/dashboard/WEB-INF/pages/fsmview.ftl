@@ -45,6 +45,10 @@
                         <th align="left" style="border-top: none; vertical-align: middle;">Correlation Id:</th>
                         <td id="correlationId" align="left" style="border-top: none; vertical-align: middle;"></td>
                     </tr>
+                    <tr>
+                        <th align="left" style="border-top: none; vertical-align: middle;">FSM Version:</th>
+                        <td id="fsmVersion" align="left" style="border-top: none; vertical-align: middle;"></td>
+                    </tr>
                 </table>
             </div>
             <div id="legend">
@@ -339,9 +343,10 @@
             });
         }
 
-        function displayIds(fsmId, correlationId) {
+        function displayIds(fsmId, correlationId, fsmVersion) {
             document.getElementById("fsmId").innerHTML = fsmId;
             document.getElementById("correlationId").innerHTML = correlationId;
+            document.getElementById("fsmVersion").innerHTML = fsmVersion;
         }
 
         function getFSMData() {
@@ -353,7 +358,7 @@
                     document.getElementById("alert-msg").style.display = 'none';
                     layout(data.fsmGraphData,data.initStateEdges);
                     createAuditTable(data.fsmGraphData,data.auditData);
-                    displayIds(data.stateMachineId, data.correlationId);
+                    displayIds(data.stateMachineId, data.correlationId, data.fsmVersion);
                     document.getElementById("id-div").style.display = 'block';
                     document.getElementById("legend").style.display = 'block';
                 },

@@ -311,6 +311,7 @@ public class StateMachineResource {
         final FsmGraph fsmGraph = new FsmGraph();
         fsmGraph.setStateMachineId(stateMachine.getId());
         fsmGraph.setCorrelationId(stateMachine.getCorrelationId());
+        fsmGraph.setFsmVersion(stateMachine.getVersion());
 
         Map<String,Event> stateMachineEvents = eventsDAO.findBySMInstanceId(stateMachine.getId()).stream().collect(
             Collectors.<Event, String, Event>toMap(Event::getName, (event -> event)));
