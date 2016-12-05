@@ -15,58 +15,59 @@ package com.flipkart.flux.guice.module;
 
 import com.flipkart.flux.client.intercept.MethodId;
 import com.flipkart.flux.deploymentunit.DeploymentUnit;
-import com.flipkart.polyguice.config.YamlConfiguration;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import org.apache.commons.configuration.Configuration;
-import org.eclipse.jetty.util.ConcurrentHashSet;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.lang.reflect.Method;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <code>AkkaModule</code> is a Guice {@link AbstractModule} implementation used for wiring Akka related components
  * in the core flux runtime
- *
+ * <p>
  * This depends on {@link ConfigModule } to read the configuration file and provide relevant instances
- * @author yogesh.nachnani
  *
- */public class AkkaModule extends AbstractModule {
+ * @author yogesh.nachnani
+ * @author shyam.akirala
+ */
+public class AkkaModule extends AbstractModule {
+
     @Override
     protected void configure() {
-
     }
+
     /**
-     * Returns set of all the available routers, include routers mentioned in configuration.yml and deployment unit routers //todo: handle dynamic deployments
+     * Returns map of all the available routers and actors per router,
+     * currently a router is created per Task of deployment unit //todo: handle dynamic deployments
      */
     @Provides
     @Singleton
-    @Named("routerNames")
-    public Set<String> getRouterNames(@Named("deploymentUnits") Map<String, DeploymentUnit> deploymentUnitsMap, YamlConfiguration yamlConfiguration) {
-        Configuration routerConfig = yamlConfiguration.subset("routers");
-        Set<String> routerNames = new ConcurrentHashSet<>();
-        Iterator<String> propertyKeys = routerConfig.getKeys();
-        while(propertyKeys.hasNext()) {
-            String propertyKey = propertyKeys.next();
-            String routerName = propertyKey.substring(0, propertyKey.lastIndexOf('.'));
-            routerNames.add(routerName);
-        }
-
-        //'default' is not a router name, it's a placeholder for router default settings
-        routerNames.remove("default");
+    @Named("routerConfigMap")
+    public Map<String, Integer> getRouterConfigs(@Named("deploymentUnits") Map<String, DeploymentUnit> deploymentUnitsMap,
+                                                 @Named("routers.default.instancesPerNode") int defaultNoOfActors) {
+        Map<String, Integer> routerConfigMap = new ConcurrentHashMap<>();
 
         //add all deployment units' routers
-        for(Map.Entry<String, DeploymentUnit> deploymentUnitEntry : deploymentUnitsMap.entrySet()) {
-            Set<Method> taskMethods = deploymentUnitEntry.getValue().getTaskMethods();
-            routerNames.addAll(taskMethods.stream().map(method -> new MethodId(method).getPrefix()).collect(Collectors.toList()));
+        for (Map.Entry<String, DeploymentUnit> deploymentUnitEntry : deploymentUnitsMap.entrySet()) {
+            DeploymentUnit deploymentUnit = deploymentUnitEntry.getValue();
+            Set<Method> taskMethods = deploymentUnit.getTaskMethods();
+            Configuration taskConfiguration = deploymentUnit.getTaskConfiguration();
+
+            for (Method taskMethod : taskMethods) {
+                String routerName = new MethodId(taskMethod).getPrefix();
+                Integer taskExecConcurrency = Optional.ofNullable((Integer) taskConfiguration.getProperty(routerName + ".executionConcurrency"))
+                        .orElse(defaultNoOfActors);
+                routerConfigMap.put(routerName, taskExecConcurrency);
+            }
         }
 
-        return routerNames;
+        return routerConfigMap;
     }
 
 }

@@ -188,13 +188,16 @@ public class WorkFlowExecutionController {
         executableStates.forEach((state ->  {
             final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
                     eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId).toArray(new EventData[]{}),
-                    stateMachineInstanceId,
-                    state.getOutputEvent(), state.getRetryCount());
+                    stateMachineInstanceId, state.getOutputEvent(), state.getRetryCount(), state.getAttemptedNoOfRetries());
+            if(state.getStatus().equals(Status.initialized) || state.getStatus().equals(Status.unsidelined)) {
+                msg.setFirstTimeExecution(true);
+            }
 
             // register the Task with the redriver
             if (state.getRetryCount() > 0) {
-                // delay between retries is 1 second as seen in AkkaTask#preRestart(). Redriver interval is set as 2 x retrycount x (delay + timeout)
-                long redriverInterval = 2 * state.getRetryCount() * (1000 + state.getTimeout());
+                // Delay between retires is exponential (2, 4, 8, 16, 32.... seconds) as seen in AkkaTask.
+                // Redriver interval is set as 2 x ( 2^(retryCount+1) x 1s + (retryCount+1) x timeout)
+                long redriverInterval = 2 * ((int) Math.pow(2, state.getRetryCount() + 1) * 1000 + (state.getRetryCount() + 1) * state.getTimeout());
                 this.redriverRegistry.registerTask(state.getId(), redriverInterval);
             }
 
@@ -240,6 +243,9 @@ public class WorkFlowExecutionController {
         if(isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() < state.getRetryCount()) {
             logger.info("Redriving a task with Id: {} for state machine: {}", state.getId(), state.getStateMachineId());
             executeStates(state.getStateMachineId(), Collections.singleton(state));
+        } else {
+            //cleanup the tasks which can't be redrived from redriver db
+            this.redriverRegistry.deRegisterTask(taskId);
         }
     }
 

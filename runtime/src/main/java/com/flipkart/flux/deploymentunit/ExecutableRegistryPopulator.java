@@ -47,7 +47,7 @@ public class ExecutableRegistryPopulator implements Initializable {
 
     /** Logger for this class*/
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutableRegistryPopulator.class);
-    private static final int DEFAULT_TASK_EXECUTION_CONCURRENCY = 10;
+    private final int defaultTaskExecutionConcurrency;
 
     private ExecutableRegistry executableRegistry;
 
@@ -55,9 +55,11 @@ public class ExecutableRegistryPopulator implements Initializable {
     private Map<String, DeploymentUnit> deploymentUnitsMap;
 
     @Inject
-    public ExecutableRegistryPopulator(@ManagedEnv ExecutableRegistry executableRegistry, @Named("deploymentUnits")Map<String, DeploymentUnit> deploymentUnitsMap) {
+    public ExecutableRegistryPopulator(@ManagedEnv ExecutableRegistry executableRegistry, @Named("deploymentUnits")Map<String, DeploymentUnit> deploymentUnitsMap,
+                                       @Named("routers.default.instancesPerNode") int defaultNoOfActors) {
         this.executableRegistry = executableRegistry;
         this.deploymentUnitsMap = deploymentUnitsMap;
+        defaultTaskExecutionConcurrency = defaultNoOfActors;
     }
 
     @Override
@@ -132,7 +134,7 @@ public class ExecutableRegistryPopulator implements Initializable {
 
                     /* get concurrency config for this task */
                     Integer taskExecConcurrency = Optional.ofNullable((Integer)taskConfigs.getProperty(methodId.getPrefix() + ".executionConcurrency"))
-                            .orElse(DEFAULT_TASK_EXECUTION_CONCURRENCY);
+                            .orElse(defaultTaskExecutionConcurrency);
 
                     Object singletonMethodOwner = getInstanceMethod.invoke(injectorClassInstance, method.getDeclaringClass());
                     executableRegistry.registerTask(taskIdentifier, new TaskExecutableImpl(singletonMethodOwner, method, timeout, taskExecConcurrency, classLoader, objectMapperInstance));
