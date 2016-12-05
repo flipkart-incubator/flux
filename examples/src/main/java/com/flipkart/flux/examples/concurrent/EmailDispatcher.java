@@ -13,7 +13,6 @@
 
 package com.flipkart.flux.examples.concurrent;
 
-import com.flipkart.flux.client.exception.FluxRetriableException;
 import com.flipkart.flux.client.model.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,9 +35,8 @@ public class EmailDispatcher {
 
     @Task(version = 1, timeout = 1000l, retries = 2)
     public EmailAcknowledgement sendEmail(Email email) {
-        throw new FluxRetriableException("do retry.......");
-//        System.out.println("[EmailMarketingWorkflow] Sending email " + email);
-//        return new EmailAcknowledgement(random.nextBoolean());
+        System.out.println("[EmailMarketingWorkflow] Sending email " + email);
+        return new EmailAcknowledgement(random.nextBoolean());
     }
 
 }
