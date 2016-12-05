@@ -47,6 +47,9 @@ public class FsmGraph {
     @JsonProperty
     private Long fsmVersion;
 
+    @JsonProperty
+    private String fsmName;
+
     public FsmGraph(){
         this.fsmGraphData = new HashMap<>();
         this.initStateEdges = new HashSet<>();
@@ -82,6 +85,10 @@ public class FsmGraph {
 
     public void setFsmVersion(Long fsmVersion) {
         this.fsmVersion = fsmVersion;
+    }
+
+    public void setFsmName(String fsmName) {
+        this.fsmName = fsmName;
     }
 
     @Override

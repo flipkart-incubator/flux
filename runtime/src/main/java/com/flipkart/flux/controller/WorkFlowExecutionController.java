@@ -137,12 +137,12 @@ public class WorkFlowExecutionController {
      * @param currentRetryCount current retry count for the task
      * @param errorMessage the error message in case task has failed
      */
-    public void updateExecutionStatus(Long stateMachineId,Long taskId, Status status, long retryCount, long currentRetryCount, String errorMessage) {
+    public void updateExecutionStatus(Long stateMachineId,Long taskId, Status status, long retryCount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver) {
         this.statesDAO.updateStatus(taskId, stateMachineId, status);
         this.auditDAO.create(new AuditRecord(stateMachineId, taskId, currentRetryCount, status, null, errorMessage));
-        // cancel the redriver if the Task has been executed successfully and if the Task's original retry count is > 0
-        // Redriver would not have been registered otherwise
-        if (status.equals(Status.completed) && retryCount > 0) {
+        // cancel the redriver if the Task's original retry count is > 0 and deleteFromRedriver flag is true
+        // Redriver would not have been registered if the retry count is 0
+        if (retryCount > 0 && deleteFromRedriver) {
             this.redriverRegistry.deRegisterTask(taskId);
         }
     }
@@ -255,7 +255,6 @@ public class WorkFlowExecutionController {
     private boolean isTaskRedrivable(Status taskStatus) {
         return !(taskStatus.equals(Status.completed) ||
                 taskStatus.equals(Status.sidelined) ||
-                taskStatus.equals(Status.errored) ||
                 taskStatus.equals(Status.cancelled));
     }
 }
