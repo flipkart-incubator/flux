@@ -23,11 +23,25 @@ import org.hibernate.SessionFactory;
  */
 public interface SessionFactoryContext {
 
-    SessionFactory getCurrent();
+    /**
+     * Get the sessionFactory for the current thread context to be used for the ongoing transaction.
+     * @return {@link SessionFactory}
+     */
+    SessionFactory getSessionFactory();
 
-    void setCurrent(DataSourceType type);
+    /**
+     * Set a particular sessionFactory in the current thread context based on the DataSourceType.
+     * @param type {@link DataSourceType}
+     */
+    void useSessionFactory(DataSourceType type);
 
-    void setDefaultAsCurrent();
+    /**
+     * Set the default sessionFactory in the current thread context.
+     */
+    void useDefault();
 
-    void clearCurrent();
+    /**
+     * Clear the context.
+     */
+    void clear();
 }

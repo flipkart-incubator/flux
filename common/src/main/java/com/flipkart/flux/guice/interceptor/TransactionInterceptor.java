@@ -64,7 +64,7 @@ public class TransactionInterceptor implements MethodInterceptor {
         SessionFactoryContext context = contextProvider.get();
 
         try {
-            SessionFactory currentSessionFactory = context.getCurrent();
+            SessionFactory currentSessionFactory = context.getSessionFactory();
             if(currentSessionFactory != null) {
                 session = currentSessionFactory.getCurrentSession();
             }
@@ -75,11 +75,11 @@ public class TransactionInterceptor implements MethodInterceptor {
             //get DataSourceType first
             SelectDataSource selectedDS = invocation.getMethod().getAnnotation(SelectDataSource.class);
             if(selectedDS == null) {
-                context.setDefaultAsCurrent();
+                context.useDefault();
             } else {
-                context.setCurrent(selectedDS.value());
+                context.useSessionFactory(selectedDS.value());
             }
-            session = context.getCurrent().openSession();
+            session = context.getSessionFactory().openSession();
             ManagedSessionContext.bind(session);
             transaction = session.getTransaction();
             transaction.begin();
@@ -102,9 +102,9 @@ public class TransactionInterceptor implements MethodInterceptor {
             throw e;
         } finally {
             if (transaction != null && session != null) {
-                ManagedSessionContext.unbind(context.getCurrent());
+                ManagedSessionContext.unbind(context.getSessionFactory());
                 session.close();
-                context.clearCurrent();
+                context.clear();
             }
         }
     }

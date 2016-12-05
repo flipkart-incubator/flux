@@ -47,12 +47,12 @@ public class SessionFactoryContextImpl implements SessionFactoryContext {
     }
 
     @Override
-    public SessionFactory getCurrent() {
+    public SessionFactory getSessionFactory() {
         return currentSessionFactory.get();
     }
 
     @Override
-    public void setCurrent(DataSourceType type) {
+    public void useSessionFactory(DataSourceType type) {
         SessionFactory sessionFactory = sessionFactoryImmutableMap.get(type);
         if(sessionFactory == null) {
             sessionFactory = sessionFactoryImmutableMap.get(defaultDataSourceType);
@@ -61,12 +61,12 @@ public class SessionFactoryContextImpl implements SessionFactoryContext {
     }
 
     @Override
-    public void setDefaultAsCurrent() {
-        setCurrent(defaultDataSourceType);
+    public void useDefault() {
+        useSessionFactory(defaultDataSourceType);
     }
 
     @Override
-    public void clearCurrent() {
+    public void clear() {
         currentSessionFactory.remove();
     }
 }
