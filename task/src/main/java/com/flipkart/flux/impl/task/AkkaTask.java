@@ -127,11 +127,13 @@ public class AkkaTask extends UntypedActor {
                             //check if the exception hierarchy has FluxRetriableException, if yes trigger retry
                             boolean isFluxRetriableException = false;
                             Throwable cause = hre.getCause();
+                            Throwable rootCause = cause;
                             while (cause != null) {
                                 if (cause.getClass().getName().equals(FluxRetriableException.class.getName())) {
                                     isFluxRetriableException = true;
                                     break;
                                 }
+                                rootCause = cause;
                                 cause = cause.getCause();
                             }
                             if (isFluxRetriableException) {
@@ -146,7 +148,7 @@ public class AkkaTask extends UntypedActor {
                                 // mark the task outcome as execution failure
                                 fluxRuntimeConnector.updateExecutionStatus(
                                         new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.errored,
-                                                taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount(), hre.getMessage()));
+                                                taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount(), rootCause.getClass().getName() + " : " + rootCause.getMessage()));
                             }
                         }
                     } catch (RuntimeCommunicationException e) {
