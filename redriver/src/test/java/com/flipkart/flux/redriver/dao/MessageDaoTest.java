@@ -21,7 +21,6 @@ import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
 import com.google.inject.Inject;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.context.internal.ManagedSessionContext;
 import org.junit.Before;
@@ -45,18 +44,18 @@ public class MessageDaoTest {
 
     @Before
     public void setUp() throws Exception {
-        sessionFactory.setDefaultAsCurrent();
-        Session session = sessionFactory.getCurrent().openSession();
+        sessionFactory.useDefault();
+        Session session = sessionFactory.getSessionFactory().openSession();
         ManagedSessionContext.bind(session);
         Transaction tx = session.beginTransaction();
         try {
-            sessionFactory.getCurrent().getCurrentSession().createSQLQuery("delete from ScheduledMessages").executeUpdate();
+            sessionFactory.getSessionFactory().getCurrentSession().createSQLQuery("delete from ScheduledMessages").executeUpdate();
             tx.commit();
         } finally {
             if(session != null) {
-                ManagedSessionContext.unbind(sessionFactory.getCurrent());
+                ManagedSessionContext.unbind(sessionFactory.getSessionFactory());
                 session.close();
-                sessionFactory.clearCurrent();
+                sessionFactory.clear();
             }
         }
     }

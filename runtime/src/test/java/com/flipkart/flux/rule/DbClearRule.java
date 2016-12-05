@@ -55,13 +55,13 @@ public class DbClearRule extends ExternalResource{
 
     @Override
     protected void before() throws Throwable {
-        fluxSessionFactoryContext.setDefaultAsCurrent();
-        clearDb(fluxTables,fluxSessionFactoryContext.getCurrent());
-        fluxSessionFactoryContext.clearCurrent();
+        fluxSessionFactoryContext.useDefault();
+        clearDb(fluxTables,fluxSessionFactoryContext.getSessionFactory());
+        fluxSessionFactoryContext.clear();
 
-        redriverSessionFactoryContext.setDefaultAsCurrent();
-        clearDb(fluxRedriverTables,redriverSessionFactoryContext.getCurrent());
-        redriverSessionFactoryContext.clearCurrent();
+        redriverSessionFactoryContext.useDefault();
+        clearDb(fluxRedriverTables,redriverSessionFactoryContext.getSessionFactory());
+        redriverSessionFactoryContext.clear();
     }
 
     /** Clears all given tables which are mentioned using the given sessionFactory*/
