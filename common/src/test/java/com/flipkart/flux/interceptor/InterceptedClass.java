@@ -37,13 +37,13 @@ public class InterceptedClass {
     @SelectDataSource(DataSourceType.READ_ONLY)
     public void readSome() {
         /* assert that the current session factory in context is equals to readOnlySessionFactory. */
-        Assert.assertEquals(context.getSessionFactory(), readOnlySessionFactory);
+        Assert.assertSame(context.getSessionFactory(), readOnlySessionFactory);
     }
 
     @Transactional
     public void writeSome() {
         /* assert that the current session factory in context is not null and not equals to readOnlySessionFactory. */
         Assert.assertNotNull(context.getSessionFactory());
-        Assert.assertNotEquals(context.getSessionFactory(), readOnlySessionFactory);
+        Assert.assertNotSame(context.getSessionFactory(), readOnlySessionFactory);
     }
 }
