@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.guice.interceptor;
 
+import com.flipkart.flux.persistence.SelectDataSource;
+import com.flipkart.flux.persistence.SessionFactoryContext;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.hibernate.HibernateException;
@@ -21,13 +23,12 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.context.internal.ManagedSessionContext;
 
-import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Provider;
 
 /**
  * <code>TransactionInterceptor</code> is a {@link MethodInterceptor} implementation to provide
  * transactional boundaries to methods which are annotated with {@link javax.transaction.Transactional}.
+ * It appropriately selects a dataSource based on present {@link SelectDataSource} annotation.
  *
  * Example:
  * {
@@ -49,25 +50,36 @@ import javax.inject.Provider;
  */
 public class TransactionInterceptor implements MethodInterceptor {
 
-    private Provider<SessionFactory> sessionFactoryProvider;
+    private final Provider<SessionFactoryContext> contextProvider;
 
-    public TransactionInterceptor(Provider<SessionFactory> sessionFactoryProvider) {
-        this.sessionFactoryProvider = sessionFactoryProvider;
+    public TransactionInterceptor(Provider<SessionFactoryContext> contextProvider) {
+        this.contextProvider = contextProvider;
     }
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
 
         Transaction transaction = null;
-
         Session session = null;
+        SessionFactoryContext context = contextProvider.get();
+
         try {
-            session = sessionFactoryProvider.get().getCurrentSession();
+            SessionFactory currentSessionFactory = context.getSessionFactory();
+            if(currentSessionFactory != null) {
+                session = currentSessionFactory.getCurrentSession();
+            }
         } catch (HibernateException e) {}
 
         if (session == null) {
             //start a new session and transaction if current session is null
-            session = sessionFactoryProvider.get().openSession();
+            //get DataSourceType first
+            SelectDataSource selectedDS = invocation.getMethod().getAnnotation(SelectDataSource.class);
+            if(selectedDS == null) {
+                context.useDefault();
+            } else {
+                context.useSessionFactory(selectedDS.value());
+            }
+            session = context.getSessionFactory().openSession();
             ManagedSessionContext.bind(session);
             transaction = session.getTransaction();
             transaction.begin();
@@ -90,8 +102,9 @@ public class TransactionInterceptor implements MethodInterceptor {
             throw e;
         } finally {
             if (transaction != null && session != null) {
-                ManagedSessionContext.unbind(sessionFactoryProvider.get());
+                ManagedSessionContext.unbind(context.getSessionFactory());
                 session.close();
+                context.clear();
             }
         }
     }

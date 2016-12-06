@@ -17,6 +17,7 @@ import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -35,8 +36,8 @@ import javax.inject.Singleton;
 @Singleton
 public class DbClearRule extends ExternalResource{
 
-    private SessionFactory sessionFactory;
-    private final SessionFactory redriverSessionFactory;
+    private final SessionFactoryContext fluxSessionFactoryContext;
+    private final SessionFactoryContext redriverSessionFactoryContext;
 
     /** List of entity tables which need to be cleared from flux db*/
     private static Class[] fluxTables = {StateMachine.class, State.class, AuditRecord.class, Event.class};
@@ -46,17 +47,21 @@ public class DbClearRule extends ExternalResource{
 
 
     @Inject
-    public DbClearRule(SessionFactory sessionFactory,
-                       @Named("redriverSessionFactory") SessionFactory redriverSessionFactory
-                       ) {
-        this.sessionFactory = sessionFactory;
-        this.redriverSessionFactory = redriverSessionFactory;
+    public DbClearRule(@Named("fluxSessionFactoryContext") SessionFactoryContext fluxSessionFactoryContext,
+                       @Named("redriverSessionFactoryContext") SessionFactoryContext redriverSessionFactoryContext) {
+        this.fluxSessionFactoryContext = fluxSessionFactoryContext;
+        this.redriverSessionFactoryContext = redriverSessionFactoryContext;
     }
 
     @Override
     protected void before() throws Throwable {
-        clearDb(fluxTables,sessionFactory);
-        clearDb(fluxRedriverTables,redriverSessionFactory);
+        fluxSessionFactoryContext.useDefault();
+        clearDb(fluxTables,fluxSessionFactoryContext.getSessionFactory());
+        fluxSessionFactoryContext.clear();
+
+        redriverSessionFactoryContext.useDefault();
+        clearDb(fluxRedriverTables,redriverSessionFactoryContext.getSessionFactory());
+        redriverSessionFactoryContext.clear();
     }
 
     /** Clears all given tables which are mentioned using the given sessionFactory*/

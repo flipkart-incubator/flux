@@ -252,7 +252,7 @@ public class StateMachineResource {
     }
 
     /**
-     * Retrieves all errored states for the given range of state machine ids. Max range is 1000.
+     * Retrieves all errored states for the given range of state machine ids. Max range is 1,000,000.
      * @param fromStateMachineId starting id for the range
      * @param toStateMachineId ending id (inclusive)
      * @return json containing list of [state machine id,  state id, status]
@@ -267,8 +267,8 @@ public class StateMachineResource {
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity("start of the range not provided or invalid").build();
         }
 
-        long limit = fromStateMachineId + 1000;
-        /* if toStateMachineId is invalid just use fromStateMachineId as the end, otherwise limit the range to max of 1000 */
+        long limit = fromStateMachineId + 1_000_000;
+        /* if toStateMachineId is invalid just use fromStateMachineId as the end, otherwise limit the range to max of 1,000,000 */
         toStateMachineId = (toStateMachineId == null || toStateMachineId < fromStateMachineId) ? fromStateMachineId : Math.min(limit, toStateMachineId);
 
         return Response.status(200).entity(statesDAO.findErroredStates(stateMachineName, fromStateMachineId, toStateMachineId)).build();

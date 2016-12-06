@@ -32,7 +32,7 @@ import com.flipkart.flux.rule.DbClearWithTestSMRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
 import com.flipkart.flux.util.TestUtils;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -78,7 +78,7 @@ public class EventsDAOTest {
         Long eventId = eventsDAO.create(event).getId();
 
         Event event1 = eventsDAO.findById(eventId);
-        Assert.assertEquals(event, event1);
+        assertThat(event1).isEqualTo(event);
     }
 
     @Test
