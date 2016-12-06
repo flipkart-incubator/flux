@@ -17,6 +17,7 @@ import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.criterion.Order;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -43,8 +44,13 @@ public class MessageDao {
     }
 
     @Transactional
-    public List<ScheduledMessage> retrieveAll() {
-        return currentSession().createCriteria(ScheduledMessage.class).list();
+    public List<ScheduledMessage> retrieveOldest(int offset, int rowCount) {
+        return currentSession()
+                .createCriteria(ScheduledMessage.class)
+                .addOrder(Order.asc("scheduledTime"))
+                .setFirstResult(offset)
+                .setMaxResults(rowCount)
+                .list();
     }
 
     @Transactional

@@ -35,15 +35,23 @@
             <div class="paper" id="fsmcanvas" style="width: 1000px; height: 500px; overflow: auto;"></div>
         </div>
         <div>
-            <div id="id-div">
+            <div id="info-div">
                 <table class="table" style="width: 10%">
+                    <tr>
+                        <th align="left" style="border-top: none; vertical-align: middle;">FSM Name:</th>
+                        <td id="fsmName" align="left" style="border-top: none; vertical-align: middle; max-width: 100px; word-wrap: break-word;"></td>
+                    </tr>
                     <tr>
                         <th align="left" style="border-top: none; vertical-align: middle;">FSM Id:</th>
                         <td id="fsmId" align="left" style="border-top: none; vertical-align: middle;"></td>
                     </tr>
                     <tr>
                         <th align="left" style="border-top: none; vertical-align: middle;">Correlation Id:</th>
-                        <td id="correlationId" align="left" style="border-top: none; vertical-align: middle;"></td>
+                        <td id="correlationId" align="left" style="border-top: none; vertical-align: middle; max-width: 100px; word-wrap: break-word;"></td>
+                    </tr>
+                    <tr>
+                        <th align="left" style="border-top: none; vertical-align: middle;">FSM Version:</th>
+                        <td id="fsmVersion" align="left" style="border-top: none; vertical-align: middle;"></td>
                     </tr>
                 </table>
             </div>
@@ -339,9 +347,11 @@
             });
         }
 
-        function displayIds(fsmId, correlationId) {
+        function displayFsmInfo(fsmId, correlationId, fsmVersion, fsmName) {
             document.getElementById("fsmId").innerHTML = fsmId;
             document.getElementById("correlationId").innerHTML = correlationId;
+            document.getElementById("fsmVersion").innerHTML = fsmVersion;
+            document.getElementById("fsmName").innerHTML = fsmName;
         }
 
         function getFSMData() {
@@ -353,8 +363,8 @@
                     document.getElementById("alert-msg").style.display = 'none';
                     layout(data.fsmGraphData,data.initStateEdges);
                     createAuditTable(data.fsmGraphData,data.auditData);
-                    displayIds(data.stateMachineId, data.correlationId);
-                    document.getElementById("id-div").style.display = 'block';
+                    displayFsmInfo(data.stateMachineId, data.correlationId, data.fsmVersion, data.fsmName);
+                    document.getElementById("info-div").style.display = 'block';
                     document.getElementById("legend").style.display = 'block';
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -365,7 +375,7 @@
 
         document.getElementById("graph-div").style.display = 'none';
         document.getElementById("alert-msg").style.display = 'none';
-        document.getElementById("id-div").style.display = 'none';
+        document.getElementById("info-div").style.display = 'none';
         document.getElementById("legend").style.display = 'none';
 
         //on pressing Enter key while "fsm-id" text box is in focus, click "get-fsm-data" button

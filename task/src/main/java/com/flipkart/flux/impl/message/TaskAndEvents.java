@@ -48,6 +48,8 @@ public class TaskAndEvents implements Serializable {
     private long retryCount;
     /* The current retry count*/
     private long currentRetryCount;
+    /* Indicates whether this task is getting executed for the first time, useful in incrementing attempted no. retries of task*/
+    private boolean isFirstTimeExecution;
 
     /** constructors*/
     public TaskAndEvents() {}
@@ -93,8 +95,14 @@ public class TaskAndEvents implements Serializable {
 	public void setCurrentRetryCount(long currentRetryCount) {
 		this.currentRetryCount = currentRetryCount;
 	}
+    public boolean getIsFirstTimeExecution() {
+        return isFirstTimeExecution;
+    }
+    public void setFirstTimeExecution(boolean firstTimeExecution) {
+        isFirstTimeExecution = firstTimeExecution;
+    }
 
-	@Override
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

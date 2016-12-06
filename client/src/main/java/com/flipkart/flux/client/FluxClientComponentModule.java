@@ -57,9 +57,13 @@ public class FluxClientComponentModule extends AbstractModule {
     @Singleton
     public FluxRuntimeConnector provideFluxRuntimeConnector(FluxClientConfiguration configuration,
                                                             ObjectMapper objectMapper) {
+        String fluxRuntimeUrl = System.getProperty("flux.runtimeUrl");
+        if(fluxRuntimeUrl == null) {
+            fluxRuntimeUrl = configuration.getFluxRuntimeUrl();
+        }
         return new FluxRuntimeConnectorHttpImpl(configuration.getConnectionTimeout(),
                                                 configuration.getSocketTimeout(),
-                                                configuration.getFluxRuntimeUrl() + "/api/machines",
+                                                fluxRuntimeUrl + "/api/machines",
                                                 objectMapper);
     }
 

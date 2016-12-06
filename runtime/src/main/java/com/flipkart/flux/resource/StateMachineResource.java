@@ -187,7 +187,7 @@ public class StateMachineResource {
 				break;
     	}
 		this.workFlowExecutionController.updateExecutionStatus(machineId, stateId, updateStatus, executionUpdateData.getRetrycount(),
-                executionUpdateData.getCurrentRetryCount(), executionUpdateData.getErrorMessage());
+                executionUpdateData.getCurrentRetryCount(), executionUpdateData.getErrorMessage(), executionUpdateData.isDeleteFromRedriver());
     	return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
     }
     
@@ -311,6 +311,8 @@ public class StateMachineResource {
         final FsmGraph fsmGraph = new FsmGraph();
         fsmGraph.setStateMachineId(stateMachine.getId());
         fsmGraph.setCorrelationId(stateMachine.getCorrelationId());
+        fsmGraph.setFsmVersion(stateMachine.getVersion());
+        fsmGraph.setFsmName(stateMachine.getName());
 
         Map<String,Event> stateMachineEvents = eventsDAO.findBySMInstanceId(stateMachine.getId()).stream().collect(
             Collectors.<Event, String, Event>toMap(Event::getName, (event -> event)));

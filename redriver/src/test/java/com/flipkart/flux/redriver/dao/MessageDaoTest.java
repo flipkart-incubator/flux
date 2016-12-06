@@ -66,6 +66,18 @@ public class MessageDaoTest {
         messageDao.save(new ScheduledMessage(2l,3l));
         messageDao.save(new ScheduledMessage(3l,4l));
         messageDao.deleteInBatch(Arrays.asList(1l, 2l));
-        assertThat(messageDao.retrieveAll()).containsExactly(new ScheduledMessage(3l,4l));
+
+        assertThat(messageDao.retrieveOldest(0, 10)).containsExactly(new ScheduledMessage(3l,4l));
+    }
+
+    @Test
+    public void testRetrieveOldest() throws Exception {
+        messageDao.save(new ScheduledMessage(1l,2l));
+        messageDao.save(new ScheduledMessage(2l,3l));
+        messageDao.save(new ScheduledMessage(3l,4l));
+
+        assertThat(messageDao.retrieveOldest(0, 1)).containsExactly(new ScheduledMessage(1l,2l));
+        assertThat(messageDao.retrieveOldest(1, 3)).hasSize(2);
+        assertThat(messageDao.retrieveOldest(1, 3)).containsSequence(new ScheduledMessage(2l,3l), new ScheduledMessage(3l,4l));
     }
 }

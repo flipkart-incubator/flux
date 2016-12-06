@@ -45,21 +45,22 @@ Api:
 
 routers:
   default:
-    totalInstances: 10
-    maxInstancesPerNode: 4
+    instancesPerNode: 10
 
 runtime:
   actorsystem:
     metrics: false
     name: FluxSystem
     configname: application.conf
-    maxGatewayActorCreateRetries : 10
+    maxTaskActorCreateRetries : 10
 
 redriver:
   batchdelete:
     batchsize: 50
     intervalms: 1000
-  noOfRedriverWorkers : 50
+  batchread:
+    batchsize: 100
+    intervalms: 20000
   noOfPersistenceWorkers: 10
 
 deploymentType: directory

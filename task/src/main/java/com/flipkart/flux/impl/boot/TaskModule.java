@@ -17,19 +17,13 @@ package com.flipkart.flux.impl.boot;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.guice.annotation.ManagedEnv;
-import com.flipkart.flux.impl.redriver.AkkaRedriverTask;
-import com.flipkart.flux.impl.redriver.AkkaRedriverWorker;
-import com.flipkart.flux.redriver.boot.RedriverModule;
-import com.flipkart.flux.task.redriver.RedriverRegistry;
-import com.flipkart.flux.impl.redriver.AkkaRedriverRegistryImpl;
-import com.flipkart.flux.impl.task.AkkaGatewayTask;
+import com.flipkart.flux.impl.redriver.RedriverRegistryImpl;
 import com.flipkart.flux.impl.task.AkkaTask;
-import com.flipkart.flux.impl.task.AkkaTaskSupervisor;
 import com.flipkart.flux.impl.task.registry.EagerInitRouterRegistryImpl;
-import com.flipkart.flux.impl.task.registry.LocalRouterConfigurationRegistryImpl;
-import com.flipkart.flux.impl.task.registry.RouterConfigurationRegistry;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
+import com.flipkart.flux.redriver.boot.RedriverModule;
 import com.flipkart.flux.registry.TaskExecutableRegistryImpl;
+import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.google.inject.AbstractModule;
 
 /**
@@ -44,17 +38,11 @@ public class TaskModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(RouterConfigurationRegistry.class).to(LocalRouterConfigurationRegistryImpl.class);
         bind(RouterRegistry.class).to(EagerInitRouterRegistryImpl.class);
         bind(ExecutableRegistry.class).annotatedWith(ManagedEnv.class).to(TaskExecutableRegistryImpl.class);
-        bind(RedriverRegistry.class).to(AkkaRedriverRegistryImpl.class);
+        bind(RedriverRegistry.class).to(RedriverRegistryImpl.class);
         install(new FluxClientComponentModule());
         install(new RedriverModule());
         requestStaticInjection(AkkaTask.class);
-        requestStaticInjection(AkkaGatewayTask.class);
-        requestStaticInjection(AkkaTaskSupervisor.class);
-        requestStaticInjection(AkkaRedriverWorker.class);
-        requestStaticInjection(AkkaRedriverTask.class);
     }
-
 }
