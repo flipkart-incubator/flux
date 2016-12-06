@@ -14,77 +14,51 @@
 
 package com.flipkart.flux.impl.task.registry;
 
-import static akka.actor.SupervisorStrategy.escalate;
-import static akka.actor.SupervisorStrategy.restart;
-import static akka.actor.SupervisorStrategy.resume;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import akka.actor.*;
+import akka.routing.RoundRobinPool;
+import com.flipkart.flux.impl.boot.ActorSystemManager;
+import com.flipkart.flux.impl.task.AkkaTask;
+import com.flipkart.polyguice.core.Initializable;
+import scala.concurrent.duration.Duration;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.flipkart.flux.api.core.FluxError;
-import com.flipkart.flux.impl.boot.ActorSystemManager;
-import com.flipkart.flux.impl.task.AkkaGatewayTask;
-import com.flipkart.polyguice.core.Initializable;
-
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Address;
-import akka.actor.OneForOneStrategy;
-import akka.actor.PoisonPill;
-import akka.actor.Props;
-import akka.actor.SupervisorStrategy;
-import akka.cluster.routing.ClusterRouterPool;
-import akka.cluster.routing.ClusterRouterPoolSettings;
-import akka.cluster.singleton.ClusterSingletonManager;
-import akka.cluster.singleton.ClusterSingletonManagerSettings;
-import akka.cluster.singleton.ClusterSingletonProxy;
-import akka.cluster.singleton.ClusterSingletonProxySettings;
-import akka.remote.routing.RemoteRouterConfig;
-import akka.routing.RoundRobinPool;
-import javafx.util.Pair;
-import scala.concurrent.duration.Duration;
+import static akka.actor.SupervisorStrategy.escalate;
+import static akka.actor.SupervisorStrategy.restart;
 
 /**
  * Eagerly creates and maintains references to all the required routers of the system
  * @see RouterRegistry
  * @author yogesh.nachnani
+ * @author shyam.akirala
  */
 @Singleton
 public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializable {
 
-	/** Logger for this class*/
-	private static final Logger LOGGER = LoggerFactory.getLogger(EagerInitRouterRegistryImpl.class);
-
 	/** Access to the Actor system initialized by Flux*/
     private ActorSystemManager actorSystemManager;
 
-    /** Configuration access for Router setup*/
-    private RouterConfigurationRegistry routerConfigurationRegistry;
+    /** Contains list of routers and actors per router*/
+    private Map<String, Integer> routerConfigMap;
 
     /** Local Map of initialized Router instances*/
-    private final HashMap<String, ActorRef> proxyMap;
+    private final HashMap<String, ActorRef> routerMap;
 
-    /** Mutating list of Akka cluster members. Using an expensive list implementation for concurrent access but with low update rate */
-    private List<Address> memberAddresses = new CopyOnWriteArrayList<>();
-    
-    /** The global max retries for creating gateway Actors*/
-    private int maxGatewayActorCreateRetries;
+    /** The global max retries for creating Task Actors*/
+    private int maxTaskActorCreateRetries;
     
     @Inject
-    public EagerInitRouterRegistryImpl(ActorSystemManager actorSystemManager, RouterConfigurationRegistry routerConfigurationRegistry,
-                                       @Named("runtime.actorsystem.maxGatewayActorCreateRetries") int maxGatewayActorCreateRetries) {
-        this.proxyMap = new HashMap<>();
+    public EagerInitRouterRegistryImpl(ActorSystemManager actorSystemManager,
+                                       @Named("runtime.actorsystem.maxTaskActorCreateRetries") int maxTaskActorCreateRetries,
+                                       @Named("routerConfigMap")Map<String, Integer> routerConfigMap) {
+        this.routerMap = new HashMap<>();
         this.actorSystemManager = actorSystemManager;
-        this.routerConfigurationRegistry = routerConfigurationRegistry;
-        this.maxGatewayActorCreateRetries = maxGatewayActorCreateRetries;
+        this.maxTaskActorCreateRetries = maxTaskActorCreateRetries;
+        this.routerConfigMap = routerConfigMap;
     }
 
     /**
@@ -94,56 +68,33 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
      */
     @Override
     public ActorRef getRouter(String forWorker) {
-        return this.proxyMap.get(forWorker);
+        return this.routerMap.get(forWorker);
     }
 
     /**
      * Iterates over given list of configured router names and creates a cluster singleton router for each
-     *
      * */
     @Override
     public void initialize() {
         final ActorSystem actorSystem = actorSystemManager.retrieveActorSystem();
-        ClusterSingletonManagerSettings settings = ClusterSingletonManagerSettings.create(actorSystem);
-        // setup the ClusterListener Actor
-        actorSystem.actorOf(Props.create(ClusterListener.class, this.memberAddresses), "clusterListener");
-        while (this.memberAddresses.isEmpty()) {
-        	LOGGER.info("Router init waiting 1000ms for cluster members to join..." );
-        	try {
-				Thread.sleep(1000L);
-			} catch (InterruptedException e) {
-				throw new FluxError(FluxError.ErrorType.runtime, "All Router(s) initialization failed.", e);
-			}
-        }
-        final Iterable<Pair<String, ClusterRouterPoolSettings>> configurations = routerConfigurationRegistry.getConfigurations();
-        for (Pair<String, ClusterRouterPoolSettings> next : configurations) {
-            // create the Router for the Actor. Note that the path links this instance with the proxy that is created subsequently
-            actorSystem.actorOf(
-                ClusterSingletonManager.props(new ClusterRouterPool(new RoundRobinPool(2).withSupervisorStrategy(getGatewayTasksuperviseStrategy()), next.getValue()).props(
-                    new RemoteRouterConfig(new RoundRobinPool(6), this.memberAddresses).props(
-                        Props.create(AkkaGatewayTask.class))), PoisonPill.getInstance(), settings), next.getKey());
 
-            ClusterSingletonProxySettings proxySettings = ClusterSingletonProxySettings.create(actorSystem);
-
-            this.proxyMap.put(next.getKey(), actorSystem.actorOf(ClusterSingletonProxy.props("/user/" + next.getKey(),
-                proxySettings), next.getKey() + "_routerProxy"));
+        for (Map.Entry<String, Integer> routerConfig : routerConfigMap.entrySet()) {
+            String routerName = routerConfig.getKey();
+            Integer noOfActors = routerConfig.getValue();
+            //create a local router with configured no.of task actors and keep the router reference in routerMap
+            ActorRef router = actorSystem.actorOf(new RoundRobinPool(noOfActors).withSupervisorStrategy(getTasksuperviseStrategy())
+                    .props(Props.create(AkkaTask.class)), routerName);
+            this.routerMap.put(routerName, router);
         }
     }
     
     /**
-     * Helper method to create supervision strategy for every gateway Task Actor {@link AkkaGatewayTask} loaded into Flux
-     * @return SupervisorStrategy for gateway Task actor {@link AkkaGatewayTask}
+     * Helper method to create supervision strategy for every Task Actor {@link AkkaTask} loaded into Flux
+     * @return SupervisorStrategy for Task actor {@link AkkaTask}
      */
-    private SupervisorStrategy getGatewayTasksuperviseStrategy() {
-    	return new OneForOneStrategy(this.maxGatewayActorCreateRetries, Duration.Inf(), t -> {
-	        if (t instanceof FluxError) {
-	        	FluxError fe = (FluxError)t;
-	        	if (fe.getType().equals(FluxError.ErrorType.timeout)) {
-	        		return resume();
-	        	} else { 
-	        		return restart();
-	        	}
-	        } else if (t instanceof RuntimeException) {
+    private SupervisorStrategy getTasksuperviseStrategy() {
+    	return new OneForOneStrategy(this.maxTaskActorCreateRetries, Duration.Inf(), t -> {
+	        if (t instanceof RuntimeException) { //All Akka exceptions eg. Actor killed, initialization, interrupted exceptions are Runtime exceptions
 	            return restart();
 	        } else {
 	            return escalate();

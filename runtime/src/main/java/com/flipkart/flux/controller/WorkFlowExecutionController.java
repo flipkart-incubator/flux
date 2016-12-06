@@ -137,12 +137,12 @@ public class WorkFlowExecutionController {
      * @param currentRetryCount current retry count for the task
      * @param errorMessage the error message in case task has failed
      */
-    public void updateExecutionStatus(Long stateMachineId,Long taskId, Status status, long retryCount, long currentRetryCount, String errorMessage) {
+    public void updateExecutionStatus(Long stateMachineId,Long taskId, Status status, long retryCount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver) {
         this.statesDAO.updateStatus(taskId, stateMachineId, status);
         this.auditDAO.create(new AuditRecord(stateMachineId, taskId, currentRetryCount, status, null, errorMessage));
-        // cancel the redriver if the Task has been executed successfully and if the Task's original retry count is > 0
-        // Redriver would not have been registered otherwise
-        if (status.equals(Status.completed) && retryCount > 0) {
+        // cancel the redriver if the Task's original retry count is > 0 and deleteFromRedriver flag is true
+        // Redriver would not have been registered if the retry count is 0
+        if (retryCount > 0 && deleteFromRedriver) {
             this.redriverRegistry.deRegisterTask(taskId);
         }
     }
@@ -188,13 +188,16 @@ public class WorkFlowExecutionController {
         executableStates.forEach((state ->  {
             final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
                     eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId).toArray(new EventData[]{}),
-                    stateMachineInstanceId,
-                    state.getOutputEvent(), state.getRetryCount());
+                    stateMachineInstanceId, state.getOutputEvent(), state.getRetryCount(), state.getAttemptedNoOfRetries());
+            if(state.getStatus().equals(Status.initialized) || state.getStatus().equals(Status.unsidelined)) {
+                msg.setFirstTimeExecution(true);
+            }
 
             // register the Task with the redriver
             if (state.getRetryCount() > 0) {
-                // delay between retries is 1 second as seen in AkkaTask#preRestart(). Redriver interval is set as 2 x retrycount x (delay + timeout)
-                long redriverInterval = 2 * state.getRetryCount() * (1000 + state.getTimeout());
+                // Delay between retires is exponential (2, 4, 8, 16, 32.... seconds) as seen in AkkaTask.
+                // Redriver interval is set as 2 x ( 2^(retryCount+1) x 1s + (retryCount+1) x timeout)
+                long redriverInterval = 2 * ((int) Math.pow(2, state.getRetryCount() + 1) * 1000 + (state.getRetryCount() + 1) * state.getTimeout());
                 this.redriverRegistry.registerTask(state.getId(), redriverInterval);
             }
 
@@ -240,6 +243,9 @@ public class WorkFlowExecutionController {
         if(isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() < state.getRetryCount()) {
             logger.info("Redriving a task with Id: {} for state machine: {}", state.getId(), state.getStateMachineId());
             executeStates(state.getStateMachineId(), Collections.singleton(state));
+        } else {
+            //cleanup the tasks which can't be redrived from redriver db
+            this.redriverRegistry.deRegisterTask(taskId);
         }
     }
 
@@ -249,7 +255,6 @@ public class WorkFlowExecutionController {
     private boolean isTaskRedrivable(Status taskStatus) {
         return !(taskStatus.equals(Status.completed) ||
                 taskStatus.equals(Status.sidelined) ||
-                taskStatus.equals(Status.errored) ||
                 taskStatus.equals(Status.cancelled));
     }
 }
