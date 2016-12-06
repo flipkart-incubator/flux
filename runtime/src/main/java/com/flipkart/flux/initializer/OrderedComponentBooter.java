@@ -31,7 +31,7 @@ import javax.inject.Singleton;
  */
 @Singleton
 public class OrderedComponentBooter implements Initializable {
-    private static final Logger logger = LoggerFactory.getLogger(FluxInitializer.class);
+    private static final Logger logger = LoggerFactory.getLogger(OrderedComponentBooter.class);
     private final Server apiServer;
     private final Server dashboardServer;
     private final ActorSystemManager actorSystemManager;

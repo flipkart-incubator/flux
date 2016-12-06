@@ -19,6 +19,8 @@ import akka.routing.RoundRobinPool;
 import com.flipkart.flux.impl.boot.ActorSystemManager;
 import com.flipkart.flux.impl.task.AkkaTask;
 import com.flipkart.polyguice.core.Initializable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scala.concurrent.duration.Duration;
 
 import javax.inject.Inject;
@@ -38,6 +40,9 @@ import static akka.actor.SupervisorStrategy.restart;
  */
 @Singleton
 public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializable {
+
+    /** Logger instance of this class */
+    private static final Logger logger = LoggerFactory.getLogger(EagerInitRouterRegistryImpl.class);
 
 	/** Access to the Actor system initialized by Flux*/
     private ActorSystemManager actorSystemManager;
@@ -85,6 +90,7 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
             ActorRef router = actorSystem.actorOf(new RoundRobinPool(noOfActors).withSupervisorStrategy(getTasksuperviseStrategy())
                     .props(Props.create(AkkaTask.class)), routerName);
             this.routerMap.put(routerName, router);
+            logger.info("Created router: {} with no.of actors: {}", routerName, noOfActors);
         }
     }
     
