@@ -103,7 +103,7 @@ public class StateMachineResourceTest {
             final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events").header("Content-Type", "application/json").body(eventJson).asString();
             assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
             // give some time to execute
-            Thread.sleep(2000);
+            Thread.sleep(4000);
 
             //status of state should be sidelined
             Long smId = Long.parseLong(smCreationResponse.getBody());

@@ -5,6 +5,7 @@ import com.flipkart.flux.deploymentunit.DeploymentUnit;
 import java.util.Collection;
 
 /**
+ * Interface to manage deploymentUnits
  * Created by gaurav.ashok on 26/11/16.
  */
 public interface DeploymentUnitsManager {

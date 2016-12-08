@@ -117,7 +117,7 @@ public class StateMachineResource {
         logger.info("Created state machine with Id: {} and correlation Id: {}", stateMachine.getId(), stateMachine.getCorrelationId());
 
         // 3. Return machineId
-        return Response.status(Response.Status.CREATED.getStatusCode()).entity(stateMachine.getId()).build();
+        return Response.status(Response.Status.CREATED).entity(stateMachine.getId()).build();
     }
 
 
@@ -146,14 +146,13 @@ public class StateMachineResource {
         } else {
             workFlowExecutionController.postEvent(eventData, Long.valueOf(machineId), null);
         }
-        return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
+        return Response.status(Response.Status.ACCEPTED).build();
     }
 
     /**
      * Updates the status of the specified Task under the specified State machine
      * @param machineId the state machine identifier
      * @param stateId the task/state identifier
-     * @param status the Status 
      * @return Response with execution status code
      * @throws Exception
      */
@@ -188,7 +187,7 @@ public class StateMachineResource {
     	}
 		this.workFlowExecutionController.updateExecutionStatus(machineId, stateId, updateStatus, executionUpdateData.getRetrycount(),
                 executionUpdateData.getCurrentRetryCount(), executionUpdateData.getErrorMessage(), executionUpdateData.isDeleteFromRedriver());
-    	return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
+    	return Response.status(Response.Status.ACCEPTED).build();
     }
     
     /**
@@ -205,7 +204,7 @@ public class StateMachineResource {
                                 @PathParam("stateId") Long stateId
                             ) throws Exception {
     	this.workFlowExecutionController.incrementExecutionRetries(machineId, stateId);
-    	return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
+    	return Response.status(Response.Status.ACCEPTED).build();
     }
 
     /**
@@ -220,7 +219,7 @@ public class StateMachineResource {
 
         this.workFlowExecutionController.redriveTask(taskId);
 
-        return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
+        return Response.status(Response.Status.ACCEPTED).build();
     }
     
     /**
@@ -264,7 +263,7 @@ public class StateMachineResource {
                                      @QueryParam("fromSmId") Long fromStateMachineId,
                                      @QueryParam("toSmId") Long toStateMachineId) {
         if(fromStateMachineId == null || fromStateMachineId < 0) {
-            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity("start of the range not provided or invalid").build();
+            return Response.status(Response.Status.BAD_REQUEST).entity("start of the range not provided or invalid").build();
         }
 
         long limit = fromStateMachineId + 1_000_000;
@@ -287,7 +286,7 @@ public class StateMachineResource {
     public Response unsidelineState(@PathParam("stateMachineId") Long stateMachineId, @PathParam("stateId") Long stateId) {
         this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
 
-        return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
+        return Response.status(Response.Status.ACCEPTED).build();
     }
 
     /** Retrieves fsm graph data based on FSM Id or correlation id*/

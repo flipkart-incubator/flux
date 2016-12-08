@@ -50,15 +50,20 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
 
     /** The global max retries for creating Task Actors*/
     private int maxTaskActorCreateRetries;
-    
+
+    /** Default size of the router */
+    private int defaultNoOfActors;
+
     @Inject
     public EagerInitRouterRegistryImpl(ActorSystemManager actorSystemManager,
                                        @Named("runtime.actorsystem.maxTaskActorCreateRetries") int maxTaskActorCreateRetries,
-                                       @Named("routerConfigMap")Map<String, Integer> routerConfigMap) {
+                                       @Named("routerConfigMap")Map<String, Integer> routerConfigMap,
+                                       @Named("routers.default.instancesPerNode") int defaultNoOfActors) {
         this.routerMap = new HashMap<>();
         this.actorSystemManager = actorSystemManager;
         this.maxTaskActorCreateRetries = maxTaskActorCreateRetries;
         this.routerConfigMap = routerConfigMap;
+        this.defaultNoOfActors = defaultNoOfActors;
     }
 
     /**
@@ -76,15 +81,23 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
      * */
     @Override
     public void initialize() {
-        final ActorSystem actorSystem = actorSystemManager.retrieveActorSystem();
-
         for (Map.Entry<String, Integer> routerConfig : routerConfigMap.entrySet()) {
             String routerName = routerConfig.getKey();
-            Integer noOfActors = routerConfig.getValue();
+            Integer size = routerConfigMap.getOrDefault(routerName, defaultNoOfActors);
+            resize(routerName, size);
+        }
+    }
+
+    @Override
+    public void resize(String name, int newSize) {
+        if(!routerMap.containsKey(name)) {
+            final ActorSystem actorSystem = actorSystemManager.retrieveActorSystem();
             //create a local router with configured no.of task actors and keep the router reference in routerMap
-            ActorRef router = actorSystem.actorOf(new RoundRobinPool(noOfActors).withSupervisorStrategy(getTasksuperviseStrategy())
-                    .props(Props.create(AkkaTask.class)), routerName);
-            this.routerMap.put(routerName, router);
+            ActorRef router = actorSystem.actorOf(new RoundRobinPool(newSize).withSupervisorStrategy(getTasksuperviseStrategy())
+                    .props(Props.create(AkkaTask.class)), name);
+            routerMap.put(name, router);
+        } else {
+            // TODO ask the router to resize its pool of routees.
         }
     }
     

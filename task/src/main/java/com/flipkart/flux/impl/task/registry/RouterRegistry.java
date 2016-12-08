@@ -19,7 +19,17 @@ import akka.actor.ActorRef;
 /**
  * Interface that allows for akka router lookups
  * @author yogesh.nachnani
+ * @author gaurav.ashok
  */
 public interface RouterRegistry {
+
     ActorRef getRouter(String forWorker);
+
+    /**
+     * Resizes the router with the given name. Router can be resized to 0. A new router is created in case it does not
+     * already exist.
+     * @param name Name of the router.
+     * @param newSize New number of the routees that this router will have.
+     */
+    void resize(String name, int newSize);
 }

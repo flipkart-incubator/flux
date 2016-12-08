@@ -104,14 +104,24 @@ public class WorkFlowExecutionControllerTest {
 
     @Test
     public void testEventPost_taskRedriveDelay() throws Exception {
-        final EventData testEventData = new EventData("event1", "foo", "someStringData", "runtime");
-        when(eventsDAO.findBySMIdAndName(1l, "event1")).thenReturn(new Event("event1", "foo", Event.EventStatus.pending, 1l, null, null));
-        EventData[] expectedEvents = new EventData[]{new EventData("event1","someType","someStringData","runtime")};
-        when(eventsDAO.findByEventNamesAndSMId(Collections.singletonList("event1"),1l)).thenReturn(Arrays.asList(expectedEvents));
+        final EventData testEventData1 = new EventData("event1", "java.lang.String", "42", "runtime");
+        when(eventsDAO.findBySMIdAndName(1l, "event1")).thenReturn(new Event("event1", "java.lang.String", Event.EventStatus.pending, 1l, null, null));
+        EventData[] expectedEvents1 = new EventData[]{new EventData("event1","java.lang.String","42","runtime")};
+        when(eventsDAO.findByEventNamesAndSMId(Collections.singletonList("event1"),1l)).thenReturn(Arrays.asList(expectedEvents1));
         when(eventsDAO.findTriggeredEventsNamesBySMId(1l)).thenReturn(Collections.singletonList("event1"));
-        workFlowExecutionController.postEvent(testEventData, 1l, null);
+        workFlowExecutionController.postEvent(testEventData1, 1l, null);
 
-        verify(redriverRegistry).registerTask(3L, 32800); //state with id 3 has 3 retries and 100ms timeout
-        verify(redriverRegistry).registerTask(2L, 16600); //state with id 2 has 2 retries and 100ms timeout
+        final EventData testEventData0 = new EventData("event0", "java.lang.String", "42", "runtime");
+        when(eventsDAO.findBySMIdAndName(1l, "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, 1l, null, null));
+        EventData[] expectedEvents0 = new EventData[]{new EventData("event0","java.lang.String","42","runtime")};
+        when(eventsDAO.findByEventNamesAndSMId(Collections.singletonList("event0"),1l)).thenReturn(Arrays.asList(expectedEvents0));
+        when(eventsDAO.findTriggeredEventsNamesBySMId(1l)).thenReturn(Collections.singletonList("event0"));
+        workFlowExecutionController.postEvent(testEventData0, 1l, null);
+
+        // give time to execute
+        Thread.sleep(2000);
+
+        verify(redriverRegistry).registerTask(2L, 32800); //state with id 2 has 3 retries and 100ms timeout
+        verify(redriverRegistry).registerTask(4L, 8400); //state with id 4 has 1 retries and 100ms timeout
     }
 }
