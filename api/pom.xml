@@ -5,11 +5,11 @@
   <parent>
     <groupId>com.flipkart</groupId>
     <artifactId>flux</artifactId>
-    <version>1.0.3-SNAPSHOT</version>
+    <version>1.0.4-SNAPSHOT</version>
   </parent>
   <groupId>com.flipkart.flux</groupId>
   <artifactId>api</artifactId>
-  <version>1.0.3-SNAPSHOT</version>
+  <version>1.0.4-SNAPSHOT</version>
   <name>api</name>
   <url>http://maven.apache.org</url>
   <properties>
