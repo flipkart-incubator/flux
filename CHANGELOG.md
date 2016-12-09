@@ -15,3 +15,13 @@
   - Workflows versioning support
   - Support for Retriable exceptions
   - Http API for unsidelining sidelined/errored tasks
+
+## 1.0.4-SNAPSHOT (Dec 09, 2016)
+- **Changes:**
+  - Local routers instead of Cluster singleton routers to avoid bottleneck
+  - Distributed Redriver 
+  - Fixed connection leaks in client library
+  - @SelectDataSource annotation coupled with @Transactional to specify the datastore for reads/writes
+  - Support for tasks with multiple params of same type
+  - Http API to find the workflows which are errored
+  - few Akka cluster & UI changes
