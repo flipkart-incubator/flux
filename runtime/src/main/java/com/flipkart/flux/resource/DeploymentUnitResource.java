@@ -1,12 +1,12 @@
 package com.flipkart.flux.resource;
 
 import com.flipkart.flux.client.intercept.MethodId;
+import com.flipkart.flux.config.TaskRouterUtil;
 import com.flipkart.flux.deploymentunit.DeploymentUnit;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -30,23 +30,26 @@ public class DeploymentUnitResource {
     private static final Logger logger = LoggerFactory.getLogger(DeploymentUnitResource.class);
 
     /**
-     * manager instance to load deploymentUnit
+     * Manager instance to load deploymentUnit.
      */
     private DeploymentUnitsManager deploymentUnitManager;
 
     /**
-     * to create new routers
+     * Router registry to create new routers.
      */
     private RouterRegistry routerRegistry;
 
-    private int defaultNoOfActors;
+    /**
+     * Utility to commonly required functionality.
+     */
+    private TaskRouterUtil taskRouterUtil;
 
     @Inject
     public DeploymentUnitResource(DeploymentUnitsManager deploymentUnitsManager, RouterRegistry routerRegistry,
-                                  @Named("routers.default.instancesPerNode") int defaultNoOfActors) {
+                                  TaskRouterUtil taskRouterUtil) {
         this.deploymentUnitManager = deploymentUnitsManager;
         this.routerRegistry = routerRegistry;
-        this.defaultNoOfActors = defaultNoOfActors;
+        this.taskRouterUtil = taskRouterUtil;
     }
 
     /**
@@ -65,8 +68,7 @@ public class DeploymentUnitResource {
             throw new WebApplicationException(buildResponse(Response.Status.BAD_REQUEST, "deploymentUnit name or version is invalid", null));
         }
 
-        DeploymentUnit loadedUnit = null;
-
+        DeploymentUnit loadedUnit;
         try {
             loadedUnit = deploymentUnitManager.load(name, version);
             logger.info("Successfully loaded deploymentUnit: " + loadedUnit.getName() + "/" + loadedUnit.getVersion());
@@ -77,28 +79,16 @@ public class DeploymentUnitResource {
         }
 
         // deploymentUnit is now loaded. create routers for it
-        Configuration taskConfiguration = loadedUnit.getTaskConfiguration();
         loadedUnit.getTaskMethods().values().stream().forEach(m -> {
             String routerName = new MethodId(m).getPrefix();
             logger.info("Creating router for " + routerName);
-            int concurrency = Optional.ofNullable((Integer) taskConfiguration.getProperty(routerName + ".executionConcurrency"))
-                    .orElse(defaultNoOfActors);
-            routerRegistry.resize(routerName, concurrency);
+            routerRegistry.resize(routerName, taskRouterUtil.getConcurrency(loadedUnit, routerName));
         });
 
         if(replaceOld) {
             logger.info("Unloading redundant deploymentUnits");
 
-            int loadedVersion = loadedUnit.getVersion();
-            Set<String> tasksNames = loadedUnit.getTaskMethods().keySet();
-
-            List<DeploymentUnit> olderUnits = deploymentUnitManager.getAllDeploymentUnits().stream()
-                    .filter(d -> d.getName().equals(name) && d.getVersion() < loadedVersion).collect(Collectors.toList());
-
-            List<DeploymentUnit> redundantUnits =
-                    olderUnits.stream().filter(o -> tasksNames.containsAll(o.getTaskMethods().keySet())).collect(Collectors.toList());
-
-            for(DeploymentUnit unit: redundantUnits) {
+            for(DeploymentUnit unit: getRedundantUnits(loadedUnit)) {
                 logger.info("Unloading deploymentUnit: " + unit.getName() + "/" + unit.getVersion());
                 deploymentUnitManager.unload(unit.getName(), unit.getVersion());
             }
@@ -123,10 +113,50 @@ public class DeploymentUnitResource {
             throw new WebApplicationException(buildResponse(Response.Status.BAD_REQUEST, "invalid version", null));
         }
 
-        // TODO: decide on the basis of the usage metrics of tasks to be removed.
+        DeploymentUnit unitToDelete = deploymentUnitManager.getAllDeploymentUnits().stream()
+                .filter(d -> d.getName().equals(name) && d.getVersion() == version).findFirst().orElse(null);
+
+        if(unitToDelete == null) {
+            throw new WebApplicationException((buildResponse(Response.Status.NOT_FOUND, "deploymentUnit not found", null)));
+        }
+
+        // TODO: decide on the basis of the usage metrics of tasks.
         deploymentUnitManager.unload(name, version);
 
+        // get safe-to-remove routers
+        Set<String> routersToDelete = taskRouterUtil.getRouterNames(unitToDelete);
+
+        // remove the inUseRouters from the toDelete set
+        Set<String> routersInUse = deploymentUnitManager.getAllDeploymentUnits().stream()
+                .filter(d -> d.getName().equals(name) && d.getVersion() > version)
+                .map(d -> taskRouterUtil.getRouterNames(d))
+                .flatMap(Set::stream)
+                .distinct()
+                .collect(Collectors.toSet());
+        routersToDelete.removeAll(routersInUse);
+
+        // TODO: again decide on the basis of current usage metrics.
+        for(String routerName: routersToDelete) {
+            // shrink it to 0.
+            routerRegistry.resize(routerName, 0);
+        }
+
         return buildResponse(Response.Status.OK, "successfully unloaded deploymentUnit: " + name + "/" + version, null);
+    }
+
+    /**
+     * Returns a list of previously loaded deploymentUnits which can be safely removed.
+     * @param loadedUnit
+     * @return
+     */
+    private List<DeploymentUnit> getRedundantUnits(final DeploymentUnit loadedUnit) {
+        int loadedVersion = loadedUnit.getVersion();
+        Set<String> tasksNames = loadedUnit.getTaskMethods().keySet();
+
+        List<DeploymentUnit> olderUnits = deploymentUnitManager.getAllDeploymentUnits().stream()
+                .filter(d -> d.getName().equals(loadedUnit.getName()) && d.getVersion() < loadedVersion).collect(Collectors.toList());
+
+        return olderUnits.stream().filter(o -> tasksNames.containsAll(o.getTaskMethods().keySet())).collect(Collectors.toList());
     }
 
     /**

@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.guice.module;
 
+import com.flipkart.flux.config.TaskRouterUtil;
 import com.flipkart.flux.deploymentunit.DeploymentUnit;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import org.apache.commons.configuration.Configuration;
@@ -65,7 +66,7 @@ public class AkkaModuleTest {
 
         when(deploymentUnitManager.getAllDeploymentUnits()).thenReturn(Collections.singleton(deploymentUnit));
 
-        assertThat(akkaModule.getRouterConfigs(deploymentUnitManager, defaultNoOfActors)).
+        assertThat(akkaModule.getRouterConfigs(deploymentUnitManager, new TaskRouterUtil(defaultNoOfActors))).
                 containsEntry("com.flipkart.flux.integration.SimpleWorkflow_simpleIntegerReturningTask", 5);
     }
 
@@ -83,7 +84,7 @@ public class AkkaModuleTest {
 
         when(deploymentUnitManager.getAllDeploymentUnits()).thenReturn(Collections.singleton(deploymentUnit));
 
-        assertThat(akkaModule.getRouterConfigs(deploymentUnitManager, defaultNoOfActors)).
+        assertThat(akkaModule.getRouterConfigs(deploymentUnitManager, new TaskRouterUtil(defaultNoOfActors))).
                 containsEntry("com.flipkart.flux.integration.SimpleWorkflow_simpleIntegerReturningTask", defaultNoOfActors);
     }
 }

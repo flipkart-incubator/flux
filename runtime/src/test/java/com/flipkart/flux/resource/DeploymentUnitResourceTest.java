@@ -1,28 +1,17 @@
 package com.flipkart.flux.resource;
 
 import com.flipkart.flux.client.model.Task;
+import com.flipkart.flux.config.TaskRouterUtil;
 import com.flipkart.flux.deploymentunit.DeploymentUnit;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
-import com.flipkart.flux.guice.module.AkkaModule;
-import com.flipkart.flux.guice.module.ContainerModule;
-import com.flipkart.flux.guice.module.HibernateModule;
-import com.flipkart.flux.impl.boot.TaskModule;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
-import com.flipkart.flux.module.DeploymentUnitTestModule;
-import com.flipkart.flux.module.RuntimeTestModule;
-import com.flipkart.flux.runner.GuiceJunit4Runner;
-import com.flipkart.flux.runner.Modules;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import org.assertj.core.api.Assertions;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.ws.rs.core.Response;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,7 +28,9 @@ public class DeploymentUnitResourceTest {
 
     RouterRegistry routerRegistry = mock(RouterRegistry.class);
 
-    DeploymentUnitResource deploymentUnitResource = new DeploymentUnitResource(deploymentUnitsManager, routerRegistry, 3);
+    int defaultTaskConcurrency = 3;
+
+    DeploymentUnitResource deploymentUnitResource = new DeploymentUnitResource(deploymentUnitsManager, routerRegistry, new TaskRouterUtil(defaultTaskConcurrency));
 
     @Test
     public void testLoadDeploymentUnit() throws Exception {
@@ -54,7 +45,7 @@ public class DeploymentUnitResourceTest {
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
 
         verify(deploymentUnitsManager).load("unit1", 2);
-        verify(routerRegistry).resize("com.flipkart.flux.resource.DeploymentUnitResourceTest_testMethod", 3);
+        verify(routerRegistry).resize("com.flipkart.flux.resource.DeploymentUnitResourceTest_testMethod", defaultTaskConcurrency);
         verifyNoMoreInteractions(deploymentUnitsManager);
         verifyNoMoreInteractions(routerRegistry);
     }
@@ -77,6 +68,24 @@ public class DeploymentUnitResourceTest {
         verify(deploymentUnitsManager).unload("unit1", 1);
 
         verifyNoMoreInteractions(deploymentUnitsManager);
+        verifyNoMoreInteractions(routerRegistry);
+    }
+
+    @Test
+    public void testUnloadDeploymentUnit_shouldCallUnloadAndRemoveUnusedRouter() throws Exception {
+        DeploymentUnit unit1 = getMockedDUnit("unit1", 1, "task1", getMethod1());
+        DeploymentUnit unit2 = getMockedDUnit("unit2", 1, "task2", getMethod2());
+
+        // 2 deploymentUnits are loaded.
+        when(deploymentUnitsManager.getAllDeploymentUnits()).thenReturn(Arrays.asList(unit1, unit2));
+
+        // unload first one.
+        Response response = deploymentUnitResource.unloadDeploymentUnit("unit1", 1);
+
+        Assertions.assertThat(response.getStatus()).isEqualTo(200);
+
+        verify(deploymentUnitsManager).unload("unit1", 1);
+        verify(routerRegistry).resize("com.flipkart.flux.resource.DeploymentUnitResourceTest_testMethod", 0);
         verifyNoMoreInteractions(routerRegistry);
     }
 

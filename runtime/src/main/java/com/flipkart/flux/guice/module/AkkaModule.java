@@ -13,18 +13,16 @@
 
 package com.flipkart.flux.guice.module;
 
-import com.flipkart.flux.client.intercept.MethodId;
+import com.flipkart.flux.config.TaskRouterUtil;
 import com.flipkart.flux.deploymentunit.DeploymentUnit;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import org.apache.commons.configuration.Configuration;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -50,17 +48,15 @@ public class AkkaModule extends AbstractModule {
     @Singleton
     @Named("routerConfigMap")
     public Map<String, Integer> getRouterConfigs(DeploymentUnitsManager deploymentUnitsManager,
-                                                 @Named("routers.default.instancesPerNode") int defaultNoOfActors) {
+                                                 TaskRouterUtil taskRouterUtil) {
         Map<String, Integer> routerConfigMap = new ConcurrentHashMap<>();
 
         //add all deployment units' routers
         for (DeploymentUnit deploymentUnit : deploymentUnitsManager.getAllDeploymentUnits()) {
             Map<String, Method> taskMethods = deploymentUnit.getTaskMethods();
-            Configuration taskConfiguration = deploymentUnit.getTaskConfiguration();
             for (Method taskMethod : taskMethods.values()) {
-                String routerName = new MethodId(taskMethod).getPrefix();
-                Integer taskExecConcurrency = Optional.ofNullable((Integer) taskConfiguration.getProperty(routerName + ".executionConcurrency"))
-                        .orElse(defaultNoOfActors);
+                String routerName = taskRouterUtil.getRouterName(taskMethod);
+                Integer taskExecConcurrency = taskRouterUtil.getConcurrency(deploymentUnit, routerName);
                 routerConfigMap.put(routerName, taskExecConcurrency);
             }
         }
