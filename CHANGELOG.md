@@ -18,11 +18,11 @@
 
 ## 1.0.4-SNAPSHOT (Dec 09, 2016)
 - **Changes:**
-  - Local routers instead of Cluster singleton routers to avoid bottleneck
-  - Distributed Redriver 
+  - Local routers instead of Cluster singleton routers to avoid performance bottleneck and single point of failure 
+  - Distributed Redriver
   - Fixed connection leaks in client library
   - Fixed request burst behaviour (incase of high qps, the requests used to end up as hystrix threadpool rejections, now they will wait in Akka Actor's mailbox)
-  - Local retries follow exponential backoff strategy
+  - Local retries implemented through Akka Scheduler and follow exponential backoff strategy
   - @SelectDataSource annotation coupled with @Transactional to specify the datastore for reads/writes
   - Support for tasks with multiple params of same type
   - Http API to find the workflows which are errored
