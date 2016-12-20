@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS `States` (
   `version` SMALLINT UNSIGNED NOT NULL,
   `description` VARCHAR(10) DEFAULT NULL,
   `dependencies` VARCHAR(1000) DEFAULT NULL,
-  `stateMachineId` BIGINT NOT NULL,
+  `stateMachineId` BIGINT,
   `onEntryHook` varchar(500) DEFAULT NULL,
   `task` VARCHAR(1000) DEFAULT NULL,
   `onExitHook` varchar(500) DEFAULT NULL,
