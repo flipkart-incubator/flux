@@ -16,13 +16,11 @@ package com.flipkart.flux.redriver.model;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import java.io.Serializable;
 
 /**
- * A message that will be sent to a particular actor denoted by the url at the scheduled time
+ * <code>ScheduledMessage</code> is a message that will be stored in DB for redriver purposes.
  */
-// TODO : Keep this as a generic message that takes a Serializable "data". Presently binding it only to our usecase
 @Entity
 @Table(name = "ScheduledMessages")
 public class ScheduledMessage implements Serializable {
@@ -70,14 +68,6 @@ public class ScheduledMessage implements Serializable {
             ", taskId=" + taskId +
             ", scheduledTime=" + scheduledTime +
             '}';
-    }
-
-    public boolean shouldRunNow() {
-        return scheduledTime <= System.currentTimeMillis();
-    }
-
-    public Long timeLeftToRun() {
-        return scheduledTime - System.currentTimeMillis();
     }
 
     public Long getTaskId() {

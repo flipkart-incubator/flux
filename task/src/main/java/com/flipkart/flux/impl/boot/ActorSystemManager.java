@@ -36,6 +36,7 @@ import javax.inject.Singleton;
  * Lifecycle of this class is managed using polyguice
  * @author yogesh.nachnani
  * @author regunath.balasubramanian
+ * @author shyam.akirala
  */
 @Singleton
 public class ActorSystemManager implements Initializable {

@@ -39,6 +39,7 @@ import java.util.Properties;
 import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
 
 /**
+ * <code>RedriverModule</code> is a Guice {@link AbstractModule} which binds all Redriver related stuff.
  * Keeping a single module for redriver component for now
  * It may need a split in the future
  * Presently, it is assumed that {@link TransactionInterceptor} is already configured by another module
@@ -80,6 +81,9 @@ public class RedriverModule extends AbstractModule {
         return configuration;
     }
 
+    /**
+     * Returns {@link SessionFactoryContext} which holds the Session Factory for Redriver.
+     */
     @Provides
     @Singleton
     @Named("redriverSessionFactoryContext")

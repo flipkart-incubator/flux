@@ -96,11 +96,6 @@ public abstract class Context {
         return initialStates;
     }
 
-    public boolean isExecutionCancelled() {
-        //check for cancelledException in data, and return whether state machine execution is cancelled or not
-        return false;
-    }
-
     /**
      * This builds dependency graph between event and states and keeps for later use. Currently dependency graph is created on every event arrival.
      */

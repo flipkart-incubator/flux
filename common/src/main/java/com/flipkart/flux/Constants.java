@@ -13,12 +13,21 @@
 
 package com.flipkart.flux;
 
+/**
+ * <code>Constants</code> maintains constant variables which would be used across Flux modules.
+ */
 public interface Constants {
+
+    /**
+     * Name of Codahale Metrics registry on which all metrics are published
+     */
     String METRIC_REGISTRY_NAME = "mainMetricRegistry";
+
     /**
      * Root for all the configs.
      */
     String CONFIG_ROOT = "packaged";
+
     /**
      * Configuration yml resource path.
      */

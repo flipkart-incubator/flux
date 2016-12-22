@@ -17,6 +17,7 @@ package com.flipkart.flux.domain;
  * 
  * @author Yogesh
  * @author regunath.balasubramanian
+ * @author shyam.akirala
  */
 public enum  Status {
     initialized, running, completed, cancelled, errored, sidelined, unsidelined; //possible statuses of execution

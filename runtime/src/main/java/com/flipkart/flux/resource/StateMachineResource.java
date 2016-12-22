@@ -51,34 +51,36 @@ import java.util.stream.Collectors;
 
 /**
  * <code>StateMachineResource</code> exposes APIs to perform state machine related operations. Ex: Creating SM, receiving event for a SM
+ *
  * @author shyam.akirala
  * @author yogesh
  * @author regunath.balasubramanian
  */
-
 @Singleton
 @Path("/api/machines")
 @Named
 public class StateMachineResource {
 
-    /** Single white space label to denote start of processing i.e. the Trigger*/
-	private static final String TRIGGER = " ";
+    /**
+     * Single white space label to denote start of processing i.e. the Trigger
+     */
+    private static final String TRIGGER = " ";
 
-    public static final String CORRELATION_ID = "correlationId";
+    private static final String CORRELATION_ID = "correlationId";
 
-    StateMachinePersistenceService stateMachinePersistenceService;
+    private StateMachinePersistenceService stateMachinePersistenceService;
 
-    WorkFlowExecutionController workFlowExecutionController;
+    private WorkFlowExecutionController workFlowExecutionController;
 
-    StateMachinesDAO stateMachinesDAO;
+    private StateMachinesDAO stateMachinesDAO;
 
-    StatesDAO statesDAO;
+    private StatesDAO statesDAO;
 
-    EventsDAO eventsDAO;
+    private EventsDAO eventsDAO;
 
-    AuditDAO auditDAO;
+    private AuditDAO auditDAO;
 
-    ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
     @Inject
     public StateMachineResource(EventsDAO eventsDAO, StateMachinePersistenceService stateMachinePersistenceService,
@@ -92,11 +94,14 @@ public class StateMachineResource {
         objectMapper = new ObjectMapper();
     }
 
-    /** Logger instance for this class*/
+    /**
+     * Logger instance for this class
+     */
     private static final Logger logger = LoggerFactory.getLogger(StateMachineResource.class);
 
     /**
      * Will instantiate a state machine in the flux execution engine
+     *
      * @param stateMachineDefinition User input for state machine
      * @return unique machineId of the instantiated state machine
      */
@@ -106,7 +111,7 @@ public class StateMachineResource {
     @Timed
     public Response createStateMachine(StateMachineDefinition stateMachineDefinition) throws Exception {
         // 1. Convert to StateMachine (domain object) and save in DB
-        if(stateMachineDefinition == null)
+        if (stateMachineDefinition == null)
             throw new IllegalRepresentationException("State machine definition is empty");
 
         StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineDefinition);
@@ -120,22 +125,20 @@ public class StateMachineResource {
         return Response.status(Response.Status.CREATED).entity(stateMachine.getId()).build();
     }
 
-
     /**
      * Used to post Data corresponding to an event.
      * This data may be a result of a task getting completed or independently posted (manually, for example)
+     *
      * @param machineId machineId the event is to be submitted against
      * @param eventData Json representation of event
-     *
      */
-
     @POST
     @Path("/{machineId}/context/events")
     @Timed
     public Response submitEvent(@PathParam("machineId") String machineId,
                                 @QueryParam("searchField") String searchField,
                                 EventData eventData
-                            ) throws Exception {
+    ) throws Exception {
         logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
 
         if (searchField != null) {
@@ -151,6 +154,7 @@ public class StateMachineResource {
 
     /**
      * Updates the status of the specified Task under the specified State machine
+     *
      * @param machineId the state machine identifier
      * @param stateId the task/state identifier
      * @return Response with execution status code
@@ -161,39 +165,40 @@ public class StateMachineResource {
     @Transactional
     @Timed
     public Response updateStatus(@PathParam("machineId") Long machineId,
-                                @PathParam("stateId") Long stateId,
-                                ExecutionUpdateData executionUpdateData
-                            ) throws Exception {
-    	com.flipkart.flux.domain.Status updateStatus = null;
-		switch (executionUpdateData.getStatus()) {
-			case initialized:
-				updateStatus = com.flipkart.flux.domain.Status.initialized;
-				break;
-			case running:
-				updateStatus = com.flipkart.flux.domain.Status.running;
-				break;
-			case completed:
-				updateStatus = com.flipkart.flux.domain.Status.completed;
-				break;
-			case cancelled:
-				updateStatus = com.flipkart.flux.domain.Status.cancelled;
-				break;
-			case errored:
-				updateStatus = com.flipkart.flux.domain.Status.errored;
-				break;
-			case sidelined:
-				updateStatus = com.flipkart.flux.domain.Status.sidelined;
-				break;
-    	}
-		this.workFlowExecutionController.updateExecutionStatus(machineId, stateId, updateStatus, executionUpdateData.getRetrycount(),
+                                 @PathParam("stateId") Long stateId,
+                                 ExecutionUpdateData executionUpdateData
+    ) throws Exception {
+        com.flipkart.flux.domain.Status updateStatus = null;
+        switch (executionUpdateData.getStatus()) {
+            case initialized:
+                updateStatus = com.flipkart.flux.domain.Status.initialized;
+                break;
+            case running:
+                updateStatus = com.flipkart.flux.domain.Status.running;
+                break;
+            case completed:
+                updateStatus = com.flipkart.flux.domain.Status.completed;
+                break;
+            case cancelled:
+                updateStatus = com.flipkart.flux.domain.Status.cancelled;
+                break;
+            case errored:
+                updateStatus = com.flipkart.flux.domain.Status.errored;
+                break;
+            case sidelined:
+                updateStatus = com.flipkart.flux.domain.Status.sidelined;
+                break;
+        }
+        this.workFlowExecutionController.updateExecutionStatus(machineId, stateId, updateStatus, executionUpdateData.getRetrycount(),
                 executionUpdateData.getCurrentRetryCount(), executionUpdateData.getErrorMessage(), executionUpdateData.isDeleteFromRedriver());
     	return Response.status(Response.Status.ACCEPTED).build();
     }
-    
+
     /**
      * Increments the retry count for the specified Task under the specified State machine
+     *
      * @param machineId the state machine identifier
-     * @param stateId the task/state identifier
+     * @param stateId   the task/state identifier
      * @return Response with execution status code
      * @throws Exception
      */
@@ -209,6 +214,7 @@ public class StateMachineResource {
 
     /**
      * Triggers task execution if the task is stalled and no.of retries are not exhausted.
+     *
      * @param taskId the task/state identifier
      */
     @POST
@@ -221,9 +227,10 @@ public class StateMachineResource {
 
         return Response.status(Response.Status.ACCEPTED).build();
     }
-    
+
     /**
      * Cancel a machine being executed.*
+     *
      * @param machineId The machineId to be cancelled
      */
     @PUT
@@ -234,6 +241,7 @@ public class StateMachineResource {
 
     /**
      * Provides json data to build fsm status graph.
+     *
      * @param machineId
      * @return json representation of fsm
      * @throws JsonProcessingException
@@ -252,8 +260,9 @@ public class StateMachineResource {
 
     /**
      * Retrieves all errored states for the given range of state machine ids. Max range is 1,000,000.
+     *
      * @param fromStateMachineId starting id for the range
-     * @param toStateMachineId ending id (inclusive)
+     * @param toStateMachineId   ending id (inclusive)
      * @return json containing list of [state machine id,  state id, status]
      */
     @GET
@@ -275,6 +284,7 @@ public class StateMachineResource {
 
     /**
      * This api unsidelines a single state and triggers its execution.
+     *
      * @param stateMachineId
      * @param stateId
      * @return
@@ -289,12 +299,15 @@ public class StateMachineResource {
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
-    /** Retrieves fsm graph data based on FSM Id or correlation id*/
+    /**
+     * Retrieves fsm graph data based on FSM Id or correlation id
+     */
     private FsmGraph getGraphData(String machineId) throws IOException {
         Long fsmId = null;
         try {
             fsmId = Long.valueOf(machineId);
-        } catch (NumberFormatException ignored) {}
+        } catch (NumberFormatException ignored) {
+        }
 
         StateMachine stateMachine;
 
@@ -304,8 +317,8 @@ public class StateMachineResource {
             stateMachine = stateMachinesDAO.findByCorrelationId(machineId);
         }
 
-        if(stateMachine == null) {
-            throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).entity("State machine with Id: "+machineId+" not found").build());
+        if (stateMachine == null) {
+            throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).entity("State machine with Id: " + machineId + " not found").build());
         }
         final FsmGraph fsmGraph = new FsmGraph();
         fsmGraph.setStateMachineId(stateMachine.getId());
@@ -313,32 +326,32 @@ public class StateMachineResource {
         fsmGraph.setFsmVersion(stateMachine.getVersion());
         fsmGraph.setFsmName(stateMachine.getName());
 
-        Map<String,Event> stateMachineEvents = eventsDAO.findBySMInstanceId(stateMachine.getId()).stream().collect(
-            Collectors.<Event, String, Event>toMap(Event::getName, (event -> event)));
+        Map<String, Event> stateMachineEvents = eventsDAO.findBySMInstanceId(stateMachine.getId()).stream().collect(
+                Collectors.<Event, String, Event>toMap(Event::getName, (event -> event)));
         Set<String> allOutputEventNames = new HashSet<>();
 
         final RAMContext ramContext = new RAMContext(System.currentTimeMillis(), null, stateMachine);
         /* After this operation, we'll have nodes for each state and its corresponding output event along with the output event's dependencies mapped out*/
-        for(State state : stateMachine.getStates()) {
+        for (State state : stateMachine.getStates()) {
             final FsmGraphVertex vertex = new FsmGraphVertex(state.getId(), this.getStateDisplayName(state.getName()));
-            if(state.getOutputEvent() != null) {
+            if (state.getOutputEvent() != null) {
                 EventDefinition eventDefinition = objectMapper.readValue(state.getOutputEvent(), EventDefinition.class);
                 final Event outputEvent = stateMachineEvents.get(eventDefinition.getName());
                 fsmGraph.addVertex(vertex,
-                    new FsmGraphEdge(getEventDisplayName(outputEvent.getName()), state.getStatus().name(),outputEvent.getEventSource()));
+                        new FsmGraphEdge(getEventDisplayName(outputEvent.getName()), state.getStatus().name(), outputEvent.getEventSource()));
                 final Set<State> dependantStates = ramContext.getDependantStates(outputEvent.getName());
                 dependantStates.forEach((aState) -> fsmGraph.addOutgoingEdge(vertex, aState.getId()));
                 allOutputEventNames.add(outputEvent.getName()); // we collect all output event names and use them below.
             } else {
                 fsmGraph.addVertex(vertex,
-                        new FsmGraphEdge(null, state.getStatus().name(),null));
+                        new FsmGraphEdge(null, state.getStatus().name(), null));
             }
         }
 
         /* Handle states with no dependencies, i.e the states that can be triggered as soon as we execute the state machine */
         final Set<State> initialStates = ramContext.getInitialStates(Collections.emptySet());// hackety hack.  We're fooling the context to give us only events that depend on nothing
         if (!initialStates.isEmpty()) {
-            final FsmGraphEdge initEdge = new FsmGraphEdge(TRIGGER, Event.EventStatus.triggered.name(),TRIGGER);
+            final FsmGraphEdge initEdge = new FsmGraphEdge(TRIGGER, Event.EventStatus.triggered.name(), TRIGGER);
             initialStates.forEach((state) -> {
                 initEdge.addOutgoingVertex(state.getId());
             });
@@ -349,7 +362,7 @@ public class StateMachineResource {
         eventsGivenOnWorkflowTrigger.removeAll(allOutputEventNames);
         eventsGivenOnWorkflowTrigger.forEach((workflowTriggeredEventName) -> {
             final Event correspondingEvent = stateMachineEvents.get(workflowTriggeredEventName);
-            final FsmGraphEdge initEdge = new FsmGraphEdge(this.getEventDisplayName(workflowTriggeredEventName), correspondingEvent.getStatus().name(),correspondingEvent.getEventSource());
+            final FsmGraphEdge initEdge = new FsmGraphEdge(this.getEventDisplayName(workflowTriggeredEventName), correspondingEvent.getStatus().name(), correspondingEvent.getEventSource());
             final Set<State> dependantStates = ramContext.getDependantStates(workflowTriggeredEventName);
             dependantStates.forEach((state) -> initEdge.addOutgoingVertex(state.getId()));
             fsmGraph.addInitStateEdge(initEdge);
@@ -359,38 +372,38 @@ public class StateMachineResource {
 
         return fsmGraph;
     }
-    
-    /** 
+
+    /**
      * Helper method to return a display friendly name for the specified event name.
      * Returns just the name part from the Event FQN
      */
     private String getEventDisplayName(String eventName) {
-    	return (eventName == null) ? null : this.getDisplayName(eventName.substring(eventName.lastIndexOf(".") + 1));
-    }
-    
-    /**
-     * Helper method to return a display friendly name for state names
-     * Returns {@link #getDisplayName(String)} 
-     */
-    private String getStateDisplayName(String stateName) {
-    	return this.getDisplayName(stateName);
+        return (eventName == null) ? null : this.getDisplayName(eventName.substring(eventName.lastIndexOf(".") + 1));
     }
 
-    /** 
+    /**
+     * Helper method to return a display friendly name for state names
+     * Returns {@link #getDisplayName(String)}
+     */
+    private String getStateDisplayName(String stateName) {
+        return this.getDisplayName(stateName);
+    }
+
+    /**
      * Helper method to return a display friendly name for the specified label.
      * Returns a phrase containing single-space separated words that were split at Camel Case boundaries
      */
     private String getDisplayName(String label) {
-    	if (label == null) {
-    		return null;
-    	}
-    	String words = label.replaceAll( // Based on http://stackoverflow.com/questions/2559759/how-do-i-convert-camelcase-into-human-readable-names-in-java
-        String.format("%s|%s|%s",
-                "(?<=[A-Z])(?=[A-Z][a-z])",
-                "(?<=[^A-Z])(?=[A-Z])",
-                "(?<=[A-Za-z])(?=[^A-Za-z])"
-        )," ");
-    	StringBuffer sb = new StringBuffer();
+        if (label == null) {
+            return null;
+        }
+        String words = label.replaceAll( // Based on http://stackoverflow.com/questions/2559759/how-do-i-convert-camelcase-into-human-readable-names-in-java
+                String.format("%s|%s|%s",
+                        "(?<=[A-Z])(?=[A-Z][a-z])",
+                        "(?<=[^A-Z])(?=[A-Z])",
+                        "(?<=[A-Za-z])(?=[^A-Za-z])"
+                ), " ");
+        StringBuffer sb = new StringBuffer();
         for (String s : words.split(" ")) {
             sb.append(Character.toUpperCase(s.charAt(0)));
             if (s.length() > 1) {
