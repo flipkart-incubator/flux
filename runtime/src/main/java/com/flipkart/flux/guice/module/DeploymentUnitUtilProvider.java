@@ -21,6 +21,9 @@ import com.google.inject.Provider;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+/**
+ * <code>DeploymentUnitUtilProvider</code> binds and provides {@link DeploymentUnitUtil} based on configuration.
+ */
 public class DeploymentUnitUtilProvider implements Provider<DeploymentUnitUtil> {
 
     private DeploymentUnitUtil deploymentUnitUtil;

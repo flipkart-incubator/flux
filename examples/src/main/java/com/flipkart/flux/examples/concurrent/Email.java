@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flipkart.flux.client.model.Event;
 
 /**
- * An email entitye
+ * An email entity
  */
 public class Email implements Event {
     @JsonProperty

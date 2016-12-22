@@ -26,7 +26,7 @@ import javax.transaction.Transactional;
 import java.util.List;
 
 /**
- * Db interactions for <code>ScheduledMessage</code>s
+ * <code>MessageDao</code> handles all Db interactions for {@link ScheduledMessage}(s)
  */
 @Singleton
 public class MessageDao {
@@ -43,6 +43,11 @@ public class MessageDao {
         currentSession().saveOrUpdate(scheduledMessage);
     }
 
+    /**
+     * Retrieves rows offset to offset+rowCount from ScheduledMessages table ordered by scheduledTime ascending.
+     * @param offset
+     * @param rowCount
+     */
     @Transactional
     public List<ScheduledMessage> retrieveOldest(int offset, int rowCount) {
         return currentSession()
@@ -53,12 +58,17 @@ public class MessageDao {
                 .list();
     }
 
+    /**
+     * Deletes the corresponding {@link ScheduledMessage}s from ScheduledMessages table in one shot.
+     * @param messageIdsToDelete List of {@link ScheduledMessage} Ids
+     */
     @Transactional
     public void deleteInBatch(List<Long> messageIdsToDelete) {
         final Query deleteQuery = currentSession().createQuery("delete ScheduledMessage s where s.taskId in :msgList ");
         deleteQuery.setParameterList("msgList",messageIdsToDelete);
         deleteQuery.executeUpdate();
     }
+
     /**
      * Provides the session which is bound to current thread.
      * @return Session

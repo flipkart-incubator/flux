@@ -16,6 +16,9 @@ package com.flipkart.flux.examples.externalevents;
 import com.google.inject.AbstractModule;
 
 /**
+ * <code>SellerVerificationWorkflowModule</code> is a Guice {@link AbstractModule} which configures all the classes of the this workflow.
+ * This class has to be specified in flux_config.yml file with key "guiceModuleClass". Refer to packaged/flux_config.yml
+ *
  * @author shyam.akirala
  */
 public class SellerVerificationWorkflowModule extends AbstractModule{

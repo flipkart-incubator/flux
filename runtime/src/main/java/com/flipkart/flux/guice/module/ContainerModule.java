@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.flipkart.flux.config.FileLocator;
 import com.flipkart.flux.constant.RuntimeConstants;
-import com.flipkart.flux.resource.FluxResource;
 import com.flipkart.flux.resource.StateMachineResource;
 import com.flipkart.flux.resource.StatusResource;
 import com.google.inject.AbstractModule;
@@ -146,8 +145,7 @@ public class ContainerModule extends AbstractModule {
 	@Named("APIResourceConfig")
 	@Singleton
 	@Provides
-	public ResourceConfig getAPIResourceConfig(FluxResource fluxUIResource,
-											   StateMachineResource stateMachineResource,
+	public ResourceConfig getAPIResourceConfig(StateMachineResource stateMachineResource,
 											   StatusResource statusResource) {
 		ResourceConfig resourceConfig = new ResourceConfig();
 
@@ -157,7 +155,6 @@ public class ContainerModule extends AbstractModule {
 		JmxReporter jmxReporter = JmxReporter.forRegistry(metricRegistry).build();
 
 		//register resources
-		resourceConfig.register(fluxUIResource);
 		resourceConfig.register(stateMachineResource);
 		resourceConfig.register(statusResource);
 

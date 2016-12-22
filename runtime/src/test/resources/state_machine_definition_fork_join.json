@@ -6,7 +6,7 @@
     {
       "version": 1,
       "name": "initialState",
-      "description": "initial state that is triggered when the workflow is invoked ",
+      "description": "initial state",
       "onEntryHook": null,
       "task": "com.flipkart.flux.dao.dummyTask",
       "onExitHook": null,
