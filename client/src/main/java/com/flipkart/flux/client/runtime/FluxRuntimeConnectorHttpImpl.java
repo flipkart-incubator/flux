@@ -29,6 +29,9 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayOutputStream;
@@ -41,6 +44,8 @@ import java.io.IOException;
  * @author yogesh.nachnani
  */
 public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
+
+    private static Logger logger = LoggerFactory.getLogger(FluxRuntimeConnectorHttpImpl.class);
 
     public static final int MAX_TOTAL = 200;
     public static final int MAX_PER_ROUTE = 20;
@@ -79,6 +84,13 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         CloseableHttpResponse httpResponse = null;
         try {
             httpResponse = postOverHttp(stateMachineDef, "");
+            if(logger.isDebugEnabled()) {
+                try {
+                    logger.debug("Flux returned response: {}", EntityUtils.toString(httpResponse.getEntity()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         } finally {
             HttpClientUtils.closeQuietly(httpResponse);
         }
@@ -154,15 +166,14 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
             httpResponse = closeableHttpClient.execute(httpPostRequest);
             final int statusCode = httpResponse.getStatusLine().getStatusCode();
             if (statusCode >= Response.Status.OK.getStatusCode() && statusCode < Response.Status.MOVED_PERMANENTLY.getStatusCode() ) {
-                // all is well, TODO write a trace level log
+                logger.trace("Posting over http is successful. Status code: {}", statusCode);
             } else {
-                // TODO: log status line here
+                logger.error("Did not receive a valid response from Flux core. Status code: {}, message: {}", statusCode, EntityUtils.toString(httpResponse.getEntity()));
                 HttpClientUtils.closeQuietly(httpResponse);
                 throw new RuntimeCommunicationException("Did not receive a valid response from Flux core");
             }
         } catch (IOException e) {
-            // TODO log exception here
-            e.printStackTrace();
+            logger.error("Posting over http errored. Message: {}", e.getMessage(), e);
             HttpClientUtils.closeQuietly(httpResponse);
             throw new RuntimeCommunicationException("Could not communicate with Flux runtime: " + fluxEndpoint);
         }

@@ -48,6 +48,12 @@
             <groupId>com.flipkart.flux</groupId>
             <artifactId>client</artifactId>
             <version>1.0.4-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.flipkart.flux</groupId>
