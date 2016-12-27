@@ -174,7 +174,7 @@
                 tr.appendChild(td);
 
                 td = document.createElement("td");
-                td.appendChild(document.createTextNode(JSON.stringify(new Date(auditRecord.createdAt))));
+                td.appendChild(document.createTextNode(getFormattedDate(new Date(auditRecord.createdAt))));
                 tr.appendChild(td);
 
                 var rowColor = getRowColor(auditRecord.stateStatus);
@@ -185,6 +185,10 @@
             });
 
             auditDiv.appendChild(table);
+        }
+        
+        function getFormattedDate(date) {
+            return date.toLocaleDateString() + " " + date.toLocaleTimeString() + "." + date.getMilliseconds();
         }
 
         // Returns row color for audit record based on status, color setting is done by specifying bootstrap class name for the element.
