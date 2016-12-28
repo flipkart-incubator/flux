@@ -93,6 +93,7 @@ public class AkkaTask extends UntypedActor {
         if (TaskAndEvents.class.isAssignableFrom(message.getClass())) {
             try {
                 TaskAndEvents taskAndEvent = (TaskAndEvents) message;
+                logger.info("Akka task processing state machine: {} task: {}", taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId());
                 logger.debug("Actor {} received directive {}", this.getSelf(), taskAndEvent);
                 if (!taskAndEvent.getIsFirstTimeExecution()) {
                     taskAndEvent.setCurrentRetryCount(taskAndEvent.getCurrentRetryCount() + 1); // increment the retry count

@@ -113,6 +113,11 @@
             <version>${akka.cluster.metrics.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-slf4j_2.11</artifactId>
+            <version>${akka.version}</version>
+        </dependency>
+        <dependency>
             <groupId>io.kamon</groupId>
             <artifactId>kamon-core_2.11</artifactId>
             <version>${kamon.version}</version>
