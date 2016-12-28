@@ -81,6 +81,7 @@ public class State {
     private Timestamp createdAt;
 
     /** Time at which this State has been last updated */
+    @Column(updatable = false)
     private Timestamp updatedAt;
 
 

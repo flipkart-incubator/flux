@@ -60,6 +60,7 @@ public class Event implements Serializable {
     private Timestamp createdAt;
 
     /** Time at which this event is last updated */
+    @Column(updatable = false)
     private Timestamp updatedAt;
 
     /** Enum of Event statuses*/
