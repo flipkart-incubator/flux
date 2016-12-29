@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.flipkart.flux.config.FileLocator;
 import com.flipkart.flux.constant.RuntimeConstants;
+import com.flipkart.flux.filter.CORSFilter;
 import com.flipkart.flux.resource.StateMachineResource;
 import com.flipkart.flux.resource.StatusResource;
 import com.google.inject.AbstractModule;
@@ -158,6 +159,7 @@ public class ContainerModule extends AbstractModule {
 		resourceConfig.register(stateMachineResource);
 		resourceConfig.register(statusResource);
 
+		resourceConfig.register(CORSFilter.class);
 		jmxReporter.start();
 		return resourceConfig;
 	}

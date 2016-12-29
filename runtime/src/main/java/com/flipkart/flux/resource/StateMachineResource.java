@@ -251,12 +251,7 @@ public class StateMachineResource {
     @Path("/{machineId}/fsmdata")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFsmGraphData(@PathParam("machineId") String machineId) throws IOException {
-        return Response.status(200).entity(getGraphData(machineId))
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT")
-                .header("Access-Control-Allow-Credentials", "true")
-                .header("Access-Control-Allow-Headers", "Content-Type, Accept")
-                .build();
+        return Response.status(200).entity(getGraphData(machineId)).build();
     }
 
     /**
