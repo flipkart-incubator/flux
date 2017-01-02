@@ -5,7 +5,7 @@
 
     <!-- Keeping the Hystrix global stylesheet for some useful CSS types -->
     <link rel="stylesheet" type="text/css" href="/admin/hystrix-dashboard/css/global.css" />
-
+    <link rel="stylesheet" type="text/css" href="/admin/fsm-dashboard/css/bootstrap.min.css">
     <!-- JointJS and Diagre JS files and their dependencies -->
     <script type="text/javascript" src="/admin/fsm-dashboard/js/jquery.min.js"></script>
     <script type="text/javascript" src="/admin/fsm-dashboard/js/lodash.min.js"></script>
@@ -14,6 +14,7 @@
     <script type="text/javascript" src="/admin/fsm-dashboard/js/graphlib.core.js"></script>
     <script type="text/javascript" src="/admin/fsm-dashboard/js/dagre.core.js"></script>
     <script type="text/javascript" src="/admin/fsm-dashboard/js/joint.layout.DirectedGraph.js"></script>
+    <script type="text/javascript" src="/admin/fsm-dashboard/js/bootstrap.min.js"></script>
 
     <div class="Table">
         <div class="Row">
@@ -24,6 +25,9 @@
                 <input class="form-control" type="text" placeholder="FSM Id or Correlation Id" id="fsm-id"/>
             </div>
             <div class="Cell"><button class="btn btn-sm btn-primary" onclick="getFSMData()" id="get-fsm-data">Show FSM</button></div>
+            <div class="Cell">
+                <button class="btn btn-sm btn-primary" id="fsm-unsideline" data-toggle="modal" onclick="unsidelineModal()" data-target="#unsideline-modal" >Unsideline </button>
+            </div>
         </div>
     </div>
     <div>&nbsp;</div>
@@ -72,6 +76,29 @@
             <!-- audit table creation is done from java script -->
         </div>
     </div>
+
+    <!-- This is Bootstarap modal for unSideline task -->
+    <div id="unsideline-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header" >
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Unsideline</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <select class="form-control" id="errored-state-list" ><#--all option will come here--></select>
+                    </div>
+                    <div id="unsideline-msg"><#-- success msg appear here on success --></div>
+                </div>
+                <div class="modal-footer" class="text-center">
+                    <div class="text-center" id="unsideline-button-submit-ok-toggle"><#-- submit and ok button created alternatively here--></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <script type="text/javascript">
 
@@ -186,7 +213,7 @@
 
             auditDiv.appendChild(table);
         }
-        
+
         function getFormattedDate(date) {
             return date.toLocaleDateString() + " " + date.toLocaleTimeString() + "." + date.getMilliseconds();
         }
@@ -376,6 +403,12 @@
                         displayFsmInfo(data.stateMachineId, data.correlationId, data.fsmVersion, data.fsmName);
                         document.getElementById("info-div").style.display = 'block';
                         document.getElementById("legend").style.display = 'block';
+                        document.getElementById("fsm-unsideline").style.display = 'block';
+                        $("select").empty();
+                        $('#errored-state-list').append('<option value="" disabled selected value>--select State Id--</option>');
+                        for(var i=0;i<data.erroredStateIds.length;i++){
+                            $('#errored-state-list').append('<option>'+ data.erroredStateIds[i]+'</option>');
+                        }
                     },
                     error: function (XMLHttpRequest, textStatus, errorThrown) {
                         alert("Status: " + XMLHttpRequest.status + " Response:" + XMLHttpRequest.responseText);
@@ -384,10 +417,43 @@
             }
         }
 
+        //This function used to unsideline a state of FSM. Triggered upon click on submit button
+        function unSideline(){
+            $("#unsideline-button-submit-ok-toggle").empty();
+            $("#unsideline-button-submit-ok-toggle").append('<button type="button" id="fsm-modal-ok" class="btn btn-sm btn-primary center-block" display="none" data-dismiss="modal">Ok</button>');
+            $.ajax({
+                url:'${flux_api_url}/api/machines/'+document.getElementById("fsm-id").value+'/'+document.getElementById("errored-state-list").value+'/unsideline',
+                type: 'PUT',
+                success: function(data,status,jqXHR) {
+                    $("#unsideline-msg").append('<p>Request to unsideline sate:  '+document.getElementById("errored-state-list").value+' submitted successfully');
+                    document.getElementById("unsideline-msg").style.display='block';
+                    document.getElementById("errored-state-list").disabled = true;
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    $('#unsideline-modal').modal('hide');
+                    alert("Status: " + XMLHttpRequest.status + " Response:" + XMLHttpRequest.responseText);
+                }
+            });
+        }
+
+        //remove success message when modal goes hidden and also re-enable the state list box
+        $('.modal').on('hidden.bs.modal', function() {
+            $("#unsideline-msg").empty();
+            $("#unsideline-button-submit-ok-toggle").empty();
+            document.getElementById("errored-state-list").disabled = false;
+        }) ;
+
+        //This function is for unsideline modal . It brings latest errored or sidelined states on every click on unsideline button and also recreate the submit button.
+        function unsidelineModal() {
+            $("#unsideline-button-submit-ok-toggle").append('<button type="button" id="fsm-modal-unsideline" class="btn btn-sm btn-primary center-block" onclick="unSideline()" data-toogle="modal" >Submit</button>');
+        }
+
         document.getElementById("graph-div").style.display = 'none';
         document.getElementById("alert-msg").style.display = 'none';
         document.getElementById("info-div").style.display = 'none';
         document.getElementById("legend").style.display = 'none';
+        document.getElementById("fsm-unsideline").style.display = 'none';
+        document.getElementById("unsideline-msg").style.display='none';
 
         //useful when fsm-id is passed as request param
         getFSMData();
