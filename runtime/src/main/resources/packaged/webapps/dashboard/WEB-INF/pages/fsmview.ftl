@@ -359,28 +359,38 @@
         }
 
         function getFSMData() {
-            $.ajax({
-                url: '${flux_api_url}/api/machines/'+document.getElementById("fsm-id").value+'/fsmdata',
-                type: 'GET',
-                success: function(data, status, jqXHR) {
-                    document.getElementById("graph-div").style.display = 'block';
-                    document.getElementById("alert-msg").style.display = 'none';
-                    layout(data.fsmGraphData,data.initStateEdges);
-                    createAuditTable(data.fsmGraphData,data.auditData);
-                    displayFsmInfo(data.stateMachineId, data.correlationId, data.fsmVersion, data.fsmName);
-                    document.getElementById("info-div").style.display = 'block';
-                    document.getElementById("legend").style.display = 'block';
-                },
-                error: function(XMLHttpRequest, textStatus, errorThrown) {
-                    alert("Status: " + XMLHttpRequest.status + " Response:" + XMLHttpRequest.responseText);
-                }
-            });
+            var fsmId = document.getElementById("fsm-id").value;
+            if(!fsmId) {
+                fsmId = ('${fsm_id}' != 'null' ? '${fsm_id}' : null);
+                document.getElementById("fsm-id").value = fsmId;
+            };
+            if(fsmId) {
+                $.ajax({
+                    url: '${flux_api_url}/api/machines/' + fsmId + '/fsmdata',
+                    type: 'GET',
+                    success: function (data, status, jqXHR) {
+                        document.getElementById("graph-div").style.display = 'block';
+                        document.getElementById("alert-msg").style.display = 'none';
+                        layout(data.fsmGraphData, data.initStateEdges);
+                        createAuditTable(data.fsmGraphData, data.auditData);
+                        displayFsmInfo(data.stateMachineId, data.correlationId, data.fsmVersion, data.fsmName);
+                        document.getElementById("info-div").style.display = 'block';
+                        document.getElementById("legend").style.display = 'block';
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        alert("Status: " + XMLHttpRequest.status + " Response:" + XMLHttpRequest.responseText);
+                    }
+                });
+            }
         }
 
         document.getElementById("graph-div").style.display = 'none';
         document.getElementById("alert-msg").style.display = 'none';
         document.getElementById("info-div").style.display = 'none';
         document.getElementById("legend").style.display = 'none';
+
+        //useful when fsm-id is passed as request param
+        getFSMData();
 
         //on pressing Enter key while "fsm-id" text box is in focus, click "get-fsm-data" button
         document.getElementById("fsm-id")
