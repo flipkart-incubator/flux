@@ -422,7 +422,7 @@
             $("#unsideline-button-submit-ok-toggle").empty();
             $("#unsideline-button-submit-ok-toggle").append('<button type="button" id="fsm-modal-ok" class="btn btn-sm btn-primary center-block" display="none" data-dismiss="modal">Ok</button>');
             $.ajax({
-                url:'${flux_api_url}/api/machines/'+document.getElementById("fsm-id").value+'/'+document.getElementById("errored-state-list").value+'/unsideline',
+                url:'${flux_api_url}/api/machines/'+document.getElementById("fsmId").innerHTML+'/'+document.getElementById("errored-state-list").value+'/unsideline',
                 type: 'PUT',
                 success: function(data,status,jqXHR) {
                     $("#unsideline-msg").append('<p>Request to unsideline sate:  '+document.getElementById("errored-state-list").value+' submitted successfully');
