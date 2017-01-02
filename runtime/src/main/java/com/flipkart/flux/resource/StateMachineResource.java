@@ -28,6 +28,7 @@ import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
@@ -42,10 +43,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -317,6 +315,17 @@ public class StateMachineResource {
             throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).entity("State machine with Id: " + machineId + " not found").build());
         }
         final FsmGraph fsmGraph = new FsmGraph();
+
+        List<Long> erroredStateIds = new LinkedList<>();
+
+        for (State state : stateMachine.getStates()) {
+            if(state.getStatus() == Status.errored || state.getStatus() == Status.sidelined) {
+                erroredStateIds.add(state.getId());
+            }
+        }
+
+        Collections.sort(erroredStateIds);
+        fsmGraph.setErroredStateIds(erroredStateIds);
         fsmGraph.setStateMachineId(stateMachine.getId());
         fsmGraph.setCorrelationId(stateMachine.getCorrelationId());
         fsmGraph.setFsmVersion(stateMachine.getVersion());

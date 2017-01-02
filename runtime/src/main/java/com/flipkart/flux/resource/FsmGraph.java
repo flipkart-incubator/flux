@@ -39,6 +39,9 @@ public class FsmGraph {
     private List<AuditRecord> auditData;
 
     @JsonProperty
+    private List<Long> erroredStateIds;
+
+    @JsonProperty
     private Long stateMachineId;
 
     @JsonProperty
@@ -91,6 +94,14 @@ public class FsmGraph {
         this.fsmName = fsmName;
     }
 
+    public void setErroredStateIds(List<Long> erroredStateIds) {
+        this.erroredStateIds = erroredStateIds;
+    }
+
+    public List<Long> getErroredStateIds() {
+        return erroredStateIds;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -114,4 +125,6 @@ public class FsmGraph {
             "fsmGraphData=" + fsmGraphData +
             '}';
     }
+
+
 }
