@@ -386,28 +386,35 @@
         }
 
         function getFSMData() {
-            $.ajax({
-                url: '${flux_api_url}/api/machines/'+document.getElementById("fsm-id").value+'/fsmdata',
-                type: 'GET',
-                success: function(data, status, jqXHR) {
-                    document.getElementById("graph-div").style.display = 'block';
-                    document.getElementById("alert-msg").style.display = 'none';
-                    layout(data.fsmGraphData,data.initStateEdges);
-                    createAuditTable(data.fsmGraphData,data.auditData);
-                    displayFsmInfo(data.stateMachineId, data.correlationId, data.fsmVersion, data.fsmName);
-                    document.getElementById("info-div").style.display = 'block';
-                    document.getElementById("legend").style.display = 'block';
-                    document.getElementById("fsm-unsideline").style.display = 'block';
-                    $("select").empty();
-                    $('#state-list').append('<option value="" disabled selected value>--select State Id--</option>');
-                    for(var i=0;i<data.erroredStateIds.length;i++){
-                        $('#state-list').append('<option>'+ data.erroredStateIds[i]+'</option>');
+            var fsmId = document.getElementById("fsm-id").value;
+            if(!fsmId) {
+                fsmId = ('${fsm_id}' != 'null' ? '${fsm_id}' : null);
+                document.getElementById("fsm-id").value = fsmId;
+            };
+            if(fsmId) {
+                $.ajax({
+                    url: '${flux_api_url}/api/machines/' + fsmId + '/fsmdata',
+                    type: 'GET',
+                    success: function (data, status, jqXHR) {
+                        document.getElementById("graph-div").style.display = 'block';
+                        document.getElementById("alert-msg").style.display = 'none';
+                        layout(data.fsmGraphData, data.initStateEdges);
+                        createAuditTable(data.fsmGraphData, data.auditData);
+                        displayFsmInfo(data.stateMachineId, data.correlationId, data.fsmVersion, data.fsmName);
+                        document.getElementById("info-div").style.display = 'block';
+                        document.getElementById("legend").style.display = 'block';
+                        document.getElementById("fsm-unsideline").style.display = 'block';
+                        $("select").empty();
+                        $('#state-list').append('<option value="" disabled selected value>--select State Id--</option>');
+                        for(var i=0;i<data.erroredStateIds.length;i++){
+                            $('#state-list').append('<option>'+ data.erroredStateIds[i]+'</option>');
+                        }
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        alert("Status: " + XMLHttpRequest.status + " Response:" + XMLHttpRequest.responseText);
                     }
-                },
-                error: function(XMLHttpRequest, textStatus, errorThrown) {
-                    alert("Status: " + XMLHttpRequest.status + " Response:" + XMLHttpRequest.responseText);
-                }
-            });
+                });
+            }
         }
 
         //This function used to unsideline a state of FSM. Triggered upon click on submit button
@@ -430,8 +437,7 @@
         }
 
         //remove success message when modal goes hidden and also re-enable the state list box
-        $('.modal').on('hidden.bs.modal', function()
-        {
+        $('.modal').on('hidden.bs.modal', function() {
             $("#unsideline-msg").empty();
             $("#unsideline-button-submit-ok-toggle").empty();
             document.getElementById("state-list").disabled = false;
@@ -448,6 +454,11 @@
         document.getElementById("legend").style.display = 'none';
         document.getElementById("fsm-unsideline").style.display = 'none';
         document.getElementById("unsideline-msg").style.display='none';
+
+        //useful when fsm-id is passed as request param
+        getFSMData();
+
+        //on pressing Enter key while "fsm-id" text box is in focus, click "get-fsm-data" button
         document.getElementById("fsm-id")
                 .addEventListener("keyup", function(event) {
                     event.preventDefault();

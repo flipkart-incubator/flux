@@ -23,7 +23,7 @@ import com.flipkart.flux.api.core.Task;
 public abstract class AbstractTask implements Task {
 	
 	/**
-	 * Returns the name of this Task. Used mostly for display and human interpretation
+	 * Returns the name of this Task. Used mostly for display and human interpretation. This would be of the form className_methodName
 	 * @return the name of this Task
 	 */
 	public abstract String getName();
