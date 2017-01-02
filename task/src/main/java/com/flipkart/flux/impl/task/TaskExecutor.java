@@ -29,54 +29,64 @@ import javafx.util.Pair;
 
 /**
  * <code>TaskExecutor</code> wraps {@link Task} execution with Hystrix.
- * @author regunath.balasubramanian
  *
+ * @author regunath.balasubramanian
  */
 public class TaskExecutor extends HystrixCommand<Event> {
 
-	public static final String MANAGED_RUNTIME = "managedRuntime";
-	/** The task to execute*/
-	private Task task;
-	
-	/** The events used in Task execution*/
-	private EventData[] events;
-	private final Long stateMachineId;
-	private final String outputeEventName;
+    public static final String MANAGED_RUNTIME = "managedRuntime";
+    /**
+     * The task to execute
+     */
+    private Task task;
 
-	/**
-	 * Constructor for this class
-	 * @param task the task to execute
-	 * @param fluxRuntimeConnector
-	 * @param stateMachineId
-	 */
-	public TaskExecutor(AbstractTask task, EventData[] events, Long stateMachineId,String outputeEventName) {
+    /**
+     * The events used in Task execution
+     */
+    private EventData[] events;
+
+    /**
+     * State Machine Id to which this task belongs to
+     */
+    private final Long stateMachineId;
+
+    /**
+     * Name of the event which is emitted by this Task
+     */
+    private final String outputEventName;
+
+    /**
+     * Constructor for this class
+     */
+    public TaskExecutor(AbstractTask task, EventData[] events, Long stateMachineId, String outputEventName) {
         super(Setter
-        		.withGroupKey(HystrixCommandGroupKey.Factory.asKey(task.getTaskGroupName()))
+                .withGroupKey(HystrixCommandGroupKey.Factory.asKey(task.getTaskGroupName()))
                 .andCommandKey(HystrixCommandKey.Factory.asKey(task.getName()))
                 .andThreadPoolKey(HystrixThreadPoolKey.Factory.asKey(task.getName() + "-TP")) // creating a new thread pool per task by appending "-TP" to the task name
                 .andThreadPoolPropertiesDefaults(HystrixThreadPoolProperties.Setter().withCoreSize(task.getExecutionConcurrency()))
                 .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
-                		.withExecutionIsolationStrategy(ExecutionIsolationStrategy.THREAD)
-                		.withExecutionTimeoutInMilliseconds(task.getExecutionTimeout())));
-		this.task = task;
-		this.events = events;
-		this.stateMachineId = stateMachineId;
-		this.outputeEventName = outputeEventName;
-	}
-	
-	/**
-	 * The HystrixCommand run method. Executes the Task and returns the result or throws an exception in case of a {@link FluxError}
-	 * @see com.netflix.hystrix.HystrixCommand#run()
-	 */
-	protected Event run() throws Exception {
-		Pair<Object,FluxError> result = this.task.execute(events);
-		if (result.getValue() != null) {
-			throw result.getValue();
-		}
-		final SerializedEvent returnObject = (SerializedEvent) result.getKey();
-		if (returnObject != null) {
-            return new Event(outputeEventName, returnObject.getEventType(), Event.EventStatus.triggered, stateMachineId, returnObject.getSerializedEventData(), MANAGED_RUNTIME);
-		}
-		return null;
-	}
+                        .withExecutionIsolationStrategy(ExecutionIsolationStrategy.THREAD)
+                        .withExecutionTimeoutInMilliseconds(task.getExecutionTimeout())));
+        this.task = task;
+        this.events = events;
+        this.stateMachineId = stateMachineId;
+        this.outputEventName = outputEventName;
+    }
+
+    /**
+     * The HystrixCommand run method. Executes the Task and returns the result or throws an exception in case of a {@link FluxError}
+     *
+     * @see com.netflix.hystrix.HystrixCommand#run()
+     */
+    protected Event run() throws Exception {
+        Pair<Object, FluxError> result = this.task.execute(events);
+        if (result.getValue() != null) {
+            throw result.getValue();
+        }
+        final SerializedEvent returnObject = (SerializedEvent) result.getKey();
+        if (returnObject != null) {
+            return new Event(outputEventName, returnObject.getEventType(), Event.EventStatus.triggered, stateMachineId, returnObject.getSerializedEventData(), MANAGED_RUNTIME);
+        }
+        return null;
+    }
 }
