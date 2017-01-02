@@ -67,4 +67,4 @@ redriver:
   noOfPersistenceWorkers: 10
 
 deploymentType: directory
-deploymentUnitsPath: "/Users/bhaskar.roy/workspace/workflows"
+deploymentUnitsPath: "/tmp/workflows"
