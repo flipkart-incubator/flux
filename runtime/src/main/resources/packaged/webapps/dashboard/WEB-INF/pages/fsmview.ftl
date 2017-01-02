@@ -88,7 +88,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <select class="form-control" id="state-list" ><#--all option will come here--></select>
+                        <select class="form-control" id="errored-state-list" ><#--all option will come here--></select>
                     </div>
                     <div id="unsideline-msg"><#-- success msg appear here on success --></div>
                 </div>
@@ -213,7 +213,7 @@
 
             auditDiv.appendChild(table);
         }
-        
+
         function getFormattedDate(date) {
             return date.toLocaleDateString() + " " + date.toLocaleTimeString() + "." + date.getMilliseconds();
         }
@@ -405,9 +405,9 @@
                         document.getElementById("legend").style.display = 'block';
                         document.getElementById("fsm-unsideline").style.display = 'block';
                         $("select").empty();
-                        $('#state-list').append('<option value="" disabled selected value>--select State Id--</option>');
+                        $('#errored-state-list').append('<option value="" disabled selected value>--select State Id--</option>');
                         for(var i=0;i<data.erroredStateIds.length;i++){
-                            $('#state-list').append('<option>'+ data.erroredStateIds[i]+'</option>');
+                            $('#errored-state-list').append('<option>'+ data.erroredStateIds[i]+'</option>');
                         }
                     },
                     error: function (XMLHttpRequest, textStatus, errorThrown) {
@@ -422,12 +422,12 @@
             $("#unsideline-button-submit-ok-toggle").empty();
             $("#unsideline-button-submit-ok-toggle").append('<button type="button" id="fsm-modal-ok" class="btn btn-sm btn-primary center-block" display="none" data-dismiss="modal">Ok</button>');
             $.ajax({
-                url:'${flux_api_url}/api/machines/'+document.getElementById("fsm-id").value+'/'+document.getElementById("state-list").value+'/unsideline',
+                url:'${flux_api_url}/api/machines/'+document.getElementById("fsm-id").value+'/'+document.getElementById("errored-state-list").value+'/unsideline',
                 type: 'PUT',
                 success: function(data,status,jqXHR) {
-                    $("#unsideline-msg").append('<p>Request to unsideline sate:  '+document.getElementById("state-list").value+' submitted successfully');
+                    $("#unsideline-msg").append('<p>Request to unsideline sate:  '+document.getElementById("errored-state-list").value+' submitted successfully');
                     document.getElementById("unsideline-msg").style.display='block';
-                    document.getElementById("state-list").disabled = true;
+                    document.getElementById("errored-state-list").disabled = true;
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) {
                     $('#unsideline-modal').modal('hide');
@@ -440,7 +440,7 @@
         $('.modal').on('hidden.bs.modal', function() {
             $("#unsideline-msg").empty();
             $("#unsideline-button-submit-ok-toggle").empty();
-            document.getElementById("state-list").disabled = false;
+            document.getElementById("errored-state-list").disabled = false;
         }) ;
 
         //This function is for unsideline modal . It brings latest errored or sidelined states on every click on unsideline button and also recreate the submit button.
