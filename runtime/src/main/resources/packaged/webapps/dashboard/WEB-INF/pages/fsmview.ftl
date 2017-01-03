@@ -38,40 +38,59 @@
         <div id="graph-div" style="float: left">
             <div class="paper" id="fsmcanvas" style="width: 1000px; height: 500px; overflow: auto;"></div>
         </div>
-        <div>
-            <div id="info-div">
-                <table class="table" style="width: 10%">
-                    <tr>
-                        <th align="left" style="border-top: none; vertical-align: middle;">FSM Name:</th>
-                        <td id="fsmName" align="left" style="border-top: none; vertical-align: middle; max-width: 100px; word-wrap: break-word;"></td>
-                    </tr>
-                    <tr>
-                        <th align="left" style="border-top: none; vertical-align: middle;">FSM Id:</th>
-                        <td id="fsmId" align="left" style="border-top: none; vertical-align: middle;"></td>
-                    </tr>
-                    <tr>
-                        <th align="left" style="border-top: none; vertical-align: middle;">Correlation Id:</th>
-                        <td id="correlationId" align="left" style="border-top: none; vertical-align: middle; max-width: 100px; word-wrap: break-word;"></td>
-                    </tr>
-                    <tr>
-                        <th align="left" style="border-top: none; vertical-align: middle;">FSM Version:</th>
-                        <td id="fsmVersion" align="left" style="border-top: none; vertical-align: middle;"></td>
-                    </tr>
-                </table>
-            </div>
-            <div id="legend">
-                <table class="table" style="width: 10%;">
-                    <tr><th style="border-top: none">Legend</th></tr>
-                    <tr><td style="border-top: none; vertical-align: middle"><div class="initialized">&nbsp;</div></td><td style="border-top: none;">&nbsp;Initialized</td></tr>
-                    <tr><td style="border-top: none; vertical-align: middle"><div class="running">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Running </td></tr>
-                    <tr><td style="border-top: none; vertical-align: middle"><div class="completed">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Completed</td></tr>
-                    <tr><td style="border-top: none; vertical-align: middle"><div class="cancelled">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Cancelled</td></tr>
-                    <tr><td style="border-top: none; vertical-align: middle"><div class="errored">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Errored </td></tr>
-                    <tr><td style="border-top: none; vertical-align: middle"><div class="sidelined">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Sidelined</td></tr>
-                </table>
-            </div>
+        <div id="fsm-legend-table">
+            <table style="width: 10%">
+                <tr><td>
+                    <div class="panel-group" id="fsm-legend-collapse" style="width: 350px;">
+                        <div class="panel panel-default" id="fsm-details">
+                            <div class="panel-heading" data-toggle="collapse" data-parent="#fsm-legend-collapse" href="#info-div">
+                                    FSM Details
+                            </div>
+                            <div id="info-div" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <table class="table" style="width: 10%">
+                                        <tr>
+                                            <th align="left" style="border-top: none; vertical-align: middle;">FSM Name:</th>
+                                            <td id="fsmName" align="left" style="border-top: none; vertical-align: middle; max-width: 200px; word-wrap: break-word;"></td>
+                                        </tr>
+                                        <tr>
+                                            <th align="left" style="border-top: none; vertical-align: middle;">FSM Id:</th>
+                                            <td id="fsmId" align="left" style="border-top: none; vertical-align: middle;"></td>
+                                        </tr>
+                                        <tr>
+                                            <th align="left" style="border-top: none; vertical-align: middle;">Correlation Id:</th>
+                                            <td id="correlationId" align="left" style="border-top: none; vertical-align: middle; max-width: 100px; word-wrap: break-word;"></td>
+                                        </tr>
+                                        <tr>
+                                            <th align="left" style="border-top: none; vertical-align: middle;">FSM Version:</th>
+                                            <td id="fsmVersion" align="left" style="border-top: none; vertical-align: middle;"></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default" id="legend-details">
+                            <div class="panel-heading" data-toggle="collapse" data-parent="#fsm-legend-collapse" href="#legend">
+                                Legend
+                            </div>
+                            <div id="legend" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <table class="table" style="width: 10%;">
+                                        <#--<tr><th style="border-top: none">Legend</th></tr>-->
+                                        <tr><td style="border-top: none; vertical-align: middle"><div class="initialized">&nbsp;</div></td><td style="border-top: none;">&nbsp;Initialized</td></tr>
+                                        <tr><td style="border-top: none; vertical-align: middle"><div class="running">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Running </td></tr>
+                                        <tr><td style="border-top: none; vertical-align: middle"><div class="completed">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Completed</td></tr>
+                                        <tr><td style="border-top: none; vertical-align: middle"><div class="cancelled">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Cancelled</td></tr>
+                                        <tr><td style="border-top: none; vertical-align: middle"><div class="errored">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Errored </td></tr>
+                                        <tr><td style="border-top: none; vertical-align: middle"><div class="sidelined">&nbsp;</div> </td><td style="border-top: none;">&nbsp;Sidelined</td></tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td></tr>
+            </table>
         </div>
-
         <div id="audit-div">
             <!-- audit table creation is done from java script -->
         </div>
@@ -401,9 +420,9 @@
                         layout(data.fsmGraphData, data.initStateEdges);
                         createAuditTable(data.fsmGraphData, data.auditData);
                         displayFsmInfo(data.stateMachineId, data.correlationId, data.fsmVersion, data.fsmName);
-                        document.getElementById("info-div").style.display = 'block';
-                        document.getElementById("legend").style.display = 'block';
                         document.getElementById("fsm-unsideline").style.display = 'block';
+                        document.getElementById("fsm-details").style.display='block';
+                        document.getElementById("legend-details").style.display='block';
                         $("select").empty();
                         $('#errored-state-list').append('<option value="" disabled selected value>--select State Id--</option>');
                         for(var i=0;i<data.erroredStateIds.length;i++){
@@ -450,10 +469,10 @@
 
         document.getElementById("graph-div").style.display = 'none';
         document.getElementById("alert-msg").style.display = 'none';
-        document.getElementById("info-div").style.display = 'none';
-        document.getElementById("legend").style.display = 'none';
         document.getElementById("fsm-unsideline").style.display = 'none';
         document.getElementById("unsideline-msg").style.display='none';
+        document.getElementById("fsm-details").style.display='none';
+        document.getElementById("legend-details").style.display='none';
 
         //useful when fsm-id is passed as request param
         getFSMData();
