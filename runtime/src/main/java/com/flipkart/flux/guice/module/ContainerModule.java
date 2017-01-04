@@ -138,7 +138,8 @@ public class ContainerModule extends AbstractModule {
 		JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
 		provider.setMapper(objectMapper);
 		resourceConfig.register(provider);
-		final Server server = JettyHttpContainerFactory.createServer(UriBuilder.fromUri("http://" + InetAddress.getLocalHost().getHostAddress()+ RuntimeConstants.API_CONTEXT_PATH).port(port).build(), resourceConfig);
+		final Server server = JettyHttpContainerFactory.createServer(UriBuilder.fromUri("http://" + InetAddress.getLocalHost().getHostAddress()+ RuntimeConstants.API_CONTEXT_PATH).port(port).build(),
+				resourceConfig, false);
 		server.setStopAtShutdown(true);
 		return server;
 	}
