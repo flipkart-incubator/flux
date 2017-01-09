@@ -92,8 +92,7 @@ public class WorkFlowExecutionControllerTest {
     public void testEventPost_shouldLookupRouterAndSendMessage() throws Exception {
         final EventData testEventData = new EventData("event1", "foo", "someStringData", "runtime");
         when(eventsDAO.findBySMIdAndName(1l, "event1")).thenReturn(new Event("event1", "foo", Event.EventStatus.pending, 1l, null, null));
-        EventData[] expectedEvents = new EventData[]{new EventData("event1","someType","someStringData","runtime")};
-        when(eventsDAO.findByEventNamesAndSMId(Collections.singletonList("event1"),1l)).thenReturn(Arrays.asList(expectedEvents));
+        EventData[] expectedEvents = new EventData[]{new EventData("event1","foo","someStringData","runtime")};
         when(eventsDAO.findTriggeredEventsNamesBySMId(1l)).thenReturn(Collections.singletonList("event1"));
         workFlowExecutionController.postEvent(testEventData, 1l, null);
 
@@ -101,6 +100,17 @@ public class WorkFlowExecutionControllerTest {
         mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("testTask", "com.flipkart.flux.dao.TestWorkflow_testTask_event1", 2L, expectedEvents, 1l, objectMapper.writeValueAsString(TestUtils.standardStateMachineOutputEvent()),2), 1);
         mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("testTask", "com.flipkart.flux.dao.TestWorkflow_testTask_event1", 3L, expectedEvents, 1l, null,2), 1);
         verifyNoMoreInteractions(routerRegistry);
+    }
+
+    @Test
+    public void testEventPost_shouldNotFetchEventDataFromDBIfStateIsDependantOnSingleEvent() throws Exception {
+        final EventData testEventData = new EventData("event1", "foo", "someStringData", "runtime");
+        when(eventsDAO.findBySMIdAndName(1l, "event1")).thenReturn(new Event("event1", "foo", Event.EventStatus.pending, 1l, null, null));
+        when(eventsDAO.findTriggeredEventsNamesBySMId(1l)).thenReturn(Collections.singletonList("event1"));
+        workFlowExecutionController.postEvent(testEventData, 1l, null);
+
+        // As states 2 and 3 dependant on single event there should be no more interactions with eventDAO to fetch event data
+        verify(eventsDAO, times(0)).findByEventNamesAndSMId(Collections.singletonList("event1"),1l);
     }
 
     @Test
