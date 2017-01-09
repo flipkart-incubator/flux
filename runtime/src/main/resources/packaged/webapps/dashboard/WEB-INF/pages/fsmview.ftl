@@ -25,9 +25,6 @@
                 <input class="form-control" type="text" placeholder="FSM Id or Correlation Id" id="fsm-id"/>
             </div>
             <div class="Cell"><button class="btn btn-sm btn-primary" onclick="getFSMData()" id="get-fsm-data">Show FSM</button></div>
-            <div class="Cell">
-                <button class="btn btn-sm btn-primary" id="fsm-unsideline" data-toggle="modal" onclick="unsidelineModal()" data-target="#unsideline-modal" >Unsideline </button>
-            </div>
         </div>
     </div>
     <div>&nbsp;</div>
@@ -40,6 +37,16 @@
         </div>
         <div id="fsm-legend-table">
             <table style="width: 10%">
+                <tr>
+                    <td>
+                        <div class="Cell">
+                            <button style="margin-left: -5px;margin-bottom: 5px;" class="btn btn-sm btn-primary" id="fsm-unsideline-btn" data-toggle="modal" onclick="unsidelineModal()" data-target="#unsideline-modal">Unsideline </button>
+                        </div>
+                        <div class="Cell">
+                            <button style="margin-bottom: 5px;" class="btn btn-sm btn-primary" id="fsm-event-details-btn" data-toggle="modal" data-target="#event-details-modal" >Event Information </button>
+                        </div>
+                    </td>
+                </tr>
                 <tr><td>
                     <div class="panel-group" id="fsm-legend-collapse" style="width: 350px;">
                         <div class="panel panel-default" id="fsm-details">
@@ -118,9 +125,32 @@
         </div>
     </div>
 
+    <!-- This is Bootstarap modal to see event details -->
+    <div id="event-details-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header" >
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Event Information</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <select style="height:28px;width:567px" class="selectpicker" id="event-data-select" ><#--all option will come here--></select>
+                    </div>
+                    <div id="event-data">
+                        <textarea readonly rows="15" cols="50" id="event-data-txt-box" style="height: 262px;width: 567px;max-height: 262px;overflow-y: auto;resize: none;" data-role="none"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <script type="text/javascript">
 
+        var eventNameDataMap=new Object();
+        var eventNames = [];
         var graph = new joint.dia.Graph;
         var paper = new joint.dia.Paper({
             el: $('#fsmcanvas'),
@@ -420,19 +450,48 @@
                         layout(data.fsmGraphData, data.initStateEdges);
                         createAuditTable(data.fsmGraphData, data.auditData);
                         displayFsmInfo(data.stateMachineId, data.correlationId, data.fsmVersion, data.fsmName);
-                        document.getElementById("fsm-unsideline").style.display = 'block';
+                        document.getElementById("fsm-unsideline-btn").style.display = 'block';
+                        document.getElementById("fsm-event-details-btn").style.display='block';
                         document.getElementById("fsm-details").style.display='block';
                         document.getElementById("legend-details").style.display='block';
-                        $("select").empty();
-                        $('#errored-state-list').append('<option value="" disabled selected value>--select State Id--</option>');
-                        for(var i=0;i<data.erroredStateIds.length;i++){
-                            $('#errored-state-list').append('<option>'+ data.erroredStateIds[i]+'</option>');
-                        }
+
+                        populateErroredStatesList(data);
+                        populateEventInformation(data);
                     },
                     error: function (XMLHttpRequest, textStatus, errorThrown) {
                         alert("Status: " + XMLHttpRequest.status + " Response:" + XMLHttpRequest.responseText);
                     }
                 });
+            }
+        }
+
+        //prepares list of errored states for unsideline modal
+        function populateErroredStatesList(data) {
+            $("#errored-state-list").empty();
+            $('#errored-state-list').append('<option value="" disabled selected value>--select State Id--</option>');
+            for(var i=0;i<data.erroredStateIds.length;i++){
+                $('#errored-state-list').append('<option>'+ data.erroredStateIds[i]+'</option>');
+            }
+        }
+
+        //does necessary operations to show event information on list box select
+        function populateEventInformation(data) {
+            $("#event-data-select").empty();
+            $('#event-data-select').append('<option value="" disabled selected value>--select Event--</option>');
+            var count=0;
+            for(var i=0;i<data.initStateEdges.length;i++){
+                eventNameDataMap[data.initStateEdges[i].label] = data.initStateEdges[i].eventData;
+                eventNames[count] = data.initStateEdges[i].label;
+                count++;
+            }
+            for(var stateIdentifier in data.fsmGraphData) {
+                eventNameDataMap[data.fsmGraphData[stateIdentifier].label]=data.fsmGraphData[stateIdentifier].eventData;
+                eventNames[count]=data.fsmGraphData[stateIdentifier].label;
+                count++;
+            }
+            eventNames.sort();
+            for(var i=0; i<eventNames.length; i++){
+                $('#event-data-select').append('<option>'+eventNames[i]+'</option>');
             }
         }
 
@@ -459,6 +518,9 @@
         $('.modal').on('hidden.bs.modal', function() {
             $("#unsideline-msg").empty();
             $("#unsideline-button-submit-ok-toggle").empty();
+            $("#event-data-txt-box").empty();
+            document.getElementById("event-data-select").selectedIndex = 0;
+            document.getElementById("errored-state-list").selectedIndex = 0;
             document.getElementById("errored-state-list").disabled = false;
         }) ;
 
@@ -467,9 +529,19 @@
             $("#unsideline-button-submit-ok-toggle").append('<button type="button" id="fsm-modal-unsideline" class="btn btn-sm btn-primary center-block" onclick="unSideline()" data-toogle="modal" >Submit</button>');
         }
 
+        //function to get event data on select of event name
+        $(function() {
+            $('.selectpicker').on('change', function(){
+                $("#event-data-txt-box").empty();
+                var selectedEventName = $(this).find("option:selected").val();
+                $("#event-data-txt-box").append(eventNameDataMap[selectedEventName]);
+            });
+        });
+
         document.getElementById("graph-div").style.display = 'none';
         document.getElementById("alert-msg").style.display = 'none';
-        document.getElementById("fsm-unsideline").style.display = 'none';
+        document.getElementById("fsm-unsideline-btn").style.display = 'none';
+        document.getElementById("fsm-event-details-btn").style.display='none';
         document.getElementById("unsideline-msg").style.display='none';
         document.getElementById("fsm-details").style.display='none';
         document.getElementById("legend-details").style.display='none';
