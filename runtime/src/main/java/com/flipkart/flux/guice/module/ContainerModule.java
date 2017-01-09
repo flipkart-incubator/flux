@@ -19,6 +19,7 @@ package com.flipkart.flux.guice.module;
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jersey2.InstrumentedResourceMethodApplicationListener;
+import com.codahale.metrics.jetty9.InstrumentedHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.flipkart.flux.config.FileLocator;
@@ -30,10 +31,13 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -133,12 +137,22 @@ public class ContainerModule extends AbstractModule {
 	@Singleton
 	Server getAPIJettyServer(@Named("Api.service.port") int port,
 							 @Named("APIResourceConfig")ResourceConfig resourceConfig,
-							 ObjectMapper objectMapper) throws URISyntaxException, UnknownHostException {
+							 ObjectMapper objectMapper, MetricRegistry metricRegistry) throws URISyntaxException, UnknownHostException {
 		//todo-ashish figure out some way of setting acceptor/worker threads
 		JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
 		provider.setMapper(objectMapper);
 		resourceConfig.register(provider);
-		final Server server = JettyHttpContainerFactory.createServer(UriBuilder.fromUri("http://" + InetAddress.getLocalHost().getHostAddress()+ RuntimeConstants.API_CONTEXT_PATH).port(port).build(), resourceConfig);
+
+		final Server server = JettyHttpContainerFactory.createServer(UriBuilder.fromUri("http://" + InetAddress.getLocalHost().getHostAddress()+ RuntimeConstants.API_CONTEXT_PATH).port(port).build(), false);
+
+		ServletContextHandler context = new ServletContextHandler(server, "/*");
+		ServletHolder servlet = new ServletHolder(new ServletContainer(resourceConfig));
+		context.addServlet(servlet, "/*");
+
+		final InstrumentedHandler handler = new InstrumentedHandler(metricRegistry);
+		handler.setHandler(context);
+		server.setHandler(handler);
+
 		server.setStopAtShutdown(true);
 		return server;
 	}
@@ -147,11 +161,10 @@ public class ContainerModule extends AbstractModule {
 	@Singleton
 	@Provides
 	public ResourceConfig getAPIResourceConfig(StateMachineResource stateMachineResource,
-											   StatusResource statusResource) {
+											   StatusResource statusResource, MetricRegistry metricRegistry) {
 		ResourceConfig resourceConfig = new ResourceConfig();
 
 		//Register codahale metrics and publish to jmx
-		MetricRegistry metricRegistry = new MetricRegistry();
 		resourceConfig.register(new InstrumentedResourceMethodApplicationListener(metricRegistry));
 		JmxReporter jmxReporter = JmxReporter.forRegistry(metricRegistry).build();
 
