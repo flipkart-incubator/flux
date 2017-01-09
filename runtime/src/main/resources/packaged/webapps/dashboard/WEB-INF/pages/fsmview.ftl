@@ -485,9 +485,11 @@
                 count++;
             }
             for(var stateIdentifier in data.fsmGraphData) {
-                eventNameDataMap[data.fsmGraphData[stateIdentifier].label]=data.fsmGraphData[stateIdentifier].eventData;
-                eventNames[count]=data.fsmGraphData[stateIdentifier].label;
-                count++;
+                if(data.fsmGraphData[stateIdentifier].label != "") {
+                    eventNameDataMap[data.fsmGraphData[stateIdentifier].label] = data.fsmGraphData[stateIdentifier].eventData;
+                    eventNames[count] = data.fsmGraphData[stateIdentifier].label;
+                    count++;
+                }
             }
             eventNames.sort();
             for(var i=0; i<eventNames.length; i++){
