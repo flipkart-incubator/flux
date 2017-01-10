@@ -90,10 +90,10 @@ public class WorkFlowExecutionControllerTest {
 
     @Test
     public void testEventPost_shouldLookupRouterAndSendMessage() throws Exception {
-        final EventData testEventData = new EventData("event1", "foo", "someStringData", "runtime");
-        when(eventsDAO.findBySMIdAndName(1l, "event1")).thenReturn(new Event("event1", "foo", Event.EventStatus.pending, 1l, null, null));
-        EventData[] expectedEvents = new EventData[]{new EventData("event1","foo","someStringData","runtime")};
-        when(eventsDAO.findTriggeredEventsNamesBySMId(1l)).thenReturn(Collections.singletonList("event1"));
+        final EventData testEventData = new EventData("event0", "java.lang.String", "42", "runtime");
+        when(eventsDAO.findBySMIdAndName(1l, "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, 1l, null, null));
+        EventData[] expectedEvents = new EventData[]{new EventData("event0","java.lang.String","42","runtime")};
+        when(eventsDAO.findTriggeredEventsNamesBySMId(1l)).thenReturn(Collections.singletonList("event0"));
         workFlowExecutionController.postEvent(testEventData, 1l, null);
 
         verify(routerRegistry, times(1)).getRouter("com.flipkart.flux.dao.TestWorkflow_dummyTask"); // For 1 unblocked states
