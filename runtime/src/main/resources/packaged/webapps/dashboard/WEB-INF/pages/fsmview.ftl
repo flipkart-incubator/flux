@@ -39,11 +39,11 @@
             <table style="width: 10%">
                 <tr>
                     <td>
-                        <div class="Cell">
-                            <button style="margin-left: -5px;margin-bottom: 5px;" class="btn btn-sm btn-primary" id="fsm-unsideline-btn" data-toggle="modal" onclick="unsidelineModal()" data-target="#unsideline-modal">Unsideline </button>
+                        <div class="Cell" style="width: 175px">
+                            <button style="margin-left: -5px;margin-bottom: 5px; width: 160px; height: 35px;" class="btn btn-sm btn-primary" id="fsm-unsideline-btn" data-toggle="modal" onclick="unsidelineModal()" data-target="#unsideline-modal">Unsideline </button>
                         </div>
-                        <div class="Cell">
-                            <button style="margin-bottom: 5px;" class="btn btn-sm btn-primary" id="fsm-event-details-btn" data-toggle="modal" data-target="#event-details-modal" >Event Information </button>
+                        <div class="Cell" style="width: 175px">
+                            <button style="margin-bottom: 5px; width: 175px; height: 35px;" class="btn btn-sm btn-primary" id="fsm-event-details-btn" data-toggle="modal" data-target="#event-details-modal" >Event Information </button>
                         </div>
                     </td>
                 </tr>
