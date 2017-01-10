@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
@@ -104,7 +103,11 @@ public class RedriverService {
         long now = System.currentTimeMillis();
         do {
             messages = messageService.retrieveOldest(offset, batchSize);
-            messages.stream().filter(e -> e.getScheduledTime() < now).forEach(e -> redriverRegistry.redriveTask(e.getTaskId()));
+            messages.stream().filter(e -> e.getScheduledTime() < now).forEach(e -> {
+                try {
+                    redriverRegistry.redriveTask(e.getTaskId());
+                } catch (Exception ex) {}
+            });
             offset += batchSize;
             // get next batch if we found batchSize tasks and all were redriven
         } while (messages.size() == batchSize && messages.get(messages.size() - 1).getScheduledTime() < now);

@@ -23,12 +23,9 @@ import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.*;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * <code>StateMachinePersistenceService</code> class converts user provided state machine entity definition to domain type object and stores in DB.
@@ -43,11 +40,15 @@ public class StateMachinePersistenceService {
     private EventPersistenceService eventPersistenceService;
     private final ObjectMapper objectMapper;
 
+    private Integer maxRetryCount;
+
     @Inject
-    public StateMachinePersistenceService(StateMachinesDAO stateMachinesDAO, AuditDAO auditDAO, EventPersistenceService eventPersistenceService) {
+    public StateMachinePersistenceService(StateMachinesDAO stateMachinesDAO, AuditDAO auditDAO,
+                                          EventPersistenceService eventPersistenceService, @Named("task.maxTaskRetryCount") Integer maxRetryCount) {
         this.stateMachinesDAO = stateMachinesDAO;
         this.auditDAO = auditDAO;
         this.eventPersistenceService = eventPersistenceService;
+        this.maxRetryCount = maxRetryCount;
         objectMapper = new ObjectMapper();
     }
 
@@ -128,7 +129,7 @@ public class StateMachinePersistenceService {
                     stateDefinition.getTask(),
                     stateDefinition.getOnExitHook(),
                     events,
-                    stateDefinition.getRetryCount(),
+                    Math.min(stateDefinition.getRetryCount(), maxRetryCount),
                     stateDefinition.getTimeout(),
                     stateDefinition.getOutputEvent() != null? objectMapper.writeValueAsString(stateDefinition.getOutputEvent()) : null,
                     Status.initialized, null, 0l);

@@ -93,6 +93,7 @@ public class AkkaTask extends UntypedActor {
         if (TaskAndEvents.class.isAssignableFrom(message.getClass())) {
             try {
                 TaskAndEvents taskAndEvent = (TaskAndEvents) message;
+                logger.info("Akka task processing state machine: {} task: {}", taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId());
                 logger.debug("Actor {} received directive {}", this.getSelf(), taskAndEvent);
                 if (!taskAndEvent.getIsFirstTimeExecution()) {
                     taskAndEvent.setCurrentRetryCount(taskAndEvent.getCurrentRetryCount() + 1); // increment the retry count
@@ -154,7 +155,7 @@ public class AkkaTask extends UntypedActor {
                             }
                         }
                     } catch (RuntimeCommunicationException e) {
-                        logger.error("Task completed but updateStatus/submit failed. ErrorMsg: {}", e.getMessage());
+                        logger.error("Task completed but updateStatus/submit failed. State machine: {} task: {} ErrorMsg: {}", taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), e.getMessage());
                         // mark the task outcome as execution failure and throw retriable error
                         updateExecutionStatus(taskAndEvent, Status.errored, e.getMessage(), false);
 
@@ -169,7 +170,8 @@ public class AkkaTask extends UntypedActor {
                     // Execute any post-exec HookS
 //                    this.executeHooks(AkkaTask.taskRegistry.getPostExecHooks(task), taskAndEvent.getEvents());
                 } else {
-                    logger.error("Task received EventS that it cannot process. Events received are : {}", TaskRegistry.getEventsKey(taskAndEvent.getEvents()));
+                    logger.error("Task received EventS that it cannot process. State machine: {} task: {} Events received are : {}",
+                            taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), TaskRegistry.getEventsKey(taskAndEvent.getEvents()));
                 }
             } catch (FluxError fe) { //this catch block handles local retries
                 if (fe.getType().equals(FluxError.ErrorType.timeout) || fe.getType().equals(FluxError.ErrorType.retriable)) {

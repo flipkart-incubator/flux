@@ -22,6 +22,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
@@ -47,10 +48,11 @@ public class FSMVisualizationController {
     }
 
     @RequestMapping(value = {"/fsmview"}, method = RequestMethod.GET)
-    public String fsmview(ModelMap modelMap, HttpServletRequest request) throws UnknownHostException {
+    public String fsmview(@RequestParam(value = "fsmid", required = false) String fsmId, ModelMap modelMap, HttpServletRequest request) throws UnknownHostException {
         int fluxApiPort = configInjector.getInstance(Key.get(Integer.class, Names.named("Api.service.port")));
         String fluxApiUrl = "http://" + InetAddress.getLocalHost().getHostAddress() + ":" + fluxApiPort;
         modelMap.addAttribute("flux_api_url", fluxApiUrl);
+        modelMap.addAttribute("fsm_id", (fsmId != null ? fsmId : "null"));
         return FSM_VIEW;
     }
 

@@ -28,10 +28,14 @@ import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.exception.IllegalEventException;
+import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.google.inject.Inject;
+import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,10 +46,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -107,13 +108,28 @@ public class StateMachineResource {
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Transactional
     @Timed
     public Response createStateMachine(StateMachineDefinition stateMachineDefinition) throws Exception {
-        // 1. Convert to StateMachine (domain object) and save in DB
+
         if (stateMachineDefinition == null)
             throw new IllegalRepresentationException("State machine definition is empty");
 
+        StateMachine stateMachine = null;
+
+        try {
+            stateMachine = createAndInitStateMachine(stateMachineDefinition);
+        } catch (ConstraintViolationException ex) {
+            //in case of Duplicate correlation key, return http code 409 conflict
+            return Response.status(Response.Status.CONFLICT.getStatusCode()).entity(ex.getCause() != null ? ex.getCause().getMessage() : null).build();
+        }
+
+        return Response.status(Response.Status.CREATED.getStatusCode()).entity(stateMachine.getId()).build();
+    }
+
+    @Transactional
+    private StateMachine createAndInitStateMachine(StateMachineDefinition stateMachineDefinition) throws Exception {
+
+        // 1. Convert to StateMachine (domain object) and save in DB
         StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineDefinition);
 
         // 2. initialize and start State Machine
@@ -121,8 +137,7 @@ public class StateMachineResource {
 
         logger.info("Created state machine with Id: {} and correlation Id: {}", stateMachine.getId(), stateMachine.getCorrelationId());
 
-        // 3. Return machineId
-        return Response.status(Response.Status.CREATED).entity(stateMachine.getId()).build();
+        return stateMachine;
     }
 
     /**
@@ -141,13 +156,17 @@ public class StateMachineResource {
     ) throws Exception {
         logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
 
-        if (searchField != null) {
-            if (!searchField.equals(CORRELATION_ID)) {
-                return Response.status(Response.Status.BAD_REQUEST).build();
+        try {
+            if (searchField != null) {
+                if (!searchField.equals(CORRELATION_ID)) {
+                    return Response.status(Response.Status.BAD_REQUEST).build();
+                }
+                workFlowExecutionController.postEvent(eventData, null, machineId);
+            } else {
+                workFlowExecutionController.postEvent(eventData, Long.valueOf(machineId), null);
             }
-            workFlowExecutionController.postEvent(eventData, null, machineId);
-        } else {
-            workFlowExecutionController.postEvent(eventData, Long.valueOf(machineId), null);
+        } catch (UnknownStateMachine | IllegalEventException ex) {
+            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
         }
         return Response.status(Response.Status.ACCEPTED).build();
     }
@@ -250,12 +269,7 @@ public class StateMachineResource {
     @Path("/{machineId}/fsmdata")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFsmGraphData(@PathParam("machineId") String machineId) throws IOException {
-        return Response.status(200).entity(getGraphData(machineId))
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT")
-                .header("Access-Control-Allow-Credentials", "true")
-                .header("Access-Control-Allow-Headers", "Content-Type, Accept")
-                .build();
+        return Response.status(200).entity(getGraphData(machineId)).build();
     }
 
     /**
@@ -321,6 +335,17 @@ public class StateMachineResource {
             throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).entity("State machine with Id: " + machineId + " not found").build());
         }
         final FsmGraph fsmGraph = new FsmGraph();
+
+        List<Long> erroredStateIds = new LinkedList<>();
+
+        for (State state : stateMachine.getStates()) {
+            if(state.getStatus() == Status.errored || state.getStatus() == Status.sidelined) {
+                erroredStateIds.add(state.getId());
+            }
+        }
+
+        Collections.sort(erroredStateIds);
+        fsmGraph.setErroredStateIds(erroredStateIds);
         fsmGraph.setStateMachineId(stateMachine.getId());
         fsmGraph.setCorrelationId(stateMachine.getCorrelationId());
         fsmGraph.setFsmVersion(stateMachine.getVersion());
@@ -338,20 +363,20 @@ public class StateMachineResource {
                 EventDefinition eventDefinition = objectMapper.readValue(state.getOutputEvent(), EventDefinition.class);
                 final Event outputEvent = stateMachineEvents.get(eventDefinition.getName());
                 fsmGraph.addVertex(vertex,
-                        new FsmGraphEdge(getEventDisplayName(outputEvent.getName()), state.getStatus().name(), outputEvent.getEventSource()));
+                        new FsmGraphEdge(getEventDisplayName(outputEvent.getName()), state.getStatus().name(), outputEvent.getEventSource(),outputEvent.getEventData()));
                 final Set<State> dependantStates = ramContext.getDependantStates(outputEvent.getName());
                 dependantStates.forEach((aState) -> fsmGraph.addOutgoingEdge(vertex, aState.getId()));
                 allOutputEventNames.add(outputEvent.getName()); // we collect all output event names and use them below.
             } else {
                 fsmGraph.addVertex(vertex,
-                        new FsmGraphEdge(null, state.getStatus().name(), null));
+                        new FsmGraphEdge(null, state.getStatus().name(), null, null));
             }
         }
 
         /* Handle states with no dependencies, i.e the states that can be triggered as soon as we execute the state machine */
         final Set<State> initialStates = ramContext.getInitialStates(Collections.emptySet());// hackety hack.  We're fooling the context to give us only events that depend on nothing
         if (!initialStates.isEmpty()) {
-            final FsmGraphEdge initEdge = new FsmGraphEdge(TRIGGER, Event.EventStatus.triggered.name(), TRIGGER);
+            final FsmGraphEdge initEdge = new FsmGraphEdge(TRIGGER, Event.EventStatus.triggered.name(), TRIGGER, null);
             initialStates.forEach((state) -> {
                 initEdge.addOutgoingVertex(state.getId());
             });
@@ -362,7 +387,7 @@ public class StateMachineResource {
         eventsGivenOnWorkflowTrigger.removeAll(allOutputEventNames);
         eventsGivenOnWorkflowTrigger.forEach((workflowTriggeredEventName) -> {
             final Event correspondingEvent = stateMachineEvents.get(workflowTriggeredEventName);
-            final FsmGraphEdge initEdge = new FsmGraphEdge(this.getEventDisplayName(workflowTriggeredEventName), correspondingEvent.getStatus().name(), correspondingEvent.getEventSource());
+            final FsmGraphEdge initEdge = new FsmGraphEdge(this.getEventDisplayName(workflowTriggeredEventName), correspondingEvent.getStatus().name(), correspondingEvent.getEventSource(), correspondingEvent.getEventData());
             final Set<State> dependantStates = ramContext.getDependantStates(workflowTriggeredEventName);
             dependantStates.forEach((state) -> initEdge.addOutgoingVertex(state.getId()));
             fsmGraph.addInitStateEdge(initEdge);

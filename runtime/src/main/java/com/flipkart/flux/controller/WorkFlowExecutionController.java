@@ -51,7 +51,7 @@ public class WorkFlowExecutionController {
     /** The DAO for Task related DB operations*/
     private StatesDAO statesDAO;
 
-    /** The DAO for AuditRecord related DB operationss*/
+    /** The DAO for AuditRecord related DB operations*/
     private AuditDAO auditDAO;
 
     /** The Router registry*/
@@ -123,7 +123,7 @@ public class WorkFlowExecutionController {
         Set<State> executableStates = getExecutableStates(dependantStates, stateMachineInstanceId);
         logger.debug("These states {} are now unblocked after event {}", executableStates, eventData.getName());
         //start execution of the above states
-        executeStates(stateMachineInstanceId, executableStates);
+        executeStates(stateMachineInstanceId, executableStates, event);
 
         return executableStates;
     }
@@ -166,6 +166,7 @@ public class WorkFlowExecutionController {
 
 
     }
+
     /**
      * Increments the no. of execution retries for the specified State machine's Task
      * @param stateMachineId the state machine identifier
@@ -180,14 +181,30 @@ public class WorkFlowExecutionController {
     }
 
     /**
+     * Wrapper function on executeStates
+     * @param stateMachineInstanceId
+     * @param executableStates
+     */
+    private void executeStates(Long stateMachineInstanceId, Set<State> executableStates) {
+        executeStates(stateMachineInstanceId, executableStates, null);
+    }
+
+    /**
      * Triggers the execution of executableStates using Akka router
      * @param stateMachineInstanceId the state machine identifier
      * @param executableStates states whose all dependencies are met
      */
-    private void executeStates(Long stateMachineInstanceId, Set<State> executableStates) {
+    private void executeStates(Long stateMachineInstanceId, Set<State> executableStates, Event currentEvent) {
         executableStates.forEach((state ->  {
+            List<EventData> eventDatas;
+            // If the state is dependant on only one event, that would be the event which came now, in that case don't make a call to DB
+            if(currentEvent != null && state.getDependencies() != null && state.getDependencies().size() == 1 && currentEvent.getName().equals(state.getDependencies().get(0))) {
+                eventDatas = Collections.singletonList(new EventData(currentEvent.getName(), currentEvent.getType(), currentEvent.getEventData(), currentEvent.getEventSource()));
+            } else {
+                eventDatas = eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId);
+            }
             final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
-                    eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId).toArray(new EventData[]{}),
+                    eventDatas.toArray(new EventData[]{}),
                     stateMachineInstanceId, state.getOutputEvent(), state.getRetryCount(), state.getAttemptedNoOfRetries());
             if(state.getStatus().equals(Status.initialized) || state.getStatus().equals(Status.unsidelined)) {
                 msg.setFirstTimeExecution(true);
@@ -227,10 +244,10 @@ public class WorkFlowExecutionController {
         Set<State> executableStates = new HashSet<>();
         Set<String> receivedEvents = new HashSet<>(eventsDAO.findTriggeredEventsNamesBySMId(stateMachineInstanceId));
 
-//      for each state
-//        1. get the dependencies (events)
-//        2. check whether all events are in triggered state
-//        3. if all events are in triggered status, then add this state to executableStates
+        // for each state
+        // 1. get the dependencies (events)
+        // 2. check whether all events are in triggered state
+        // 3. if all events are in triggered status, then add this state to executableStates
         dependantStates.stream().filter(state1 -> state1.isDependencySatisfied(receivedEvents)).forEach(executableStates::add);
         return executableStates;
     }
@@ -240,7 +257,7 @@ public class WorkFlowExecutionController {
      */
     public void redriveTask(Long taskId) {
         State state = statesDAO.findById(taskId);
-        if(isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() < state.getRetryCount()) {
+        if(state != null && isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() < state.getRetryCount()) {
             logger.info("Redriving a task with Id: {} for state machine: {}", state.getId(), state.getStateMachineId());
             executeStates(state.getStateMachineId(), Collections.singleton(state));
         } else {

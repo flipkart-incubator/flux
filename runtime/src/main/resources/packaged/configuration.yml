@@ -47,6 +47,9 @@ routers:
   default:
     instancesPerNode: 10
 
+task:
+  maxTaskRetryCount: 10
+
 runtime:
   actorsystem:
     metrics: false

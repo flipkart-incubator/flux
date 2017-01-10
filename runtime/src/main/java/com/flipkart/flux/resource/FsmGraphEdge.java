@@ -36,21 +36,25 @@ public class FsmGraphEdge {
     /* Gives the source of the event */
     @JsonProperty
     private String source;
+    /*Gives event data details*/
+    @JsonProperty
+    private String eventData;
 
     /* For Jackson */
     FsmGraphEdge() {
-        this(null,null,null);
+        this(null,null,null,null);
     }
 
-    public FsmGraphEdge(String label, String status,String source) {
-        this(new HashSet<>(),label,status,source);
+    public FsmGraphEdge(String label, String status,String source,String eventData) {
+        this(new HashSet<>(),label,status,source,eventData);
     }
 
-    public FsmGraphEdge(Set<Long> incidentOn, String label, String status,String source) {
+    public FsmGraphEdge(Set<Long> incidentOn, String label, String status,String source,String eventData) {
         this.incidentOn = incidentOn;
         this.label = (label == null ? "" : label.trim());
         this.status = status;
         this.source = (source == null ? "" : source.trim());
+        this.eventData = eventData;
     }
 
     @JsonIgnore

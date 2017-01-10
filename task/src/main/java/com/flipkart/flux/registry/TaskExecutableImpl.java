@@ -85,8 +85,9 @@ public class TaskExecutableImpl implements Executable {
                 ", toInvoke=" + toInvoke +
                 '}';
     }
+
     public String getName() {
-        return new MethodId(toInvoke).getMethodName();
+        return new MethodId(toInvoke).getPrefix();
     }
 
     public long getTimeout() {
