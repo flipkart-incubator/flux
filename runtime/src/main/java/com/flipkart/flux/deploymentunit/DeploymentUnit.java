@@ -121,7 +121,10 @@ public class DeploymentUnit {
             byte[] classBytes = IOUtils.toByteArray(this.getClass().getResourceAsStream("/com/flipkart/flux/deploymentunit/ClassLoaderInjector.class"));
             injectorClass = deploymentUnitClassLoader.defineClass(ClassLoaderInjector.class.getCanonicalName(), classBytes);
         } catch(LinkageError le) {
-            // maybe the class is already loaded, can happen while unit testing.
+            // This exception never comes in ideal world. Can occur while unit testing as class is already loaded
+            // (while unit testing we use App classloader as parent for Deployment unit class loader, due to that this class would be already loaded)
+            // TODO: Altering production code for unit testing is not good. Find a workaround.
+            LOGGER.error("End of the world! Seems ClassloaderInjector.class is loaded already in this deployment.", le);
             try {
                 injectorClass = deploymentUnitClassLoader.loadClass("com.flipkart.flux.deploymentunit.ClassLoaderInjector");
             } catch (ClassNotFoundException e) {
@@ -193,11 +196,7 @@ public class DeploymentUnit {
 
                         for (Method annotationMethod : taskAnnotationClass.getDeclaredMethods()) {
                             if (annotationMethod.getName().equals("version")) {
-                                try {
-                                    version = (Long) annotationMethod.invoke(taskAnnotation);
-                                } catch (ReflectiveOperationException e) {
-                                    LOGGER.error("Error while getting task-version of the method: {}.", method.getName(), e);
-                                }
+                                version = (Long) annotationMethod.invoke(taskAnnotation);
                             }
                         }
 

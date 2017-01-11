@@ -11,17 +11,19 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.examples.externalevents;
-
-import com.flipkart.flux.client.runtime.Stoppable;
+package com.flipkart.flux.exception;
 
 /**
+ * <code>DuplicateDeploymentUnitException</code> indicates if there exists a deployment unit with same name and version.
+ *
  * @author shyam.akirala
  */
-public class SelllerVerificationWorkflowStoppableImpl implements Stoppable {
+public class DuplicateDeploymentUnitException extends Exception {
+    public DuplicateDeploymentUnitException(String message) {
+        super(message);
+    }
 
-    @Override
-    public void stop() {
-        System.out.println("Cleaning up the resources which are held by this deployment unit........");
+    public DuplicateDeploymentUnitException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

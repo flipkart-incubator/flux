@@ -4,18 +4,21 @@ import com.flipkart.flux.client.intercept.MethodId;
 import com.flipkart.flux.config.TaskRouterUtil;
 import com.flipkart.flux.deploymentunit.DeploymentUnit;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
+import com.flipkart.flux.exception.DuplicateDeploymentUnitException;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 
 import javax.inject.Named;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -64,24 +67,26 @@ public class DeploymentUnitResource {
     public Response loadDeploymentUnit(@QueryParam("name") String name, @QueryParam("version") Integer version,
                                        @QueryParam("replace") @DefaultValue("false") Boolean replaceOld) {
 
-        if(name == null || name.length() == 0 || version == null) {
-            throw new WebApplicationException(buildResponse(Response.Status.BAD_REQUEST, "deploymentUnit name or version is invalid", null));
+        if(name == null || name.length() == 0 || version == null || version < 0) {
+            throw new WebApplicationException(buildResponse(Response.Status.BAD_REQUEST, "deploymentUnit name or version is invalid"));
         }
 
         DeploymentUnit loadedUnit;
         try {
             loadedUnit = deploymentUnitManager.load(name, version);
             logger.info("Successfully loaded deploymentUnit: " + loadedUnit.getName() + "/" + loadedUnit.getVersion());
+        } catch (DuplicateDeploymentUnitException e) {
+            logger.error("Received request to load Deployment unit with name: " + name + " and version: " + version + ", which is already loaded. Discarding it.");
+            return buildResponse(Response.Status.CONFLICT, e.getMessage());
         } catch (Exception e) {
-            String errMsg = "Could not load deploymentUnit: " + name + (version == null ? "" : "/" + version);
+            String errMsg = "Could not load deploymentUnit: " + name + "/" + version;
             logger.error(errMsg, e);
             return buildResponse(Response.Status.INTERNAL_SERVER_ERROR, errMsg, e);
         }
 
-        // deploymentUnit is now loaded. create routers for it
+        // deploymentUnit is now loaded. create routers for all tasks
         loadedUnit.getTaskMethods().values().stream().forEach(m -> {
             String routerName = new MethodId(m).getPrefix();
-            logger.info("Creating router for " + routerName);
             routerRegistry.createOrResize(routerName, taskRouterUtil.getConcurrency(loadedUnit, routerName));
         });
 
@@ -94,7 +99,7 @@ public class DeploymentUnitResource {
             }
         }
 
-        return buildResponse(Response.Status.OK, "Successfully loaded deploymentUnit: " + name + "/" + loadedUnit.getVersion(), null);
+        return buildResponse(Response.Status.OK, "Successfully loaded deploymentUnit: " + name + "/" + loadedUnit.getVersion());
     }
 
     /**
@@ -106,18 +111,16 @@ public class DeploymentUnitResource {
     @Path("/unload")
     @Produces(MediaType.APPLICATION_JSON)
     public Response unloadDeploymentUnit(@QueryParam("name") String name, @QueryParam("version") Integer version) {
-        if(StringUtils.isEmpty(name)) {
-            throw new WebApplicationException(buildResponse(Response.Status.BAD_REQUEST, "deploymentUnit name cannot be null", null));
-        }
-        if(version == null || version < 0) {
-            throw new WebApplicationException(buildResponse(Response.Status.BAD_REQUEST, "invalid version", null));
+
+        if(name == null || name.length() == 0 || version == null || version < 0) {
+            throw new WebApplicationException(buildResponse(Response.Status.BAD_REQUEST, "deploymentUnit name or version is invalid"));
         }
 
         DeploymentUnit unitToDelete = deploymentUnitManager.getAllDeploymentUnits().stream()
                 .filter(d -> d.getName().equals(name) && d.getVersion() == version).findFirst().orElse(null);
 
         if(unitToDelete == null) {
-            throw new WebApplicationException((buildResponse(Response.Status.NOT_FOUND, "deploymentUnit not found", null)));
+            throw new WebApplicationException((buildResponse(Response.Status.NOT_FOUND, "deploymentUnit not found")));
         }
 
         // TODO: decide on the basis of the usage metrics of tasks.
@@ -127,8 +130,9 @@ public class DeploymentUnitResource {
         Set<String> routersToDelete = taskRouterUtil.getRouterNames(unitToDelete);
 
         // remove the inUseRouters from the toDelete set
+        // currently we are checking for all the routers except this deployment unit routers. //todo Decide should we allow unloading only the least numbered DU or anything.
         Set<String> routersInUse = deploymentUnitManager.getAllDeploymentUnits().stream()
-                .filter(d -> d.getName().equals(name) && d.getVersion() > version)
+                .filter(d -> d.getName().equals(name) && d.getVersion() != version)
                 .map(d -> taskRouterUtil.getRouterNames(d))
                 .flatMap(Set::stream)
                 .distinct()
@@ -141,7 +145,7 @@ public class DeploymentUnitResource {
             routerRegistry.createOrResize(routerName, 0);
         }
 
-        return buildResponse(Response.Status.OK, "successfully unloaded deploymentUnit: " + name + "/" + version, null);
+        return buildResponse(Response.Status.OK, "successfully unloaded deploymentUnit: " + name + "/" + version);
     }
 
     /**
@@ -157,6 +161,16 @@ public class DeploymentUnitResource {
                 .filter(d -> d.getName().equals(loadedUnit.getName()) && d.getVersion() < loadedVersion).collect(Collectors.toList());
 
         return olderUnits.stream().filter(o -> tasksNames.containsAll(o.getTaskMethods().keySet())).collect(Collectors.toList());
+    }
+
+    /**
+     * Wrapper on {@link #buildResponse(Response.Status, String, Throwable)} which builds a response object from the status code, msg.
+     * @param status Http response code.
+     * @param msg Accompanying message as a response.
+     * @return {@link Response}
+     */
+    private Response buildResponse(Response.Status status, String msg) {
+        return buildResponse(status, msg, null);
     }
 
     /**
