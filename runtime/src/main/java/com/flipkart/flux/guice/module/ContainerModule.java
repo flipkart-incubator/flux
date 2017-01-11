@@ -24,11 +24,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.flipkart.flux.config.FileLocator;
 import com.flipkart.flux.constant.RuntimeConstants;
-<<<<<<< Updated upstream
 import com.flipkart.flux.filter.CORSFilter;
-=======
 import com.flipkart.flux.resource.DeploymentUnitResource;
->>>>>>> Stashed changes
 import com.flipkart.flux.resource.StateMachineResource;
 import com.flipkart.flux.resource.StatusResource;
 import com.google.inject.AbstractModule;
