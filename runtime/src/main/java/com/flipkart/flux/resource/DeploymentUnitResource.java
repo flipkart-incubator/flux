@@ -64,7 +64,7 @@ public class DeploymentUnitResource {
     public Response loadDeploymentUnit(@QueryParam("name") String name, @QueryParam("version") Integer version,
                                        @QueryParam("replace") @DefaultValue("false") Boolean replaceOld) {
 
-        if(StringUtils.isEmpty(name) || version == null) {
+        if(name == null || name.length() == 0 || version == null) {
             throw new WebApplicationException(buildResponse(Response.Status.BAD_REQUEST, "deploymentUnit name or version is invalid", null));
         }
 
@@ -82,7 +82,7 @@ public class DeploymentUnitResource {
         loadedUnit.getTaskMethods().values().stream().forEach(m -> {
             String routerName = new MethodId(m).getPrefix();
             logger.info("Creating router for " + routerName);
-            routerRegistry.resize(routerName, taskRouterUtil.getConcurrency(loadedUnit, routerName));
+            routerRegistry.createOrResize(routerName, taskRouterUtil.getConcurrency(loadedUnit, routerName));
         });
 
         if(replaceOld) {
@@ -138,7 +138,7 @@ public class DeploymentUnitResource {
         // TODO: again decide on the basis of current usage metrics.
         for(String routerName: routersToDelete) {
             // shrink it to 0.
-            routerRegistry.resize(routerName, 0);
+            routerRegistry.createOrResize(routerName, 0);
         }
 
         return buildResponse(Response.Status.OK, "successfully unloaded deploymentUnit: " + name + "/" + version, null);

@@ -11,6 +11,8 @@ import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -18,12 +20,20 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
+ * <code>ExecutableLoaderImpl</code> reads the deployment units and puts the methods
+ * which are annotated with {@link com.flipkart.flux.client.model.Task} in Executable Registry for the later execution.
+ *
  * @author gaurav.ashok
  */
 public class ExecutableLoaderImpl implements ExecutableLoader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutableLoaderImpl.class);
-    private static final int DEFAULT_TASK_EXECUTION_CONCURRENCY = 10;
+    private final int defaultTaskExecutionConcurrency;
+
+    @Inject
+    public ExecutableLoaderImpl(@Named("routers.default.instancesPerNode") int instancesPerNode) {
+        this.defaultTaskExecutionConcurrency = instancesPerNode;
+    }
 
     @Override
     public Map<String, Executable> loadExecutables(DeploymentUnit deploymentUnit) {
@@ -50,7 +60,7 @@ public class ExecutableLoaderImpl implements ExecutableLoader {
                 long timeout = RuntimeConstants.defaultTaskTimeout;
                 for (Method annotationMethod : annotationType.getDeclaredMethods()) {
                     Object value = annotationMethod.invoke(taskAnnotation, (Object[])null);
-                    if(annotationMethod.getName().equals("timeout")) { //todo: find a way get Task.timeout() name
+                    if(annotationMethod.getName().equals("timeout")) { //todo: find a way to get Task.timeout() name
                         timeout = (Long) value;
                     }
                 }
@@ -59,7 +69,7 @@ public class ExecutableLoaderImpl implements ExecutableLoader {
 
                 /* get concurrency config for this task */
                 Integer taskExecConcurrency = Optional.ofNullable((Integer)taskConfigs.getProperty(methodId.getPrefix() + ".executionConcurrency"))
-                        .orElse(DEFAULT_TASK_EXECUTION_CONCURRENCY);
+                        .orElse(defaultTaskExecutionConcurrency);
 
                 Object singletonMethodOwner = getInstanceMethod.invoke(injectorClassInstance, method.getDeclaringClass());
                 registry.put(taskId, new TaskExecutableImpl(singletonMethodOwner, method, timeout, taskExecConcurrency, classLoader, objectMapperInstance));

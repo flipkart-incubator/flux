@@ -38,6 +38,7 @@ public class DeploymentUnitModule extends AbstractModule {
     }
 
     @Provides
+    @Singleton
     public DeploymentUnitUtil getDeploymentUnitUtil(@Named("deploymentType") String deploymentType,
                                                     @Named("deploymentUnitsPath") String deploymentUnitsPath ) {
         if("directory".equals(deploymentType)) {

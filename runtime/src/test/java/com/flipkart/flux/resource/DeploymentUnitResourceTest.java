@@ -45,7 +45,7 @@ public class DeploymentUnitResourceTest {
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
 
         verify(deploymentUnitsManager).load("unit1", 2);
-        verify(routerRegistry).resize("com.flipkart.flux.resource.DeploymentUnitResourceTest_testMethod", defaultTaskConcurrency);
+        verify(routerRegistry).createOrResize("com.flipkart.flux.resource.DeploymentUnitResourceTest_testMethod", defaultTaskConcurrency);
         verifyNoMoreInteractions(deploymentUnitsManager);
         verifyNoMoreInteractions(routerRegistry);
     }
@@ -63,7 +63,7 @@ public class DeploymentUnitResourceTest {
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
 
         verify(deploymentUnitsManager).load("unit1", 2);
-        verify(routerRegistry).resize("com.flipkart.flux.resource.DeploymentUnitResourceTest_testMethod", 3);
+        verify(routerRegistry).createOrResize("com.flipkart.flux.resource.DeploymentUnitResourceTest_testMethod", 3);
         verify(deploymentUnitsManager).getAllDeploymentUnits();
         verify(deploymentUnitsManager).unload("unit1", 1);
 
@@ -85,7 +85,7 @@ public class DeploymentUnitResourceTest {
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
 
         verify(deploymentUnitsManager).unload("unit1", 1);
-        verify(routerRegistry).resize("com.flipkart.flux.resource.DeploymentUnitResourceTest_testMethod", 0);
+        verify(routerRegistry).createOrResize("com.flipkart.flux.resource.DeploymentUnitResourceTest_testMethod", 0);
         verifyNoMoreInteractions(routerRegistry);
     }
 

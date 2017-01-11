@@ -89,12 +89,12 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
         for (Map.Entry<String, Integer> routerConfig : routerConfigMap.entrySet()) {
             String routerName = routerConfig.getKey();
             Integer size = routerConfigMap.getOrDefault(routerName, defaultNoOfActors);
-            resize(routerName, size);
+            createOrResize(routerName, size);
         }
     }
 
     @Override
-    public void resize(String name, int newSize) {
+    public void createOrResize(String name, int newSize) {
         if(!routerMap.containsKey(name)) {
             final ActorSystem actorSystem = actorSystemManager.retrieveActorSystem();
             //create a local router with configured no.of task actors and keep the router reference in routerMap

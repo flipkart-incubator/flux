@@ -24,6 +24,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
+ * <code>DeploymentUnitsManagerImpl</code> is an implementation of {@link DeploymentUnitsManager} and handles load/unload/list operations on {@link DeploymentUnit}s
+ *
  * @author gaurav.ashok
  */
 @Singleton
@@ -134,7 +136,7 @@ public class DeploymentUnitsManagerImpl implements DeploymentUnitsManager, Initi
     }
 
     /**
-     * Initially loads all deployment units listed by {@code deploymentUnitUtil}.
+     * Loads all deployment units listed by {@code deploymentUnitUtil} on Flux bootup.
      */
     @Override
     public void initialize() {
@@ -146,7 +148,7 @@ public class DeploymentUnitsManagerImpl implements DeploymentUnitsManager, Initi
         catch(IOException e) {
             LOGGER.error("Failed to list all directories of deploymentUnits");
         }
-        if(CollectionUtils.isEmpty(paths)) {
+        if(paths == null || paths.isEmpty()) {
             return;
         }
 

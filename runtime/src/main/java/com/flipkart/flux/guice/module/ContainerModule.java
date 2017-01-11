@@ -24,7 +24,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.flipkart.flux.config.FileLocator;
 import com.flipkart.flux.constant.RuntimeConstants;
+<<<<<<< Updated upstream
 import com.flipkart.flux.filter.CORSFilter;
+=======
+import com.flipkart.flux.resource.DeploymentUnitResource;
+>>>>>>> Stashed changes
 import com.flipkart.flux.resource.StateMachineResource;
 import com.flipkart.flux.resource.StatusResource;
 import com.google.inject.AbstractModule;
@@ -160,7 +164,7 @@ public class ContainerModule extends AbstractModule {
 	@Named("APIResourceConfig")
 	@Singleton
 	@Provides
-	public ResourceConfig getAPIResourceConfig(StateMachineResource stateMachineResource,
+	public ResourceConfig getAPIResourceConfig(StateMachineResource stateMachineResource, DeploymentUnitResource deploymentUnitResource,
 											   StatusResource statusResource, MetricRegistry metricRegistry) {
 		ResourceConfig resourceConfig = new ResourceConfig();
 
@@ -170,6 +174,7 @@ public class ContainerModule extends AbstractModule {
 
 		//register resources
 		resourceConfig.register(stateMachineResource);
+		resourceConfig.register(deploymentUnitResource);
 		resourceConfig.register(statusResource);
 
 		resourceConfig.register(CORSFilter.class);
