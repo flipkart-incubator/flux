@@ -181,9 +181,7 @@ public class WorkFlowExecutionController {
     }
 
     /**
-     * Wrapper function on executeStates
-     * @param stateMachineInstanceId
-     * @param executableStates
+     * Wrapper function on {@link #executeStates(Long, Set, Event)} which triggers the execution of executableStates using Akka router.
      */
     private void executeStates(Long stateMachineInstanceId, Set<State> executableStates) {
         executeStates(stateMachineInstanceId, executableStates, null);

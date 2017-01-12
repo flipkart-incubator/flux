@@ -29,6 +29,8 @@ public interface ExecutableRegistry {
     Executable getTask(String taskIdentifier);
     /* Retrieve an executable hook given the hookIdentifier */
     Method getHook(String hookIdentifier);
-    /* register a task executable against a given identifier. This operation must be idempotent */
+    /* register a task executable against a given identifier. This operation must be idempotent and thread safe */
     void registerTask(String taskIdentifier, Executable method);
+    /* unregister task executable. Must be thread safe */
+    void unregisterTask(String taskIdentifier);
 }

@@ -9,26 +9,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-package com.flipkart.flux.impl.task.registry;
-
-import akka.actor.ActorRef;
+package com.flipkart.flux.exception;
 
 /**
- * Interface that allows for akka router lookups
- * @author yogesh.nachnani
- * @author gaurav.ashok
+ * <code>DuplicateDeploymentUnitException</code> indicates if there exists a deployment unit with same name and version.
+ *
+ * @author shyam.akirala
  */
-public interface RouterRegistry {
+public class DuplicateDeploymentUnitException extends Exception {
+    public DuplicateDeploymentUnitException(String message) {
+        super(message);
+    }
 
-    ActorRef getRouter(String forWorker);
-
-    /**
-     * Creates a router if it does not exists. If it exists it would be resized to the given name. Router can be resized to 0.
-     * @param name Name of the router.
-     * @param newSize New number of the routees that this router will have.
-     */
-    void createOrResize(String name, int newSize);
+    public DuplicateDeploymentUnitException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

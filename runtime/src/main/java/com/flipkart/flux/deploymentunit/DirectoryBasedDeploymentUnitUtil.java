@@ -14,17 +14,22 @@
 package com.flipkart.flux.deploymentunit;
 
 import com.flipkart.flux.client.model.Task;
+import com.flipkart.flux.deploymentunit.iface.DeploymentUnitUtil;
 import com.flipkart.polyguice.config.YamlConfiguration;
-import com.google.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.inject.Named;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * <code>DeploymentUnitUtil</code> is a {@link DeploymentUnitUtil} implementation which does operations
@@ -38,74 +43,41 @@ import java.util.*;
  */
 public class DirectoryBasedDeploymentUnitUtil implements DeploymentUnitUtil {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DirectoryBasedDeploymentUnitUtil.class);
+
     /** Configuration file of a deployment unit*/
     private static final String CONFIG_FILE = "flux_config.yml";
 
-    /** Key in the config file, which has list of workflow/task class FQNs*/
-    private static final String WORKFLOW_CLASSES = "workflowClasses";
-
-    private static final String SLASH = "/";
-
-    /** Location of deployment units on the system*/
+    /** Location of deployment units on the system */
     private String deploymentUnitsPath;
 
     public DirectoryBasedDeploymentUnitUtil(String deploymentUnitsPath) {
         this.deploymentUnitsPath = deploymentUnitsPath;
     }
 
-    /** Lists all deployment unit names by directory scanning*/
-    public List<String> getAllDeploymentUnitNames() {
+    /** Lists all deployment unit names by directory scanning */
+    public List<Path> listAllDirectoryUnits() throws IOException {
         if(deploymentUnitsPath != null) {
-            File file = new File(deploymentUnitsPath);
-            String[] directories = file.list((current, name) -> new File(current, name).isDirectory());
-            return Arrays.asList(directories);
+            return getSubDirectories(Paths.get(deploymentUnitsPath)).map(this::getSubDirectories).
+                    flatMap(t -> t).collect(Collectors.toList());
         } else {
             return new ArrayList<>();
         }
     }
 
-    /**
-     * Provides {@link DeploymentUnitClassLoader} for the given directory.
-     * @param deploymentUnitName
-     * @return class loader
-     * @throws MalformedURLException
-     */
-    public DeploymentUnitClassLoader getClassLoader(String deploymentUnitName) throws MalformedURLException, FileNotFoundException {
-        StringBuilder deploymentUnitFQN = new StringBuilder(deploymentUnitsPath);
-        if(!deploymentUnitsPath.endsWith(SLASH))
-            deploymentUnitFQN.append(SLASH);
-        deploymentUnitFQN.append(deploymentUnitName);
-        deploymentUnitFQN.append(SLASH);
-        return ClassLoaderProvider.getClassLoader(deploymentUnitFQN.toString());
-    }
-
-    /**
-     * Given a class loader, retrieves workflow classes names from config file, and returns methods
-     * which are annotated with {@link com.flipkart.flux.client.model.Task} annotation in those classes.
-     * @param classLoader
-     * @return set of Methods
-     * @throws ClassNotFoundException
-     */
-    public Set<Method> getTaskMethods(DeploymentUnitClassLoader classLoader) throws ClassNotFoundException, IOException {
-
-        YamlConfiguration yamlConfiguration = getProperties(classLoader);
-        List<String> classNames = (List<String>) yamlConfiguration.getProperty(WORKFLOW_CLASSES);
-        Set<Method> methods = new HashSet<>();
-
-        //loading this class separately in this class loader as the following isAnnotationPresent check returns false, if
-        //we use default class loader's Task, as both class loaders don't have any relation between them.
-        Class taskAnnotationClass = classLoader.loadClass(Task.class.getCanonicalName());
-
-        for(String name : classNames) {
-            Class clazz = classLoader.loadClass(name);
-
-            for(Method method : clazz.getMethods()) {
-                if(method.isAnnotationPresent(taskAnnotationClass))
-                    methods.add(method);
-            }
+    @Override
+    public DeploymentUnit getDeploymentUnit(Path path) throws ClassNotFoundException, IOException, NumberFormatException {
+        if(!path.isAbsolute()) {
+            path = Paths.get(deploymentUnitsPath, path.toString());
         }
+        int nameCount = path.getNameCount();
+        String deploymentUnitName = path.getName(nameCount - 2).toString();
+        Integer version = Integer.parseInt(path.getName(nameCount - 1).toString());
 
-        return methods;
+        DeploymentUnitClassLoader deploymentUnitClassLoader = ClassLoaderProvider.getClassLoader(path);
+        YamlConfiguration configuration = getProperties(deploymentUnitClassLoader);
+
+        return new DeploymentUnit(deploymentUnitName, version, deploymentUnitClassLoader, configuration);
     }
 
     /**
@@ -114,12 +86,27 @@ public class DirectoryBasedDeploymentUnitUtil implements DeploymentUnitUtil {
      * @return YamlConfiguration
      * @throws IOException
      */
-    public YamlConfiguration getProperties(DeploymentUnitClassLoader classLoader) throws IOException {
+    private YamlConfiguration getProperties(DeploymentUnitClassLoader classLoader) throws IOException {
         return new YamlConfiguration(classLoader.getResource(CONFIG_FILE));
     }
 
     /**
-     * Provides {@link com.flipkart.flux.deploymentunit.DeploymentUnitClassLoader for a given deployment unit}
+     * Helper method to list sub-directories.
+     * @param path
+     * @return {@code Stream<Path>} representing sub-directories
+     */
+    private Stream<Path> getSubDirectories(Path path) {
+        try {
+            return Files.list(path).filter(e -> Files.isDirectory(e));
+        }
+        catch (IOException ioe) {
+            return Stream.empty();
+        }
+    }
+
+
+    /**
+     * Provides {@link DeploymentUnitClassLoader for a given deployment unit}
      */
     static class ClassLoaderProvider {
 
@@ -133,42 +120,47 @@ public class DirectoryBasedDeploymentUnitUtil implements DeploymentUnitUtil {
          * |_____ flux_config.yml   //properties file
          *
          * The constructed class loader is independent and doesn't share anything with System class loader.
-         * @param deploymentUnitFQN
+         * @param path directory of deploymentUnit
          * @return DeploymentUnitClassLoader
-         * @throws java.net.MalformedURLException
+         * @throws FileNotFoundException
          */
-        public static DeploymentUnitClassLoader getClassLoader(String deploymentUnitFQN) throws MalformedURLException, FileNotFoundException {
+        public static DeploymentUnitClassLoader getClassLoader(Path path) throws FileNotFoundException {
 
-            File[] mainJars = new File(deploymentUnitFQN+"main").listFiles();
-            File[] libJars = new File(deploymentUnitFQN+"lib").listFiles();
+            Path mainPath = path.resolve("main");
+            Path libPath = path.resolve("lib");
+            Path configFilePath = path.resolve(CONFIG_FILE);
 
-            if(mainJars == null) {
-                throw new FileNotFoundException("Unable to build class loader. Required directory " + deploymentUnitFQN + "main is empty.");
+            List<Path> mainJars = Collections.EMPTY_LIST;
+            try {
+                mainJars = Files.list(mainPath).collect(Collectors.toList());
+            }
+            catch (IOException e) { /* consume it here, proper exception is thrown later */}
+
+            if(mainJars.size() == 0) {
+                throw new FileNotFoundException("Unable to build class loader. Required directory " + mainPath + " is empty/not present");
             }
 
-            File configFile = new File(deploymentUnitFQN+CONFIG_FILE);
-            if(!configFile.isFile()) {
+            List<Path> libJars = Collections.EMPTY_LIST;
+            try {
+                libJars = Files.list(libPath).collect(Collectors.toList());
+            }
+            catch (IOException e) {/* lib folder is optional, so ignore this exception */}
+
+            if(!Files.isRegularFile(configFilePath)) {
                 throw new FileNotFoundException("Unable to build class loader. Config file not found");
             }
 
-            URL[] urls = new URL[mainJars.length + (libJars != null ? libJars.length : 0) + 1];
-            int urlIndex = 0;
-
-            for (File mainJar : mainJars) {
-                if (mainJar.isFile()) {
-                    urls[urlIndex++] = mainJar.toURI().toURL();
-                }
-            }
-
-            if(libJars != null) {
-                for (File libJar : libJars) {
-                    if (libJar.isFile()) {
-                        urls[urlIndex++] = libJar.toURI().toURL();
-                    }
-                }
-            }
-
-            urls[urlIndex] = new File(deploymentUnitFQN).toURI().toURL();
+            URL[] urls = Stream.concat(Stream.concat(mainJars.stream(), libJars.stream()), Stream.of(path)).
+                    map(e -> {
+                        try {
+                            return e.toUri().toURL();
+                        } catch (MalformedURLException ex) {
+                            /* This exception will not occur. Logging it in any case. */
+                            LOGGER.error("Unexpected malformedURL exception in path.toURL.", ex);
+                        }
+                        /* unreachable */
+                        return null;
+                    }).toArray(size -> new URL[size]);
 
             return new DeploymentUnitClassLoader(urls, null);
         }

@@ -14,14 +14,12 @@
 
 package com.flipkart.flux.integration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.client.registry.Executable;
-import com.flipkart.flux.client.registry.ExecutableImpl;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.deploymentunit.ExecutableRegistryPopulator;
+import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.guice.annotation.ManagedEnv;
 import com.flipkart.flux.guice.module.AkkaModule;
@@ -66,7 +64,7 @@ public class E2ETest {
 
     /** Needed to populate deployment units before beginning the test */
     @Inject
-    ExecutableRegistryPopulator executableRegistryPopulator;
+    DeploymentUnitsManager deploymentUnitManager;
 
     @Inject
     @ManagedEnv

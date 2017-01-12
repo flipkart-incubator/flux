@@ -14,20 +14,14 @@
 package com.flipkart.flux.examples.externalevents;
 
 import com.flipkart.flux.client.runtime.Stoppable;
-import com.google.inject.AbstractModule;
 
 /**
- * <code>SellerVerificationWorkflowModule</code> is a Guice {@link AbstractModule} which configures all the classes of the this workflow.
- * This class has to be specified in flux_config.yml file with key "guiceModuleClass". Refer to packaged/flux_config.yml
- *
  * @author shyam.akirala
  */
-public class SellerVerificationWorkflowModule extends AbstractModule{
+public class SelllerVerificationWorkflowStoppableImpl implements Stoppable {
 
     @Override
-    protected void configure() {
-        //install other modules
-        bind(Stoppable.class).to(SelllerVerificationWorkflowStoppableImpl.class);
-        System.out.println("Configuring example deployment unit..........");
+    public void stop() {
+        System.out.println("Cleaning up the resources which are held by this deployment unit........");
     }
 }

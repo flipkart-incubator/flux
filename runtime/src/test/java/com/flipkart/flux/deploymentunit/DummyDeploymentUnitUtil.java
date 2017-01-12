@@ -13,12 +13,15 @@
 
 package com.flipkart.flux.deploymentunit;
 
+import com.flipkart.flux.deploymentunit.iface.DeploymentUnitUtil;
 import com.flipkart.flux.integration.IntegerEvent;
 import com.flipkart.flux.integration.StringEvent;
 import com.flipkart.polyguice.config.YamlConfiguration;
 
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -33,33 +36,19 @@ public class DummyDeploymentUnitUtil implements DeploymentUnitUtil {
     private static DeploymentUnitClassLoader deploymentUnitClassLoader = new DeploymentUnitClassLoader(new URL[0], DummyDeploymentUnitUtil.class.getClassLoader());
 
     @Override
-    public List<String> getAllDeploymentUnitNames() {
-        return Collections.singletonList("Dummy_deployment_unit");
+    public List<Path> listAllDirectoryUnits() {
+        return Collections.singletonList(Paths.get("Dummy_deployment_unit"));
     }
 
     @Override
-    public DeploymentUnitClassLoader getClassLoader(String deploymentUnitName) throws Exception {
-        return deploymentUnitClassLoader;
+    public DeploymentUnit getDeploymentUnit(Path directory) throws Exception {
+        if(directory.toString().equals("dynamic1/1")) {
+            return new DeploymentUnit("dynamic1", 1, deploymentUnitClassLoader, getProperties(deploymentUnitClassLoader, "flux_config_2.yml"));
+        }
+        return new DeploymentUnit("Dummy_deployment_unit", 1, deploymentUnitClassLoader, getProperties(deploymentUnitClassLoader, "flux_config.yml"));
     }
 
-    @Override
-    public Set<Method> getTaskMethods(DeploymentUnitClassLoader classLoader) throws Exception {
-        Set<Method> taskMethods = new HashSet<>();
-
-        Class testWorkflow = this.getClass().getClassLoader().loadClass("com.flipkart.flux.dao.TestWorkflow");
-        Method testTask = testWorkflow.getMethod("testTask"); taskMethods.add(testTask);
-        Method dummyTask = testWorkflow.getMethod("dummyTask"); taskMethods.add(dummyTask);
-
-        Class simpleWorkflow = this.getClass().getClassLoader().loadClass("com.flipkart.flux.integration.SimpleWorkflow");
-        Method simpleStringReturningTask = simpleWorkflow.getMethod("simpleStringReturningTask", StringEvent.class); taskMethods.add(simpleStringReturningTask);
-        Method simpleIntegerReturningTask = simpleWorkflow.getMethod("simpleIntegerReturningTask"); taskMethods.add(simpleIntegerReturningTask);
-        Method someTaskWithIntegerAndString = simpleWorkflow.getMethod("someTaskWithIntegerAndString", StringEvent.class, IntegerEvent.class); taskMethods.add(someTaskWithIntegerAndString);
-
-        return taskMethods;
-    }
-
-    @Override
-    public YamlConfiguration getProperties(DeploymentUnitClassLoader classLoader) throws Exception {
-        return new YamlConfiguration(this.getClass().getClassLoader().getResource("flux_config.yml"));
+    public YamlConfiguration getProperties(DeploymentUnitClassLoader classLoader, String file) throws Exception {
+        return new YamlConfiguration(this.getClass().getClassLoader().getResource(file));
     }
 }

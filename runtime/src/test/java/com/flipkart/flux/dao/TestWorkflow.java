@@ -13,20 +13,49 @@
 
 package com.flipkart.flux.dao;
 
+import com.flipkart.flux.client.exception.FluxRetriableException;
 import com.flipkart.flux.client.model.Task;
+import com.flipkart.flux.integration.IntegerEvent;
 
 /**
  * @author shyam.akirala
  */
 public class TestWorkflow {
 
+    public static boolean shouldFail = false;
+
     @Task(version = 1L, timeout = 1000l)
-    public void testTask() {
+    public String testTask() {
         System.out.println("====testTask execution====");
+        return "testEvent";
     }
 
     @Task(version = 1L, timeout = 1000l)
-    public void dummyTask() {
-        System.out.println("====dummyTask execution====");
+    public String testTask(String input) {
+        System.out.println("====testTask execution for String: " + input + "====");
+        return "testTask(" + input + ")";
+    }
+
+    @Task(version = 1L, timeout = 1000l)
+    public void testTask(String input, Integer i) {
+        System.out.println("====testTask execution for String: " + input + i + "====");
+    }
+
+    @Task(version = 1L, timeout = 400l, retries = 1)
+    public Integer dummyTask(String integer) {
+        System.out.println("====dummyTask execution====: " + integer);
+        if(shouldFail) {
+            try {
+                Thread.sleep(1000);
+            } catch (Exception e){
+                System.out.println("interrupted");
+            }
+        }
+        try {
+            return Integer.parseInt(integer);
+        } catch (Exception e) {
+
+        }
+        return 0;
     }
 }

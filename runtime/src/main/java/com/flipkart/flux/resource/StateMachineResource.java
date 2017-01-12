@@ -168,14 +168,14 @@ public class StateMachineResource {
         } catch (UnknownStateMachine | IllegalEventException ex) {
             return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
         }
-        return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
+        return Response.status(Response.Status.ACCEPTED).build();
     }
 
     /**
      * Updates the status of the specified Task under the specified State machine
      *
      * @param machineId the state machine identifier
-     * @param stateId   the task/state identifier
+     * @param stateId the task/state identifier
      * @return Response with execution status code
      * @throws Exception
      */
@@ -210,7 +210,7 @@ public class StateMachineResource {
         }
         this.workFlowExecutionController.updateExecutionStatus(machineId, stateId, updateStatus, executionUpdateData.getRetrycount(),
                 executionUpdateData.getCurrentRetryCount(), executionUpdateData.getErrorMessage(), executionUpdateData.isDeleteFromRedriver());
-        return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
+    	return Response.status(Response.Status.ACCEPTED).build();
     }
 
     /**
@@ -225,10 +225,10 @@ public class StateMachineResource {
     @Path("/{machineId}/{stateId}/retries/inc")
     @Transactional
     public Response incrementRetry(@PathParam("machineId") Long machineId,
-                                   @PathParam("stateId") Long stateId
-    ) throws Exception {
-        this.workFlowExecutionController.incrementExecutionRetries(machineId, stateId);
-        return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
+                                @PathParam("stateId") Long stateId
+                            ) throws Exception {
+    	this.workFlowExecutionController.incrementExecutionRetries(machineId, stateId);
+    	return Response.status(Response.Status.ACCEPTED).build();
     }
 
     /**
@@ -244,7 +244,7 @@ public class StateMachineResource {
 
         this.workFlowExecutionController.redriveTask(taskId);
 
-        return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
+        return Response.status(Response.Status.ACCEPTED).build();
     }
 
     /**
@@ -285,8 +285,8 @@ public class StateMachineResource {
     public Response getErroredStates(@PathParam("stateMachineName") String stateMachineName,
                                      @QueryParam("fromSmId") Long fromStateMachineId,
                                      @QueryParam("toSmId") Long toStateMachineId) {
-        if (fromStateMachineId == null || fromStateMachineId < 0) {
-            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity("start of the range not provided or invalid").build();
+        if(fromStateMachineId == null || fromStateMachineId < 0) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("start of the range not provided or invalid").build();
         }
 
         long limit = fromStateMachineId + 1_000_000;
@@ -310,7 +310,7 @@ public class StateMachineResource {
     public Response unsidelineState(@PathParam("stateMachineId") Long stateMachineId, @PathParam("stateId") Long stateId) {
         this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
 
-        return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
+        return Response.status(Response.Status.ACCEPTED).build();
     }
 
     /**

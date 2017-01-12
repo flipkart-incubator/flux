@@ -13,12 +13,11 @@
 
 package com.flipkart.flux.deploymentunit;
 
-import com.flipkart.polyguice.config.YamlConfiguration;
+import com.flipkart.flux.deploymentunit.iface.DeploymentUnitUtil;
 
-import java.lang.reflect.Method;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * <code>NoOpDeploymentUnitUtil</code> is a {@link DeploymentUnitUtil} implementation to represent No operations.
@@ -28,22 +27,12 @@ import java.util.Set;
  */
 public class NoOpDeploymentUnitUtil implements DeploymentUnitUtil {
     @Override
-    public List<String> getAllDeploymentUnitNames() {
+    public List<Path> listAllDirectoryUnits() {
         return new ArrayList<>();
     }
 
     @Override
-    public DeploymentUnitClassLoader getClassLoader(String deploymentUnitName) throws Exception {
-        return null;
-    }
-
-    @Override
-    public Set<Method> getTaskMethods(DeploymentUnitClassLoader classLoader) throws Exception {
-        return null;
-    }
-
-    @Override
-    public YamlConfiguration getProperties(DeploymentUnitClassLoader classLoader) throws Exception {
+    public DeploymentUnit getDeploymentUnit(Path path) {
         return null;
     }
 }

@@ -1,0 +1,20 @@
+{
+  "name": "test_state_machine_lazy_loaded",
+  "version": 1,
+  "description": "test_description",
+  "correlationId" : "magic_number_007",
+  "states": [
+    {
+      "version": 1,
+      "name": "test_state1",
+      "description": "test_state_desc1",
+      "onEntryHook": "com.flipkart.flux.dao.DummyOnEntryHook",
+      "task": "com.flipkart.flux.deploymentunit.TestWorkflow2_testTask_void_version1",
+      "onExitHook": "com.flipkart.flux.dao.DummyOnExitHook",
+      "dependencies": [],
+      "retryCount": "1",
+      "timeout": "100",
+      "outputEvent": null
+    }
+  ]
+}

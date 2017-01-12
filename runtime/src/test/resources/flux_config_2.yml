@@ -1,0 +1,2 @@
+guiceModuleClass: "com.flipkart.flux.module.TestWorkflow2Module"
+workflowClasses: ["com.flipkart.flux.deploymentunit.TestWorkflow2"]

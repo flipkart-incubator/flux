@@ -9,44 +9,51 @@
       "name": "test_state1",
       "description": "test_state_desc1",
       "onEntryHook": "com.flipkart.flux.dao.DummyOnEntryHook",
-      "task": "com.flipkart.flux.dao.TestWorkflow_dummyTask",
+      "task": "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_version1",
       "onExitHook": "com.flipkart.flux.dao.DummyOnExitHook",
       "dependencies": [],
       "retryCount": "5",
       "timeout": "100",
-      "outputEvent":null
+      "outputEvent": {
+        "name": "event1",
+        "type": "java.lang.String"
+      }
     },
     {
       "version": 1,
       "name": "test_state2",
       "description": "test_state_desc2",
-      "onEntryHook": "com.flipkart.flux.dao.TestOnEntryHook",
-      "task": "com.flipkart.flux.dao.TestWorkflow_testTask_event1",
-      "onExitHook": "com.flipkart.flux.dao.TestOnExitHook",
+      "onEntryHook": "com.flipkart.flux.dao.DummyOnEntryHook",
+      "task": "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_java.lang.String_version1",
+      "onExitHook": "com.flipkart.flux.dao.DummyOnExitHook",
       "dependencies": [
         {
           "name": "event1",
-          "type": "foo"
+          "type": "java.lang.String"
         }
       ],
       "retryCount": "3",
       "timeout": "100",
       "outputEvent":{
         "name":"event2",
-        "type":"someType"
+        "type":"java.lang.String"
       }
     },
     {
       "version": 1,
       "name": "test_state3",
       "description": "test_state_desc3",
-      "onEntryHook": "com.flipkart.flux.dao.TestOnEntryHook",
-      "task": "com.flipkart.flux.dao.TestWorkflow_testTask_event1",
-      "onExitHook": "com.flipkart.flux.dao.TestOnExitHook",
+      "onEntryHook": "com.flipkart.flux.dao.DummyOnEntryHook",
+      "task": "com.flipkart.flux.dao.TestWorkflow_testTask_void_java.lang.String_java.lang.Integer_version1",
+      "onExitHook": "com.flipkart.flux.dao.DummyOnExitHook",
       "dependencies": [
         {
-          "name": "event1",
-          "type": "foo"
+          "name": "event2",
+          "type": "java.lang.String"
+        },
+        {
+          "name": "event3",
+          "type": "java.lang.Integer"
         }
       ],
       "retryCount": "3",
@@ -58,22 +65,20 @@
       "name": "test_state4",
       "description": "test_state_desc4",
       "onEntryHook": "com.flipkart.flux.dao.DummyOnEntryHook",
-      "task": "com.flipkart.flux.dao.TestWorkflow_dummyTask_event2_event3",
+      "task": "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1",
       "onExitHook": "com.flipkart.flux.dao.DummyOnExitHook",
       "dependencies": [
         {
-          "name": "event2",
-          "type": "someType"
-        },
-        {
-          "name": "event3",
-          "type": "bar"
+          "name": "event0",
+          "type": "java.lang.String"
         }
-
       ],
-      "retryCount": "5",
+      "retryCount": "1",
       "timeout": "100",
-      "outputEvent":null
+      "outputEvent": {
+        "name": "event3",
+        "type": "java.lang.Integer"
+      }
     }
   ]
 }

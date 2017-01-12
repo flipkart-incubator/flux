@@ -55,7 +55,7 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
 
     /** The global max retries for creating Task Actors*/
     private int maxTaskActorCreateRetries;
-    
+
     @Inject
     public EagerInitRouterRegistryImpl(ActorSystemManager actorSystemManager,
                                        @Named("runtime.actorsystem.maxTaskActorCreateRetries") int maxTaskActorCreateRetries,
@@ -81,16 +81,25 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
      * */
     @Override
     public void initialize() {
-        final ActorSystem actorSystem = actorSystemManager.retrieveActorSystem();
-
         for (Map.Entry<String, Integer> routerConfig : routerConfigMap.entrySet()) {
             String routerName = routerConfig.getKey();
-            Integer noOfActors = routerConfig.getValue();
+            Integer size = routerConfig.getValue();
+            createOrResize(routerName, size);
+        }
+    }
+
+    @Override
+    public void createOrResize(String routerName, int newSize) {
+        if(!routerMap.containsKey(routerName)) {
+            final ActorSystem actorSystem = actorSystemManager.retrieveActorSystem();
             //create a local router with configured no.of task actors and keep the router reference in routerMap
-            ActorRef router = actorSystem.actorOf(new RoundRobinPool(noOfActors).withSupervisorStrategy(getTasksuperviseStrategy())
+            ActorRef router = actorSystem.actorOf(new RoundRobinPool(newSize).withSupervisorStrategy(getTasksuperviseStrategy())
                     .props(Props.create(AkkaTask.class)), routerName);
-            this.routerMap.put(routerName, router);
-            logger.info("Created router: {} with no.of actors: {}", routerName, noOfActors);
+            routerMap.put(routerName, router);
+            logger.info("Created router: {} with no.of actors: {}", routerName, newSize);
+        } else {
+            // TODO ask the router to resize its pool of routees.
+            logger.warn("Currently router resize is NOT SUPPORTED. To change size Flux process has to be relaunched. Received resize request for router: {}, newSize: {}", routerName, newSize);
         }
     }
     

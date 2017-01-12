@@ -13,25 +13,27 @@
 
 package com.flipkart.flux.module;
 
-import com.flipkart.flux.deploymentunit.DeploymentUnit;
-import com.flipkart.flux.deploymentunit.DeploymentUnitUtil;
+import com.flipkart.flux.deploymentunit.DeploymentUnitsManagerImpl;
+import com.flipkart.flux.deploymentunit.ExecutableLoaderImpl;
+import com.flipkart.flux.deploymentunit.iface.DeploymentUnitUtil;
 import com.flipkart.flux.deploymentunit.DummyDeploymentUnitUtil;
+import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
+import com.flipkart.flux.deploymentunit.iface.ExecutableLoader;
 import com.flipkart.flux.guice.module.DeploymentUnitModule;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provider;
-import com.google.inject.Provides;
 import com.google.inject.Singleton;
-
-import javax.inject.Named;
 
 /**
  * <code>DeploymentUnitTestModule</code> is a {@link AbstractModule} used in E2E tests for creating dummy deployment units.
  * @author shyam.akirala
  */
-public class DeploymentUnitTestModule extends DeploymentUnitModule implements Provider<DeploymentUnitUtil>{
+public class DeploymentUnitTestModule extends AbstractModule implements Provider<DeploymentUnitUtil>{
     @Override
     protected void configure() {
+        bind(ExecutableLoader.class).to(ExecutableLoaderImpl.class).in(Singleton.class);
         bind(DeploymentUnitUtil.class).toProvider(this).in(Singleton.class);
+        bind(DeploymentUnitsManager.class).to(DeploymentUnitsManagerImpl.class).in(Singleton.class);
     }
     @Override
     public DeploymentUnitUtil get() {

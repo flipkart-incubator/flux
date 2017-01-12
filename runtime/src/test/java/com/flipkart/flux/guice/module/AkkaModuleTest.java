@@ -13,7 +13,9 @@
 
 package com.flipkart.flux.guice.module;
 
+import com.flipkart.flux.config.TaskRouterUtil;
 import com.flipkart.flux.deploymentunit.DeploymentUnit;
+import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import org.apache.commons.configuration.Configuration;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,10 +24,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -44,6 +43,9 @@ public class AkkaModuleTest {
     @Mock
     DeploymentUnit deploymentUnit;
 
+    @Mock
+    DeploymentUnitsManager deploymentUnitManager;
+
     @Before
     public void setup() {
         akkaModule = new AkkaModule();
@@ -59,10 +61,12 @@ public class AkkaModuleTest {
         int defaultNoOfActors = 10;
 
         Class simpleWorkflowClass = this.getClass().getClassLoader().loadClass("com.flipkart.flux.integration.SimpleWorkflow");
-        Set<Method> taskMethods = Collections.singleton(simpleWorkflowClass.getMethod("simpleIntegerReturningTask"));
+        Map<String, Method> taskMethods = Collections.singletonMap("com.flipkart.flux.integration.SimpleWorkflow_simpleIntegerReturningTask_com.flipkart.flux.integration.IntegerEvent_version1", simpleWorkflowClass.getMethod("simpleIntegerReturningTask"));
         when(deploymentUnit.getTaskMethods()).thenReturn(taskMethods);
 
-        assertThat(akkaModule.getRouterConfigs(deploymentUnitsMap, defaultNoOfActors)).
+        when(deploymentUnitManager.getAllDeploymentUnits()).thenReturn(Collections.singleton(deploymentUnit));
+
+        assertThat(akkaModule.getRouterConfigs(deploymentUnitManager, new TaskRouterUtil(defaultNoOfActors))).
                 containsEntry("com.flipkart.flux.integration.SimpleWorkflow_simpleIntegerReturningTask", 5);
     }
 
@@ -75,11 +79,12 @@ public class AkkaModuleTest {
         int defaultNoOfActors = 10;
 
         Class simpleWorkflowClass = this.getClass().getClassLoader().loadClass("com.flipkart.flux.integration.SimpleWorkflow");
-        Set<Method> taskMethods = Collections.singleton(simpleWorkflowClass.getMethod("simpleIntegerReturningTask"));
+        Map<String, Method> taskMethods = Collections.singletonMap("com.flipkart.flux.integration.SimpleWorkflow_simpleIntegerReturningTask_com.flipkart.flux.integration.IntegerEvent_version1", simpleWorkflowClass.getMethod("simpleIntegerReturningTask"));
         when(deploymentUnit.getTaskMethods()).thenReturn(taskMethods);
 
-        assertThat(akkaModule.getRouterConfigs(deploymentUnitsMap, defaultNoOfActors)).
+        when(deploymentUnitManager.getAllDeploymentUnits()).thenReturn(Collections.singleton(deploymentUnit));
+
+        assertThat(akkaModule.getRouterConfigs(deploymentUnitManager, new TaskRouterUtil(defaultNoOfActors))).
                 containsEntry("com.flipkart.flux.integration.SimpleWorkflow_simpleIntegerReturningTask", defaultNoOfActors);
     }
-
 }
