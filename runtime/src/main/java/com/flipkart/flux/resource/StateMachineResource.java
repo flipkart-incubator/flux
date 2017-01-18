@@ -126,8 +126,11 @@ public class StateMachineResource {
         return Response.status(Response.Status.CREATED.getStatusCode()).entity(stateMachine.getId()).build();
     }
 
+    /**
+     * Creates and starts the state machine. Keeping this method as "protected" so that Transactional interceptor can intercept the call.
+     */
     @Transactional
-    private StateMachine createAndInitStateMachine(StateMachineDefinition stateMachineDefinition) throws Exception {
+    protected StateMachine createAndInitStateMachine(StateMachineDefinition stateMachineDefinition) throws Exception {
 
         // 1. Convert to StateMachine (domain object) and save in DB
         StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineDefinition);
