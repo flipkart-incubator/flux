@@ -39,6 +39,7 @@ import com.flipkart.flux.util.TestUtils;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import org.apache.commons.io.IOUtils;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -76,6 +77,15 @@ public class StateMachineResourceTest {
     @Before
     public void setUp() throws Exception {
         objectMapper = new ObjectMapper();
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
