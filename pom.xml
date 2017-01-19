@@ -5,7 +5,7 @@
     
     <groupId>com.flipkart</groupId>
     <artifactId>flux</artifactId>
-    <version>1.0.4-SNAPSHOT</version>
+    <version>1.0</version>
     <packaging>pom</packaging>
 
     <name>flux</name>
