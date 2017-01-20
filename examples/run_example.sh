@@ -9,7 +9,7 @@ fi
 
 DEBUG_PORT=$3
 DEPLOYMENT_UNIT_PATH=/tmp/workflows
-DEPLOYMENT_UNIT_NAME=wf1/1
+DEPLOYMENT_UNIT_NAME=DU1/1
 
 echo "Building flux modules..."
 cd ../
