@@ -1,4 +1,4 @@
-## 1.0 (Jan 19, 2017)
+## 1.0 (Jan 19, 2017) - Stable release
 - **Changes:**
   - Deployment Unit dynamic load and unload
   - Metrics integration
