@@ -83,7 +83,7 @@ public class WorkflowExecutionDemo {
         reader.close();
 
         //create deployment structure
-        String deploymentUnitName = "DU1";
+        String deploymentUnitName = "DU1/1";
         String mainDirPath = deploymentUnitsPath + deploymentUnitName + "/main";
         String libDirPath = deploymentUnitsPath + deploymentUnitName + "/lib";
         executeCommand("mkdir -p " + mainDirPath);
