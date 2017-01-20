@@ -7,9 +7,7 @@ Please go through the [wiki](https://github.com/flipkart-incubator/flux/wiki) pa
 ## Releases
 | Release | Date | Description |
 |:------------|:----------------|:------------|
-| Version 1.0-SNAPSHOT             | Jun 2016      |    First release for user trials
-| Version 1.0.3-SNAPSHOT            | Oct 2016      |    
-| Version 1.0.4-SNAPSHOT            | Dec 2016      |    
+| Version 1.0                      | Jan 2017      |  Initial stable release
 
 ## Changelog
 Changelog can be viewed in [CHANGELOG.md](https://github.com/flipkart-incubator/flux/blob/master/CHANGELOG.md) file
