@@ -316,7 +316,14 @@ public class StateMachineResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("Required params fromTime/toTime are not provided").build();
         }
 
-        return Response.status(200).entity(statesDAO.findErroredStates(stateMachineName, Timestamp.valueOf(fromTime), Timestamp.valueOf(toTime), stateName)).build();
+        Timestamp fromTimestamp = Timestamp.valueOf(fromTime);
+        Timestamp toTimestamp = Timestamp.valueOf(toTime);
+
+        if(fromTimestamp.after(toTimestamp)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("fromTime: " + fromTime + " should be before toTime: " + toTime).build();
+        }
+
+        return Response.status(200).entity(statesDAO.findErroredStates(stateMachineName, fromTimestamp, toTimestamp, stateName)).build();
     }
 
     /**
