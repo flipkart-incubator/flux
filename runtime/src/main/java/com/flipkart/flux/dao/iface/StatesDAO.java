@@ -16,6 +16,7 @@ package com.flipkart.flux.dao.iface;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -44,4 +45,10 @@ public interface StatesDAO {
 
     /** Retrieves all errored states for the given range of stateMachine ids */
     List findErroredStates(String stateMachineName, Long fromStateMachineId, Long toStateMachineId);
+
+    /**
+     * Retrieves all errored states for a particular state machine name and the state machine creation time in
+     * the given range fromTime and toTime with optional taskName parameter
+     */
+    List findErroredStates(String stateMachineName, Timestamp fromTime, Timestamp toTime, String taskName);
 }

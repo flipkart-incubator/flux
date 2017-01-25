@@ -46,6 +46,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -297,6 +298,25 @@ public class StateMachineResource {
         toStateMachineId = (toStateMachineId == null || toStateMachineId < fromStateMachineId) ? fromStateMachineId : Math.min(limit, toStateMachineId);
 
         return Response.status(200).entity(statesDAO.findErroredStates(stateMachineName, fromStateMachineId, toStateMachineId)).build();
+    }
+
+    /**
+     * Retrieves all errored states for the given range of time for a particular state machine name.
+     * @return json containing list of [state machine id, state id, status]
+     */
+    @GET
+    @Path("/{stateMachineName}/states/erroredbytime")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getErroredStatesByTime(@PathParam("stateMachineName") String stateMachineName,
+                                           @QueryParam("fromTime") String fromTime,
+                                           @QueryParam("toTime") String toTime,
+                                           @QueryParam("stateName") String stateName) throws Exception {
+
+        if(fromTime == null || toTime == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Required params fromTime/toTime are not provided").build();
+        }
+
+        return Response.status(200).entity(statesDAO.findErroredStates(stateMachineName, Timestamp.valueOf(fromTime), Timestamp.valueOf(toTime), stateName)).build();
     }
 
     /**

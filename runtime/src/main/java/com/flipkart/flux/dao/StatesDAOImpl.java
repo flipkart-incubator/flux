@@ -24,6 +24,7 @@ import org.hibernate.Query;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -94,6 +95,29 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         query.setLong("fromStateMachineId", fromStateMachineId);
         query.setLong("toStateMachineId", toStateMachineId);
         query.setString("stateMachineName", stateMachineName);
+
+        return query.list();
+    }
+
+    @Override
+    @Transactional
+    @SelectDataSource(DataSourceType.READ_ONLY)
+    public List findErroredStates(String stateMachineName, Timestamp fromTime, Timestamp toTime, String stateName) {
+        Query query;
+        if(stateName == null) {
+            query = currentSession().createQuery("select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
+                    "where sm.id between (select min(id) from StateMachine where createdAt >= :fromTime) and (select max(id) from StateMachine where createdAt <= :toTime) " +
+                    "and sm.name = :stateMachineName and state.status in ('errored', 'sidelined', 'cancelled')");
+        } else {
+            query = currentSession().createQuery("select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
+                    "where sm.id between (select min(id) from StateMachine where createdAt >= :fromTime) and (select max(id) from StateMachine where createdAt <= :toTime) " +
+                    "and sm.name = :stateMachineName and state.name = :stateName and state.status in ('errored', 'sidelined', 'cancelled')");
+            query.setString("stateName", stateName);
+        }
+
+        query.setString("stateMachineName", stateMachineName);
+        query.setTimestamp("fromTime", fromTime);
+        query.setTimestamp("toTime", toTime);
 
         return query.list();
     }
