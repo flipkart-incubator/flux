@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.resource;
 
+import com.codahale.metrics.Metric;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +33,7 @@ import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
+import com.flipkart.flux.metrics.interfaces.MetricsClient;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.google.inject.Inject;
@@ -83,9 +85,11 @@ public class StateMachineResource {
 
     private ObjectMapper objectMapper;
 
+    private MetricsClient metricsClient;
+
     @Inject
     public StateMachineResource(EventsDAO eventsDAO, StateMachinePersistenceService stateMachinePersistenceService,
-                                AuditDAO auditDAO, StateMachinesDAO stateMachinesDAO, StatesDAO statesDAO, WorkFlowExecutionController workFlowExecutionController) {
+                                AuditDAO auditDAO, StateMachinesDAO stateMachinesDAO, StatesDAO statesDAO, WorkFlowExecutionController workFlowExecutionController, MetricsClient metricsClient) {
         this.eventsDAO = eventsDAO;
         this.stateMachinePersistenceService = stateMachinePersistenceService;
         this.stateMachinesDAO = stateMachinesDAO;
@@ -93,6 +97,7 @@ public class StateMachineResource {
         this.auditDAO = auditDAO;
         this.workFlowExecutionController = workFlowExecutionController;
         objectMapper = new ObjectMapper();
+        this.metricsClient = metricsClient;
     }
 
     /**
@@ -123,6 +128,7 @@ public class StateMachineResource {
             return Response.status(Response.Status.CONFLICT.getStatusCode()).entity(ex.getCause() != null ? ex.getCause().getMessage() : null).build();
         }
 
+        metricsClient.incrCount(stateMachine.getName());
         return Response.status(Response.Status.CREATED.getStatusCode()).entity(stateMachine.getId()).build();
     }
 

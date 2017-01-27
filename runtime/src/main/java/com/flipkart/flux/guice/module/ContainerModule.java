@@ -25,6 +25,8 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.flipkart.flux.config.FileLocator;
 import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.filter.CORSFilter;
+import com.flipkart.flux.metrics.impl.MetricsClientImpl;
+import com.flipkart.flux.metrics.interfaces.MetricsClient;
 import com.flipkart.flux.resource.DeploymentUnitResource;
 import com.flipkart.flux.resource.StateMachineResource;
 import com.flipkart.flux.resource.StatusResource;
@@ -65,7 +67,7 @@ public class ContainerModule extends AbstractModule {
 	 */
 	@Override
 	protected void configure() {
-
+		bind(MetricsClient.class).to(MetricsClientImpl.class);
 	}
 
 	/**
