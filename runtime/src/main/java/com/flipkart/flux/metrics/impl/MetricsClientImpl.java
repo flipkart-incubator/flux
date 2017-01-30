@@ -27,4 +27,9 @@ public class MetricsClientImpl implements MetricsClient {
     public void decrCount(String key) {
         metricRegistry.counter(key).dec();
     }
+
+    @Override
+    public void markEvent(String key) {
+        metricRegistry.meter(key).mark();
+    }
 }

@@ -9,4 +9,6 @@ public interface MetricsClient {
 
     public void decrCount(String key);
 
+    public void markEvent(String key);
+
 }

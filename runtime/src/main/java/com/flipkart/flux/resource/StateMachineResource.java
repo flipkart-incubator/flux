@@ -128,7 +128,7 @@ public class StateMachineResource {
             return Response.status(Response.Status.CONFLICT.getStatusCode()).entity(ex.getCause() != null ? ex.getCause().getMessage() : null).build();
         }
 
-        metricsClient.incrCount(stateMachine.getName());
+        metricsClient.markEvent(stateMachine.getName());
         return Response.status(Response.Status.CREATED.getStatusCode()).entity(stateMachine.getId()).build();
     }
 
