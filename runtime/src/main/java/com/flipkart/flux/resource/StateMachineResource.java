@@ -13,7 +13,6 @@
 
 package com.flipkart.flux.resource;
 
-import com.codahale.metrics.Metric;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -123,12 +122,12 @@ public class StateMachineResource {
 
         try {
             stateMachine = createAndInitStateMachine(stateMachineDefinition);
+            metricsClient.markMeter(stateMachine.getName());
         } catch (ConstraintViolationException ex) {
             //in case of Duplicate correlation key, return http code 409 conflict
             return Response.status(Response.Status.CONFLICT.getStatusCode()).entity(ex.getCause() != null ? ex.getCause().getMessage() : null).build();
         }
 
-        metricsClient.markEvent(stateMachine.getName());
         return Response.status(Response.Status.CREATED.getStatusCode()).entity(stateMachine.getId()).build();
     }
 

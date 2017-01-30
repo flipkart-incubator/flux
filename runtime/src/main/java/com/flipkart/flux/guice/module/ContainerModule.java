@@ -18,6 +18,7 @@ package com.flipkart.flux.guice.module;
 
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.SharedMetricRegistries;
 import com.codahale.metrics.jersey2.InstrumentedResourceMethodApplicationListener;
 import com.codahale.metrics.jetty9.InstrumentedHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,6 +51,7 @@ import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
+import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
 import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
 
 /**
@@ -67,7 +69,13 @@ public class ContainerModule extends AbstractModule {
 	 */
 	@Override
 	protected void configure() {
-		bind(MetricsClient.class).to(MetricsClientImpl.class);
+		bind(MetricsClient.class).to(MetricsClientImpl.class).in(Singleton.class);
+	}
+
+
+	@Provides
+	public MetricRegistry metricRegistry() {
+		return SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME);
 	}
 
 	/**

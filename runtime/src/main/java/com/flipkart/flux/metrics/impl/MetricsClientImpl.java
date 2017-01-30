@@ -1,3 +1,16 @@
+/*
+ * Copyright 2012-2016, the original author or authors.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.flipkart.flux.metrics.impl;
 
 import com.codahale.metrics.MetricRegistry;
@@ -5,10 +18,13 @@ import com.flipkart.flux.metrics.interfaces.MetricsClient;
 import com.google.inject.Inject;
 
 /**
- * Created by kaushal.hooda on 25/01/17.
+ * <code>MetricsClientImpl</code> implements the {@link MetricsClient} interface using the <a href="http://metrics.dropwizard.io">Metrics</a> library.
  */
 public class MetricsClientImpl implements MetricsClient {
 
+    /**
+     * Stores all the metrics.
+     */
     private final MetricRegistry metricRegistry;
 
     @Inject
@@ -16,20 +32,13 @@ public class MetricsClientImpl implements MetricsClient {
         this.metricRegistry = metricRegistry;
     }
 
-
-
+    /**
+     * Creates/updates a meter with the name key.
+     * @see {@link com.codahale.metrics.Meter}
+     * @param key Specifies the type of event.
+     */
     @Override
-    public void incrCount(String key) {
-        metricRegistry.counter(key).inc();
-    }
-
-    @Override
-    public void decrCount(String key) {
-        metricRegistry.counter(key).dec();
-    }
-
-    @Override
-    public void markEvent(String key) {
+    public void markMeter(String key) {
         metricRegistry.meter(key).mark();
     }
 }
