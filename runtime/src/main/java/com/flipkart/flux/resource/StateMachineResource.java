@@ -32,6 +32,7 @@ import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
+import com.flipkart.flux.metrics.interfaces.MetricsClient;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.google.inject.Inject;
@@ -84,9 +85,11 @@ public class StateMachineResource {
 
     private ObjectMapper objectMapper;
 
+    private MetricsClient metricsClient;
+
     @Inject
     public StateMachineResource(EventsDAO eventsDAO, StateMachinePersistenceService stateMachinePersistenceService,
-                                AuditDAO auditDAO, StateMachinesDAO stateMachinesDAO, StatesDAO statesDAO, WorkFlowExecutionController workFlowExecutionController) {
+                                AuditDAO auditDAO, StateMachinesDAO stateMachinesDAO, StatesDAO statesDAO, WorkFlowExecutionController workFlowExecutionController, MetricsClient metricsClient) {
         this.eventsDAO = eventsDAO;
         this.stateMachinePersistenceService = stateMachinePersistenceService;
         this.stateMachinesDAO = stateMachinesDAO;
@@ -94,6 +97,7 @@ public class StateMachineResource {
         this.auditDAO = auditDAO;
         this.workFlowExecutionController = workFlowExecutionController;
         objectMapper = new ObjectMapper();
+        this.metricsClient = metricsClient;
     }
 
     /**
@@ -119,6 +123,7 @@ public class StateMachineResource {
 
         try {
             stateMachine = createAndInitStateMachine(stateMachineDefinition);
+            metricsClient.markMeter(stateMachine.getName());
         } catch (ConstraintViolationException ex) {
             //in case of Duplicate correlation key, return http code 409 conflict
             return Response.status(Response.Status.CONFLICT.getStatusCode()).entity(ex.getCause() != null ? ex.getCause().getMessage() : null).build();
