@@ -138,10 +138,10 @@ public class StateMachineResource {
         // 1. Convert to StateMachine (domain object) and save in DB
         StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineDefinition);
 
+        logger.info("Created state machine with Id: {} and correlation Id: {}", stateMachine.getId(), stateMachine.getCorrelationId());
+
         // 2. initialize and start State Machine
         workFlowExecutionController.initAndStart(stateMachine);
-
-        logger.info("Created state machine with Id: {} and correlation Id: {}", stateMachine.getId(), stateMachine.getCorrelationId());
 
         return stateMachine;
     }
