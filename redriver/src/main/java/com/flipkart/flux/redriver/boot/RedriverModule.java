@@ -13,8 +13,6 @@
 
 package com.flipkart.flux.redriver.boot;
 
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.SharedMetricRegistries;
 import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
@@ -51,11 +49,6 @@ public class RedriverModule extends AbstractModule {
     protected void configure() {
         Provider<SessionFactoryContext> provider = getProvider(Key.get(SessionFactoryContext.class, Names.named("redriverSessionFactoryContext")));
         bindInterceptor(Matchers.inPackage(MessageDao.class.getPackage()), Matchers.annotatedWith(Transactional.class), new TransactionInterceptor(provider));
-    }
-
-    @Provides
-    public MetricRegistry metricRegistry() {
-        return SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME);
     }
 
     /**

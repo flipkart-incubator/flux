@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS `States` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
   `version` SMALLINT UNSIGNED NOT NULL,
-  `description` VARCHAR(50) DEFAULT NULL,
+  `description` VARCHAR(10) DEFAULT NULL,
   `dependencies` VARCHAR(1000) DEFAULT NULL,
   `stateMachineId` BIGINT,
   `onEntryHook` varchar(500) DEFAULT NULL,
