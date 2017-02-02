@@ -7,7 +7,7 @@
     {
       "version": 1,
       "name": "test_state1",
-      "description": "test_state_desc1",
+      "description": "desc1",
       "onEntryHook": "com.flipkart.flux.dao.DummyOnEntryHook",
       "task": "com.flipkart.flux.deploymentunit.TestWorkflow2_testTask_void_version1",
       "onExitHook": "com.flipkart.flux.dao.DummyOnExitHook",

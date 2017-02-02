@@ -1,12 +1,12 @@
 {
   "name" : "state_machine_with_fork_join",
   "version": 1,
-  "description": "This has 3 states joining into one",
+  "description": "",
   "states" : [
     {
       "version": 1,
       "name": "initialState",
-      "description": "initial state",
+      "description": "desc",
       "onEntryHook": null,
       "task": "com.flipkart.flux.dao.dummyTask",
       "onExitHook": null,
@@ -21,7 +21,7 @@
     {
       "version": 1,
       "name": "forkState",
-      "description": "fork_state_1",
+      "description": "state_1",
       "onEntryHook": null,
       "task": "com.flipkart.flux.dao.dummyTask",
       "onExitHook": null,
@@ -41,7 +41,7 @@
     {
       "version": 1,
       "name": "forkState",
-      "description": "fork_state_2",
+      "description": "state_2",
       "onEntryHook": null,
       "task": "com.flipkart.flux.dao.dummyTask",
       "onExitHook": null,
@@ -61,7 +61,7 @@
     {
       "version": 1,
       "name": "joinState",
-      "description": "join state - depends on above 2",
+      "description": "join state",
       "onEntryHook": null,
       "task": "com.flipkart.flux.dao.dummyTask",
       "onExitHook": null,

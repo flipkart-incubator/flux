@@ -1,13 +1,13 @@
 {
   "name": "test_state_machine",
   "version": 1,
-  "description": "test_description",
+  "description": "desc",
   "correlationId" : "magic_number_1",
   "states": [
     {
       "version": 1,
       "name": "test_state1",
-      "description": "test_state_desc1",
+      "description": "desc1",
       "onEntryHook": "com.flipkart.flux.dao.DummyOnEntryHook",
       "task": "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_version1",
       "onExitHook": "com.flipkart.flux.dao.DummyOnExitHook",
@@ -22,7 +22,7 @@
     {
       "version": 1,
       "name": "test_state2",
-      "description": "test_state_desc2",
+      "description": "desc2",
       "onEntryHook": "com.flipkart.flux.dao.DummyOnEntryHook",
       "task": "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_java.lang.String_version1",
       "onExitHook": "com.flipkart.flux.dao.DummyOnExitHook",
@@ -42,7 +42,7 @@
     {
       "version": 1,
       "name": "test_state3",
-      "description": "test_state_desc3",
+      "description": "desc3",
       "onEntryHook": "com.flipkart.flux.dao.DummyOnEntryHook",
       "task": "com.flipkart.flux.dao.TestWorkflow_testTask_void_java.lang.String_java.lang.Integer_version1",
       "onExitHook": "com.flipkart.flux.dao.DummyOnExitHook",
@@ -63,7 +63,7 @@
     {
       "version": 1,
       "name": "test_state4",
-      "description": "test_state_desc4",
+      "description": "desc4",
       "onEntryHook": "com.flipkart.flux.dao.DummyOnEntryHook",
       "task": "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1",
       "onExitHook": "com.flipkart.flux.dao.DummyOnExitHook",

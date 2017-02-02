@@ -11,14 +11,15 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.metrics.impl;
+package com.flipkart.flux.metrics;
 
 import com.codahale.metrics.MetricRegistry;
-import com.flipkart.flux.metrics.interfaces.MetricsClient;
+import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.google.inject.Inject;
 
 /**
- * <code>MetricsClientImpl</code> implements the {@link MetricsClient} interface using the <a href="http://metrics.dropwizard.io">Metrics</a> library.
+ * <code>MetricsClientImpl</code> implements <a href="http://metrics.dropwizard.io">Metrics</a> library {@link MetricsClient} and publishes metrics using {@link MetricRegistry}.
+ * @author kaushal.hooda
  */
 public class MetricsClientImpl implements MetricsClient {
 

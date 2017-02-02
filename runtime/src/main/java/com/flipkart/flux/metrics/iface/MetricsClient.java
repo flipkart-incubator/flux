@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.metrics.interfaces;
+package com.flipkart.flux.metrics.iface;
 
 /**
  * <code>MetricsClient</code> provides metrics related functionality, like rate meters or counters.

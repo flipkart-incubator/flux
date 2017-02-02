@@ -29,7 +29,7 @@ import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
-import com.flipkart.flux.metrics.interfaces.MetricsClient;
+import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.google.inject.Inject;
