@@ -114,11 +114,16 @@ public class AkkaTask extends UntypedActor {
                         outputEvent = taskExecutor.execute();
 
                         if (outputEvent != null) {
-                            // after successful task execution, post the generated output event for further processing
-                            fluxRuntimeConnector.submitEvent(new EventData(outputEvent.getName(), outputEvent.getType(), outputEvent.getEventData(), outputEvent.getEventSource()), outputEvent.getStateMachineInstanceId());
+                            // after successful task execution, post the generated output event for further processing, also update status as part of same call
+                            fluxRuntimeConnector.submitEventAndUpdateStatus(
+                                    new EventData(outputEvent.getName(), outputEvent.getType(), outputEvent.getEventData(), outputEvent.getEventSource()),
+                                    outputEvent.getStateMachineInstanceId(),
+                                    new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), Status.completed, taskAndEvent.getRetryCount(),
+                                            taskAndEvent.getCurrentRetryCount(), null, true));
+                        } else {
+                            // update the Flux runtime with status of the Task as completed
+                            updateExecutionStatus(taskAndEvent, Status.completed, null, true);
                         }
-                        // update the Flux runtime with status of the Task as completed
-                        updateExecutionStatus(taskAndEvent, Status.completed, null, true);
 
                     } catch (HystrixRuntimeException hre) {
                         FailureType ft = hre.getFailureType();

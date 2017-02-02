@@ -16,10 +16,7 @@ package com.flipkart.flux.resource;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.EventDefinition;
-import com.flipkart.flux.api.ExecutionUpdateData;
-import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.api.*;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
@@ -160,6 +157,32 @@ public class StateMachineResource {
     ) throws Exception {
         logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
 
+        return postEvent(machineId, searchField, eventData);
+    }
+
+    /**
+     * Used to post Data corresponding to an event. This also updates the task status to completed which generated the event.
+     *
+     * @param machineId machineId the event is to be submitted against
+     * @param eventAndExecutionData Json representation of event and execution updation data
+     */
+    @POST
+    @Path("/{machineId}/context/eventandstatus")
+    @Timed
+    public Response submitEvent(@PathParam("machineId") String machineId,
+                                EventAndExecutionData eventAndExecutionData
+    ) throws Exception {
+        EventData eventData = eventAndExecutionData.getEventData();
+        ExecutionUpdateData executionUpdateData = eventAndExecutionData.getExecutionUpdateData();
+
+        logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
+
+        updateTaskStatus(Long.valueOf(machineId), executionUpdateData.getTaskId(), executionUpdateData);
+
+        return postEvent(machineId, null, eventData);
+    }
+
+    private Response postEvent(String machineId, String searchField, EventData eventData) {
         try {
             if (searchField != null) {
                 if (!searchField.equals(CORRELATION_ID)) {
@@ -191,6 +214,11 @@ public class StateMachineResource {
                                  @PathParam("stateId") Long stateId,
                                  ExecutionUpdateData executionUpdateData
     ) throws Exception {
+        updateTaskStatus(machineId, stateId, executionUpdateData);
+    	return Response.status(Response.Status.ACCEPTED).build();
+    }
+
+    private void updateTaskStatus(Long machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
         com.flipkart.flux.domain.Status updateStatus = null;
         switch (executionUpdateData.getStatus()) {
             case initialized:
@@ -214,7 +242,6 @@ public class StateMachineResource {
         }
         this.workFlowExecutionController.updateExecutionStatus(machineId, stateId, updateStatus, executionUpdateData.getRetrycount(),
                 executionUpdateData.getCurrentRetryCount(), executionUpdateData.getErrorMessage(), executionUpdateData.isDeleteFromRedriver());
-    	return Response.status(Response.Status.ACCEPTED).build();
     }
 
     /**

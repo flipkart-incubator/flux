@@ -16,6 +16,7 @@ package com.flipkart.flux.client.runtime;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventAndExecutionData;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.StateMachineDefinition;
@@ -97,10 +98,11 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     }
 
     @Override
-    public void submitEvent(EventData eventData, Long stateMachineId) {
+    public void submitEventAndUpdateStatus(EventData eventData, Long stateMachineId, ExecutionUpdateData executionUpdateData) {
         CloseableHttpResponse httpResponse = null;
         try {
-            httpResponse = postOverHttp(eventData, "/" + stateMachineId + "/context/events");
+            EventAndExecutionData eventAndExecutionData = new EventAndExecutionData(eventData, executionUpdateData);
+            httpResponse = postOverHttp(eventAndExecutionData, "/" + stateMachineId + "/context/eventandstatus");
         } finally {
             HttpClientUtils.closeQuietly(httpResponse);
         }

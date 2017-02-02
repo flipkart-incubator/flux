@@ -25,10 +25,12 @@ import com.flipkart.flux.api.StateMachineDefinition;
  * @author yogesh.nachnani
  */
 public interface FluxRuntimeConnector {
+
     /** Used to submit a new workflow to the core runtime */
     void submitNewWorkflow(StateMachineDefinition stateMachineDef);
-    /* Post the event generated as a result of task execution back to the core runtime */
-    void submitEvent(EventData eventData, Long stateMachineId);
+
+    /* Post the event generated as a result of task execution back to the core runtime, also updates the state status to completed which generated this event*/
+    void submitEventAndUpdateStatus(EventData eventData, Long stateMachineId, ExecutionUpdateData executionUpdateData);
 
     /**
      * Post an arbitrary event against a previously registered correlationId
