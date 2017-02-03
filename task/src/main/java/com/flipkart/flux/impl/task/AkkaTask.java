@@ -102,8 +102,15 @@ public class AkkaTask extends UntypedActor {
                 }
                 AbstractTask task = AkkaTask.taskRegistry.retrieveTask(taskAndEvent.getTaskIdentifier());
                 if (task != null) {
-                    // update the Flux runtime with status of the Task as running
-                    updateExecutionStatus(taskAndEvent, Status.running, null, false);
+                    try {
+                        // update the Flux runtime with status of the Task as running
+                        updateExecutionStatus(taskAndEvent, Status.running, null, false);
+                    } catch (RuntimeCommunicationException e) {
+                        logger.error("Error occurred while updating task: {} status to running. Error: {}", taskAndEvent.getTaskId(), e.getMessage());
+                        throw new FluxError(FluxError.ErrorType.retriable, e.getMessage(), e, false,
+                                new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(),
+                                        taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
+                    }
                     // Execute any pre-exec HookS
 //                    this.executeHooks(AkkaTask.taskRegistry.getPreExecHooks(task), taskAndEvent.getEvents());
                     final String outputEventName = getOutputEventName(taskAndEvent);
