@@ -13,12 +13,7 @@
 
 package com.flipkart.flux.redriver.boot;
 
-import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
 import com.google.inject.AbstractModule;
-import com.google.inject.matcher.Matchers;
-import org.hibernate.SessionFactory;
-
-import javax.transaction.Transactional;
 
 public class RedriverTestModule extends AbstractModule {
     @Override

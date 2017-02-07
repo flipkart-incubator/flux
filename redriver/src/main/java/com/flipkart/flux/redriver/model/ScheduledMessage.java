@@ -20,6 +20,8 @@ import java.io.Serializable;
 
 /**
  * <code>ScheduledMessage</code> is a message that will be stored in DB for redriver purposes.
+ *
+ * @author yogesh.nachnani
  */
 @Entity
 @Table(name = "ScheduledMessages")

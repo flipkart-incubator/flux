@@ -13,14 +13,17 @@
 
 package com.flipkart.flux.redriver.boot;
 
+import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
 import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SessionFactoryContext;
-import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
 import com.flipkart.flux.persistence.impl.SessionFactoryContextImpl;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.polyguice.config.YamlConfiguration;
-import com.google.inject.*;
+import com.google.inject.AbstractModule;
+import com.google.inject.Key;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Names;
 import org.hibernate.SessionFactory;
@@ -34,13 +37,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
-import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
-
 /**
  * <code>RedriverModule</code> is a Guice {@link AbstractModule} which binds all Redriver related stuff.
  * Keeping a single module for redriver component for now
  * It may need a split in the future
  * Presently, it is assumed that {@link TransactionInterceptor} is already configured by another module
+ *
+ * @author yogesh.nachnani
  */
 public class RedriverModule extends AbstractModule {
     private static final String FLUX_REDRIVER_HIBERNATE_CONFIG_NAME_SPACE = "flux_redriver.Hibernate";

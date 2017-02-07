@@ -16,7 +16,6 @@ package com.flipkart.flux.client.intercept;
 
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.utils.TestResource;
-import javafx.util.Pair;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import javax.inject.Inject;
@@ -26,10 +25,8 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

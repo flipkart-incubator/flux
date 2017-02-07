@@ -14,7 +14,6 @@
 package com.flipkart.flux.resource;
 
 import akka.actor.Address;
-import akka.actor.AddressFromURIString;
 import akka.cluster.Cluster;
 import com.flipkart.flux.impl.boot.ActorSystemManager;
 import com.google.inject.Inject;

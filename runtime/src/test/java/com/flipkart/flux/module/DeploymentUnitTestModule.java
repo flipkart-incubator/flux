@@ -14,12 +14,11 @@
 package com.flipkart.flux.module;
 
 import com.flipkart.flux.deploymentunit.DeploymentUnitsManagerImpl;
+import com.flipkart.flux.deploymentunit.DummyDeploymentUnitUtil;
 import com.flipkart.flux.deploymentunit.ExecutableLoaderImpl;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitUtil;
-import com.flipkart.flux.deploymentunit.DummyDeploymentUnitUtil;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import com.flipkart.flux.deploymentunit.iface.ExecutableLoader;
-import com.flipkart.flux.guice.module.DeploymentUnitModule;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;

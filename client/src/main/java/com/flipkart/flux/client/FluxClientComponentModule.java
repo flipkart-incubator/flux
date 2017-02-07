@@ -13,9 +13,6 @@
 
 package com.flipkart.flux.client;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.client.config.FluxClientConfiguration;
 import com.flipkart.flux.client.guice.annotation.IsolatedEnv;
@@ -24,6 +21,8 @@ import com.flipkart.flux.client.registry.LocalExecutableRegistryImpl;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
 import com.flipkart.flux.client.runtime.LocalContext;
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 
 import javax.inject.Singleton;
 

@@ -13,23 +13,26 @@
 
 package com.flipkart.flux.guice.module;
 
-import com.flipkart.flux.deploymentunit.*;
+import com.flipkart.flux.deploymentunit.DeploymentUnitsManagerImpl;
+import com.flipkart.flux.deploymentunit.DirectoryBasedDeploymentUnitUtil;
+import com.flipkart.flux.deploymentunit.ExecutableLoaderImpl;
+import com.flipkart.flux.deploymentunit.NoOpDeploymentUnitUtil;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitUtil;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import com.flipkart.flux.deploymentunit.iface.ExecutableLoader;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 /**
- * A place for all DeploymentUnit related guice-foo
+ * <code>DeploymentUnitModule</code> is an Guice {@link com.google.inject.AbstractModule} implementation and holds all DeploymentUnit related guice-foo
+ *
+ * @author shyam.akirala
+ * @author yogesh.nachnani
  */
 public class DeploymentUnitModule extends AbstractModule {
-    private static final Logger logger = LoggerFactory.getLogger(DeploymentUnitModule.class);
 
     @Override
     protected void configure() {

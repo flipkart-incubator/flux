@@ -13,16 +13,15 @@
 
 package com.flipkart.flux.impl.task;
 
-import java.util.concurrent.Future;
-
+import akka.actor.UntypedActor;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
 import com.flipkart.flux.api.core.Hook;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.impl.message.HookAndEvents;
 import com.netflix.hystrix.HystrixCommand;
 
-import akka.actor.UntypedActor;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
+import java.util.concurrent.Future;
 
 /**
  * <code>AkkaHook</code> is an Akka {@link UntypedActor} that executes {@link Hook} instances concurrently. HookS are executed using a {@link HookExecutor} where 

@@ -27,6 +27,8 @@ import java.util.List;
 
 /**
  * <code>MessageDao</code> handles all Db interactions for {@link ScheduledMessage}(s)
+ *
+ * @author yogesh.nachnani
  */
 @Singleton
 public class MessageDao {

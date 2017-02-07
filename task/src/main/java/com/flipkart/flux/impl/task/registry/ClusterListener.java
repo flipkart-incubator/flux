@@ -12,8 +12,6 @@
  */
 package com.flipkart.flux.impl.task.registry;
 
-import java.util.List;
-
 import akka.actor.Address;
 import akka.actor.UntypedActor;
 import akka.cluster.Cluster;
@@ -24,6 +22,8 @@ import akka.cluster.ClusterEvent.MemberUp;
 import akka.cluster.ClusterEvent.UnreachableMember;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+
+import java.util.List;
 
 /**
  * An Akka Actor that listens to Cluster membership changes and updates a list of member addresses 

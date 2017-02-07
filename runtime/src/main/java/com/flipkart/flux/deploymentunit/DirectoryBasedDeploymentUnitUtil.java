@@ -13,7 +13,6 @@
 
 package com.flipkart.flux.deploymentunit;
 
-import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitUtil;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import org.slf4j.Logger;
@@ -21,13 +20,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 

@@ -14,18 +14,13 @@
 package com.flipkart.flux.deploymentunit;
 
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitUtil;
-import com.flipkart.flux.integration.IntegerEvent;
-import com.flipkart.flux.integration.StringEvent;
 import com.flipkart.polyguice.config.YamlConfiguration;
 
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * <code>DummyDeploymentUnitUtil</code> is a {@link DeploymentUnitUtil} implementation used in E2E tests to provide dummy deployment units.

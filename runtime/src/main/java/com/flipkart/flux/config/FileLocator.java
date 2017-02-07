@@ -16,7 +16,6 @@
 package com.flipkart.flux.config;
 
 import com.flipkart.flux.Constants;
-import com.flipkart.flux.constant.RuntimeConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

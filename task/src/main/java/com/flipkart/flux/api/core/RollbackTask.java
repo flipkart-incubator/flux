@@ -15,7 +15,6 @@ package com.flipkart.flux.api.core;
 
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.domain.State;
-
 import javafx.util.Pair;
 
 /**

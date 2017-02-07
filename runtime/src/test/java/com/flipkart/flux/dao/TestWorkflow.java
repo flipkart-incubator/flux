@@ -13,9 +13,7 @@
 
 package com.flipkart.flux.dao;
 
-import com.flipkart.flux.client.exception.FluxRetriableException;
 import com.flipkart.flux.client.model.Task;
-import com.flipkart.flux.integration.IntegerEvent;
 
 /**
  * @author shyam.akirala
