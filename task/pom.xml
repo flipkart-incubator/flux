@@ -8,12 +8,12 @@
     <parent>
         <groupId>com.flipkart</groupId>
         <artifactId>flux</artifactId>
-        <version>1.0</version>
+        <version>1.0.1</version>
     </parent>
 
     <groupId>com.flipkart.flux</groupId>
     <artifactId>task</artifactId>
-    <version>1.0</version>
+    <version>1.0.1</version>
     <name>task</name>
     <url>http://maven.apache.org</url>
 
@@ -42,12 +42,12 @@
         <dependency>
             <groupId>com.flipkart.flux</groupId>
             <artifactId>model</artifactId>
-            <version>1.0</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.flipkart.flux</groupId>
             <artifactId>client</artifactId>
-            <version>1.0</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -58,17 +58,17 @@
         <dependency>
             <groupId>com.flipkart.flux</groupId>
             <artifactId>api</artifactId>
-            <version>1.0</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.flipkart.flux</groupId>
             <artifactId>common</artifactId>
-            <version>1.0</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.flipkart.flux</groupId>
             <artifactId>redriver</artifactId>
-            <version>1.0</version>
+            <version>${project.version}</version>
         </dependency>
         <!-- Third party dependencies -->
         <dependency>
