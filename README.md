@@ -7,6 +7,7 @@ Please go through the [wiki](https://github.com/flipkart-incubator/flux/wiki) pa
 ## Releases
 | Release | Date | Description |
 |:------------|:----------------|:------------|
+| Version 1.0.1                    | Feb 2017      |  Bug fixes
 | Version 1.0                      | Jan 2017      |  Initial stable release
 
 ## Changelog
