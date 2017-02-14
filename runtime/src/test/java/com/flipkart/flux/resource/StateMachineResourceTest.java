@@ -82,7 +82,7 @@ public class StateMachineResourceTest {
     @AfterClass
     public static void afterClass() {
         try {
-            Thread.sleep(1000);
+            Thread.sleep(3000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -94,7 +94,7 @@ public class StateMachineResourceTest {
         final HttpResponse<String> response = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
         assertThat(stateMachinesDAO.findByName("test_state_machine")).hasSize(1);
-        Thread.sleep(600);
+        Thread.sleep(1000);
         TestUtils.assertStateMachineEquality(stateMachinesDAO.findByName("test_state_machine").iterator().next(), TestUtils.getStandardTestMachine());
     }
 
