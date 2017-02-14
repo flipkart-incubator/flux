@@ -126,7 +126,7 @@ public class StateMachineResourceTest {
             // unsideline
             final HttpResponse<String> unsidelineResponse = Unirest.put(STATE_MACHINE_RESOURCE_URL + "/" + smId + "/" + state4.getId() + "/unsideline").asString();
             assertThat(unsidelineResponse.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
-            Thread.sleep(500);
+            Thread.sleep(2000);
 
             state4 = stateMachinesDAO.findById(smId).getStates().stream().filter(e -> e.getName().equals("test_state4")).findFirst().orElse(null);
             assertThat(state4).isNotNull();
@@ -157,7 +157,7 @@ public class StateMachineResourceTest {
         final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+smCreationResponse.getBody()+"/context/events").header("Content-Type","application/json").body(eventJson).asString();
         assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
         // give some time to execute
-        Thread.sleep(500);
+        Thread.sleep(2000);
         event = eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event0");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.triggered);
         assertThat(event).isEqualToIgnoringGivenFields(TestUtils.getStandardTestEvent(), "stateMachineInstanceId", "id", "createdAt", "updatedAt");
@@ -181,7 +181,7 @@ public class StateMachineResourceTest {
         final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+"magic_number_1"+"/context/events?searchField=correlationId").header("Content-Type","application/json").body(eventJson).asString();
         assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
         // give some time to execute
-        Thread.sleep(500);
+        Thread.sleep(2000);
         event = eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event0");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.triggered);
         assertThat(event).isEqualToIgnoringGivenFields(TestUtils.getStandardTestEvent(), "stateMachineInstanceId", "id", "createdAt", "updatedAt");
