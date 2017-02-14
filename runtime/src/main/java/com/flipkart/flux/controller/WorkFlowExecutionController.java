@@ -194,36 +194,40 @@ public class WorkFlowExecutionController {
      */
     private void executeStates(Long stateMachineInstanceId, Set<State> executableStates, Event currentEvent) {
         executableStates.forEach((state ->  {
-            List<EventData> eventDatas;
-            // If the state is dependant on only one event, that would be the event which came now, in that case don't make a call to DB
-            if(currentEvent != null && state.getDependencies() != null && state.getDependencies().size() == 1 && currentEvent.getName().equals(state.getDependencies().get(0))) {
-                eventDatas = Collections.singletonList(new EventData(currentEvent.getName(), currentEvent.getType(), currentEvent.getEventData(), currentEvent.getEventSource()));
+            if(state.getStatus() != Status.completed) {
+                List<EventData> eventDatas;
+                // If the state is dependant on only one event, that would be the event which came now, in that case don't make a call to DB
+                if (currentEvent != null && state.getDependencies() != null && state.getDependencies().size() == 1 && currentEvent.getName().equals(state.getDependencies().get(0))) {
+                    eventDatas = Collections.singletonList(new EventData(currentEvent.getName(), currentEvent.getType(), currentEvent.getEventData(), currentEvent.getEventSource()));
+                } else {
+                    eventDatas = eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId);
+                }
+                final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
+                        eventDatas.toArray(new EventData[]{}),
+                        stateMachineInstanceId, state.getOutputEvent(), state.getRetryCount(), state.getAttemptedNoOfRetries());
+                if (state.getStatus().equals(Status.initialized) || state.getStatus().equals(Status.unsidelined)) {
+                    msg.setFirstTimeExecution(true);
+                }
+
+                // register the Task with the redriver
+                if (state.getRetryCount() > 0) {
+                    // Delay between retires is exponential (2, 4, 8, 16, 32.... seconds) as seen in AkkaTask.
+                    // Redriver interval is set as 2 x ( 2^(retryCount+1) x 1s + (retryCount+1) x timeout)
+                    long redriverInterval = 2 * ((int) Math.pow(2, state.getRetryCount() + 1) * 1000 + (state.getRetryCount() + 1) * state.getTimeout());
+                    this.redriverRegistry.registerTask(state.getId(), redriverInterval);
+                }
+
+                //send the message to the Router
+                String taskName = state.getTask();
+                int secondUnderscorePosition = taskName.indexOf('_', taskName.indexOf('_') + 1);
+                String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition); //the name of router would be classFQN_taskMethodName
+                ActorRef router = this.routerRegistry.getRouter(routerName);
+
+                router.tell(msg, ActorRef.noSender());
+                logger.info("Sending msg to router: {} to execute state machine: {} task: {}", router.path(), stateMachineInstanceId, msg.getTaskId());
             } else {
-                eventDatas = eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId);
+                logger.info("State machine: {} Task: {} execution request got discarded as the task is already completed", state.getStateMachineId(), state.getId());
             }
-            final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
-                    eventDatas.toArray(new EventData[]{}),
-                    stateMachineInstanceId, state.getOutputEvent(), state.getRetryCount(), state.getAttemptedNoOfRetries());
-            if(state.getStatus().equals(Status.initialized) || state.getStatus().equals(Status.unsidelined)) {
-                msg.setFirstTimeExecution(true);
-            }
-
-            // register the Task with the redriver
-            if (state.getRetryCount() > 0) {
-                // Delay between retires is exponential (2, 4, 8, 16, 32.... seconds) as seen in AkkaTask.
-                // Redriver interval is set as 2 x ( 2^(retryCount+1) x 1s + (retryCount+1) x timeout)
-                long redriverInterval = 2 * ((int) Math.pow(2, state.getRetryCount() + 1) * 1000 + (state.getRetryCount() + 1) * state.getTimeout());
-                this.redriverRegistry.registerTask(state.getId(), redriverInterval);
-            }
-
-            //send the message to the Router
-            String taskName = state.getTask();
-            int secondUnderscorePosition = taskName.indexOf('_', taskName.indexOf('_') + 1);
-            String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition); //the name of router would be classFQN_taskMethodName
-            ActorRef router = this.routerRegistry.getRouter(routerName);
-
-            router.tell(msg, ActorRef.noSender());
-            logger.info("Sending msg to router: {} to execute state machine: {} task: {}", router.path(), stateMachineInstanceId, msg.getTaskId());
         }));
     }
 
