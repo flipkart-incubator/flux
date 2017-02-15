@@ -39,15 +39,12 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.ws.rs.core.UriBuilder;
 import java.io.File;
-import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
@@ -148,14 +145,20 @@ public class ContainerModule extends AbstractModule {
 	@Singleton
 	Server getAPIJettyServer(@Named("Api.service.port") int port,
 							 @Named("APIResourceConfig")ResourceConfig resourceConfig,
+							 @Named("Api.service.acceptors") int acceptorThreads,
+							 @Named("Api.service.selectors") int selectorThreads,
+							 @Named("Api.service.workers") int maxWorkerThreads,
 							 ObjectMapper objectMapper, MetricRegistry metricRegistry) throws URISyntaxException, UnknownHostException {
 		//todo-ashish figure out some way of setting acceptor/worker threads
 		JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
 		provider.setMapper(objectMapper);
 		resourceConfig.register(provider);
-
-		final Server server = JettyHttpContainerFactory.createServer(UriBuilder.fromUri("http://" + InetAddress.getLocalHost().getHostAddress()+ RuntimeConstants.API_CONTEXT_PATH).port(port).build(), false);
-
+		QueuedThreadPool threadPool = new QueuedThreadPool();
+		threadPool.setMaxThreads(maxWorkerThreads);
+		Server server = new Server(threadPool);
+		ServerConnector http = new ServerConnector(server, acceptorThreads, selectorThreads);
+		http.setPort(port);
+		server.addConnector(http);
 		ServletContextHandler context = new ServletContextHandler(server, "/*");
 		ServletHolder servlet = new ServletHolder(new ServletContainer(resourceConfig));
 		context.addServlet(servlet, "/*");
