@@ -149,7 +149,6 @@ public class ContainerModule extends AbstractModule {
 							 @Named("Api.service.selectors") int selectorThreads,
 							 @Named("Api.service.workers") int maxWorkerThreads,
 							 ObjectMapper objectMapper, MetricRegistry metricRegistry) throws URISyntaxException, UnknownHostException {
-		//todo-ashish figure out some way of setting acceptor/worker threads
 		JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
 		provider.setMapper(objectMapper);
 		resourceConfig.register(provider);
