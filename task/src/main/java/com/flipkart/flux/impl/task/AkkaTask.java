@@ -118,7 +118,9 @@ public class AkkaTask extends UntypedActor {
                     Event outputEvent = null;
 
                     try {
+                        long startTime = System.currentTimeMillis();
                         outputEvent = taskExecutor.execute();
+                        long endTime = System.currentTimeMillis();
 
                         if (outputEvent != null) {
                             // after successful task execution, post the generated output event for further processing, also update status as part of same call
@@ -131,6 +133,7 @@ public class AkkaTask extends UntypedActor {
                             // update the Flux runtime with status of the Task as completed
                             updateExecutionStatus(taskAndEvent, Status.completed, null, true);
                         }
+                        logger.info("State machine: {} task: {} execution time: {}ms event/status submission time: {}ms", taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), (endTime-startTime), (System.currentTimeMillis()-endTime));
 
                     } catch (HystrixRuntimeException hre) {
                         FailureType ft = hre.getFailureType();
