@@ -262,8 +262,8 @@ public class WorkFlowExecutionController {
      */
     public void redriveTask(Long taskId) {
         State state = statesDAO.findById(taskId);
-        StateMachine stateMachine = retrieveStateMachine(state.getStateMachineId());
         if(state != null && isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() < state.getRetryCount()) {
+            StateMachine stateMachine = retrieveStateMachine(state.getStateMachineId());
             logger.info("Redriving a task with Id: {} for state machine: {}", state.getId(), state.getStateMachineId());
             executeStates(state.getStateMachineId(), stateMachine.getName(), Collections.singleton(state));
         } else {
