@@ -245,6 +245,11 @@ public class StateMachineResource {
                 updateStatus = com.flipkart.flux.domain.Status.sidelined;
                 break;
         }
+        metricsClient.markMeter(new StringBuilder().
+                append(executionUpdateData.getTaskName()).
+                append(".status.").
+                append(updateStatus.name()).
+                toString());
         this.workFlowExecutionController.updateExecutionStatus(machineId, stateId, updateStatus, executionUpdateData.getRetrycount(),
                 executionUpdateData.getCurrentRetryCount(), executionUpdateData.getErrorMessage(), executionUpdateData.isDeleteFromRedriver());
     }
