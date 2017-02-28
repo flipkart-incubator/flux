@@ -246,6 +246,9 @@ public class StateMachineResource {
                 break;
         }
         metricsClient.markMeter(new StringBuilder().
+                append("stateMachine.").
+                append(executionUpdateData.getStateMachineName()).
+                append(".task.").
                 append(executionUpdateData.getTaskName()).
                 append(".status.").
                 append(updateStatus.name()).

@@ -63,12 +63,14 @@ public class FluxError extends RuntimeException {
 	 */
 	public static class ExecutionContextMeta {
 		private Long stateMachineId;
+		private String stateMachineName;
 		private String taskName;
 		private Long taskId;
 		private Long maxRetries;
 		private Long attemptedNoOfRetries;
-		public ExecutionContextMeta(Long stateMachineId, String taskName, Long taskId, Long maxRetries, Long attemptedNoOfRetries) {
+		public ExecutionContextMeta(Long stateMachineId, String stateMachineName, String taskName, Long taskId, Long maxRetries, Long attemptedNoOfRetries) {
 			this.stateMachineId = stateMachineId;
+			this.stateMachineName = stateMachineName;
 			this.taskName = taskName;
 			this.taskId = taskId;
 			this.maxRetries = maxRetries;
@@ -76,6 +78,9 @@ public class FluxError extends RuntimeException {
 		}
 		public Long getStateMachineId() {
 			return stateMachineId;
+		}
+		public String getStateMachineName() {
+			return stateMachineName;
 		}
 		public String getTaskName(){return taskName;}
 		public Long getTaskId() {
