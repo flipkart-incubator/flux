@@ -120,7 +120,6 @@ public class TaskAndEvents implements Serializable {
         // Probably incorrect - comparing Object[] arrays with Arrays.equals
         if (!Arrays.equals(events, that.events)) return false;
         if (!stateMachineId.equals(that.stateMachineId)) return false;
-        // Didn't include stateMachineName in the equals, as two taskEvent can have the same stateMachineName
         return !(outputEvent != null ? !outputEvent.equals(that.outputEvent) : that.outputEvent != null);
 
     }
@@ -131,7 +130,6 @@ public class TaskAndEvents implements Serializable {
         result = 31 * result + (events != null ? Arrays.hashCode(events) : 0);
         result = 31 * result + taskId.hashCode();
         result = 31 * result + stateMachineId.hashCode();
-        result = 31 * result + stateMachineName.hashCode();
         result = 31 * result + (outputEvent != null ? outputEvent.hashCode() : 0);
         return result;
     }

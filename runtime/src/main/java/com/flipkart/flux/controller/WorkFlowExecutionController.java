@@ -84,7 +84,7 @@ public class WorkFlowExecutionController {
 
         final List<String> triggeredEvents = eventsDAO.findTriggeredEventsNamesBySMId(stateMachine.getId());
         Set<State> initialStates = context.getInitialStates(new HashSet<>(triggeredEvents));
-        executeStates(stateMachine.getId(), stateMachine.getName(), initialStates);
+        executeStates(stateMachine, initialStates);
 
         return initialStates;
     }
@@ -123,7 +123,7 @@ public class WorkFlowExecutionController {
         Set<State> executableStates = getExecutableStates(dependantStates, stateMachineInstanceId);
         logger.debug("These states {} are now unblocked after event {}", executableStates, eventData.getName());
         //start execution of the above states
-        executeStates(stateMachineInstanceId, stateMachine.getName(), executableStates, event);
+        executeStates(stateMachine, executableStates, event);
 
         return executableStates;
     }
@@ -153,18 +153,27 @@ public class WorkFlowExecutionController {
      * @param stateId
      */
     public void unsidelineState(Long stateMachineId, Long stateId) {
-        State state = this.statesDAO.findById(stateId);
+        State askedState = null;
         StateMachine stateMachine = retrieveStateMachine(stateMachineId);
-        if(stateMachine == null)
+        for (State state: stateMachine.getStates()){
+            if(state.getId() == stateId){
+                askedState = state;
+                break;
+            }
+        }
+        if(stateMachine == null )
             throw new UnknownStateMachine("State machine with id: "+ stateMachineId+ " not found");
+        if(askedState == null){
+            throw new IllegalStateException("State with the asked id: " + stateId + "not found in stateMachine with id: " + stateMachineId);
+        }
 
-        if (state.getStatus() == Status.sidelined || state.getStatus() == Status.errored) {
-            state.setStatus(Status.unsidelined);
-            state.setAttemptedNoOfRetries(0L);
+        if (askedState.getStatus() == Status.sidelined || askedState.getStatus() == Status.errored) {
+            askedState.setStatus(Status.unsidelined);
+            askedState.setAttemptedNoOfRetries(0L);
 
-            this.statesDAO.updateState(state);
+            this.statesDAO.updateState(askedState);
 
-            this.executeStates(stateMachineId,  stateMachine.getName(), Sets.newHashSet(Arrays.asList(state)));
+            this.executeStates(stateMachine, Sets.newHashSet(Arrays.asList(askedState)));
         }
 
 
@@ -184,18 +193,18 @@ public class WorkFlowExecutionController {
     }
 
     /**
-     * Wrapper function on {@link #executeStates(Long, String, Set, Event)} which triggers the execution of executableStates using Akka router.
+     * Wrapper function on {@link #executeStates(StateMachine, Set)} which triggers the execution of executableStates using Akka router.
      */
-    private void executeStates(Long stateMachineInstanceId, String stateMachineName, Set<State> executableStates) {
-        executeStates(stateMachineInstanceId, stateMachineName, executableStates, null);
+    private void executeStates(StateMachine stateMachine, Set<State> executableStates) {
+        executeStates(stateMachine, executableStates, null);
     }
 
     /**
      * Triggers the execution of executableStates using Akka router
-     * @param stateMachineInstanceId the state machine identifier
+     * @param stateMachine the state machine
      * @param executableStates states whose all dependencies are met
      */
-    private void executeStates(Long stateMachineInstanceId, String stateMachineName ,Set<State> executableStates, Event currentEvent) {
+    private void executeStates(StateMachine stateMachine, Set<State> executableStates, Event currentEvent) {
         executableStates.forEach((state ->  {
             if(state.getStatus() != Status.completed) {
                 List<EventData> eventDatas;
@@ -203,11 +212,11 @@ public class WorkFlowExecutionController {
                 if (currentEvent != null && state.getDependencies() != null && state.getDependencies().size() == 1 && currentEvent.getName().equals(state.getDependencies().get(0))) {
                     eventDatas = Collections.singletonList(new EventData(currentEvent.getName(), currentEvent.getType(), currentEvent.getEventData(), currentEvent.getEventSource()));
                 } else {
-                    eventDatas = eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId);
+                    eventDatas = eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachine.getId());
                 }
                 final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
                         eventDatas.toArray(new EventData[]{}),
-                        stateMachineInstanceId, stateMachineName ,state.getOutputEvent(), state.getRetryCount(), state.getAttemptedNoOfRetries());
+                        stateMachine.getId(), stateMachine.getName() ,state.getOutputEvent(), state.getRetryCount(), state.getAttemptedNoOfRetries());
                 if (state.getStatus().equals(Status.initialized) || state.getStatus().equals(Status.unsidelined)) {
                     msg.setFirstTimeExecution(true);
                 }
@@ -227,7 +236,7 @@ public class WorkFlowExecutionController {
                 ActorRef router = this.routerRegistry.getRouter(routerName);
 
                 router.tell(msg, ActorRef.noSender());
-                logger.info("Sending msg to router: {} to execute state machine: {} task: {}", router.path(), stateMachineInstanceId, msg.getTaskId());
+                logger.info("Sending msg to router: {} to execute state machine: {} task: {}", router.path(), stateMachine.getId(), msg.getTaskId());
             } else {
                 logger.info("State machine: {} Task: {} execution request got discarded as the task is already completed", state.getStateMachineId(), state.getId());
             }
@@ -262,10 +271,11 @@ public class WorkFlowExecutionController {
      */
     public void redriveTask(Long taskId) {
         State state = statesDAO.findById(taskId);
+
         if(state != null && isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() < state.getRetryCount()) {
             StateMachine stateMachine = retrieveStateMachine(state.getStateMachineId());
             logger.info("Redriving a task with Id: {} for state machine: {}", state.getId(), state.getStateMachineId());
-            executeStates(state.getStateMachineId(), stateMachine.getName(), Collections.singleton(state));
+                executeStates(stateMachine, Collections.singleton(state));
         } else {
             //cleanup the tasks which can't be redrived from redriver db
             this.redriverRegistry.deRegisterTask(taskId);
