@@ -155,14 +155,15 @@ public class WorkFlowExecutionController {
     public void unsidelineState(Long stateMachineId, Long stateId) {
         State askedState = null;
         StateMachine stateMachine = retrieveStateMachine(stateMachineId);
+        if(stateMachine == null )
+            throw new UnknownStateMachine("State machine with id: "+ stateMachineId+ " not found");
         for (State state: stateMachine.getStates()){
             if(state.getId() == stateId){
                 askedState = state;
                 break;
             }
         }
-        if(stateMachine == null )
-            throw new UnknownStateMachine("State machine with id: "+ stateMachineId+ " not found");
+
         if(askedState == null){
             throw new IllegalStateException("State with the asked id: " + stateId + "not found in stateMachine with id: " + stateMachineId);
         }
@@ -193,7 +194,7 @@ public class WorkFlowExecutionController {
     }
 
     /**
-     * Wrapper function on {@link #executeStates(StateMachine, Set)} which triggers the execution of executableStates using Akka router.
+     * Wrapper function on {@link #executeStates(StateMachine, Set, Event)} which triggers the execution of executableStates using Akka router.
      */
     private void executeStates(StateMachine stateMachine, Set<State> executableStates) {
         executeStates(stateMachine, executableStates, null);
