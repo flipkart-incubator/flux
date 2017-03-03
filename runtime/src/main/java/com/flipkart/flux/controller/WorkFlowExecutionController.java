@@ -157,15 +157,15 @@ public class WorkFlowExecutionController {
         StateMachine stateMachine = retrieveStateMachine(stateMachineId);
         if(stateMachine == null )
             throw new UnknownStateMachine("State machine with id: "+ stateMachineId+ " not found");
-        for (State state: stateMachine.getStates()){
-            if(state.getId() == stateId){
+        for (State state : stateMachine.getStates()){
+            if(Objects.equals(state.getId(), stateId)){
                 askedState = state;
                 break;
             }
         }
 
         if(askedState == null){
-            throw new IllegalStateException("State with the asked id: " + stateId + "not found in stateMachine with id: " + stateMachineId);
+            throw new IllegalStateException("State with the asked id: " + stateId + " not found in stateMachine with id: " + stateMachineId);
         }
 
         if (askedState.getStatus() == Status.sidelined || askedState.getStatus() == Status.errored) {
