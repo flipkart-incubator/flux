@@ -42,6 +42,8 @@ public class TaskAndEvents implements Serializable {
     private EventData[] events;
     /* The state machine id for which this execution message is raised */
     private Long stateMachineId;
+    /* The state machine name for which this execution message is raised */
+    private String stateMachineName;
     /* Serialised output event definition */
     private String outputEvent;
     /* The max retry count*/
@@ -53,18 +55,19 @@ public class TaskAndEvents implements Serializable {
 
     /** constructors*/
     public TaskAndEvents() {}
-    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, EventData[] events, Long stateMachineId, String outputEvent, long retryCount) {
+    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, EventData[] events, Long stateMachineId, String stateMachineName, String outputEvent, long retryCount) {
     	this.taskName = taskName;
         this.taskIdentifier = taskIdentifier;
         this.taskId = taskId;
         this.events = events;
         this.stateMachineId = stateMachineId;
+        this.stateMachineName = stateMachineName;
         this.outputEvent = outputEvent;
         this.retryCount = retryCount;
     }
 
-    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, EventData[] events, Long stateMachineId, String outputEvent, long retryCount, long currentRetryCount) {
-        this(taskName, taskIdentifier, taskId, events, stateMachineId, outputEvent, retryCount);
+    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, EventData[] events, Long stateMachineId, String stateMachineName, String outputEvent, long retryCount, long currentRetryCount) {
+        this(taskName, taskIdentifier, taskId, events, stateMachineId, stateMachineName, outputEvent, retryCount);
         this.currentRetryCount = currentRetryCount;
     }
 
@@ -82,6 +85,9 @@ public class TaskAndEvents implements Serializable {
     }
     public Long getStateMachineId() {
         return stateMachineId;
+    }
+    public String getStateMachineName() {
+        return stateMachineName;
     }
     public String getOutputEvent() {
         return outputEvent;
@@ -135,6 +141,7 @@ public class TaskAndEvents implements Serializable {
             ", taskIdentifier='" + taskIdentifier + '\'' +
             ", taskId=" + taskId +
             ", stateMachineId=" + stateMachineId +
+            ", stateMachineName=" + stateMachineName +
             ", outputEvent='" + outputEvent + '\'' +
             '}';
     }

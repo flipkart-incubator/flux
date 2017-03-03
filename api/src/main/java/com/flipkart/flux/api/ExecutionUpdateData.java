@@ -25,6 +25,8 @@ public class ExecutionUpdateData implements Serializable {
 	
 	/** Member variables*/
 	private Long stateMachineId;
+	private String stateMachineName;
+	private String taskName;
 	private Long taskId;
 	private Status status;
 	private long retrycount = 0;
@@ -36,8 +38,10 @@ public class ExecutionUpdateData implements Serializable {
 	/* For use by Jackson for deserialization*/
 	public ExecutionUpdateData() {
 	}
-    public ExecutionUpdateData(Long stateMachineId, Long taskId, Status status, long retrycount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver) {
+    public ExecutionUpdateData(Long stateMachineId, String stateMachineName, String taskName, Long taskId, Status status, long retrycount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver) {
 		this.stateMachineId = stateMachineId;
+		this.stateMachineName = stateMachineName;
+		this.taskName = taskName;
 		this.taskId = taskId;
 		this.status = status;
 		this.retrycount = retrycount;
@@ -50,6 +54,8 @@ public class ExecutionUpdateData implements Serializable {
 	public Long getStateMachineId() {
 		return stateMachineId;
 	}
+	public String getStateMachineName() { return stateMachineName; }
+	public String getTaskName(){return taskName;}
 	public Long getTaskId() {
 		return taskId;
 	}

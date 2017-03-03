@@ -54,7 +54,7 @@ public class WorkFlowExecutionControllerTest {
 
     @Mock
     EventsDAO eventsDAO;
-    
+
     @Mock
     StatesDAO statesDAO;
 
@@ -66,7 +66,7 @@ public class WorkFlowExecutionControllerTest {
 
     @Mock
     private RedriverRegistry redriverRegistry;
-    
+
     TestActorRef<MockActorRef> mockActor;
 
     private WorkFlowExecutionController workFlowExecutionController;
@@ -100,7 +100,7 @@ public class WorkFlowExecutionControllerTest {
         workFlowExecutionController.postEvent(testEventData, 1l, null);
 
         verify(routerRegistry, times(1)).getRouter("com.flipkart.flux.dao.TestWorkflow_dummyTask"); // For 1 unblocked states
-        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, 1l, TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)),2), 1);
+        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, 1l, "test_state_machine", TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)),2), 1);
         verifyNoMoreInteractions(routerRegistry);
     }
 
@@ -152,7 +152,7 @@ public class WorkFlowExecutionControllerTest {
         workFlowExecutionController.postEvent(testEventData, 1l, null);
 
         verify(routerRegistry, times(1)).getRouter("com.flipkart.flux.dao.TestWorkflow_dummyTask"); // the router should receive only one execution request
-        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, 1l, TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)),2), 1);
+        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, 1l, "test_state_machine", TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)),2), 1);
         verifyNoMoreInteractions(routerRegistry);
     }
 
@@ -171,7 +171,7 @@ public class WorkFlowExecutionControllerTest {
         workFlowExecutionController.postEvent(testEventData, 1l, null);
 
         verify(routerRegistry, times(2)).getRouter("com.flipkart.flux.dao.TestWorkflow_dummyTask"); // the router should receive two execution requests
-        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, 1l, TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)),2), 2);
+        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, 1l, "test_state_machine", TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)),2), 2);
         verifyNoMoreInteractions(routerRegistry);
     }
 }
