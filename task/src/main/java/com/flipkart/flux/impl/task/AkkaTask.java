@@ -127,7 +127,7 @@ public class AkkaTask extends UntypedActor {
                             fluxRuntimeConnector.submitEventAndUpdateStatus(
                                     new EventData(outputEvent.getName(), outputEvent.getType(), outputEvent.getEventData(), outputEvent.getEventSource()),
                                     outputEvent.getStateMachineInstanceId(),
-                                    new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), task.getName() ,taskAndEvent.getTaskId(), Status.completed, taskAndEvent.getRetryCount(),
+                                    new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName() ,taskAndEvent.getTaskId(), Status.completed, taskAndEvent.getRetryCount(),
                                             taskAndEvent.getCurrentRetryCount(), null, true));
                         } else {
                             // update the Flux runtime with status of the Task as completed
