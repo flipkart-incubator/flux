@@ -2,7 +2,7 @@
 Flux is an asynchronous, scalable, optionally multi-tenant & distributed and reliable state machine based orchestrator. 
 Flux can be used to build Workflows and Reactive apps that are stateful. 
 
-Please go through the [wiki](https://github.com/flipkart-incubator/flux/wiki) pages to find out more about flux.
+Flux quick introduction video is available [here](https://www.youtube.com/watch?v=gddh5J2qB3k). Please go through the [wiki](https://github.com/flipkart-incubator/flux/wiki) pages to find out more about flux. 
 
 ## Releases
 | Release | Date | Description |
