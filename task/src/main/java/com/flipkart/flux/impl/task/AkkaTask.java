@@ -97,6 +97,12 @@ public class AkkaTask extends UntypedActor {
         if (TaskAndEvents.class.isAssignableFrom(message.getClass())) {
             try {
                 TaskAndEvents taskAndEvent = (TaskAndEvents) message;
+                metricsClient.decCounter(new StringBuilder().
+                        append("stateMachine.").
+                        append(taskAndEvent.getStateMachineName()).
+                        append(".task.").
+                        append(taskAndEvent.getTaskName()).
+                        append(".queueSize").toString());
                 logger.info("Akka task processing state machine: {} task: {}", taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId());
                 logger.debug("Actor {} received directive {}", this.getSelf(), taskAndEvent);
                 if (!taskAndEvent.getIsFirstTimeExecution()) {
@@ -108,12 +114,6 @@ public class AkkaTask extends UntypedActor {
                 if (task != null) {
                     try {
                         // update the Flux runtime with status of the Task as running
-                        metricsClient.decCounter(new StringBuilder().
-                                append("stateMachine.").
-                                append(taskAndEvent.getStateMachineName()).
-                                append(".task.").
-                                append(taskAndEvent.getTaskName()).
-                                append(".queueSize").toString());
                         updateExecutionStatus(taskAndEvent, Status.running, null, false);
                     } catch (RuntimeCommunicationException e) {
                         logger.error("Error occurred while updating task: {} status to running. Error: {}", taskAndEvent.getTaskId(), e.getMessage());
