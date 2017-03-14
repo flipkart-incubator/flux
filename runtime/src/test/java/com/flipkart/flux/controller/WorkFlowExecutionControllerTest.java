@@ -30,6 +30,7 @@ import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
+import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.util.TestUtils;
 import org.junit.After;
@@ -67,6 +68,9 @@ public class WorkFlowExecutionControllerTest {
     @Mock
     private RedriverRegistry redriverRegistry;
 
+    @Mock
+    private MetricsClient metricsClient;
+
     TestActorRef<MockActorRef> mockActor;
 
     private WorkFlowExecutionController workFlowExecutionController;
@@ -77,7 +81,7 @@ public class WorkFlowExecutionControllerTest {
     @Before
     public void setUp() throws Exception {
         Thread.sleep(1000);
-        workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, auditDAO, routerRegistry, redriverRegistry);
+        workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, auditDAO, routerRegistry, redriverRegistry, metricsClient);
         when(stateMachinesDAO.findById(anyLong())).thenReturn(TestUtils.getStandardTestMachineWithId());
         actorSystem = ActorSystem.create();
         mockActor = TestActorRef.create(actorSystem, Props.create(MockActorRef.class));

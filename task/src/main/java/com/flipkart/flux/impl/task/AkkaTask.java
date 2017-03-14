@@ -34,6 +34,7 @@ import com.flipkart.flux.client.runtime.RuntimeCommunicationException;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.impl.message.HookAndEvents;
 import com.flipkart.flux.impl.message.TaskAndEvents;
+import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import com.netflix.hystrix.exception.HystrixRuntimeException.FailureType;
@@ -68,10 +69,13 @@ public class AkkaTask extends UntypedActor {
     private static TaskRegistry taskRegistry;
 
     /**
-     * The Flux Runtime Connector instance for dispatching processed EventS and execution status updates
+     * The Flux Runtime Connector instance for dispatching processed Events and execution status updates
      */
     @Inject
     private static FluxRuntimeConnector fluxRuntimeConnector;
+
+    @Inject
+    private static MetricsClient metricsClient;
 
     /**
      * Router instance for the Hook actors
@@ -93,6 +97,12 @@ public class AkkaTask extends UntypedActor {
         if (TaskAndEvents.class.isAssignableFrom(message.getClass())) {
             try {
                 TaskAndEvents taskAndEvent = (TaskAndEvents) message;
+                metricsClient.decCounter(new StringBuilder().
+                        append("stateMachine.").
+                        append(taskAndEvent.getStateMachineName()).
+                        append(".task.").
+                        append(taskAndEvent.getTaskName()).
+                        append(".queueSize").toString());
                 logger.info("Akka task processing state machine: {} task: {}", taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId());
                 logger.debug("Actor {} received directive {}", this.getSelf(), taskAndEvent);
                 if (!taskAndEvent.getIsFirstTimeExecution()) {
@@ -158,6 +168,12 @@ public class AkkaTask extends UntypedActor {
                                 cause = cause.getCause();
                             }
                             if (isFluxRetriableException) {
+                                metricsClient.incCounter(new StringBuilder().
+                                        append("stateMachine.").
+                                        append(taskAndEvent.getStateMachineName()).
+                                        append(".task.").
+                                        append(taskAndEvent.getTaskName()).
+                                        append(".queueSize").toString());
                                 // mark the task outcome as execution failure, and the task is retriable
                                 updateExecutionStatus(taskAndEvent, Status.errored, cause.getClass().getName() + " : " + cause.getMessage(), false);
 

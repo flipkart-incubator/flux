@@ -42,4 +42,14 @@ public class MetricsClientImpl implements MetricsClient {
     public void markMeter(String key) {
         metricRegistry.meter(key).mark();
     }
+
+    @Override
+    public void incCounter(String key) {
+        metricRegistry.counter(key).inc();
+    }
+
+    @Override
+    public void decCounter(String key) {
+        metricRegistry.counter(key).dec();
+    }
 }
