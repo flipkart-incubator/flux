@@ -242,7 +242,12 @@ public class WorkFlowExecutionController {
                 ActorRef router = this.routerRegistry.getRouter(routerName);
 
                 router.tell(msg, ActorRef.noSender());
-                metricsClient.incCounter(msg.getTaskName());
+                metricsClient.incCounter(new StringBuilder().
+                        append("stateMachine.").
+                        append(msg.getStateMachineName()).
+                        append(".task.").
+                        append(msg.getTaskName()).
+                        append(".queueSize").toString());
                 logger.info("Sending msg to router: {} to execute state machine: {} task: {}", router.path(), stateMachine.getId(), msg.getTaskId());
             } else {
                 logger.info("State machine: {} Task: {} execution request got discarded as the task is already completed", state.getStateMachineId(), state.getId());

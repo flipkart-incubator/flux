@@ -108,7 +108,12 @@ public class AkkaTask extends UntypedActor {
                 if (task != null) {
                     try {
                         // update the Flux runtime with status of the Task as running
-                        metricsClient.decCounter(taskAndEvent.getTaskName());
+                        metricsClient.decCounter(new StringBuilder().
+                                append("stateMachine.").
+                                append(taskAndEvent.getStateMachineName()).
+                                append(".task.").
+                                append(taskAndEvent.getTaskName()).
+                                append(".queueSize").toString());
                         updateExecutionStatus(taskAndEvent, Status.running, null, false);
                     } catch (RuntimeCommunicationException e) {
                         logger.error("Error occurred while updating task: {} status to running. Error: {}", taskAndEvent.getTaskId(), e.getMessage());
@@ -163,7 +168,12 @@ public class AkkaTask extends UntypedActor {
                                 cause = cause.getCause();
                             }
                             if (isFluxRetriableException) {
-                                metricsClient.incCounter(taskAndEvent.getTaskName());
+                                metricsClient.incCounter(new StringBuilder().
+                                        append("stateMachine.").
+                                        append(taskAndEvent.getStateMachineName()).
+                                        append(".task.").
+                                        append(taskAndEvent.getTaskName()).
+                                        append(".queueSize").toString());
                                 // mark the task outcome as execution failure, and the task is retriable
                                 updateExecutionStatus(taskAndEvent, Status.errored, cause.getClass().getName() + " : " + cause.getMessage(), false);
 
