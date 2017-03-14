@@ -25,4 +25,15 @@ public interface MetricsClient {
      */
     public void markMeter(String key);
 
+    /**
+     * Increment a counter.
+     * @param key The name of the counter.
+     */
+    public void incCounter(String key);
+
+    /**
+     * Decrement a counter.
+     * @param key The name of the counter.
+     */
+    public void decCounter(String key);
 }

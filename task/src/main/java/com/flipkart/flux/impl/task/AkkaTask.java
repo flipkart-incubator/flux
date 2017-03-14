@@ -68,10 +68,13 @@ public class AkkaTask extends UntypedActor {
     private static TaskRegistry taskRegistry;
 
     /**
-     * The Flux Runtime Connector instance for dispatching processed EventS and execution status updates
+     * The Flux Runtime Connector instance for dispatching processed Events and execution status updates
      */
     @Inject
     private static FluxRuntimeConnector fluxRuntimeConnector;
+
+    @Inject
+    private static MetricsClient metricsClient;
 
     /**
      * Router instance for the Hook actors

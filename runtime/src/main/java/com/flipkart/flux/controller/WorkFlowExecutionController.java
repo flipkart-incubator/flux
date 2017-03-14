@@ -25,6 +25,7 @@ import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
+import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
@@ -60,16 +61,20 @@ public class WorkFlowExecutionController {
     /** The Redriver Registry for driving stalled Tasks*/
     private RedriverRegistry redriverRegistry;
 
+    /** Metrics client for keeping track of task metrics*/
+    private MetricsClient metricsClient;
+
     /** Constructor for this class */
     @Inject
     public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO,
-                                       StatesDAO statesDAO, AuditDAO auditDAO, RouterRegistry routerRegistry, RedriverRegistry redriverRegistry) {
+                                       StatesDAO statesDAO, AuditDAO auditDAO, RouterRegistry routerRegistry, RedriverRegistry redriverRegistry, MetricsClient metricsClient) {
         this.eventsDAO = eventsDAO;
         this.stateMachinesDAO = stateMachinesDAO;
         this.statesDAO = statesDAO;
         this.auditDAO = auditDAO;
         this.routerRegistry = routerRegistry;
         this.redriverRegistry = redriverRegistry;
+        this.metricsClient = metricsClient;
     }
 
     /**
@@ -237,6 +242,7 @@ public class WorkFlowExecutionController {
                 ActorRef router = this.routerRegistry.getRouter(routerName);
 
                 router.tell(msg, ActorRef.noSender());
+                metricsClient.incCounter(msg.getTaskName());
                 logger.info("Sending msg to router: {} to execute state machine: {} task: {}", router.path(), stateMachine.getId(), msg.getTaskId());
             } else {
                 logger.info("State machine: {} Task: {} execution request got discarded as the task is already completed", state.getStateMachineId(), state.getId());
