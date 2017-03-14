@@ -34,6 +34,7 @@ import com.flipkart.flux.client.runtime.RuntimeCommunicationException;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.impl.message.HookAndEvents;
 import com.flipkart.flux.impl.message.TaskAndEvents;
+import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import com.netflix.hystrix.exception.HystrixRuntimeException.FailureType;
@@ -107,6 +108,7 @@ public class AkkaTask extends UntypedActor {
                 if (task != null) {
                     try {
                         // update the Flux runtime with status of the Task as running
+                        metricsClient.decCounter(taskAndEvent.getTaskName());
                         updateExecutionStatus(taskAndEvent, Status.running, null, false);
                     } catch (RuntimeCommunicationException e) {
                         logger.error("Error occurred while updating task: {} status to running. Error: {}", taskAndEvent.getTaskId(), e.getMessage());
@@ -161,6 +163,7 @@ public class AkkaTask extends UntypedActor {
                                 cause = cause.getCause();
                             }
                             if (isFluxRetriableException) {
+                                metricsClient.incCounter(taskAndEvent.getTaskName());
                                 // mark the task outcome as execution failure, and the task is retriable
                                 updateExecutionStatus(taskAndEvent, Status.errored, cause.getClass().getName() + " : " + cause.getMessage(), false);
 
