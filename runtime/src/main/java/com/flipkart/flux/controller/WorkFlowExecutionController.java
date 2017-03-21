@@ -25,6 +25,7 @@ import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
+import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
@@ -60,16 +61,20 @@ public class WorkFlowExecutionController {
     /** The Redriver Registry for driving stalled Tasks*/
     private RedriverRegistry redriverRegistry;
 
+    /** Metrics client for keeping track of task metrics*/
+    private MetricsClient metricsClient;
+
     /** Constructor for this class */
     @Inject
     public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO,
-                                       StatesDAO statesDAO, AuditDAO auditDAO, RouterRegistry routerRegistry, RedriverRegistry redriverRegistry) {
+                                       StatesDAO statesDAO, AuditDAO auditDAO, RouterRegistry routerRegistry, RedriverRegistry redriverRegistry, MetricsClient metricsClient) {
         this.eventsDAO = eventsDAO;
         this.stateMachinesDAO = stateMachinesDAO;
         this.statesDAO = statesDAO;
         this.auditDAO = auditDAO;
         this.routerRegistry = routerRegistry;
         this.redriverRegistry = redriverRegistry;
+        this.metricsClient = metricsClient;
     }
 
     /**
@@ -84,7 +89,7 @@ public class WorkFlowExecutionController {
 
         final List<String> triggeredEvents = eventsDAO.findTriggeredEventsNamesBySMId(stateMachine.getId());
         Set<State> initialStates = context.getInitialStates(new HashSet<>(triggeredEvents));
-        executeStates(stateMachine.getId(), initialStates);
+        executeStates(stateMachine, initialStates);
 
         return initialStates;
     }
@@ -123,7 +128,7 @@ public class WorkFlowExecutionController {
         Set<State> executableStates = getExecutableStates(dependantStates, stateMachineInstanceId);
         logger.debug("These states {} are now unblocked after event {}", executableStates, eventData.getName());
         //start execution of the above states
-        executeStates(stateMachineInstanceId, executableStates, event);
+        executeStates(stateMachine, executableStates, event);
 
         return executableStates;
     }
@@ -153,15 +158,28 @@ public class WorkFlowExecutionController {
      * @param stateId
      */
     public void unsidelineState(Long stateMachineId, Long stateId) {
-        State state = this.statesDAO.findById(stateId);
+        State askedState = null;
+        StateMachine stateMachine = retrieveStateMachine(stateMachineId);
+        if(stateMachine == null )
+            throw new UnknownStateMachine("State machine with id: "+ stateMachineId+ " not found");
+        for (State state : stateMachine.getStates()){
+            if(Objects.equals(state.getId(), stateId)){
+                askedState = state;
+                break;
+            }
+        }
 
-        if (state.getStatus() == Status.sidelined || state.getStatus() == Status.errored) {
-            state.setStatus(Status.unsidelined);
-            state.setAttemptedNoOfRetries(0L);
+        if(askedState == null){
+            throw new IllegalStateException("State with the asked id: " + stateId + " not found in stateMachine with id: " + stateMachineId);
+        }
 
-            this.statesDAO.updateState(state);
+        if (askedState.getStatus() == Status.sidelined || askedState.getStatus() == Status.errored) {
+            askedState.setStatus(Status.unsidelined);
+            askedState.setAttemptedNoOfRetries(0L);
 
-            this.executeStates(stateMachineId, Sets.newHashSet(Arrays.asList(state)));
+            this.statesDAO.updateState(askedState);
+
+            this.executeStates(stateMachine, Sets.newHashSet(Arrays.asList(askedState)));
         }
 
 
@@ -181,49 +199,59 @@ public class WorkFlowExecutionController {
     }
 
     /**
-     * Wrapper function on {@link #executeStates(Long, Set, Event)} which triggers the execution of executableStates using Akka router.
+     * Wrapper function on {@link #executeStates(StateMachine, Set, Event)} which triggers the execution of executableStates using Akka router.
      */
-    private void executeStates(Long stateMachineInstanceId, Set<State> executableStates) {
-        executeStates(stateMachineInstanceId, executableStates, null);
+    private void executeStates(StateMachine stateMachine, Set<State> executableStates) {
+        executeStates(stateMachine, executableStates, null);
     }
 
     /**
      * Triggers the execution of executableStates using Akka router
-     * @param stateMachineInstanceId the state machine identifier
+     * @param stateMachine the state machine
      * @param executableStates states whose all dependencies are met
      */
-    private void executeStates(Long stateMachineInstanceId, Set<State> executableStates, Event currentEvent) {
+    private void executeStates(StateMachine stateMachine, Set<State> executableStates, Event currentEvent) {
         executableStates.forEach((state ->  {
-            List<EventData> eventDatas;
-            // If the state is dependant on only one event, that would be the event which came now, in that case don't make a call to DB
-            if(currentEvent != null && state.getDependencies() != null && state.getDependencies().size() == 1 && currentEvent.getName().equals(state.getDependencies().get(0))) {
-                eventDatas = Collections.singletonList(new EventData(currentEvent.getName(), currentEvent.getType(), currentEvent.getEventData(), currentEvent.getEventSource()));
+            if(state.getStatus() != Status.completed) {
+                List<EventData> eventDatas;
+                // If the state is dependant on only one event, that would be the event which came now, in that case don't make a call to DB
+                if (currentEvent != null && state.getDependencies() != null && state.getDependencies().size() == 1 && currentEvent.getName().equals(state.getDependencies().get(0))) {
+                    eventDatas = Collections.singletonList(new EventData(currentEvent.getName(), currentEvent.getType(), currentEvent.getEventData(), currentEvent.getEventSource()));
+                } else {
+                    eventDatas = eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachine.getId());
+                }
+                final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
+                        eventDatas.toArray(new EventData[]{}),
+                        stateMachine.getId(), stateMachine.getName() ,state.getOutputEvent(), state.getRetryCount(), state.getAttemptedNoOfRetries());
+                if (state.getStatus().equals(Status.initialized) || state.getStatus().equals(Status.unsidelined)) {
+                    msg.setFirstTimeExecution(true);
+                }
+
+                // register the Task with the redriver
+                if (state.getRetryCount() > 0) {
+                    // Delay between retires is exponential (2, 4, 8, 16, 32.... seconds) as seen in AkkaTask.
+                    // Redriver interval is set as 2 x ( 2^(retryCount+1) x 1s + (retryCount+1) x timeout)
+                    long redriverInterval = 2 * ((int) Math.pow(2, state.getRetryCount() + 1) * 1000 + (state.getRetryCount() + 1) * state.getTimeout());
+                    this.redriverRegistry.registerTask(state.getId(), redriverInterval);
+                }
+
+                //send the message to the Router
+                String taskName = state.getTask();
+                int secondUnderscorePosition = taskName.indexOf('_', taskName.indexOf('_') + 1);
+                String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition); //the name of router would be classFQN_taskMethodName
+                ActorRef router = this.routerRegistry.getRouter(routerName);
+
+                router.tell(msg, ActorRef.noSender());
+                metricsClient.incCounter(new StringBuilder().
+                        append("stateMachine.").
+                        append(msg.getStateMachineName()).
+                        append(".task.").
+                        append(msg.getTaskName()).
+                        append(".queueSize").toString());
+                logger.info("Sending msg to router: {} to execute state machine: {} task: {}", router.path(), stateMachine.getId(), msg.getTaskId());
             } else {
-                eventDatas = eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachineInstanceId);
+                logger.info("State machine: {} Task: {} execution request got discarded as the task is already completed", state.getStateMachineId(), state.getId());
             }
-            final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
-                    eventDatas.toArray(new EventData[]{}),
-                    stateMachineInstanceId, state.getOutputEvent(), state.getRetryCount(), state.getAttemptedNoOfRetries());
-            if(state.getStatus().equals(Status.initialized) || state.getStatus().equals(Status.unsidelined)) {
-                msg.setFirstTimeExecution(true);
-            }
-
-            // register the Task with the redriver
-            if (state.getRetryCount() > 0) {
-                // Delay between retires is exponential (2, 4, 8, 16, 32.... seconds) as seen in AkkaTask.
-                // Redriver interval is set as 2 x ( 2^(retryCount+1) x 1s + (retryCount+1) x timeout)
-                long redriverInterval = 2 * ((int) Math.pow(2, state.getRetryCount() + 1) * 1000 + (state.getRetryCount() + 1) * state.getTimeout());
-                this.redriverRegistry.registerTask(state.getId(), redriverInterval);
-            }
-
-            //send the message to the Router
-            String taskName = state.getTask();
-            int secondUnderscorePosition = taskName.indexOf('_', taskName.indexOf('_') + 1);
-            String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition); //the name of router would be classFQN_taskMethodName
-            ActorRef router = this.routerRegistry.getRouter(routerName);
-
-            router.tell(msg, ActorRef.noSender());
-            logger.info("Sending msg to router: {} to execute state machine: {} task: {}", router.path(), stateMachineInstanceId, msg.getTaskId());
         }));
     }
 
@@ -255,9 +283,11 @@ public class WorkFlowExecutionController {
      */
     public void redriveTask(Long taskId) {
         State state = statesDAO.findById(taskId);
+
         if(state != null && isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() < state.getRetryCount()) {
+            StateMachine stateMachine = retrieveStateMachine(state.getStateMachineId());
             logger.info("Redriving a task with Id: {} for state machine: {}", state.getId(), state.getStateMachineId());
-            executeStates(state.getStateMachineId(), Collections.singleton(state));
+                executeStates(stateMachine, Collections.singleton(state));
         } else {
             //cleanup the tasks which can't be redrived from redriver db
             this.redriverRegistry.deRegisterTask(taskId);

@@ -120,7 +120,10 @@ public class StateMachineResource {
 
         try {
             stateMachine = createAndInitStateMachine(stateMachineDefinition);
-            metricsClient.markMeter(stateMachine.getName());
+            metricsClient.markMeter(new StringBuilder().
+                    append("stateMachine.").
+                    append(stateMachine.getName()).
+                    append(".started").toString());
         } catch (ConstraintViolationException ex) {
             //in case of Duplicate correlation key, return http code 409 conflict
             return Response.status(Response.Status.CONFLICT.getStatusCode()).entity(ex.getCause() != null ? ex.getCause().getMessage() : null).build();
@@ -245,6 +248,14 @@ public class StateMachineResource {
                 updateStatus = com.flipkart.flux.domain.Status.sidelined;
                 break;
         }
+        metricsClient.markMeter(new StringBuilder().
+                append("stateMachine.").
+                append(executionUpdateData.getStateMachineName()).
+                append(".task.").
+                append(executionUpdateData.getTaskName()).
+                append(".status.").
+                append(updateStatus.name()).
+                toString());
         this.workFlowExecutionController.updateExecutionStatus(machineId, stateId, updateStatus, executionUpdateData.getRetrycount(),
                 executionUpdateData.getCurrentRetryCount(), executionUpdateData.getErrorMessage(), executionUpdateData.isDeleteFromRedriver());
     }

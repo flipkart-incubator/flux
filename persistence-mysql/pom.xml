@@ -5,14 +5,16 @@
     <properties>
         <liquibase-maven-plugin.dbname>flux</liquibase-maven-plugin.dbname>
     </properties>
+
     <parent>
         <groupId>com.flipkart</groupId>
         <artifactId>flux</artifactId>
-        <version>1.0</version>
+        <version>1.0.1</version>
     </parent>
+
     <groupId>com.flipkart.flux</groupId>
     <artifactId>persistence-mysql</artifactId>
-    <version>1.0</version>
+    <version>1.0.1</version>
     <name>persistence-mysql</name>
     <url>http://maven.apache.org</url>
 

@@ -1,3 +1,7 @@
+## 1.0.1 (Feb 10, 2017) - Stable release
+- **Changes:**
+  - Bug fixes
+
 ## 1.0 (Jan 19, 2017) - Stable release
 - **Changes:**
   - Deployment Unit dynamic load and unload

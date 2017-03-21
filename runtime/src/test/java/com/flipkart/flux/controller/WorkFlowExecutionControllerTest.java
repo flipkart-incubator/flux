@@ -25,8 +25,12 @@ import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.State;
+import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
+import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.util.TestUtils;
 import org.junit.After;
@@ -51,7 +55,7 @@ public class WorkFlowExecutionControllerTest {
 
     @Mock
     EventsDAO eventsDAO;
-    
+
     @Mock
     StatesDAO statesDAO;
 
@@ -63,7 +67,10 @@ public class WorkFlowExecutionControllerTest {
 
     @Mock
     private RedriverRegistry redriverRegistry;
-    
+
+    @Mock
+    private MetricsClient metricsClient;
+
     TestActorRef<MockActorRef> mockActor;
 
     private WorkFlowExecutionController workFlowExecutionController;
@@ -74,7 +81,7 @@ public class WorkFlowExecutionControllerTest {
     @Before
     public void setUp() throws Exception {
         Thread.sleep(1000);
-        workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, auditDAO, routerRegistry, redriverRegistry);
+        workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, auditDAO, routerRegistry, redriverRegistry, metricsClient);
         when(stateMachinesDAO.findById(anyLong())).thenReturn(TestUtils.getStandardTestMachineWithId());
         actorSystem = ActorSystem.create();
         mockActor = TestActorRef.create(actorSystem, Props.create(MockActorRef.class));
@@ -97,7 +104,7 @@ public class WorkFlowExecutionControllerTest {
         workFlowExecutionController.postEvent(testEventData, 1l, null);
 
         verify(routerRegistry, times(1)).getRouter("com.flipkart.flux.dao.TestWorkflow_dummyTask"); // For 1 unblocked states
-        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, 1l, TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)),2), 1);
+        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, 1l, "test_state_machine", TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)),2), 1);
         verifyNoMoreInteractions(routerRegistry);
     }
 
@@ -133,5 +140,42 @@ public class WorkFlowExecutionControllerTest {
 
         verify(redriverRegistry).registerTask(2L, 32800); //state with id 2 has 3 retries and 100ms timeout
         verify(redriverRegistry).registerTask(4L, 8400); //state with id 4 has 1 retries and 100ms timeout
+    }
+
+    @Test
+    public void testEventPost_shouldNotExecuteTaskIfItIsAlreadyCompleted() throws Exception {
+        final EventData testEventData = new EventData("event0", "java.lang.String", "42", "runtime");
+        when(eventsDAO.findBySMIdAndName(1l, "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, 1l, null, null));
+        EventData[] expectedEvents = new EventData[]{new EventData("event0","java.lang.String","42","runtime")};
+        when(eventsDAO.findTriggeredEventsNamesBySMId(1l)).thenReturn(Collections.singletonList("event0"));
+        workFlowExecutionController.postEvent(testEventData, 1l, null);
+        State state = stateMachinesDAO.findById(1L).getStates().stream().filter((s)->s.getId() == 4L).findFirst().orElse(null);
+        state.setStatus(Status.completed);
+
+        //post the event again, this should not send msg to router for execution
+        workFlowExecutionController.postEvent(testEventData, 1l, null);
+
+        verify(routerRegistry, times(1)).getRouter("com.flipkart.flux.dao.TestWorkflow_dummyTask"); // the router should receive only one execution request
+        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, 1l, "test_state_machine", TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)),2), 1);
+        verifyNoMoreInteractions(routerRegistry);
+    }
+
+    @Test
+    public void testEventPost_shouldExecuteTaskIfItIsNotCompleted() throws Exception {
+        final EventData testEventData = new EventData("event0", "java.lang.String", "42", "runtime");
+        when(eventsDAO.findBySMIdAndName(1l, "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, 1l, null, null));
+        EventData[] expectedEvents = new EventData[]{new EventData("event0","java.lang.String","42","runtime")};
+        when(eventsDAO.findTriggeredEventsNamesBySMId(1l)).thenReturn(Collections.singletonList("event0"));
+        workFlowExecutionController.postEvent(testEventData, 1l, null);
+        StateMachine stateMachine = stateMachinesDAO.findById(1L);
+        State state = stateMachinesDAO.findById(1L).getStates().stream().filter((s)->s.getId() == 4L).findFirst().orElse(null);
+        state.setStatus(Status.errored);
+
+        //post the event again, this should send msg to router again for execution
+        workFlowExecutionController.postEvent(testEventData, 1l, null);
+
+        verify(routerRegistry, times(2)).getRouter("com.flipkart.flux.dao.TestWorkflow_dummyTask"); // the router should receive two execution requests
+        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, 1l, "test_state_machine", TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)),2), 2);
+        verifyNoMoreInteractions(routerRegistry);
     }
 }

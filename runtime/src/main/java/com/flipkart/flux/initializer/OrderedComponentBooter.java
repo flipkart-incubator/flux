@@ -60,9 +60,10 @@ public class OrderedComponentBooter implements Initializable {
         if (!this.actorSystemManager.isInitialised()) {
             throw new RuntimeException("Actor System should have been initialised by now. WTF!!");
         }
-        /* Bring up the API server */
-        logger.debug("loading API server");
+
         try {
+             /* Bring up the API server */
+            logger.debug("loading API server");
             apiServer.start();
             logger.debug("API server started. Say Hello!");
         /* Bring up the Dashboard server */

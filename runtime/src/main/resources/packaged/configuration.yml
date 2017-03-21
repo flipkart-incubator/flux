@@ -39,9 +39,9 @@ Dashboard:
 
 Api:
   service.port: 9998
-  service.acceptors: 5
-  service.selectors: 10
-  service.workers: 25
+  service.acceptors: 4
+  service.selectors: 4
+  service.workers: 200
 
 routers:
   default:

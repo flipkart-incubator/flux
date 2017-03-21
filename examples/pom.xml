@@ -7,12 +7,12 @@
     <parent>
         <groupId>com.flipkart</groupId>
         <artifactId>flux</artifactId>
-        <version>1.0</version>
+        <version>1.0.1</version>
     </parent>
     
     <groupId>com.flipkart.flux</groupId>
     <artifactId>examples</artifactId>
-    <version>1.0</version>
+    <version>1.0.1</version>
     <name>examples</name>
     <url>http://maven.apache.org</url>
 
@@ -41,7 +41,7 @@
         <dependency>
             <groupId>com.flipkart.flux</groupId>
             <artifactId>runtime</artifactId>
-            <version>1.0</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
