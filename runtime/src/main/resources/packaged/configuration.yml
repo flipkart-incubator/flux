@@ -9,6 +9,20 @@ flux.Hibernate:
   hibernate.c3p0.min_size: 10
   hibernate.c3p0.max_size: 100
 
+flux.Database:
+  driverClass: "com.mysql.jdbc.Driver"
+  user: "root"
+  password: ""
+  properties:
+    charSet: "UTF-8"
+  url: "jdbc:mysql://localhost:3306/flux"
+  maxWaitForConnection: 10s
+  validationQuery: "select 1"
+  minSize: 50
+  maxSize: 200
+  evictionInterval: 10s
+  minIdleTime: 60s
+
 fluxReadOnly.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"

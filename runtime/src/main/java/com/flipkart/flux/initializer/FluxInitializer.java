@@ -105,6 +105,7 @@ public class FluxInitializer {
         fluxRuntimeContainer.modules(
                 configModule,
                 new HibernateModule(),
+                new JDBIModule(),
                 new ContainerModule(),
                 new DeploymentUnitModule(),
                 new AkkaModule(),
