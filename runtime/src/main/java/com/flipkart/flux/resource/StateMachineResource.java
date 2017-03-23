@@ -365,8 +365,8 @@ public class StateMachineResource {
         if(fromTimestamp.after(toTimestamp)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("fromTime: " + fromTime + " should be before toTime: " + toTime).build();
         }
-
-        return Response.status(200).entity(statesDAO.findErroredStates(stateMachineName, fromTimestamp, toTimestamp, stateName)).build();
+        List<Status> statuses = Arrays.asList(Status.errored, Status.cancelled, Status.sidelined);
+        return Response.status(200).entity(statesDAO.findStatesByStatus(stateMachineName, fromTimestamp, toTimestamp, stateName, statuses)).build();
     }
 
     /**
@@ -391,7 +391,7 @@ public class StateMachineResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("fromTime: " + fromTime + " should be before toTime: " + toTime).build();
         }
 
-        return Response.status(200).entity(statesDAO.findInitializedStates(stateMachineName, fromTimestamp, toTimestamp)).build();
+        return Response.status(200).entity(statesDAO.findStatesByStatus(stateMachineName, fromTimestamp, toTimestamp, null, Arrays.asList(Status.initialized))).build();
     }
 
     /**

@@ -102,16 +102,26 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Override
     @Transactional
     @SelectDataSource(DataSourceType.READ_ONLY)
-    public List findErroredStates(String stateMachineName, Timestamp fromTime, Timestamp toTime, String stateName) {
+    public List findStatesByStatus(String stateMachineName, Timestamp fromTime, Timestamp toTime, String stateName, List<Status> statuses) {
         Query query;
+        String queryString = "select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
+                "where sm.id between (select min(id) from StateMachine where createdAt >= :fromTime) and (select max(id) from StateMachine where createdAt <= :toTime) " +
+                "and sm.name = :stateMachineName";
+
+        if(statuses != null && !statuses.isEmpty()) {
+            StringBuilder sb = new StringBuilder(" and state.status in (");
+            for (Status status : statuses) {
+                sb.append("'" + status.toString() + "',");
+            }
+            sb.deleteCharAt(sb.length() - 1).append(")");
+            String statusClause = sb.toString();
+            queryString.concat(statusClause);
+        }
+
         if(stateName == null) {
-            query = currentSession().createQuery("select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
-                    "where sm.id between (select min(id) from StateMachine where createdAt >= :fromTime) and (select max(id) from StateMachine where createdAt <= :toTime) " +
-                    "and sm.name = :stateMachineName and state.status in ('errored', 'sidelined', 'cancelled')");
+            query = currentSession().createQuery(queryString);
         } else {
-            query = currentSession().createQuery("select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
-                    "where sm.id between (select min(id) from StateMachine where createdAt >= :fromTime) and (select max(id) from StateMachine where createdAt <= :toTime) " +
-                    "and sm.name = :stateMachineName and state.name = :stateName and state.status in ('errored', 'sidelined', 'cancelled')");
+            query = currentSession().createQuery(queryString + " and state.name = :stateName");
             query.setString("stateName", stateName);
         }
 
@@ -122,19 +132,4 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         return query.list();
     }
 
-    @Override
-    @Transactional
-    @SelectDataSource(DataSourceType.READ_ONLY)
-    public List findInitializedStates(String stateMachineName, Timestamp fromTime, Timestamp toTime){
-        Query query;
-        query = currentSession().createQuery("select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
-                    "where sm.id between (select min(id) from StateMachine where createdAt >= :fromTime) and (select max(id) from StateMachine where createdAt <= :toTime) " +
-                    "and sm.name = :stateMachineName and state.status in ('initialized')");
-
-        query.setString("stateMachineName", stateMachineName);
-        query.setTimestamp("fromTime", fromTime);
-        query.setTimestamp("toTime", toTime);
-
-        return query.list();
-    }
 }
