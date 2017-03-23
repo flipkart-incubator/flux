@@ -370,6 +370,31 @@ public class StateMachineResource {
     }
 
     /**
+     * Retrieves all initialized states for the given range of time for a particular state machine name.
+     * @return json containing list of [state machine id, state id, status]
+     */
+    @GET
+    @Path("/{stateMachineName}/states/initializedbytime")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getInitializedStatesByTime(@PathParam("stateMachineName") String stateMachineName,
+                                           @QueryParam("fromTime") String fromTime,
+                                           @QueryParam("toTime") String toTime) throws Exception {
+
+        if(fromTime == null || toTime == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Required params fromTime/toTime are not provided").build();
+        }
+
+        Timestamp fromTimestamp = Timestamp.valueOf(fromTime);
+        Timestamp toTimestamp = Timestamp.valueOf(toTime);
+
+        if(fromTimestamp.after(toTimestamp)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("fromTime: " + fromTime + " should be before toTime: " + toTime).build();
+        }
+
+        return Response.status(200).entity(statesDAO.findInitializedStates(stateMachineName, fromTimestamp, toTimestamp)).build();
+    }
+
+    /**
      * This api unsidelines a single state and triggers its execution.
      *
      * @param stateMachineId

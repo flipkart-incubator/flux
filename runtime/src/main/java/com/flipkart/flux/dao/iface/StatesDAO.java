@@ -15,7 +15,10 @@ package com.flipkart.flux.dao.iface;
 
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.persistence.DataSourceType;
+import com.flipkart.flux.persistence.SelectDataSource;
 
+import javax.transaction.Transactional;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -51,4 +54,9 @@ public interface StatesDAO {
      * the given range fromTime and toTime with optional taskName parameter
      */
     List findErroredStates(String stateMachineName, Timestamp fromTime, Timestamp toTime, String taskName);
+
+    /**
+     * Returns all states with initialized status for a particular state machine name created in given time range.
+     */
+    List findInitializedStates(String stateMachineName, Timestamp fromTime, Timestamp toTime);
 }

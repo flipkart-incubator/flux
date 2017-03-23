@@ -121,4 +121,20 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
         return query.list();
     }
+
+    @Override
+    @Transactional
+    @SelectDataSource(DataSourceType.READ_ONLY)
+    public List findInitializedStates(String stateMachineName, Timestamp fromTime, Timestamp toTime){
+        Query query;
+        query = currentSession().createQuery("select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
+                    "where sm.id between (select min(id) from StateMachine where createdAt >= :fromTime) and (select max(id) from StateMachine where createdAt <= :toTime) " +
+                    "and sm.name = :stateMachineName and state.status in ('initialized')");
+
+        query.setString("stateMachineName", stateMachineName);
+        query.setTimestamp("fromTime", fromTime);
+        query.setTimestamp("toTime", toTime);
+
+        return query.list();
+    }
 }
