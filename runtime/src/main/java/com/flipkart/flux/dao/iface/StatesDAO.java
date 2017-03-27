@@ -15,10 +15,7 @@ package com.flipkart.flux.dao.iface;
 
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
-import com.flipkart.flux.persistence.DataSourceType;
-import com.flipkart.flux.persistence.SelectDataSource;
 
-import javax.transaction.Transactional;
 import java.sql.Timestamp;
 import java.util.List;
 

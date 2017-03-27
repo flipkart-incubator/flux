@@ -344,17 +344,18 @@ public class StateMachineResource {
     }
 
     /**
-     * Retrieves all errored states for the given range of time for a particular state machine name.
+     * Retrieves all states for the given range of time for a particular state machine name.
+     * Will also filter by status if it is given.
      * @return json containing list of [state machine id, state id, status]
      */
     @GET
-    @Path("/{stateMachineName}/states/erroredbytime")
+    @Path("/{stateMachineName}/states/bytime")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getErroredStatesByTime(@PathParam("stateMachineName") String stateMachineName,
                                            @QueryParam("fromTime") String fromTime,
                                            @QueryParam("toTime") String toTime,
-                                           @QueryParam("stateName") String stateName) throws Exception {
-
+                                           @QueryParam("stateName") String stateName,
+                                           @QueryParam("status") String status) throws Exception {
         if(fromTime == null || toTime == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Required params fromTime/toTime are not provided").build();
         }
@@ -365,33 +366,19 @@ public class StateMachineResource {
         if(fromTimestamp.after(toTimestamp)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("fromTime: " + fromTime + " should be before toTime: " + toTime).build();
         }
-        List<Status> statuses = Arrays.asList(Status.errored, Status.cancelled, Status.sidelined);
+        List<Status> statuses = new ArrayList<Status>();
+        if ("errored".equals(status)) {
+            statuses = Arrays.asList(Status.errored, Status.cancelled, Status.sidelined);
+        } else {
+            try {
+                statuses.add(Status.valueOf(status));
+            } catch (NullPointerException e) {
+                //Don't need to do anything.
+            } catch (IllegalArgumentException e) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("status: " + status + " must be one of initialized, running, completed, cancelled, errored, sidelined, unsidelined").build();
+            }
+        }
         return Response.status(200).entity(statesDAO.findStatesByStatus(stateMachineName, fromTimestamp, toTimestamp, stateName, statuses)).build();
-    }
-
-    /**
-     * Retrieves all initialized states for the given range of time for a particular state machine name.
-     * @return json containing list of [state machine id, state id, status]
-     */
-    @GET
-    @Path("/{stateMachineName}/states/initializedbytime")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getInitializedStatesByTime(@PathParam("stateMachineName") String stateMachineName,
-                                           @QueryParam("fromTime") String fromTime,
-                                           @QueryParam("toTime") String toTime) throws Exception {
-
-        if(fromTime == null || toTime == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Required params fromTime/toTime are not provided").build();
-        }
-
-        Timestamp fromTimestamp = Timestamp.valueOf(fromTime);
-        Timestamp toTimestamp = Timestamp.valueOf(toTime);
-
-        if(fromTimestamp.after(toTimestamp)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("fromTime: " + fromTime + " should be before toTime: " + toTime).build();
-        }
-
-        return Response.status(200).entity(statesDAO.findStatesByStatus(stateMachineName, fromTimestamp, toTimestamp, null, Arrays.asList(Status.initialized))).build();
     }
 
     /**
