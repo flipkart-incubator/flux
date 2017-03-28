@@ -355,7 +355,7 @@ public class StateMachineResource {
                                     @QueryParam("fromTime") String fromTime,
                                     @QueryParam("toTime") String toTime,
                                     @QueryParam("stateName") String stateName,
-                                    @QueryParam("status") final List<String> statusStrings) throws Exception {
+                                    @QueryParam("statuses") final List<String> statusStrings) throws Exception {
         if (fromTime == null || toTime == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Required params fromTime/toTime are not provided").build();
         }
