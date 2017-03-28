@@ -115,7 +115,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
             }
             sb.deleteCharAt(sb.length() - 1).append(")");
             String statusClause = sb.toString();
-            queryString.concat(statusClause);
+            queryString = queryString.concat(statusClause);
         }
 
         if(stateName == null) {
