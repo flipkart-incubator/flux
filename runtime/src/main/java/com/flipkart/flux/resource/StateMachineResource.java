@@ -223,7 +223,7 @@ public class StateMachineResource {
                                  ExecutionUpdateData executionUpdateData
     ) throws Exception {
         updateTaskStatus(machineId, stateId, executionUpdateData);
-    	return Response.status(Response.Status.ACCEPTED).build();
+        return Response.status(Response.Status.ACCEPTED).build();
     }
 
     private void updateTaskStatus(Long machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
@@ -349,33 +349,31 @@ public class StateMachineResource {
      * @return json containing list of [state machine id, state id, status]
      */
     @GET
-    @Path("/{stateMachineName}/states/bytime")
+    @Path("/{stateMachineName}/states/listbytime")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getErroredStatesByTime(@PathParam("stateMachineName") String stateMachineName,
-                                           @QueryParam("fromTime") String fromTime,
-                                           @QueryParam("toTime") String toTime,
-                                           @QueryParam("stateName") String stateName,
-                                           @QueryParam("status") String status) throws Exception {
-        if(fromTime == null || toTime == null) {
+    public Response getStatesByTime(@PathParam("stateMachineName") String stateMachineName,
+                                    @QueryParam("fromTime") String fromTime,
+                                    @QueryParam("toTime") String toTime,
+                                    @QueryParam("stateName") String stateName,
+                                    @QueryParam("status") final List<String> statusStrings) throws Exception {
+        if (fromTime == null || toTime == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Required params fromTime/toTime are not provided").build();
         }
 
         Timestamp fromTimestamp = Timestamp.valueOf(fromTime);
         Timestamp toTimestamp = Timestamp.valueOf(toTime);
 
-        if(fromTimestamp.after(toTimestamp)) {
+        if (fromTimestamp.after(toTimestamp)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("fromTime: " + fromTime + " should be before toTime: " + toTime).build();
         }
         List<Status> statuses = new ArrayList<Status>();
-        if ("errored".equals(status)) {
-            statuses = Arrays.asList(Status.errored, Status.cancelled, Status.sidelined);
-        } else {
-            try {
-                statuses.add(Status.valueOf(status));
-            } catch (NullPointerException e) {
-                //Don't need to do anything.
-            } catch (IllegalArgumentException e) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("status: " + status + " must be one of initialized, running, completed, cancelled, errored, sidelined, unsidelined").build();
+        if (statusStrings != null && !statusStrings.isEmpty()) {
+            for (String status : statusStrings) {
+                try {
+                    statuses.add(Status.valueOf(status));
+                } catch (IllegalArgumentException e) {
+                    return Response.status(Response.Status.BAD_REQUEST).entity("status: " + status + " must be one of initialized, running, completed, cancelled, errored, sidelined, unsidelined").build();
+                }
             }
         }
         return Response.status(200).entity(statesDAO.findStatesByStatus(stateMachineName, fromTimestamp, toTimestamp, stateName, statuses)).build();
