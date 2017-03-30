@@ -37,7 +37,7 @@ import javax.inject.Singleton;
 public class DbClearRule extends ExternalResource{
 
     private final SessionFactoryContext fluxSessionFactoryContext;
-    private final SessionFactoryContext redriverSessionFactoryContext;
+    private final SessionFactoryContext schedulerSessionFactoryContext;
 
     /** List of entity tables which need to be cleared from flux db*/
     private static Class[] fluxTables = {StateMachine.class, State.class, AuditRecord.class, Event.class};
@@ -48,9 +48,9 @@ public class DbClearRule extends ExternalResource{
 
     @Inject
     public DbClearRule(@Named("fluxSessionFactoryContext") SessionFactoryContext fluxSessionFactoryContext,
-                       @Named("redriverSessionFactoryContext") SessionFactoryContext redriverSessionFactoryContext) {
+                       @Named("schedulerSessionFactoryContext") SessionFactoryContext schedulerSessionFactoryContext) {
         this.fluxSessionFactoryContext = fluxSessionFactoryContext;
-        this.redriverSessionFactoryContext = redriverSessionFactoryContext;
+        this.schedulerSessionFactoryContext = schedulerSessionFactoryContext;
     }
 
     @Override
@@ -59,9 +59,9 @@ public class DbClearRule extends ExternalResource{
         clearDb(fluxTables,fluxSessionFactoryContext.getSessionFactory());
         fluxSessionFactoryContext.clear();
 
-        redriverSessionFactoryContext.useDefault();
-        clearDb(fluxRedriverTables,redriverSessionFactoryContext.getSessionFactory());
-        redriverSessionFactoryContext.clear();
+        schedulerSessionFactoryContext.useDefault();
+        clearDb(fluxRedriverTables, schedulerSessionFactoryContext.getSessionFactory());
+        schedulerSessionFactoryContext.clear();
     }
 
     /** Clears all given tables which are mentioned using the given sessionFactory*/

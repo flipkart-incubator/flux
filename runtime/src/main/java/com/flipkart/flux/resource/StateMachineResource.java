@@ -32,7 +32,9 @@ import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
+import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
 import com.google.inject.Inject;
+import org.apache.commons.lang.SerializationUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,20 +82,25 @@ public class StateMachineResource {
 
     private AuditDAO auditDAO;
 
+    private EventSchedulerRegistry eventSchedulerRegistry;
+
     private ObjectMapper objectMapper;
 
     private MetricsClient metricsClient;
 
     @Inject
     public StateMachineResource(EventsDAO eventsDAO, StateMachinePersistenceService stateMachinePersistenceService,
-                                AuditDAO auditDAO, StateMachinesDAO stateMachinesDAO, StatesDAO statesDAO, WorkFlowExecutionController workFlowExecutionController, MetricsClient metricsClient) {
+                                AuditDAO auditDAO, StateMachinesDAO stateMachinesDAO, StatesDAO statesDAO,
+                                WorkFlowExecutionController workFlowExecutionController, MetricsClient metricsClient,
+                                EventSchedulerRegistry eventSchedulerRegistry) {
         this.eventsDAO = eventsDAO;
         this.stateMachinePersistenceService = stateMachinePersistenceService;
         this.stateMachinesDAO = stateMachinesDAO;
         this.statesDAO = statesDAO;
         this.auditDAO = auditDAO;
+        this.eventSchedulerRegistry = eventSchedulerRegistry;
         this.workFlowExecutionController = workFlowExecutionController;
-        objectMapper = new ObjectMapper();
+        this.objectMapper = new ObjectMapper();
         this.metricsClient = metricsClient;
     }
 
@@ -161,11 +168,23 @@ public class StateMachineResource {
     @Timed
     public Response submitEvent(@PathParam("machineId") String machineId,
                                 @QueryParam("searchField") String searchField,
+                                @QueryParam("triggerTime") Long triggerTime,
                                 EventData eventData
     ) throws Exception {
-        logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
 
-        return postEvent(machineId, searchField, eventData);
+        if(triggerTime == null) {
+            logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
+            return postEvent(machineId, searchField, eventData);
+        } else {
+            logger.info("Received event: {} for state machine: {} with triggerTime: {}", eventData.getName(), machineId, triggerTime);
+            if(searchField != null && !searchField.equals(CORRELATION_ID))
+                return Response.status(Response.Status.BAD_REQUEST).build();
+            //if trigger time is more than below value, it means the value has been passed in milliseconds, convert it to seconds and register
+            if(triggerTime > 9999999999L)
+                triggerTime = triggerTime/1000;
+            eventSchedulerRegistry.registerEvent(machineId, eventData.getName(), SerializationUtils.serialize(eventData), triggerTime);
+            return Response.status(Response.Status.ACCEPTED).build();
+        }
     }
 
     /**
