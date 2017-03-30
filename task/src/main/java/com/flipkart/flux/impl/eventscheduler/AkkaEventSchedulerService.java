@@ -22,6 +22,9 @@ import scala.Option;
 import javax.inject.Inject;
 
 /**
+ * <code>AkkaEventSchedulerService</code> is an {@link akka.actor.UntypedActor} for {@link EventSchedulerService} to bind its lifecycle to the actor.
+ * It's purpose is to have a single instance of the service running in the cluster.
+ *
  * @author shyam.akirala
  */
 public class AkkaEventSchedulerService extends UntypedActor {

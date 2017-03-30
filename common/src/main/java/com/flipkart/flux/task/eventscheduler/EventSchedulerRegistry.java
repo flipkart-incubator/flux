@@ -14,13 +14,34 @@
 package com.flipkart.flux.task.eventscheduler;
 
 /**
+ * <code>EventSchedulerRegistry</code> defines behaviour of Event Scheduler that is used to schedule an event trigger at a future time.
+ *
  * @author shyam.akirala
  */
 public interface EventSchedulerRegistry {
 
+    /**
+     * Registers an event with EventScheduler, so that the event would be triggered at mentioned future time
+     * @param correlationId correlationId of a state machine
+     * @param eventName name of manual event that needs to be triggered
+     * @param eventData String representation of com.flipkart.flux.api.EventData object
+     * @param scheduledTime time in epoch format at which the event needs to be triggered
+     */
     void registerEvent(String correlationId, String eventName, String eventData, Long scheduledTime);
 
+    /**
+     * Deregisters an event once it is successfully triggered
+     * @param correlationId correlationId of a state machine
+     * @param eventName name of manual event that has been triggered
+     */
     void deregisterEvent(String correlationId, String eventName);
 
-    void triggerEvent(String eventName, Object eventData, String correlationId, String eventSource);
+    /**
+     * Submits an event for processing
+     * @param eventName name of manual event that needs to be triggered
+     * @param data data the event is carrying
+     * @param correlationId correlationId of a state machine
+     * @param eventSource source of the event, supplied from client
+     */
+    void triggerEvent(String eventName, Object data, String correlationId, String eventSource);
 }

@@ -42,9 +42,11 @@ public class EventSchedulerServiceTest {
 
     private EventSchedulerService eventSchedulerService;
 
+    private final int batchSize = 2;
+
     @Before
     public void setUp() throws Exception {
-        eventSchedulerService = new EventSchedulerService(eventSchedulerDao, eventSchedulerRegistry, new ObjectMapper());
+        eventSchedulerService = new EventSchedulerService(eventSchedulerDao, eventSchedulerRegistry, 500, batchSize, new ObjectMapper());
         eventSchedulerService.setInitialDelay(0L);
     }
 
@@ -58,7 +60,7 @@ public class EventSchedulerServiceTest {
     @Test
     public void testTriggerEvent_shouldTriggerEventWhenOldEventFound() throws Exception {
         long now = System.currentTimeMillis()/1000;
-        when(eventSchedulerDao.retrieveOldest(0, 50)).
+        when(eventSchedulerDao.retrieveOldest(0, batchSize)).
                 thenReturn(Arrays.asList(new ScheduledEvent("smCorId", "event_name1", now-2, "{\"name\":\"event_name1\",\"type\":\"some_type\",\"data\":\"data\",\"eventSource\":\"internal\"}"),
                         new ScheduledEvent("smCorId", "event_name2", now + 10000, "{\"name\":\"event_name2\",\"type\":\"some_type\",\"data\":\"data\",\"eventSource\":\"internal\"}"))).
                 thenReturn(Arrays.asList(new ScheduledEvent("smCorId", "event_name2", now + 10000, "{\"name\":\"event_name2\",\"type\":\"some_type\",\"data\":\"data\",\"eventSource\":\"internal\"}")));
@@ -75,7 +77,7 @@ public class EventSchedulerServiceTest {
     @Test
     public void testNoTriggerEvents_shouldNotTriggerEventsWithScheduledTimeOfFuture() throws Exception {
         long now = System.currentTimeMillis()/1000;
-        when(eventSchedulerDao.retrieveOldest(0, 50)).
+        when(eventSchedulerDao.retrieveOldest(0, batchSize)).
                 thenReturn(Arrays.asList(new ScheduledEvent("smCorId", "event_name1", now + 9, "{\"name\":\"event_name1\",\"type\":\"some_type\",\"data\":\"data\",\"eventSource\":\"internal\"}"),
                         new ScheduledEvent("smCorId", "event_name2", now + 10, "{\"name\":\"event_name2\",\"type\":\"some_type\",\"data\":\"data\",\"eventSource\":\"internal\"}")));
 
@@ -88,7 +90,7 @@ public class EventSchedulerServiceTest {
     @Test
     public void testStartStopCycle() throws Exception {
         long now = System.currentTimeMillis()/1000;
-        when(eventSchedulerDao.retrieveOldest(0, 50)).
+        when(eventSchedulerDao.retrieveOldest(0, batchSize)).
                 thenReturn(Arrays.asList(new ScheduledEvent("smCorId", "event_name1", now, "{\"name\":\"event_name1\",\"type\":\"some_type\",\"data\":\"data\",\"eventSource\":\"internal\"}"))).
                 thenReturn(Arrays.asList(new ScheduledEvent("smCorId", "event_name2", now+2, "{\"name\":\"event_name2\",\"type\":\"some_type\",\"data\":\"data\",\"eventSource\":\"internal\"}")));
 

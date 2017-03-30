@@ -66,5 +66,10 @@ redriver:
     intervalms: 20000
   noOfPersistenceWorkers: 10
 
+eventScheduler:
+  batchRead:
+    batchSize: 50
+    intervalms: 1000
+
 deploymentType: directory
 deploymentUnitsPath: "/tmp/workflows/"

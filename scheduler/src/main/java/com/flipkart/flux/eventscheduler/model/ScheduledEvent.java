@@ -20,6 +20,8 @@ import javax.persistence.Table;
 import java.io.Serializable;
 
 /**
+ * <code>ScheduledEvent</code> stores event related information, so that the event can be triggered at a future time
+ *
  * @author shyam.akirala
  */
 @Entity
@@ -27,20 +29,25 @@ import java.io.Serializable;
 @IdClass(ScheduledEvent.ScheduledEventPK.class)
 public class ScheduledEvent implements Serializable {
 
+    /** correlationId of a state machine*/
     @Id
     private String correlationId;
 
+    /** name of event which needs to be triggered at future time*/
     @Id
     private String eventName;
 
+    /** epoch time in seconds at which the event needs be triggered*/
     private long scheduledTime;
 
+    /** String representation of com.flipkart.flux.api.EventData object*/
     private String eventData;
 
     /** for Hibernate */
     public ScheduledEvent() {
     }
 
+    /** constructors*/
     public ScheduledEvent(String correlationId, String eventName, long scheduledTime, String eventData) {
         this.correlationId = correlationId;
         this.eventName = eventName;
@@ -48,6 +55,7 @@ public class ScheduledEvent implements Serializable {
         this.eventData = eventData;
     }
 
+    /** Accessor methods*/
     public String getCorrelationId() {
         return correlationId;
     }
@@ -88,12 +96,16 @@ public class ScheduledEvent implements Serializable {
         return result;
     }
 
+    /**
+     * <code>ScheduledEventPK</code> is the composite primary key of "ScheduledEvents" table in DB.
+     */
     static class ScheduledEventPK implements Serializable {
 
         private String correlationId;
 
         private String eventName;
 
+        /** for Hibernate*/
         public ScheduledEventPK() {}
 
         public ScheduledEventPK(String correlationId, String eventName) {

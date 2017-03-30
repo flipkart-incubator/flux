@@ -40,10 +40,7 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * <code>RedriverModule</code> is a Guice {@link AbstractModule} which binds all Redriver related stuff.
- * Keeping a single module for redriver component for now
- * It may need a split in the future
- * Presently, it is assumed that {@link TransactionInterceptor} is already configured by another module
+ * <code>SchedulerModule</code> is a Guice {@link AbstractModule} which binds all Scheduler related stuff.
  *
  * @author yogesh.nachnani
  * @author shyam.akirala
@@ -83,7 +80,7 @@ public class SchedulerModule extends AbstractModule {
     }
 
     /**
-     * Returns {@link SessionFactoryContext} which holds the Session Factory for Redriver.
+     * Returns {@link SessionFactoryContext} which holds the Session Factory for Scheduler DB.
      */
     @Provides
     @Singleton

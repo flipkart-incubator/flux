@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
@@ -33,6 +34,9 @@ import java.util.concurrent.TimeUnit;
 import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
 
 /**
+ * <code>EventSchedulerService</code> reads ScheduledEvents from DB with fixed delay, and triggers them if necessary. The event would be triggered
+ * if the current time greater than or equal to the scheduledTime of Event.
+ *
  * @author shyam.akirala
  */
 public class EventSchedulerService {
@@ -40,8 +44,8 @@ public class EventSchedulerService {
     private static final Logger logger = LoggerFactory.getLogger(EventSchedulerService.class);
     private static final String scheduledExectorSvcName = "event-scheduler-batch-read-executor-svc";
 
-    private Integer batchReadInterval = 1000;
-    private Integer batchSize = 50;
+    private Integer batchReadInterval;
+    private Integer batchSize;
     private Long initialDelay = 10000L;
     private ScheduledFuture scheduledFuture;
     private EventSchedulerDao eventSchedulerDao;
@@ -50,9 +54,14 @@ public class EventSchedulerService {
     private ObjectMapper objectMapper;
 
     @Inject
-    public EventSchedulerService(EventSchedulerDao eventSchedulerDao, EventSchedulerRegistry eventSchedulerRegistry, ObjectMapper objectMapper) {
+    public EventSchedulerService(EventSchedulerDao eventSchedulerDao, EventSchedulerRegistry eventSchedulerRegistry,
+                                 @Named("eventScheduler.batchRead.intervalms") Integer batchReadInterval,
+                                 @Named("eventScheduler.batchRead.batchSize") Integer batchSize,
+                                 ObjectMapper objectMapper) {
         this.eventSchedulerDao = eventSchedulerDao;
         this.eventSchedulerRegistry = eventSchedulerRegistry;
+        this.batchReadInterval = batchReadInterval;
+        this.batchSize = batchSize;
         this.objectMapper = objectMapper;
 
         ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);

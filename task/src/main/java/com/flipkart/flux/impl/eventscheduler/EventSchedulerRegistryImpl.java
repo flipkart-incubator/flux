@@ -31,6 +31,9 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 
 /**
+ * <code>EventSchedulerRegistryImpl</code> is an {@link EventSchedulerRegistry} implementation which talks with DAO layer
+ * for persistence, and with FluxRuntimeConnector for triggering events.
+ *
  * @author shyam.akirala
  */
 public class EventSchedulerRegistryImpl implements EventSchedulerRegistry, Initializable {
@@ -42,10 +45,19 @@ public class EventSchedulerRegistryImpl implements EventSchedulerRegistry, Initi
      */
     private ActorSystemManager actorSystemManager;
 
+    /**
+     * Event Scheduler thread which polls DB, and triggers event processing
+     */
     private EventSchedulerService eventSchedulerService;
 
+    /**
+     * FluxRuntimeConnector instance to contact flux runtime
+     */
     private FluxRuntimeConnector fluxRuntimeConnector;
 
+    /**
+     * DAO class which handles DB operations of {@link ScheduledEvent}(s)
+     */
     private EventSchedulerDao eventSchedulerDao;
 
     @Inject
@@ -60,6 +72,8 @@ public class EventSchedulerRegistryImpl implements EventSchedulerRegistry, Initi
     @Override
     public void initialize() {
         ActorSystem actorSystem = actorSystemManager.retrieveActorSystem();
+
+        //create cluster singleton actor of {@link AkkaEventSchedulerService}
         Props actorProps = Props.create(AkkaEventSchedulerService.class, eventSchedulerService);
         ClusterSingletonManagerSettings settings = ClusterSingletonManagerSettings.create(actorSystem);
         actorSystem.actorOf(ClusterSingletonManager.props(actorProps, PoisonPill.getInstance(), settings), "eventSchedulerServiceActor");
@@ -78,9 +92,9 @@ public class EventSchedulerRegistryImpl implements EventSchedulerRegistry, Initi
     }
 
     @Override
-    public void triggerEvent(String eventName, Object eventData, String correlationId, String eventSource) {
+    public void triggerEvent(String eventName, Object data, String correlationId, String eventSource) {
         logger.info("Triggering event: {} for state machine: {}", eventName, correlationId);
-        fluxRuntimeConnector.submitScheduledEvent(eventName, eventData, correlationId, eventSource, null);
+        fluxRuntimeConnector.submitScheduledEvent(eventName, data, correlationId, eventSource, null);
     }
 
 }
