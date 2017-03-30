@@ -15,11 +15,11 @@ package com.flipkart.flux.eventscheduler.service;
 
 import com.codahale.metrics.InstrumentedScheduledExecutorService;
 import com.codahale.metrics.SharedMetricRegistries;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.eventscheduler.dao.EventSchedulerDao;
 import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
 import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
-import org.apache.commons.lang.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,11 +47,13 @@ public class EventSchedulerService {
     private EventSchedulerDao eventSchedulerDao;
     private final EventSchedulerRegistry eventSchedulerRegistry;
     private final InstrumentedScheduledExecutorService scheduledExecutorService;
+    private ObjectMapper objectMapper;
 
     @Inject
-    public EventSchedulerService(EventSchedulerDao eventSchedulerDao, EventSchedulerRegistry eventSchedulerRegistry) {
+    public EventSchedulerService(EventSchedulerDao eventSchedulerDao, EventSchedulerRegistry eventSchedulerRegistry, ObjectMapper objectMapper) {
         this.eventSchedulerDao = eventSchedulerDao;
         this.eventSchedulerRegistry = eventSchedulerRegistry;
+        this.objectMapper = objectMapper;
 
         ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
         // remove the task from scheduler on cancel
@@ -95,16 +97,16 @@ public class EventSchedulerService {
         long now = System.currentTimeMillis()/1000;
         do {
             events = eventSchedulerDao.retrieveOldest(offset, batchSize);
-            events.stream().filter(e -> e.getScheduledTime() < now).forEach(e -> {
+            events.stream().filter(e -> e.getScheduledTime() <= now).forEach(e -> {
                 try {
-                    EventData eventData = (EventData) SerializationUtils.deserialize(e.getEventData());
+                    EventData eventData = objectMapper.readValue(e.getEventData(), EventData.class);
                     eventSchedulerRegistry.triggerEvent(e.getEventName(), eventData.getData(), e.getCorrelationId(), eventData.getEventSource());
                     eventSchedulerRegistry.deregisterEvent(e.getCorrelationId(), e.getEventName());
                 } catch (Exception ex) {}
             });
             offset += batchSize;
             // get next batch if we found batchSize events and all were triggered
-        } while (events.size() == batchSize && events.get(events.size() - 1).getScheduledTime() < now);
+        } while (events.size() == batchSize && events.get(events.size() - 1).getScheduledTime() <= now);
     }
 
     public void setInitialDelay(Long initialDelay) {

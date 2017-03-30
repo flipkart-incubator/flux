@@ -75,7 +75,7 @@ public class RedriverService {
             if (scheduledFuture == null || scheduledFuture.isDone()) {
                 scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
                     try {
-//                        redrive();
+                        redrive();
                     }
                     catch(Exception e) {
                         logger.error("Error while running redrive", e);

@@ -34,7 +34,6 @@ import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
 import com.google.inject.Inject;
-import org.apache.commons.lang.SerializationUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -177,12 +176,12 @@ public class StateMachineResource {
             return postEvent(machineId, searchField, eventData);
         } else {
             logger.info("Received event: {} for state machine: {} with triggerTime: {}", eventData.getName(), machineId, triggerTime);
-            if(searchField != null && !searchField.equals(CORRELATION_ID))
-                return Response.status(Response.Status.BAD_REQUEST).build();
+            if(searchField == null || !searchField.equals(CORRELATION_ID))
+                return Response.status(Response.Status.BAD_REQUEST).entity("searchField=correlationId is missing in the request").build();
             //if trigger time is more than below value, it means the value has been passed in milliseconds, convert it to seconds and register
             if(triggerTime > 9999999999L)
                 triggerTime = triggerTime/1000;
-            eventSchedulerRegistry.registerEvent(machineId, eventData.getName(), SerializationUtils.serialize(eventData), triggerTime);
+            eventSchedulerRegistry.registerEvent(machineId, eventData.getName(), objectMapper.writeValueAsString(eventData), triggerTime);
             return Response.status(Response.Status.ACCEPTED).build();
         }
     }

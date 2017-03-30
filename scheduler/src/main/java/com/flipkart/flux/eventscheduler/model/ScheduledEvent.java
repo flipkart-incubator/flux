@@ -35,13 +35,13 @@ public class ScheduledEvent implements Serializable {
 
     private long scheduledTime;
 
-    private byte[] eventData;
+    private String eventData;
 
     /** for Hibernate */
     public ScheduledEvent() {
     }
 
-    public ScheduledEvent(String correlationId, String eventName, long scheduledTime, byte[] eventData) {
+    public ScheduledEvent(String correlationId, String eventName, long scheduledTime, String eventData) {
         this.correlationId = correlationId;
         this.eventName = eventName;
         this.scheduledTime = scheduledTime;
@@ -60,10 +60,33 @@ public class ScheduledEvent implements Serializable {
         return scheduledTime;
     }
 
-    public byte[] getEventData() {
+    public String getEventData() {
         return eventData;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ScheduledEvent)) return false;
+
+        ScheduledEvent that = (ScheduledEvent) o;
+
+        if (scheduledTime != that.scheduledTime) return false;
+        if (!correlationId.equals(that.correlationId)) return false;
+        if (!eventData.equals(that.eventData)) return false;
+        if (!eventName.equals(that.eventName)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = correlationId.hashCode();
+        result = 31 * result + eventName.hashCode();
+        result = 31 * result + (int) (scheduledTime ^ (scheduledTime >>> 32));
+        result = 31 * result + eventData.hashCode();
+        return result;
+    }
 
     static class ScheduledEventPK implements Serializable {
 

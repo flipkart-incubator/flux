@@ -17,6 +17,7 @@ import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import org.hibernate.Session;
@@ -43,7 +44,7 @@ public class DbClearRule extends ExternalResource{
     private static Class[] fluxTables = {StateMachine.class, State.class, AuditRecord.class, Event.class};
 
     /** List of entity tables which need to be cleared from flux redriver db*/
-    private static Class[] fluxRedriverTables = {ScheduledMessage.class};
+    private static Class[] fluxRedriverTables = {ScheduledMessage.class, ScheduledEvent.class};
 
 
     @Inject

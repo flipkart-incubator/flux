@@ -66,7 +66,7 @@ public class EventSchedulerRegistryImpl implements EventSchedulerRegistry, Initi
     }
 
     @Override
-    public void registerEvent(String correlationId, String eventName, byte[] eventData, Long scheduledTime) {
+    public void registerEvent(String correlationId, String eventName, String eventData, Long scheduledTime) {
         logger.debug("Saving event: {} for state machine: {} with scheduledtime: {}", eventName, correlationId, scheduledTime);
         eventSchedulerDao.save(new ScheduledEvent(correlationId, eventName, scheduledTime, eventData));
     }

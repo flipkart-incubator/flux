@@ -18,7 +18,7 @@ package com.flipkart.flux.task.eventscheduler;
  */
 public interface EventSchedulerRegistry {
 
-    void registerEvent(String correlationId, String eventName, byte[] eventData, Long scheduledTime);
+    void registerEvent(String correlationId, String eventName, String eventData, Long scheduledTime);
 
     void deregisterEvent(String correlationId, String eventName);
 

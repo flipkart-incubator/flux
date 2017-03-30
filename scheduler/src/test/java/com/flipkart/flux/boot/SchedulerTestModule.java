@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.redriver.boot;
+package com.flipkart.flux.boot;
 
 import com.flipkart.flux.module.SchedulerModule;
 import com.google.inject.AbstractModule;
