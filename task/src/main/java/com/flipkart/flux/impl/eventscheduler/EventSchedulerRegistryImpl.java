@@ -25,6 +25,7 @@ import com.flipkart.flux.eventscheduler.service.EventSchedulerService;
 import com.flipkart.flux.impl.boot.ActorSystemManager;
 import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
 import com.flipkart.polyguice.core.Initializable;
+import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,7 @@ import javax.inject.Inject;
  *
  * @author shyam.akirala
  */
+@Singleton
 public class EventSchedulerRegistryImpl implements EventSchedulerRegistry, Initializable {
 
     private static final Logger logger = LoggerFactory.getLogger(EventSchedulerRegistryImpl.class);

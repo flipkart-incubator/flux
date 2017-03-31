@@ -20,6 +20,7 @@ import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.eventscheduler.dao.EventSchedulerDao;
 import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
 import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
+import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,11 +35,12 @@ import java.util.concurrent.TimeUnit;
 import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
 
 /**
- * <code>EventSchedulerService</code> reads ScheduledEvents from DB with fixed delay, and triggers them if necessary. The event would be triggered
- * if the current time greater than or equal to the scheduledTime of Event.
+ * <code>EventSchedulerService</code> reads ScheduledEvents from DB with a fixed delay, and triggers them if necessary. The event would be triggered
+ * if the current time greater than or equal to the scheduledTime of the event.
  *
  * @author shyam.akirala
  */
+@Singleton
 public class EventSchedulerService {
 
     private static final Logger logger = LoggerFactory.getLogger(EventSchedulerService.class);

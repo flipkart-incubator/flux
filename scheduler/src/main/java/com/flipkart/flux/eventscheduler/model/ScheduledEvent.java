@@ -33,7 +33,7 @@ public class ScheduledEvent implements Serializable {
     @Id
     private String correlationId;
 
-    /** name of event which needs to be triggered at future time*/
+    /** name of the event which needs to be triggered at a future time*/
     @Id
     private String eventName;
 
@@ -43,11 +43,11 @@ public class ScheduledEvent implements Serializable {
     /** String representation of com.flipkart.flux.api.EventData object*/
     private String eventData;
 
+    /** constructors*/
     /** for Hibernate */
     public ScheduledEvent() {
     }
 
-    /** constructors*/
     public ScheduledEvent(String correlationId, String eventName, long scheduledTime, String eventData) {
         this.correlationId = correlationId;
         this.eventName = eventName;

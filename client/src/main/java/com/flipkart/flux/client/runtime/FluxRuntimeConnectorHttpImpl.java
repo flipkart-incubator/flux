@@ -137,6 +137,8 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
                 final EventData eventData = new EventData(name, eventType, objectMapper.writeValueAsString(data), eventSource);
                 httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/events?searchField=correlationId&triggerTime=" + triggerTime);
             } else {
+                //this block is used by flux to trigger the event when the time has arrived, send the data as plain string without serializing,
+                // as the data is already in serialized form (in ScheduledEvents table the data stored in serialized form)
                 final EventData eventData = new EventData(name, eventType, (String) data, eventSource);
                 httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/events?searchField=correlationId");
             }
