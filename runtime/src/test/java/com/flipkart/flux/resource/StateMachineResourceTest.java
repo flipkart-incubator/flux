@@ -24,6 +24,8 @@ import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.eventscheduler.dao.EventSchedulerDao;
+import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
 import com.flipkart.flux.guice.module.AkkaModule;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.HibernateModule;
@@ -63,6 +65,9 @@ public class StateMachineResourceTest {
 
     @Inject
     private EventsDAO eventsDAO;
+
+    @Inject
+    private EventSchedulerDao eventSchedulerDao;
 
     @Inject
     OrderedComponentBooter orderedComponentBooter;
@@ -205,6 +210,63 @@ public class StateMachineResourceTest {
         // state machine with correlationId magic_number_2 does not exist. The following call should bomb
         final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+"magic_number_2"+"/context/events?searchField=correlationId").header("Content-Type","application/json").body(eventJson).asString();
         assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void testPostScheduledEvent_withoutCorrelationIdTag() throws Exception {
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+
+        String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+
+        //request with searchField param missing
+        final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+"magic_number_1"+"/context/events?triggerTime=123").header("Content-Type","application/json").body(eventJson).asString();
+        assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+
+        //request with searchField param having value other than correlationId
+        final HttpResponse<String> eventPostResponseWithWrongTag = Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+"magic_number_1"+"/context/events?searchField=dummy&triggerTime=123").header("Content-Type","application/json").body(eventJson).asString();
+        assertThat(eventPostResponseWithWrongTag.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void testPostScheduledEvent_withCorrelationId() throws Exception {
+        //create state machine
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+
+        Thread.sleep(100);
+
+        //post an scheduled event
+        long triggerTime = (System.currentTimeMillis()/1000)+1;
+        String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+"magic_number_1"+"/context/events?searchField=correlationId&triggerTime="+triggerTime)
+                .header("Content-Type", "application/json").body(eventJson).asString();
+        Thread.sleep(500);
+
+        //verify event has been saved in DB
+        assertThat(eventSchedulerDao.retrieveOldest(0, 1).get(0)).isEqualTo(new ScheduledEvent("magic_number_1", "event0", triggerTime, "{\"name\":\"event0\",\"type\":\"java.lang.String\",\"data\":\"42\",\"eventSource\":null}"));
+
+        //waiting for 7 seconds here, to match Event scheduler thread's initial delay of 10 sec (some boot up time + 7 seconds will surpass 10 sec)
+        Thread.sleep(7000);
+
+        //verify that the event has been triggered and scheduled event has been removed from DB
+        assertThat(eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event0").getStatus()).isEqualTo(Event.EventStatus.triggered);
+        assertThat(eventSchedulerDao.retrieveOldest(0, 1)).hasSize(0);
+    }
+
+    @Test
+    public void testPostScheduledEvent_withTriggerTimeInMilliSeconds() throws Exception {
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+
+        Thread.sleep(100);
+        long triggerTime = System.currentTimeMillis();
+        String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+"magic_number_1"+"/context/events?searchField=correlationId&triggerTime="+triggerTime)
+                .header("Content-Type", "application/json").body(eventJson).asString();
+
+        assertThat(eventSchedulerDao.retrieveOldest(0, 1).get(0).getScheduledTime()).isEqualTo(triggerTime/1000);
+
     }
 
     @Test

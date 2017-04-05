@@ -47,8 +47,9 @@ public interface StatesDAO {
     List findErroredStates(String stateMachineName, Long fromStateMachineId, Long toStateMachineId);
 
     /**
-     * Retrieves all errored states for a particular state machine name and the state machine creation time in
-     * the given range fromTime and toTime with optional taskName parameter
+     * Retrieves all states having one of the given statuses for a particular state machine name and the state machine creation time in
+     * the given range fromTime and toTime with optional taskName parameter.
+     * If status list is empty/null, returns all tasks.
      */
-    List findErroredStates(String stateMachineName, Timestamp fromTime, Timestamp toTime, String taskName);
+    List findStatesByStatus(String stateMachineName, Timestamp fromTime, Timestamp toTime, String taskName, List<Status> statuses);
 }
