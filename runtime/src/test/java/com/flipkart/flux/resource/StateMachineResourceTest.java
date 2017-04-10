@@ -244,14 +244,14 @@ public class StateMachineResourceTest {
         Thread.sleep(500);
 
         //verify event has been saved in DB
-        assertThat(eventSchedulerDao.retrieveOldest(0, 1).get(0)).isEqualTo(new ScheduledEvent("magic_number_1", "event0", triggerTime, "{\"name\":\"event0\",\"type\":\"java.lang.String\",\"data\":\"42\",\"eventSource\":null}"));
+        assertThat(eventSchedulerDao.retrieveOldest(1).get(0)).isEqualTo(new ScheduledEvent("magic_number_1", "event0", triggerTime, "{\"name\":\"event0\",\"type\":\"java.lang.String\",\"data\":\"42\",\"eventSource\":null}"));
 
         //waiting for 7 seconds here, to match Event scheduler thread's initial delay of 10 sec (some boot up time + 7 seconds will surpass 10 sec)
         Thread.sleep(7000);
 
         //verify that the event has been triggered and scheduled event has been removed from DB
         assertThat(eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event0").getStatus()).isEqualTo(Event.EventStatus.triggered);
-        assertThat(eventSchedulerDao.retrieveOldest(0, 1)).hasSize(0);
+        assertThat(eventSchedulerDao.retrieveOldest(1)).hasSize(0);
     }
 
     @Test
@@ -265,7 +265,7 @@ public class StateMachineResourceTest {
         final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+"magic_number_1"+"/context/events?searchField=correlationId&triggerTime="+triggerTime)
                 .header("Content-Type", "application/json").body(eventJson).asString();
 
-        assertThat(eventSchedulerDao.retrieveOldest(0, 1).get(0).getScheduledTime()).isEqualTo(triggerTime/1000);
+        assertThat(eventSchedulerDao.retrieveOldest(1).get(0).getScheduledTime()).isEqualTo(triggerTime/1000);
 
     }
 

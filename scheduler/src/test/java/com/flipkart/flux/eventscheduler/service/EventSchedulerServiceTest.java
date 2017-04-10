@@ -60,7 +60,7 @@ public class EventSchedulerServiceTest {
     @Test
     public void testTriggerEvent_shouldTriggerEventWhenOldEventFound() throws Exception {
         long now = System.currentTimeMillis()/1000;
-        when(eventSchedulerDao.retrieveOldest(0, batchSize)).
+        when(eventSchedulerDao.retrieveOldest(batchSize)).
                 thenReturn(Arrays.asList(new ScheduledEvent("smCorId", "event_name1", now-2, "{\"name\":\"event_name1\",\"type\":\"some_type\",\"data\":\"data\",\"eventSource\":\"internal\"}"),
                         new ScheduledEvent("smCorId", "event_name2", now + 10000, "{\"name\":\"event_name2\",\"type\":\"some_type\",\"data\":\"data\",\"eventSource\":\"internal\"}"))).
                 thenReturn(Arrays.asList(new ScheduledEvent("smCorId", "event_name2", now + 10000, "{\"name\":\"event_name2\",\"type\":\"some_type\",\"data\":\"data\",\"eventSource\":\"internal\"}")));
@@ -70,14 +70,14 @@ public class EventSchedulerServiceTest {
         Thread.sleep(300);
         verify(eventSchedulerRegistry).triggerEvent("event_name1", "data", "smCorId", "internal");
         verify(eventSchedulerRegistry).deregisterEvent("smCorId", "event_name1");
-        Thread.sleep(500);
+        Thread.sleep(1100);
         verifyNoMoreInteractions(eventSchedulerRegistry);
     }
 
     @Test
     public void testNoTriggerEvents_shouldNotTriggerEventsWithScheduledTimeOfFuture() throws Exception {
         long now = System.currentTimeMillis()/1000;
-        when(eventSchedulerDao.retrieveOldest(0, batchSize)).
+        when(eventSchedulerDao.retrieveOldest(batchSize)).
                 thenReturn(Arrays.asList(new ScheduledEvent("smCorId", "event_name1", now + 9, "{\"name\":\"event_name1\",\"type\":\"some_type\",\"data\":\"data\",\"eventSource\":\"internal\"}"),
                         new ScheduledEvent("smCorId", "event_name2", now + 10, "{\"name\":\"event_name2\",\"type\":\"some_type\",\"data\":\"data\",\"eventSource\":\"internal\"}")));
 
@@ -90,7 +90,7 @@ public class EventSchedulerServiceTest {
     @Test
     public void testStartStopCycle() throws Exception {
         long now = System.currentTimeMillis()/1000;
-        when(eventSchedulerDao.retrieveOldest(0, batchSize)).
+        when(eventSchedulerDao.retrieveOldest(batchSize)).
                 thenReturn(Arrays.asList(new ScheduledEvent("smCorId", "event_name1", now, "{\"name\":\"event_name1\",\"type\":\"some_type\",\"data\":\"data\",\"eventSource\":\"internal\"}"))).
                 thenReturn(Arrays.asList(new ScheduledEvent("smCorId", "event_name2", now+2, "{\"name\":\"event_name2\",\"type\":\"some_type\",\"data\":\"data\",\"eventSource\":\"internal\"}")));
 

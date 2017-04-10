@@ -56,16 +56,14 @@ public class EventSchedulerDao {
     }
 
     /**
-     * Retrieves rows offset to offset+rowCount from ScheduledEvents table ordered by scheduledTime ascending.
-     * @param offset
+     * Retrieves rowCount number of rows from ScheduledEvents table ordered by scheduledTime ascending.
      * @param rowCount
      */
     @Transactional
-    public List<ScheduledEvent> retrieveOldest(int offset, int rowCount) {
+    public List<ScheduledEvent> retrieveOldest(int rowCount) {
         return currentSession()
                 .createCriteria(ScheduledEvent.class)
                 .addOrder(Order.asc("scheduledTime"))
-                .setFirstResult(offset)
                 .setMaxResults(rowCount)
                 .list();
     }
