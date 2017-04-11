@@ -160,7 +160,7 @@ public class DeploymentUnitsManagerImpl implements DeploymentUnitsManager, Initi
                 DeploymentUnit deploymentUnit = unitFutures.get(index).get();
                 addToMap(deploymentUnit);
             } catch(ExecutionException ee) {
-                logger.error("Unexpected error occurred while loading deploymentUnit: ", paths.get(index), ee);
+                logger.error("Unexpected error occurred while loading deploymentUnit: {}", paths.get(index), ee);
             } catch(InterruptedException ie) {
                 logger.error("DeploymentUnit loading got interrupted: {}", paths.get(index), ie);
             }
