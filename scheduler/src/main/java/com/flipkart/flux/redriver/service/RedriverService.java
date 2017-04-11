@@ -54,8 +54,8 @@ public class RedriverService {
     @Inject
     public RedriverService(MessageManagerService messageService,
                            RedriverRegistry redriverRegistry,
-                           @Named("redriver.batchread.intervalms") Integer batchReadInterval,
-                           @Named("redriver.batchread.batchsize") Integer batchSize) {
+                           @Named("redriver.batchRead.intervalms") Integer batchReadInterval,
+                           @Named("redriver.batchRead.batchSize") Integer batchSize) {
         this.redriverRegistry = redriverRegistry;
         this.batchReadInterval = batchReadInterval;
         this.batchSize = batchSize;

@@ -58,8 +58,8 @@ public class MessageManagerService implements Initializable {
     @Inject
     public MessageManagerService(MessageDao messageDao,
                                  @Named("redriver.noOfPersistenceWorkers") int noOfPersistenceWorkers,
-                                 @Named("redriver.batchdelete.intervalms") Integer batchDeleteInterval,
-                                 @Named("redriver.batchdelete.batchsize") Integer batchSize) {
+                                 @Named("redriver.batchDelete.intervalms") Integer batchDeleteInterval,
+                                 @Named("redriver.batchDelete.batchSize") Integer batchSize) {
         this.messageDao = messageDao;
         this.batchDeleteInterval = batchDeleteInterval;
         this.batchSize = batchSize;
