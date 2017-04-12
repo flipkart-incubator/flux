@@ -17,8 +17,8 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.Terminated;
 import akka.actor.UntypedActor;
+import akka.event.DiagnosticLoggingAdapter;
 import akka.event.Logging;
-import akka.event.LoggingAdapter;
 import akka.routing.ActorRefRoutee;
 import akka.routing.Router;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,7 +42,9 @@ import scala.concurrent.duration.FiniteDuration;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 
@@ -60,7 +62,8 @@ public class AkkaTask extends UntypedActor {
     /**
      * Logger instance for this class
      */
-    private LoggingAdapter logger = Logging.getLogger(getContext().system(), this);
+    //private LoggingAdapter logger = Logging.getLogger(getContext().system(), this);
+    private final DiagnosticLoggingAdapter logger = Logging.getLogger(this);
 
     /**
      * TaskRegistry instance to look up Task instances from
@@ -103,6 +106,10 @@ public class AkkaTask extends UntypedActor {
                         append(".task.").
                         append(taskAndEvent.getTaskName()).
                         append(".queueSize").toString());
+                Map<String, Object> mdc = new HashMap<String, Object>();
+                mdc.put("stateMachineId", taskAndEvent.getStateMachineId().toString());
+                mdc.put("taskId", taskAndEvent.getTaskId());
+                logger.setMDC(mdc);
                 logger.info("Akka task processing state machine: {} task: {}", taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId());
                 logger.debug("Actor {} received directive {}", this.getSelf(), taskAndEvent);
                 if (!taskAndEvent.getIsFirstTimeExecution()) {

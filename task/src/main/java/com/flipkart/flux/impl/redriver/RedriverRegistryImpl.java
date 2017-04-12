@@ -27,6 +27,7 @@ import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.polyguice.core.Initializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -99,6 +100,7 @@ public class RedriverRegistryImpl implements RedriverRegistry, Initializable {
 	 * @see RedriverRegistry#deRegisterTask(java.lang.Long)
 	 */
 	public void deRegisterTask(Long taskId) {
+		MDC.put("taskId",taskId.toString());
 		logger.debug("DeRegister task : {} with redriver", taskId);
 		redriverMessageService.scheduleForRemoval(taskId);
 	}
@@ -108,6 +110,7 @@ public class RedriverRegistryImpl implements RedriverRegistry, Initializable {
 	 * @see RedriverRegistry#redriveTask(java.lang.Long)
 	 */
 	public void redriveTask(Long taskId) {
+		MDC.put("taskId", taskId.toString());
 		logger.debug("Redrive task with Id : {} ", taskId);
 		fluxRuntimeConnector.redriveTask(taskId);
 	}

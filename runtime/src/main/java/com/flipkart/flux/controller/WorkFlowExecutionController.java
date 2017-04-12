@@ -30,6 +30,7 @@ import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -211,7 +212,9 @@ public class WorkFlowExecutionController {
      * @param executableStates states whose all dependencies are met
      */
     private void executeStates(StateMachine stateMachine, Set<State> executableStates, Event currentEvent) {
+        MDC.put("stateMachineId", stateMachine.getId().toString());
         executableStates.forEach((state ->  {
+            MDC.put("taskId",state.getId().toString());
             if(state.getStatus() != Status.completed) {
                 List<EventData> eventDatas;
                 // If the state is dependant on only one event, that would be the event which came now, in that case don't make a call to DB
@@ -240,7 +243,6 @@ public class WorkFlowExecutionController {
                 int secondUnderscorePosition = taskName.indexOf('_', taskName.indexOf('_') + 1);
                 String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition); //the name of router would be classFQN_taskMethodName
                 ActorRef router = this.routerRegistry.getRouter(routerName);
-
                 router.tell(msg, ActorRef.noSender());
                 metricsClient.incCounter(new StringBuilder().
                         append("stateMachine.").
@@ -282,10 +284,12 @@ public class WorkFlowExecutionController {
      * Performs task execution if the task is stalled and no.of retries are not exhausted
      */
     public void redriveTask(Long taskId) {
+        MDC.put("taskId", taskId.toString());
         State state = statesDAO.findById(taskId);
 
         if(state != null && isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() < state.getRetryCount()) {
             StateMachine stateMachine = retrieveStateMachine(state.getStateMachineId());
+            MDC.put("stateMachineId",stateMachine.getId().toString());
             logger.info("Redriving a task with Id: {} for state machine: {}", state.getId(), state.getStateMachineId());
                 executeStates(stateMachine, Collections.singleton(state));
         } else {
