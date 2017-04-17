@@ -49,6 +49,9 @@ import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.flipkart.flux.Constants.STATE_MACHINE_ID;
+import static com.flipkart.flux.Constants.TASK_ID;
+
 
 /**
  * <code>StateMachineResource</code> exposes APIs to perform state machine related operations. Ex: Creating SM, receiving event for a SM
@@ -141,7 +144,7 @@ public class StateMachineResource {
 
         // 1. Convert to StateMachine (domain object) and save in DB
         StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineDefinition);
-        MDC.put("stateMachineId", stateMachine.getId().toString());
+        MDC.put(STATE_MACHINE_ID, stateMachine.getId().toString());
         logger.info("Created state machine with Id: {} and correlation Id: {}", stateMachine.getId(), stateMachine.getCorrelationId());
 
         // 2. initialize and start State Machine
@@ -164,7 +167,7 @@ public class StateMachineResource {
                                 @QueryParam("searchField") String searchField,
                                 EventData eventData
     ) throws Exception {
-        MDC.put("stateMachineId", machineId);
+        MDC.put(STATE_MACHINE_ID, machineId);
         logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
 
         return postEvent(machineId, searchField, eventData);
@@ -184,8 +187,8 @@ public class StateMachineResource {
     ) throws Exception {
         EventData eventData = eventAndExecutionData.getEventData();
         ExecutionUpdateData executionUpdateData = eventAndExecutionData.getExecutionUpdateData();
-        MDC.put("stateMachineId", machineId);
-        MDC.put("taskId", executionUpdateData.getTaskId().toString());
+        MDC.put(STATE_MACHINE_ID, machineId);
+        MDC.put(TASK_ID, executionUpdateData.getTaskId().toString());
         logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
 
         updateTaskStatus(Long.valueOf(machineId), executionUpdateData.getTaskId(), executionUpdateData);

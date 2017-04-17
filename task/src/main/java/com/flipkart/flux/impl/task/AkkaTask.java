@@ -47,6 +47,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static com.flipkart.flux.Constants.STATE_MACHINE_ID;
+import static com.flipkart.flux.Constants.TASK_ID;
+
 
 /**
  * <code>AkkaTask</code> is an Akka {@link UntypedActor} that executes {@link Task} instances concurrently. Tasks are executed using a {@link TaskExecutor} where
@@ -62,7 +65,6 @@ public class AkkaTask extends UntypedActor {
     /**
      * Logger instance for this class
      */
-    //private LoggingAdapter logger = Logging.getLogger(getContext().system(), this);
     private final DiagnosticLoggingAdapter logger = Logging.getLogger(this);
 
     /**
@@ -107,8 +109,8 @@ public class AkkaTask extends UntypedActor {
                         append(taskAndEvent.getTaskName()).
                         append(".queueSize").toString());
                 Map<String, Object> mdc = new HashMap<String, Object>();
-                mdc.put("stateMachineId", taskAndEvent.getStateMachineId().toString());
-                mdc.put("taskId", taskAndEvent.getTaskId());
+                mdc.put(STATE_MACHINE_ID, taskAndEvent.getStateMachineId().toString());
+                mdc.put(TASK_ID, taskAndEvent.getTaskId());
                 logger.setMDC(mdc);
                 logger.info("Akka task processing state machine: {} task: {}", taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId());
                 logger.debug("Actor {} received directive {}", this.getSelf(), taskAndEvent);
