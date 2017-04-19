@@ -32,4 +32,10 @@ public interface Constants {
      * Configuration yml resource path.
      */
     String CONFIGURATION_YML = CONFIG_ROOT + "/configuration.yml";
+
+    /**
+     * Names for MDC Logging tags
+     */
+    String STATE_MACHINE_ID = "stateMachineId";
+    String TASK_ID = "taskId";
 }
