@@ -31,6 +31,7 @@ public class RuntimeConstants {
      */
     public static final String DASHBOARD_VIEW = "dashboard";
     public static final String FSM_VIEW = "fsmview";
+    public static final String CLUSTER_DASHBOARD_VIEW = "cluster-dashboard";
 
     public static final String STATE_MACHINE_RESOURCE_RELATIVE_PATH = "/machines";
 
