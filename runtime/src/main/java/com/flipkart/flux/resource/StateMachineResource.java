@@ -144,7 +144,7 @@ public class StateMachineResource {
 
         // 1. Convert to StateMachine (domain object) and save in DB
         StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineDefinition);
-        MDC.put(STATE_MACHINE_ID, stateMachine.getId().toString());
+        MDC.clear(); MDC.put(STATE_MACHINE_ID, stateMachine.getId().toString());
         logger.info("Created state machine with Id: {} and correlation Id: {}", stateMachine.getId(), stateMachine.getCorrelationId());
 
         // 2. initialize and start State Machine
@@ -167,7 +167,7 @@ public class StateMachineResource {
                                 @QueryParam("searchField") String searchField,
                                 EventData eventData
     ) throws Exception {
-        MDC.put(STATE_MACHINE_ID, machineId);
+        MDC.clear(); MDC.put(STATE_MACHINE_ID, machineId);
         logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
 
         return postEvent(machineId, searchField, eventData);
@@ -187,7 +187,7 @@ public class StateMachineResource {
     ) throws Exception {
         EventData eventData = eventAndExecutionData.getEventData();
         ExecutionUpdateData executionUpdateData = eventAndExecutionData.getExecutionUpdateData();
-        MDC.put(STATE_MACHINE_ID, machineId);
+        MDC.clear(); MDC.put(STATE_MACHINE_ID, machineId);
         MDC.put(TASK_ID, executionUpdateData.getTaskId().toString());
         logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
 
