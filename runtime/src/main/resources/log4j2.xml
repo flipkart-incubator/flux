@@ -18,5 +18,11 @@
         <Logger name="com.flipkart.polyguice.*" level="info" additivity="false">
             <AppenderRef ref="console-log"/>
         </Logger>
+        <Logger name="com.netflix.turbine" level="OFF" additivity="false">
+            <AppenderRef ref="console-log"/>
+        </Logger>
+        <Logger name="netflix.turbine" level="OFF" additivity="false">
+            <AppenderRef ref="console-log"/>
+        </Logger>
     </Loggers>
 </Configuration>

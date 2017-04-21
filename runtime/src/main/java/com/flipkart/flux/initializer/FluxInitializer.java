@@ -17,6 +17,7 @@ import com.flipkart.flux.MigrationUtil.MigrationsRunner;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.guice.module.*;
 import com.flipkart.flux.impl.boot.TaskModule;
+import com.flipkart.flux.metrics.TurbineInitializer;
 import com.flipkart.polyguice.core.support.Polyguice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,6 +129,9 @@ public class FluxInitializer {
 				(System.currentTimeMillis() - start),
 				this.hostName,
         };
+        //initialize Netflix turbine for cluster wide dashboard
+        final TurbineInitializer turbineInitializer = this.fluxRuntimeContainer.getComponentContext().getInstance(TurbineInitializer.class);
+
 		logger.info(STARTUP_DISPLAY.format(displayArgs));
         logger.info("** Flux startup complete **");
     }

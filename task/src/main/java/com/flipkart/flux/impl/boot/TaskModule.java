@@ -25,6 +25,8 @@ import com.flipkart.flux.redriver.boot.RedriverModule;
 import com.flipkart.flux.registry.TaskExecutableRegistryImpl;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.google.inject.AbstractModule;
+import com.netflix.hystrix.contrib.servopublisher.HystrixServoMetricsPublisher;
+import com.netflix.hystrix.strategy.HystrixPlugins;
 
 /**
  * Guice module for the Task Runtime
@@ -38,6 +40,7 @@ public class TaskModule extends AbstractModule {
 
     @Override
     protected void configure() {
+        HystrixPlugins.getInstance().registerMetricsPublisher(HystrixServoMetricsPublisher.getInstance());
         bind(RouterRegistry.class).to(EagerInitRouterRegistryImpl.class);
         bind(ExecutableRegistry.class).annotatedWith(ManagedEnv.class).to(TaskExecutableRegistryImpl.class);
         bind(RedriverRegistry.class).to(RedriverRegistryImpl.class);
