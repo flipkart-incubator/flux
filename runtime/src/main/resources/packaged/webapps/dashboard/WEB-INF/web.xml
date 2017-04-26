@@ -40,29 +40,6 @@
 		<servlet-name>HystrixMetricsStreamServletThreadpoolLocal</servlet-name>
 		<servlet-class>com.netflix.hystrix.contrib.metrics.eventstream.HystrixMetricsStreamServlet</servlet-class>
 	</servlet>
-
-	<!-- Turbine config -->
-	<servlet>
-		<description></description>
-		<display-name>TurbineStreamServletCommand</display-name>
-		<servlet-name>TurbineStreamServletCommand</servlet-name>
-		<servlet-class>com.netflix.turbine.streaming.servlet.TurbineStreamServlet</servlet-class>
-	</servlet>
-	<servlet>
-		<description></description>
-		<display-name>TurbineStreamServletThreadpool</display-name>
-		<servlet-name>TurbineStreamServletThreadpool</servlet-name>
-		<servlet-class>com.netflix.turbine.streaming.servlet.TurbineStreamServlet</servlet-class>
-	</servlet>
-	<!--  Two URL mappings are also needed -->
-	<servlet-mapping>
-		<servlet-name>TurbineStreamServletCommand</servlet-name>
-		<url-pattern>/turbine.stream.command</url-pattern>
-	</servlet-mapping>
-	<servlet-mapping>
-		<servlet-name>TurbineStreamServletThreadpool</servlet-name>
-		<url-pattern>/turbine.stream.tp</url-pattern>
-	</servlet-mapping>
 	
 	<!--  URL mappings for each servlet -->
 	<servlet-mapping>

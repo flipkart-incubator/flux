@@ -38,7 +38,6 @@
                 <div class="Cell">
                     <div class="Row">
                         <div class="Cell"><a href="/admin/dashboard" style="text-decoration: none; color: white;"">Dashboard</a></div>
-                        <div class="Cell"><a href="/admin/cluster-dashboard" style="text-decoration: none; color: white;"">Cluster Dashboard</a></div>
                         <div class="Cell"><a href="/admin/fsmview" style="text-decoration: none; color: white;"">FSM Visualization</a></div>
                     </div>
                 </div>

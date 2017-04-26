@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static com.flipkart.flux.constant.RuntimeConstants.CLUSTER_DASHBOARD_VIEW;
 import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
 
 /**
@@ -41,12 +40,5 @@ public class DashboardController {
     public String dashboard(ModelMap model, HttpServletRequest request) {
         return DASHBOARD_VIEW;
     }
-
-    @RequestMapping(value = {"/cluster-dashboard"}, method = RequestMethod.GET)
-    public String clusterDashboard(ModelMap model, HttpServletRequest request) {
-        return CLUSTER_DASHBOARD_VIEW;
-    }
-
-
     
 }
