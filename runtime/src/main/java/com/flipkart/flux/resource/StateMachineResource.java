@@ -22,9 +22,7 @@ import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.State;
-import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.*;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.exception.UnknownStateMachine;
@@ -418,6 +416,34 @@ public class StateMachineResource {
         this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
 
         return Response.status(Response.Status.ACCEPTED).build();
+    }
+
+    @GET
+    @Path("/{stateMachineId}/info")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response getStateMachine(@PathParam("stateMachineId") String stateMachineId,
+                                    @QueryParam("searchField") String searchField) {
+        Long machineId = null;
+        StateMachine stateMachine = null;
+        if(searchField != null && searchField.equals(CORRELATION_ID)) {
+            stateMachine = stateMachinesDAO.findByCorrelationId(stateMachineId);
+        } else {
+            machineId = Long.parseLong(stateMachineId);
+            stateMachine = stateMachinesDAO.findById(machineId);
+        }
+        if(stateMachine == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("State machine with id: " + stateMachineId + " not found").build();
+        }
+
+        List<Event> events = eventsDAO.findBySMInstanceId(stateMachine.getId());
+        List<AuditRecord> auditRecords = auditDAO.findBySMInstanceId(stateMachine.getId());
+
+        Map<String, Object> stateMachineInfo = objectMapper.convertValue(stateMachine, Map.class);
+        stateMachineInfo.put("events", events);
+        stateMachineInfo.put("auditrecords", auditRecords);
+
+        return Response.status(Response.Status.OK).entity(stateMachineInfo).build();
     }
 
     /**
