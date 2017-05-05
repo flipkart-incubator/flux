@@ -37,6 +37,9 @@ public interface StatesDAO {
     /** Updates rollback status of a state */
     public void updateRollbackStatus(Long stateId, Long stateMachineId, Status rollbackStatus);
 
+    /** Updates statuses of all initialized states of a state machine*/
+    public void cancelAllInitializedStates(Long stateMachineId);
+
     /** Increments the attempted no.of retries of a state by 1 */
     void incrementRetryCount(Long stateId, Long stateMachineId);
 

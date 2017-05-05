@@ -101,7 +101,7 @@ public class WorkFlowExecutionControllerTest {
         when(eventsDAO.findBySMIdAndName(1l, "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, 1l, null, null));
         EventData[] expectedEvents = new EventData[]{new EventData("event0","java.lang.String","42","runtime")};
         when(eventsDAO.findTriggeredEventsNamesBySMId(1l)).thenReturn(Collections.singletonList("event0"));
-        workFlowExecutionController.postEvent(testEventData, 1l, null);
+        workFlowExecutionController.postEvent(testEventData, TestUtils.getStandardTestMachineWithId());
 
         verify(routerRegistry, times(1)).getRouter("com.flipkart.flux.dao.TestWorkflow_dummyTask"); // For 1 unblocked states
         mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, 1l, "test_state_machine", TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)),2), 1);
@@ -113,7 +113,7 @@ public class WorkFlowExecutionControllerTest {
         final EventData testEventData = new EventData("event1", "foo", "someStringData", "runtime");
         when(eventsDAO.findBySMIdAndName(1l, "event1")).thenReturn(new Event("event1", "foo", Event.EventStatus.pending, 1l, null, null));
         when(eventsDAO.findTriggeredEventsNamesBySMId(1l)).thenReturn(Collections.singletonList("event1"));
-        workFlowExecutionController.postEvent(testEventData, 1l, null);
+        workFlowExecutionController.postEvent(testEventData, TestUtils.getStandardTestMachineWithId());
 
         // As states 2 and 3 dependant on single event there should be no more interactions with eventDAO to fetch event data
         verify(eventsDAO, times(0)).findByEventNamesAndSMId(Collections.singletonList("event1"),1l);
@@ -126,14 +126,14 @@ public class WorkFlowExecutionControllerTest {
         EventData[] expectedEvents1 = new EventData[]{new EventData("event1","java.lang.String","42","runtime")};
         when(eventsDAO.findByEventNamesAndSMId(Collections.singletonList("event1"),1l)).thenReturn(Arrays.asList(expectedEvents1));
         when(eventsDAO.findTriggeredEventsNamesBySMId(1l)).thenReturn(Collections.singletonList("event1"));
-        workFlowExecutionController.postEvent(testEventData1, 1l, null);
+        workFlowExecutionController.postEvent(testEventData1, TestUtils.getStandardTestMachineWithId());
 
         final EventData testEventData0 = new EventData("event0", "java.lang.String", "42", "runtime");
         when(eventsDAO.findBySMIdAndName(1l, "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, 1l, null, null));
         EventData[] expectedEvents0 = new EventData[]{new EventData("event0","java.lang.String","42","runtime")};
         when(eventsDAO.findByEventNamesAndSMId(Collections.singletonList("event0"),1l)).thenReturn(Arrays.asList(expectedEvents0));
         when(eventsDAO.findTriggeredEventsNamesBySMId(1l)).thenReturn(Collections.singletonList("event0"));
-        workFlowExecutionController.postEvent(testEventData0, 1l, null);
+        workFlowExecutionController.postEvent(testEventData0, TestUtils.getStandardTestMachineWithId());
 
         // give time to execute
         Thread.sleep(2000);
@@ -148,12 +148,13 @@ public class WorkFlowExecutionControllerTest {
         when(eventsDAO.findBySMIdAndName(1l, "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, 1l, null, null));
         EventData[] expectedEvents = new EventData[]{new EventData("event0","java.lang.String","42","runtime")};
         when(eventsDAO.findTriggeredEventsNamesBySMId(1l)).thenReturn(Collections.singletonList("event0"));
-        workFlowExecutionController.postEvent(testEventData, 1l, null);
-        State state = stateMachinesDAO.findById(1L).getStates().stream().filter((s)->s.getId() == 4L).findFirst().orElse(null);
+        workFlowExecutionController.postEvent(testEventData, TestUtils.getStandardTestMachineWithId());
+        StateMachine stateMachine = stateMachinesDAO.findById(1L);
+        State state = stateMachine.getStates().stream().filter((s)->s.getId() == 4L).findFirst().orElse(null);
         state.setStatus(Status.completed);
 
         //post the event again, this should not send msg to router for execution
-        workFlowExecutionController.postEvent(testEventData, 1l, null);
+        workFlowExecutionController.postEvent(testEventData, stateMachine);
 
         verify(routerRegistry, times(1)).getRouter("com.flipkart.flux.dao.TestWorkflow_dummyTask"); // the router should receive only one execution request
         mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, 1l, "test_state_machine", TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)),2), 1);
@@ -166,13 +167,13 @@ public class WorkFlowExecutionControllerTest {
         when(eventsDAO.findBySMIdAndName(1l, "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, 1l, null, null));
         EventData[] expectedEvents = new EventData[]{new EventData("event0","java.lang.String","42","runtime")};
         when(eventsDAO.findTriggeredEventsNamesBySMId(1l)).thenReturn(Collections.singletonList("event0"));
-        workFlowExecutionController.postEvent(testEventData, 1l, null);
+        workFlowExecutionController.postEvent(testEventData, TestUtils.getStandardTestMachineWithId());
         StateMachine stateMachine = stateMachinesDAO.findById(1L);
-        State state = stateMachinesDAO.findById(1L).getStates().stream().filter((s)->s.getId() == 4L).findFirst().orElse(null);
+        State state = stateMachine.getStates().stream().filter((s)->s.getId() == 4L).findFirst().orElse(null);
         state.setStatus(Status.errored);
 
         //post the event again, this should send msg to router again for execution
-        workFlowExecutionController.postEvent(testEventData, 1l, null);
+        workFlowExecutionController.postEvent(testEventData, stateMachine);
 
         verify(routerRegistry, times(2)).getRouter("com.flipkart.flux.dao.TestWorkflow_dummyTask"); // the router should receive two execution requests
         mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, 1l, "test_state_machine", TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)),2), 2);

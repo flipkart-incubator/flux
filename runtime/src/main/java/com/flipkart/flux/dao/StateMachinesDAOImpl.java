@@ -15,9 +15,12 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.StateMachineStatus;
+import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.google.inject.name.Named;
 import org.hibernate.Criteria;
+import org.hibernate.Query;
 import org.hibernate.criterion.Restrictions;
 
 import javax.inject.Inject;
@@ -72,5 +75,14 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     @Transactional
     public StateMachine findByCorrelationId(String correlationId) {
         return (StateMachine) currentSession().createCriteria(StateMachine.class).add(Restrictions.eq("correlationId",correlationId)).uniqueResult();
+    }
+
+    @Override
+    @Transactional
+    public void updateStatus(Long stateMachineId, StateMachineStatus status) {
+        Query query = currentSession().createQuery("update StateMachine set status = :status where id = :stateMachineId");
+        query.setString("status", status != null ? status.toString() : null);
+        query.setLong("stateMachineId", stateMachineId);
+        query.executeUpdate();
     }
 }
