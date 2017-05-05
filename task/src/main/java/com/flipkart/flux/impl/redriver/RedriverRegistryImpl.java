@@ -102,7 +102,7 @@ public class RedriverRegistryImpl implements RedriverRegistry, Initializable {
 	 * @see RedriverRegistry#deRegisterTask(java.lang.Long)
 	 */
 	public void deRegisterTask(Long taskId) {
-		MDC.put(TASK_ID,taskId.toString());
+		MDC.clear(); MDC.put(TASK_ID,taskId.toString());
 		logger.debug("DeRegister task : {} with redriver", taskId);
 		redriverMessageService.scheduleForRemoval(taskId);
 	}
@@ -112,7 +112,7 @@ public class RedriverRegistryImpl implements RedriverRegistry, Initializable {
 	 * @see RedriverRegistry#redriveTask(java.lang.Long)
 	 */
 	public void redriveTask(Long taskId) {
-		MDC.put(TASK_ID, taskId.toString());
+		MDC.clear(); MDC.put(TASK_ID, taskId.toString());
 		logger.debug("Redrive task with Id : {} ", taskId);
 		fluxRuntimeConnector.redriveTask(taskId);
 	}
