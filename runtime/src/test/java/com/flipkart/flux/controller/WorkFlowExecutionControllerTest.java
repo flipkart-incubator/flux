@@ -179,4 +179,23 @@ public class WorkFlowExecutionControllerTest {
         mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, 1l, "test_state_machine", TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)),2), 2);
         verifyNoMoreInteractions(routerRegistry);
     }
+
+    @Test
+    public void testEventPost_shouldNotExecuteTaskIfItIsCancelled() throws Exception {
+        final EventData testEventData = new EventData("event0", "java.lang.String", "42", "runtime");
+        when(eventsDAO.findBySMIdAndName(1l, "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, 1l, null, null));
+        EventData[] expectedEvents = new EventData[]{new EventData("event0","java.lang.String","42","runtime")};
+        when(eventsDAO.findTriggeredEventsNamesBySMId(1l)).thenReturn(Collections.singletonList("event0"));
+        workFlowExecutionController.postEvent(testEventData, TestUtils.getStandardTestMachineWithId());
+        StateMachine stateMachine = stateMachinesDAO.findById(1L);
+        State state = stateMachine.getStates().stream().filter((s)->s.getId() == 4L).findFirst().orElse(null);
+        state.setStatus(Status.cancelled);
+
+        //post the event again, this should not send msg to router for execution
+        workFlowExecutionController.postEvent(testEventData, stateMachine);
+
+        verify(routerRegistry, times(1)).getRouter("com.flipkart.flux.dao.TestWorkflow_dummyTask"); // the router should receive only one execution request
+        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, 1l, "test_state_machine", TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)),2), 1);
+        verifyNoMoreInteractions(routerRegistry);
+    }
 }
