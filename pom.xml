@@ -73,6 +73,7 @@
         <module>client</module>
         <module>examples</module>
         <module>api</module>
-  </modules>
+        <module>breakerbox</module>
+    </modules>
 
 </project>
