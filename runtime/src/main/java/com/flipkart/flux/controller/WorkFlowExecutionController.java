@@ -306,6 +306,9 @@ public class WorkFlowExecutionController {
      */
     public void cancelWorkflow(StateMachine stateMachine) {
         stateMachinesDAO.updateStatus(stateMachine.getId(), StateMachineStatus.cancelled);
-        statesDAO.cancelAllInitializedStates(stateMachine.getId());
+        stateMachine.getStates().stream().filter(state -> state.getStatus() == Status.initialized).forEach(state -> {
+            this.statesDAO.updateStatus(state.getId(), stateMachine.getId(), Status.cancelled);
+            this.auditDAO.create(new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNoOfRetries(), Status.cancelled, null, null));
+        });
     }
 }

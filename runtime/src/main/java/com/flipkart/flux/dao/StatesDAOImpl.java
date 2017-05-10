@@ -72,14 +72,6 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
-    public void cancelAllInitializedStates(Long stateMachineId) {
-        Query query = currentSession().createQuery("update State set status = 'cancelled' where stateMachineId = :stateMachineId and status = 'initialized'");
-        query.setLong("stateMachineId", stateMachineId);
-        query.executeUpdate();
-    }
-
-    @Override
-    @Transactional
     public void incrementRetryCount(Long stateId, Long stateMachineId) {
         Query query = currentSession().createQuery("update State set attemptedNoOfRetries = attemptedNoOfRetries + 1 where id = :stateId and stateMachineId = :stateMachineId");
         query.setLong("stateId", stateId);

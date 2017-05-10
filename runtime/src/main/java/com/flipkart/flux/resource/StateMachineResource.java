@@ -229,7 +229,7 @@ public class StateMachineResource {
             }
 
             if(stateMachine.getStatus() == StateMachineStatus.cancelled) {
-                logger.info("Discarding event as State machine: {} is in cancelled state", stateMachine.getId());
+                logger.info("Discarding event: {} as State machine: {} is in cancelled state", eventData.getName(), stateMachine.getId());
                 return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + machineId + " is in 'cancelled' state. Discarding the event.").build();
             }
 
