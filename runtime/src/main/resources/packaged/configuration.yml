@@ -58,11 +58,11 @@ runtime:
     maxTaskActorCreateRetries : 10
 
 redriver:
-  batchdelete:
-    batchsize: 50
+  batchDelete:
+    batchSize: 50
     intervalms: 1000
-  batchread:
-    batchsize: 100
+  batchRead:
+    batchSize: 100
     intervalms: 20000
   noOfPersistenceWorkers: 10
 

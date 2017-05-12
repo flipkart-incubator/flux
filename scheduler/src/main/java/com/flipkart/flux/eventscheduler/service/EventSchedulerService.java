@@ -102,12 +102,11 @@ public class EventSchedulerService {
     }
 
     private void triggerEvents() {
-        int offset = 0;
         List<ScheduledEvent> events;
         //time in seconds
         long now = System.currentTimeMillis()/1000;
         do {
-            events = eventSchedulerDao.retrieveOldest(offset, batchSize);
+            events = eventSchedulerDao.retrieveOldest(batchSize);
             events.stream().filter(e -> e.getScheduledTime() <= now).forEach(e -> {
                 try {
                     EventData eventData = objectMapper.readValue(e.getEventData(), EventData.class);
@@ -115,7 +114,6 @@ public class EventSchedulerService {
                     eventSchedulerRegistry.deregisterEvent(e.getCorrelationId(), e.getEventName());
                 } catch (Exception ex) {}
             });
-            offset += batchSize;
             // get next batch if we found batchSize events and all were triggered
         } while (events.size() == batchSize && events.get(events.size() - 1).getScheduledTime() <= now);
     }

@@ -14,6 +14,7 @@
 package com.flipkart.flux.dao.iface;
 
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.StateMachineStatus;
 
 import java.util.Set;
 
@@ -37,4 +38,7 @@ public interface StateMachinesDAO {
 
     /** Retrieves state machine by it's unique correlationId*/
     StateMachine findByCorrelationId(String correlationId);
+
+    /** Updates status of a state machine*/
+    void updateStatus(Long stateMachineId, StateMachineStatus status);
 }

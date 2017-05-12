@@ -22,12 +22,9 @@ import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.State;
-import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.*;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
-import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.representation.IllegalRepresentationException;
@@ -37,6 +34,7 @@ import com.google.inject.Inject;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -48,6 +46,9 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.flipkart.flux.Constants.STATE_MACHINE_ID;
+import static com.flipkart.flux.Constants.TASK_ID;
 
 
 /**
@@ -146,7 +147,7 @@ public class StateMachineResource {
 
         // 1. Convert to StateMachine (domain object) and save in DB
         StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineDefinition);
-
+        MDC.clear(); MDC.put(STATE_MACHINE_ID, stateMachine.getId().toString());
         logger.info("Created state machine with Id: {} and correlation Id: {}", stateMachine.getId(), stateMachine.getCorrelationId());
 
         // 2. initialize and start State Machine
@@ -170,6 +171,7 @@ public class StateMachineResource {
                                 @QueryParam("triggerTime") Long triggerTime,
                                 EventData eventData
     ) throws Exception {
+        MDC.clear(); MDC.put(STATE_MACHINE_ID, machineId);
 
         if(triggerTime == null) {
             logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
@@ -200,7 +202,8 @@ public class StateMachineResource {
     ) throws Exception {
         EventData eventData = eventAndExecutionData.getEventData();
         ExecutionUpdateData executionUpdateData = eventAndExecutionData.getExecutionUpdateData();
-
+        MDC.clear(); MDC.put(STATE_MACHINE_ID, machineId);
+        MDC.put(TASK_ID, executionUpdateData.getTaskId().toString());
         logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
 
         updateTaskStatus(Long.valueOf(machineId), executionUpdateData.getTaskId(), executionUpdateData);
@@ -210,15 +213,28 @@ public class StateMachineResource {
 
     private Response postEvent(String machineId, String searchField, EventData eventData) {
         try {
+            StateMachine stateMachine = null;
             if (searchField != null) {
                 if (!searchField.equals(CORRELATION_ID)) {
                     return Response.status(Response.Status.BAD_REQUEST).build();
                 }
-                workFlowExecutionController.postEvent(eventData, null, machineId);
+                stateMachine = stateMachinesDAO.findByCorrelationId(machineId);
             } else {
-                workFlowExecutionController.postEvent(eventData, Long.valueOf(machineId), null);
+                Long stateMachineId = Long.valueOf(machineId);
+                stateMachine = stateMachinesDAO.findById(stateMachineId);
             }
-        } catch (UnknownStateMachine | IllegalEventException ex) {
+
+            if(stateMachine == null) {
+                return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity("State machine with Id: " + machineId + " not found").build();
+            }
+
+            if(stateMachine.getStatus() == StateMachineStatus.cancelled) {
+                logger.info("Discarding event: {} as State machine: {} is in cancelled state", eventData.getName(), stateMachine.getId());
+                return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + machineId + " is in 'cancelled' state. Discarding the event.").build();
+            }
+
+            workFlowExecutionController.postEvent(eventData, stateMachine);
+        } catch (IllegalEventException ex) {
             return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
         }
         return Response.status(Response.Status.ACCEPTED).build();
@@ -313,17 +329,6 @@ public class StateMachineResource {
     }
 
     /**
-     * Cancel a machine being executed.*
-     *
-     * @param machineId The machineId to be cancelled
-     */
-    @PUT
-    @Path("/{machineId}/cancel")
-    public void cancelExecution(@PathParam("machineId") Long machineId) {
-        // Trigger cancellation on all currently executing states
-    }
-
-    /**
      * Provides json data to build fsm status graph.
      *
      * @param machineId
@@ -412,6 +417,58 @@ public class StateMachineResource {
         this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
 
         return Response.status(Response.Status.ACCEPTED).build();
+    }
+
+    @PUT
+    @Path("/{stateMachineId}/cancel")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response cancelWorkflow(@PathParam("stateMachineId") String stateMachineId,
+                                       @QueryParam("searchField") String searchField) {
+
+        Long machineId = null;
+        StateMachine stateMachine = null;
+        if(searchField != null && searchField.equals(CORRELATION_ID)) {
+            stateMachine = stateMachinesDAO.findByCorrelationId(stateMachineId);
+        } else {
+            machineId = Long.parseLong(stateMachineId);
+            stateMachine = stateMachinesDAO.findById(machineId);
+        }
+        if(stateMachine == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("State machine with id: " + stateMachineId + " not found").build();
+        }
+
+        workFlowExecutionController.cancelWorkflow(stateMachine);
+
+        return Response.status(Response.Status.ACCEPTED).build();
+    }
+
+    @GET
+    @Path("/{stateMachineId}/info")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response getStateMachine(@PathParam("stateMachineId") String stateMachineId,
+                                    @QueryParam("searchField") String searchField) {
+        Long machineId = null;
+        StateMachine stateMachine = null;
+        if(searchField != null && searchField.equals(CORRELATION_ID)) {
+            stateMachine = stateMachinesDAO.findByCorrelationId(stateMachineId);
+        } else {
+            machineId = Long.parseLong(stateMachineId);
+            stateMachine = stateMachinesDAO.findById(machineId);
+        }
+        if(stateMachine == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("State machine with id: " + stateMachineId + " not found").build();
+        }
+
+        List<Event> events = eventsDAO.findBySMInstanceId(stateMachine.getId());
+        List<AuditRecord> auditRecords = auditDAO.findBySMInstanceId(stateMachine.getId());
+
+        Map<String, Object> stateMachineInfo = objectMapper.convertValue(stateMachine, Map.class);
+        stateMachineInfo.put("events", events);
+        stateMachineInfo.put("auditrecords", auditRecords);
+
+        return Response.status(Response.Status.OK).entity(stateMachineInfo).build();
     }
 
     /**

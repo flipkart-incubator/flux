@@ -68,10 +68,10 @@ public class EventSchedulerDaoTest {
         eventSchedulerDao.save(new ScheduledEvent("smCorId", "event_name1", System.currentTimeMillis()/1000, "data"));
         Long triggerTime = System.currentTimeMillis()/1000;
         eventSchedulerDao.save(new ScheduledEvent("smCorId", "event_name2", triggerTime, "data"));
-        assertThat(eventSchedulerDao.retrieveOldest(0, 10)).hasSize(2);
+        assertThat(eventSchedulerDao.retrieveOldest(10)).hasSize(2);
 
         eventSchedulerDao.delete("smCorId", "event_name1");
-        assertThat(eventSchedulerDao.retrieveOldest(0, 10)).containsExactly(new ScheduledEvent("smCorId", "event_name2", triggerTime, "data"));
+        assertThat(eventSchedulerDao.retrieveOldest(10)).containsExactly(new ScheduledEvent("smCorId", "event_name2", triggerTime, "data"));
     }
 
     @Test
@@ -81,9 +81,10 @@ public class EventSchedulerDaoTest {
         eventSchedulerDao.save(new ScheduledEvent("smCorId2", "event_name1", triggerTime+1, "data"));
         eventSchedulerDao.save(new ScheduledEvent("smCorId2", "event_name2", triggerTime+2, "data"));
 
-        assertThat(eventSchedulerDao.retrieveOldest(0, 1)).containsExactly(new ScheduledEvent("smCorId1", "event_name1", triggerTime, "data"));
-        assertThat(eventSchedulerDao.retrieveOldest(1, 3)).hasSize(2);
-        assertThat(eventSchedulerDao.retrieveOldest(1, 3)).containsSequence(
+        assertThat(eventSchedulerDao.retrieveOldest(1)).containsExactly(new ScheduledEvent("smCorId1", "event_name1", triggerTime, "data"));
+        assertThat(eventSchedulerDao.retrieveOldest(3)).hasSize(3);
+        assertThat(eventSchedulerDao.retrieveOldest(3)).containsSequence(
+                new ScheduledEvent("smCorId1", "event_name1", triggerTime, "data"),
                 new ScheduledEvent("smCorId2", "event_name1", triggerTime+1, "data"),
                 new ScheduledEvent("smCorId2", "event_name2", triggerTime+2, "data"));
     }
