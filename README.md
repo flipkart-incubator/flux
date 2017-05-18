@@ -31,7 +31,7 @@ Additionally, you can also inspect individual state machine execution DAGs and a
 
 <img src="https://github.com/flipkart-incubator/flux/raw/master/docs/audit_records.png" width="500">
 
-Click [here](https://drive.google.com/file/d/0BxBoQMKaBB04c3RhcnRlcl9maWxl/view?usp=sharing) to see how Flux state machine instance graph and audit look like.
+Click [here](https://drive.google.com/file/d/0BxBoQMKaBB04NzRYQXRXdThrNXM/view?usp=sharing) to see how Flux state machine instance graph and audit look like.
 
 ## Documentation and Examples
 Flux examples are under "examples" module. Each example can be run independently. Flux has very few dependencies and the simplest
