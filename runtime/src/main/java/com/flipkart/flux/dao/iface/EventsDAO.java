@@ -31,20 +31,20 @@ public interface EventsDAO {
     void updateEvent(Event event);
 
     /** Retrieves all the events which belongs to a particular state machine instance*/
-    List<Event> findBySMInstanceId(Long stateMachineInstanceId);
+    List<Event> findBySMInstanceId(String stateMachineInstanceId);
 
     /** Retrieves Event by it's unique identifier*/
     Event findById(Long id);
 
     /** Retrieves Event by state machine instance id and event name */
-    Event findBySMIdAndName(Long stateMachineInstanceId, String eventName);
+    Event findBySMIdAndName(String stateMachineInstanceId, String eventName);
 
     /** Retrieves list of event names which are in triggered state and belongs to provided state machine */
-    public List<String> findTriggeredEventsNamesBySMId(Long stateMachineInstanceId);
+    public List<String> findTriggeredEventsNamesBySMId(String stateMachineInstanceId);
 
     /** Retrieves list of events which are in triggered state and belongs to provided state machine */
-    public List<Event> findTriggeredEventsBySMId(Long stateMachineInstanceId);
+    public List<Event> findTriggeredEventsBySMId(String stateMachineInstanceId);
 
     /** Retrieves list of events by their names and state machine id */
-    public List<EventData> findByEventNamesAndSMId(List<String> eventNames, Long stateMachineInstanceId);
+    public List<EventData> findByEventNamesAndSMId(List<String> eventNames, String stateMachineInstanceId);
 }

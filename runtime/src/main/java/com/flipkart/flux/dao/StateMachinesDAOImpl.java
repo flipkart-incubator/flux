@@ -45,7 +45,7 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
 
     @Override
     @Transactional
-    public StateMachine findById(Long id) {
+    public StateMachine findById(String id) {
         return super.findById(StateMachine.class, id);
     }
 

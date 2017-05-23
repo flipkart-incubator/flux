@@ -53,6 +53,15 @@ public abstract class AbstractDAO<T> {
         return castedObject;
     }
 
+    public T findById(Class cls, String id) {
+        Criteria criteria = currentSession().createCriteria(cls).add(Restrictions.eq("id", id));
+        Object object = criteria.uniqueResult();
+        T castedObject = null;
+        if(object != null)
+            castedObject = (T) object;
+        return castedObject;
+    }
+
     /**
      * Saves the object in DB and returns the saved object.
      * @param object

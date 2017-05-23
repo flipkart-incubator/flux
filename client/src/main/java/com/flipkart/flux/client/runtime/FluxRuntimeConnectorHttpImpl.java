@@ -98,7 +98,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     }
 
     @Override
-    public void submitEventAndUpdateStatus(EventData eventData, Long stateMachineId, ExecutionUpdateData executionUpdateData) {
+    public void submitEventAndUpdateStatus(EventData eventData, String stateMachineId, ExecutionUpdateData executionUpdateData) {
         CloseableHttpResponse httpResponse = null;
         try {
             EventAndExecutionData eventAndExecutionData = new EventAndExecutionData(eventData, executionUpdateData);
@@ -140,7 +140,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
 	 * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#incrementExecutionRetries(java.lang.Long, java.lang.Long)
 	 */
 	@Override
-	public void incrementExecutionRetries(Long stateMachineId,Long taskId) {
+	public void incrementExecutionRetries(String stateMachineId,Long taskId) {
 		CloseableHttpResponse httpResponse = null;
         httpResponse = postOverHttp(null,  "/" + stateMachineId + "/" + taskId + "/retries/inc");
         HttpClientUtils.closeQuietly(httpResponse);

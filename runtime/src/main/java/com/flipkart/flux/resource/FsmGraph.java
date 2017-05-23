@@ -42,7 +42,7 @@ public class FsmGraph {
     private List<Long> erroredStateIds;
 
     @JsonProperty
-    private Long stateMachineId;
+    private String stateMachineId;
 
     @JsonProperty
     private String correlationId;
@@ -78,7 +78,7 @@ public class FsmGraph {
         this.auditData = auditData;
     }
 
-    public void setStateMachineId(Long stateMachineId) {
+    public void setStateMachineId(String stateMachineId) {
         this.stateMachineId = stateMachineId;
     }
 

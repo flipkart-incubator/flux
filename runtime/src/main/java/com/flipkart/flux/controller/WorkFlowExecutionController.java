@@ -102,18 +102,12 @@ public class WorkFlowExecutionController {
      * Retrieves the states which are dependant on this event and starts the execution of eligible states (whose all dependencies are met).
      * @param eventData
      * @param stateMachineInstanceId
-     * @param correlationId
      */
-    public Set<State> postEvent(EventData eventData, Long stateMachineInstanceId, String correlationId) {
+    public Set<State> postEvent(EventData eventData, String stateMachineInstanceId) {
         StateMachine stateMachine = null;
-        if (stateMachineInstanceId != null) {
-            stateMachine = retrieveStateMachine(stateMachineInstanceId);
-        } else if(correlationId != null) {
-            stateMachine = retrieveStateMachineByCorrelationId(correlationId);
-            stateMachineInstanceId = (stateMachine == null) ? null : stateMachine.getId();
-        }
+        stateMachine = retrieveStateMachine(stateMachineInstanceId);
         if(stateMachine == null)
-            throw new UnknownStateMachine("State machine with id: "+stateMachineInstanceId+ " or correlation id " + correlationId + " not found");
+            throw new UnknownStateMachine("State machine with id: "+stateMachineInstanceId+ " not found");
         //update event's data and status
         Event event = eventsDAO.findBySMIdAndName(stateMachineInstanceId, eventData.getName());
         if(event == null)
@@ -146,7 +140,7 @@ public class WorkFlowExecutionController {
      * @param currentRetryCount current retry count for the task
      * @param errorMessage the error message in case task has failed
      */
-    public void updateExecutionStatus(Long stateMachineId,Long taskId, Status status, long retryCount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver) {
+    public void updateExecutionStatus(String stateMachineId,Long taskId, Status status, long retryCount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver) {
         this.statesDAO.updateStatus(taskId, stateMachineId, status);
         this.auditDAO.create(new AuditRecord(stateMachineId, taskId, currentRetryCount, status, null, errorMessage));
         // cancel the redriver if the Task's original retry count is > 0 and deleteFromRedriver flag is true
@@ -161,7 +155,7 @@ public class WorkFlowExecutionController {
      * @param stateMachineId
      * @param stateId
      */
-    public void unsidelineState(Long stateMachineId, Long stateId) {
+    public void unsidelineState(String stateMachineId, Long stateId) {
         State askedState = null;
         StateMachine stateMachine = retrieveStateMachine(stateMachineId);
         if(stateMachine == null )
@@ -260,7 +254,7 @@ public class WorkFlowExecutionController {
         }));
     }
 
-    private StateMachine retrieveStateMachine(Long stateMachineInstanceId) {
+    private StateMachine retrieveStateMachine(String stateMachineInstanceId) {
         return stateMachinesDAO.findById(stateMachineInstanceId);
     }
 
@@ -270,7 +264,7 @@ public class WorkFlowExecutionController {
      * @param stateMachineInstanceId
      * @return executableStates
      */
-    private Set<State> getExecutableStates(Set<State> dependantStates, Long stateMachineInstanceId) {
+    private Set<State> getExecutableStates(Set<State> dependantStates, String stateMachineInstanceId) {
         // TODO : states can get triggered twice if we receive all their dependent events at roughly the same time.
         Set<State> executableStates = new HashSet<>();
         Set<String> receivedEvents = new HashSet<>(eventsDAO.findTriggeredEventsNamesBySMId(stateMachineInstanceId));

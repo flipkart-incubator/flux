@@ -32,7 +32,7 @@ public interface StatesDAO {
     void updateState(State state);
 
     /** Updates status of a state*/
-    public void updateStatus(Long stateId, Long stateMachineId, Status status);
+    public void updateStatus(Long stateId, String stateMachineId, Status status);
 
     /** Updates rollback status of a state */
     public void updateRollbackStatus(Long stateId, Long stateMachineId, Status rollbackStatus);

@@ -191,21 +191,14 @@ public class StateMachineResource {
         MDC.put(TASK_ID, executionUpdateData.getTaskId().toString());
         logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
 
-        updateTaskStatus(Long.valueOf(machineId), executionUpdateData.getTaskId(), executionUpdateData);
+        updateTaskStatus(machineId, executionUpdateData.getTaskId(), executionUpdateData);
 
         return postEvent(machineId, null, eventData);
     }
 
     private Response postEvent(String machineId, String searchField, EventData eventData) {
         try {
-            if (searchField != null) {
-                if (!searchField.equals(CORRELATION_ID)) {
-                    return Response.status(Response.Status.BAD_REQUEST).build();
-                }
-                workFlowExecutionController.postEvent(eventData, null, machineId);
-            } else {
-                workFlowExecutionController.postEvent(eventData, Long.valueOf(machineId), null);
-            }
+            workFlowExecutionController.postEvent(eventData, machineId);
         } catch (UnknownStateMachine | IllegalEventException ex) {
             return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
         }
@@ -224,7 +217,7 @@ public class StateMachineResource {
     @Path("/{machineId}/{stateId}/status")
     @Transactional
     @Timed
-    public Response updateStatus(@PathParam("machineId") Long machineId,
+    public Response updateStatus(@PathParam("machineId") String machineId,
                                  @PathParam("stateId") Long stateId,
                                  ExecutionUpdateData executionUpdateData
     ) throws Exception {
@@ -232,7 +225,7 @@ public class StateMachineResource {
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
-    private void updateTaskStatus(Long machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
+    private void updateTaskStatus(String machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
         com.flipkart.flux.domain.Status updateStatus = null;
         switch (executionUpdateData.getStatus()) {
             case initialized:
@@ -396,7 +389,7 @@ public class StateMachineResource {
     @Path("/{stateMachineId}/{stateId}/unsideline")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response unsidelineState(@PathParam("stateMachineId") Long stateMachineId, @PathParam("stateId") Long stateId) {
+    public Response unsidelineState(@PathParam("stateMachineId") String stateMachineId, @PathParam("stateId") Long stateId) {
         this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
 
         return Response.status(Response.Status.ACCEPTED).build();
@@ -406,19 +399,9 @@ public class StateMachineResource {
      * Retrieves fsm graph data based on FSM Id or correlation id
      */
     private FsmGraph getGraphData(String machineId) throws IOException {
-        Long fsmId = null;
-        try {
-            fsmId = Long.valueOf(machineId);
-        } catch (NumberFormatException ignored) {
-        }
-
         StateMachine stateMachine;
 
-        if (fsmId != null) {
-            stateMachine = stateMachinesDAO.findById(fsmId);
-        } else { //if fsmId is null, that means the passed id is correlation id
-            stateMachine = stateMachinesDAO.findByCorrelationId(machineId);
-        }
+        stateMachine = stateMachinesDAO.findById(machineId);
 
         if (stateMachine == null) {
             throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).entity("State machine with Id: " + machineId + " not found").build());

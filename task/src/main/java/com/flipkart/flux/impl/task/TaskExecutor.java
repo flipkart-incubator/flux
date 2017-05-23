@@ -42,7 +42,7 @@ public class TaskExecutor extends HystrixCommand<Event> {
     /**
      * State Machine Id to which this task belongs to
      */
-    private final Long stateMachineId;
+    private final String stateMachineId;
 
     /**
      * Name of the event which is emitted by this Task
@@ -52,7 +52,7 @@ public class TaskExecutor extends HystrixCommand<Event> {
     /**
      * Constructor for this class
      */
-    public TaskExecutor(AbstractTask task, EventData[] events, Long stateMachineId, String outputEventName) {
+    public TaskExecutor(AbstractTask task, EventData[] events, String stateMachineId, String outputEventName) {
         super(Setter
                 .withGroupKey(HystrixCommandGroupKey.Factory.asKey(task.getTaskGroupName()))
                 .andCommandKey(HystrixCommandKey.Factory.asKey(task.getName()))

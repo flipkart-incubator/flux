@@ -102,7 +102,7 @@ public class StateMachineResourceTest {
     public void testUnsideline() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
         final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
-        Event event = eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event0");
+        Event event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event0");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.pending);
 
         // ask the task to fail with retriable error.
@@ -116,7 +116,7 @@ public class StateMachineResourceTest {
             Thread.sleep(4000);
 
             //status of state should be sidelined
-            Long smId = Long.parseLong(smCreationResponse.getBody());
+            String smId = smCreationResponse.getBody();
             State state4 = stateMachinesDAO.findById(smId).getStates().stream().filter(e -> e.getName().equals("test_state4")).findFirst().orElse(null);
             assertThat(state4).isNotNull();
             assertThat(state4.getStatus()).isEqualTo(Status.sidelined);
@@ -150,7 +150,7 @@ public class StateMachineResourceTest {
     public void testPostEvent() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
         final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
-        Event event = eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event0");
+        Event event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event0");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.pending);
 
         String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
@@ -158,15 +158,15 @@ public class StateMachineResourceTest {
         assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
         // give some time to execute
         Thread.sleep(2000);
-        event = eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event0");
+        event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event0");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.triggered);
         assertThat(event).isEqualToIgnoringGivenFields(TestUtils.getStandardTestEvent(), "stateMachineInstanceId", "id", "createdAt", "updatedAt");
 
         // event3 was waiting on event1, so event3 should also be triggered
-        event = eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event3");
+        event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event3");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.triggered);
 
-        boolean anyNotCompleted = stateMachinesDAO.findById(Long.parseLong(smCreationResponse.getBody())).getStates().stream().anyMatch(e -> !e.getStatus().equals(Status.completed));
+        boolean anyNotCompleted = stateMachinesDAO.findById(smCreationResponse.getBody()).getStates().stream().anyMatch(e -> !e.getStatus().equals(Status.completed));
         assertThat(anyNotCompleted).isFalse();
     }
 
@@ -174,7 +174,7 @@ public class StateMachineResourceTest {
     public void testPostEvent_withCorrelationId() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
         final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
-        Event event = eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event0");
+        Event event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event0");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.pending);
 
         String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
@@ -182,15 +182,15 @@ public class StateMachineResourceTest {
         assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
         // give some time to execute
         Thread.sleep(2000);
-        event = eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event0");
+        event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event0");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.triggered);
         assertThat(event).isEqualToIgnoringGivenFields(TestUtils.getStandardTestEvent(), "stateMachineInstanceId", "id", "createdAt", "updatedAt");
 
         // event3 was waiting on event1, so event3 should also be triggered
-        event = eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event3");
+        event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event3");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.triggered);
 
-        boolean anyNotCompleted = stateMachinesDAO.findById(Long.parseLong(smCreationResponse.getBody())).getStates().stream().anyMatch(e -> !e.getStatus().equals(Status.completed));
+        boolean anyNotCompleted = stateMachinesDAO.findById(smCreationResponse.getBody()).getStates().stream().anyMatch(e -> !e.getStatus().equals(Status.completed));
         assertThat(anyNotCompleted).isFalse();
     }
 
@@ -198,7 +198,7 @@ public class StateMachineResourceTest {
     public void testPostEvent_againstNonExistingCorrelationId() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
         final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
-        Event event = eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event0");
+        Event event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event0");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.pending);
 
         String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));

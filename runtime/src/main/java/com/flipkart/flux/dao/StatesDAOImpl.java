@@ -52,11 +52,11 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
-    public void updateStatus(Long stateId, Long stateMachineId, Status status) {
+    public void updateStatus(Long stateId, String stateMachineId, Status status) {
         Query query = currentSession().createQuery("update State set status = :status where id = :stateId and stateMachineId = :stateMachineId");
         query.setString("status", status != null ? status.toString() : null);
         query.setLong("stateId", stateId);
-        query.setLong("stateMachineId", stateMachineId);
+        query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
 

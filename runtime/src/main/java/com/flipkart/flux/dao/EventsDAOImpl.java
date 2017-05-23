@@ -54,7 +54,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    public List<Event> findBySMInstanceId(Long stateMachineInstanceId) {
+    public List<Event> findBySMInstanceId(String stateMachineInstanceId) {
         return currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId)).list();
     }
 
@@ -66,7 +66,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    public Event findBySMIdAndName(Long stateMachineInstanceId, String eventName) {
+    public Event findBySMIdAndName(String stateMachineInstanceId, String eventName) {
         Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("name", eventName));
         return (Event) criteria.uniqueResult();
@@ -74,7 +74,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    public List<String> findTriggeredEventsNamesBySMId(Long stateMachineInstanceId) {
+    public List<String> findTriggeredEventsNamesBySMId(String stateMachineInstanceId) {
         Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("status", Event.EventStatus.triggered))
                 .setProjection(Projections.property("name"));
@@ -83,7 +83,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    public List<Event> findTriggeredEventsBySMId(Long stateMachineInstanceId) {
+    public List<Event> findTriggeredEventsBySMId(String stateMachineInstanceId) {
         Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("status", Event.EventStatus.triggered));
         return criteria.list();
@@ -91,7 +91,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    public List<EventData> findByEventNamesAndSMId(List<String> eventNames, Long stateMachineInstanceId) {
+    public List<EventData> findByEventNamesAndSMId(List<String> eventNames, String stateMachineInstanceId) {
         if (eventNames.isEmpty()) {
             return new ArrayList<>();
         }

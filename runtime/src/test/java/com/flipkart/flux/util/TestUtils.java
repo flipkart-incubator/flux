@@ -54,7 +54,7 @@ public class TestUtils {
             add(state4);
         }};
         StateMachine stateMachine = new StateMachine(1l,"test_state_machine","desc", states, "magic_number_1");
-        setProperty(stateMachine, "id", 1L);
+        setProperty(stateMachine, "id", "1L");
         return stateMachine;
     }
 

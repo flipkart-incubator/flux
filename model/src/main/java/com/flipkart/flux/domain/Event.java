@@ -48,7 +48,7 @@ public class Event implements Serializable {
     private EventStatus status;
 
     /** Instance Id of state machine with which this event is associated */
-    private Long stateMachineInstanceId;
+    private String stateMachineInstanceId;
 
     /** Data associated with this Event, stored as serialised json */
     private String eventData;
@@ -70,7 +70,7 @@ public class Event implements Serializable {
 
     /** Constructors */
     protected Event() {}
-    public Event(String name, String type, EventStatus status, Long stateMachineInstanceId, String eventData, String eventSource) {
+    public Event(String name, String type, EventStatus status, String stateMachineInstanceId, String eventData, String eventSource) {
         this.name = name;
         this.type = type;
         this.status = status;
@@ -92,10 +92,10 @@ public class Event implements Serializable {
     public void setStatus(EventStatus status) {
         this.status = status;
     }
-    public Long getStateMachineInstanceId() {
+    public String getStateMachineInstanceId() {
         return stateMachineInstanceId;
     }
-    public void setStateMachineInstanceId(Long stateMachineInstanceId) {
+    public void setStateMachineInstanceId(String stateMachineInstanceId) {
         this.stateMachineInstanceId = stateMachineInstanceId;
     }
     public String getEventData() {

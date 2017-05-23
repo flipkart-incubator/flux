@@ -31,8 +31,8 @@ import java.util.Set;
 public class StateMachine {
 
     /** Unique identifier of the state machine*/
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Id
+    private String id;
 
     /* provided */
     /** The version identifier*/
@@ -41,9 +41,6 @@ public class StateMachine {
     private String name;
     /** Description of the state machine*/
     private String description;
-
-    /** User supplied correlationId. A user can post events for a state machine given this correlation id */
-    private String correlationId;
 
     /** List of states that this machine has*/
     @OneToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL, targetEntity = State.class)
@@ -74,11 +71,19 @@ public class StateMachine {
         this.name = name;
         this.description = description;
         this.states = states;
-        this.correlationId = correlationId;
+    }
+
+    public StateMachine(String id, Long version, String name, String description, Set<State> states, String correlationId) {
+        super();
+        this.id = id;
+        this.version = version;
+        this.name = name;
+        this.description = description;
+        this.states = states;
     }
 
     /** Accessor/Mutator methods */
-    public Long getId() {
+    public String getId() {
         return id;
     }
     public Context getContext() {
@@ -112,7 +117,7 @@ public class StateMachine {
         return updatedAt;
     }
     public String getCorrelationId() {
-        return correlationId;
+        return null;
     }
 
     @Override

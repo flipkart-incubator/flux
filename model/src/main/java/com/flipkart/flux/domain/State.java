@@ -47,7 +47,7 @@ public class State {
     /** Description for this State*/
     private String description;
     /** Id of the state machine to which this state belongs*/
-    private Long stateMachineId;
+    private String stateMachineId;
     /** Name of Hook class that is executed on entry of this State, must be a public class*/
     private String onEntryHook;
     /** Name of Task class that is executed when the transition happens to this State, must be a public class*/
@@ -138,10 +138,10 @@ public class State {
     public void setDescription(String description) {
         this.description = description;
     }
-    public Long getStateMachineId() {
+    public String getStateMachineId() {
         return stateMachineId;
     }
-    public void setStateMachineId(Long stateMachineId) {
+    public void setStateMachineId(String stateMachineId) {
         this.stateMachineId = stateMachineId;
     }
     public String getOnEntryHook() {

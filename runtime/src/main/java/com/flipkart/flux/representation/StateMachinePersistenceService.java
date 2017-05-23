@@ -69,7 +69,8 @@ public class StateMachinePersistenceService {
             states.add(state);
         }
 
-        StateMachine stateMachine = new StateMachine(stateMachineDefinition.getVersion(),
+        String uuid = UUID.randomUUID().toString();
+        StateMachine stateMachine = new StateMachine(uuid, stateMachineDefinition.getVersion(),
                 stateMachineDefinition.getName(),
                 stateMachineDefinition.getDescription(),
                 states, stateMachineDefinition.getCorrelationId());
