@@ -40,7 +40,7 @@ public class MigrationsRunner {
 
     public void migrate(String dbName) {
         try {
-            Configuration configuration = yamlConfiguration.subset(dbName+ ".Hibernate");
+            Configuration configuration = yamlConfiguration.subset("flux.Hibernate");
             Properties properties = new Properties();
             properties.put("user", configuration.getProperty("hibernate.connection.username"));
             properties.put("password", configuration.getProperty("hibernate.connection.password"));
@@ -49,7 +49,7 @@ public class MigrationsRunner {
             java.sql.Connection connection = DriverManager.getConnection(url, properties);
             Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
             ClassLoader classLoader = getClass().getClassLoader();
-            File file = new File(classLoader.getResource(dbName+"/migrations.xml").getFile());
+            File file = new File(classLoader.getResource("flux/migrations.xml").getFile());
             Liquibase liquibase = new Liquibase(file.getCanonicalPath(), new FileSystemResourceAccessor(), database);
             liquibase.update(new Contexts());
         } catch (Exception e) {
