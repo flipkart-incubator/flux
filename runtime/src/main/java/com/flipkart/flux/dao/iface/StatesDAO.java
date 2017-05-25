@@ -32,19 +32,19 @@ public interface StatesDAO {
     void updateState(State state);
 
     /** Updates status of a state*/
-    public void updateStatus(Long stateId, Long stateMachineId, Status status);
+    public void updateStatus(Long stateId, String stateMachineId, Status status);
 
     /** Updates rollback status of a state */
-    public void updateRollbackStatus(Long stateId, Long stateMachineId, Status rollbackStatus);
+    public void updateRollbackStatus(Long stateId, String stateMachineId, Status rollbackStatus);
 
     /** Increments the attempted no.of retries of a state by 1 */
-    void incrementRetryCount(Long stateId, Long stateMachineId);
+    void incrementRetryCount(Long stateId, String stateMachineId);
 
     /** Retrieves a state by it's unique identifier*/
     State findById(Long id);
 
     /** Retrieves all errored states for the given range of stateMachine ids */
-    List findErroredStates(String stateMachineName, Long fromStateMachineId, Long toStateMachineId);
+    List findErroredStates(String stateMachineName, String fromStateMachineId, String toStateMachineId);
 
     /**
      * Retrieves all states having one of the given statuses for a particular state machine name and the state machine creation time in

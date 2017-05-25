@@ -52,30 +52,30 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
-    public void updateStatus(Long stateId, Long stateMachineId, Status status) {
+    public void updateStatus(Long stateId, String stateMachineId, Status status) {
         Query query = currentSession().createQuery("update State set status = :status where id = :stateId and stateMachineId = :stateMachineId");
         query.setString("status", status != null ? status.toString() : null);
         query.setLong("stateId", stateId);
-        query.setLong("stateMachineId", stateMachineId);
+        query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
 
     @Override
     @Transactional
-    public void updateRollbackStatus(Long stateId, Long stateMachineId, Status rollbackStatus) {
+    public void updateRollbackStatus(Long stateId, String stateMachineId, Status rollbackStatus) {
         Query query = currentSession().createQuery("update State set rollbackStatus = :rollbackStatus where id = :stateId and stateMachineId = :stateMachineId");
         query.setString("rollbackStatus", rollbackStatus != null ? rollbackStatus.toString() : null);
         query.setLong("stateId", stateId);
-        query.setLong("stateMachineId", stateMachineId);
+        query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
 
     @Override
     @Transactional
-    public void incrementRetryCount(Long stateId, Long stateMachineId) {
+    public void incrementRetryCount(Long stateId, String stateMachineId) {
         Query query = currentSession().createQuery("update State set attemptedNoOfRetries = attemptedNoOfRetries + 1 where id = :stateId and stateMachineId = :stateMachineId");
         query.setLong("stateId", stateId);
-        query.setLong("stateMachineId", stateMachineId);
+        query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
 
@@ -88,12 +88,12 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Override
     @Transactional
     @SelectDataSource(DataSourceType.READ_ONLY)
-    public List findErroredStates(String stateMachineName, Long fromStateMachineId, Long toStateMachineId) {
+    public List findErroredStates(String stateMachineName, String fromStateMachineId, String toStateMachineId) {
         Query query = currentSession().createQuery("select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
                 "where sm.id between :fromStateMachineId and :toStateMachineId and sm.name = :stateMachineName and state.status in ('errored', 'sidelined', 'cancelled')");
 
-        query.setLong("fromStateMachineId", fromStateMachineId);
-        query.setLong("toStateMachineId", toStateMachineId);
+        query.setString("fromStateMachineId", fromStateMachineId);
+        query.setString("toStateMachineId", toStateMachineId);
         query.setString("stateMachineName", stateMachineName);
 
         return query.list();

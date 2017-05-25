@@ -32,7 +32,7 @@ public class StateMachine {
 
     /** Unique identifier of the state machine*/
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     /* provided */
     /** The version identifier*/
@@ -78,7 +78,7 @@ public class StateMachine {
     }
 
     /** Accessor/Mutator methods */
-    public Long getId() {
+    public String getId() {
         return id;
     }
     public Context getContext() {

@@ -144,7 +144,8 @@ public class StateMachineResource {
 
         // 1. Convert to StateMachine (domain object) and save in DB
         StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineDefinition);
-        MDC.clear(); MDC.put(STATE_MACHINE_ID, stateMachine.getId().toString());
+        MDC.clear();
+        MDC.put(STATE_MACHINE_ID, stateMachine.getId().toString());
         logger.info("Created state machine with Id: {} and correlation Id: {}", stateMachine.getId(), stateMachine.getCorrelationId());
 
         // 2. initialize and start State Machine
@@ -167,7 +168,8 @@ public class StateMachineResource {
                                 @QueryParam("searchField") String searchField,
                                 EventData eventData
     ) throws Exception {
-        MDC.clear(); MDC.put(STATE_MACHINE_ID, machineId);
+        MDC.clear();
+        MDC.put(STATE_MACHINE_ID, machineId);
         logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
 
         return postEvent(machineId, searchField, eventData);
@@ -176,7 +178,7 @@ public class StateMachineResource {
     /**
      * Used to post Data corresponding to an event. This also updates the task status to completed which generated the event.
      *
-     * @param machineId machineId the event is to be submitted against
+     * @param machineId             machineId the event is to be submitted against
      * @param eventAndExecutionData Json representation of event and execution updation data
      */
     @POST
@@ -187,11 +189,12 @@ public class StateMachineResource {
     ) throws Exception {
         EventData eventData = eventAndExecutionData.getEventData();
         ExecutionUpdateData executionUpdateData = eventAndExecutionData.getExecutionUpdateData();
-        MDC.clear(); MDC.put(STATE_MACHINE_ID, machineId);
+        MDC.clear();
+        MDC.put(STATE_MACHINE_ID, machineId);
         MDC.put(TASK_ID, executionUpdateData.getTaskId().toString());
         logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
 
-        updateTaskStatus(Long.valueOf(machineId), executionUpdateData.getTaskId(), executionUpdateData);
+        updateTaskStatus(machineId, executionUpdateData.getTaskId(), executionUpdateData);
 
         return postEvent(machineId, null, eventData);
     }
@@ -204,7 +207,7 @@ public class StateMachineResource {
                 }
                 workFlowExecutionController.postEvent(eventData, null, machineId);
             } else {
-                workFlowExecutionController.postEvent(eventData, Long.valueOf(machineId), null);
+                workFlowExecutionController.postEvent(eventData, machineId, null);
             }
         } catch (UnknownStateMachine | IllegalEventException ex) {
             return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
@@ -216,7 +219,7 @@ public class StateMachineResource {
      * Updates the status of the specified Task under the specified State machine
      *
      * @param machineId the state machine identifier
-     * @param stateId the task/state identifier
+     * @param stateId   the task/state identifier
      * @return Response with execution status code
      * @throws Exception
      */
@@ -224,7 +227,7 @@ public class StateMachineResource {
     @Path("/{machineId}/{stateId}/status")
     @Transactional
     @Timed
-    public Response updateStatus(@PathParam("machineId") Long machineId,
+    public Response updateStatus(@PathParam("machineId") String machineId,
                                  @PathParam("stateId") Long stateId,
                                  ExecutionUpdateData executionUpdateData
     ) throws Exception {
@@ -232,7 +235,7 @@ public class StateMachineResource {
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
-    private void updateTaskStatus(Long machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
+    private void updateTaskStatus(String machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
         com.flipkart.flux.domain.Status updateStatus = null;
         switch (executionUpdateData.getStatus()) {
             case initialized:
@@ -277,11 +280,11 @@ public class StateMachineResource {
     @POST
     @Path("/{machineId}/{stateId}/retries/inc")
     @Transactional
-    public Response incrementRetry(@PathParam("machineId") Long machineId,
-                                @PathParam("stateId") Long stateId
-                            ) throws Exception {
-    	this.workFlowExecutionController.incrementExecutionRetries(machineId, stateId);
-    	return Response.status(Response.Status.ACCEPTED).build();
+    public Response incrementRetry(@PathParam("machineId") String machineId,
+                                   @PathParam("stateId") Long stateId
+    ) throws Exception {
+        this.workFlowExecutionController.incrementExecutionRetries(machineId, stateId);
+        return Response.status(Response.Status.ACCEPTED).build();
     }
 
     /**
@@ -336,15 +339,14 @@ public class StateMachineResource {
     @Path("/{stateMachineName}/states/errored")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getErroredStates(@PathParam("stateMachineName") String stateMachineName,
-                                     @QueryParam("fromSmId") Long fromStateMachineId,
-                                     @QueryParam("toSmId") Long toStateMachineId) {
-        if(fromStateMachineId == null || fromStateMachineId < 0) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("start of the range not provided or invalid").build();
+                                     @QueryParam("fromSmId") String fromStateMachineId,
+                                     @QueryParam("toSmId") String toStateMachineId) {
+        if (fromStateMachineId == null || fromStateMachineId.length() <= 0) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Not a valid starting stateMachineId, either null or empty!!").build();
         }
-
-        long limit = fromStateMachineId + 1_000_000;
-        /* if toStateMachineId is invalid just use fromStateMachineId as the end, otherwise limit the range to max of 1,000,000 */
-        toStateMachineId = (toStateMachineId == null || toStateMachineId < fromStateMachineId) ? fromStateMachineId : Math.min(limit, toStateMachineId);
+        if (toStateMachineId == null || toStateMachineId.length() <= 0) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Not a valid ending stateMachineId, either null or empty!!").build();
+        }
 
         return Response.status(200).entity(statesDAO.findErroredStates(stateMachineName, fromStateMachineId, toStateMachineId)).build();
     }
@@ -352,6 +354,7 @@ public class StateMachineResource {
     /**
      * Retrieves all states for the given range of time for a particular state machine name.
      * Will also filter by status if it is given.
+     *
      * @return json containing list of [state machine id, state id, status]
      */
     @GET
@@ -396,7 +399,7 @@ public class StateMachineResource {
     @Path("/{stateMachineId}/{stateId}/unsideline")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response unsidelineState(@PathParam("stateMachineId") Long stateMachineId, @PathParam("stateId") Long stateId) {
+    public Response unsidelineState(@PathParam("stateMachineId") String stateMachineId, @PathParam("stateId") Long stateId) {
         this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
 
         return Response.status(Response.Status.ACCEPTED).build();
@@ -406,18 +409,15 @@ public class StateMachineResource {
      * Retrieves fsm graph data based on FSM Id or correlation id
      */
     private FsmGraph getGraphData(String machineId) throws IOException {
-        Long fsmId = null;
-        try {
-            fsmId = Long.valueOf(machineId);
-        } catch (NumberFormatException ignored) {
-        }
+        String fsmId = machineId;
 
         StateMachine stateMachine;
+        stateMachine = stateMachinesDAO.findById(fsmId);
 
-        if (fsmId != null) {
-            stateMachine = stateMachinesDAO.findById(fsmId);
-        } else { //if fsmId is null, that means the passed id is correlation id
+        if (stateMachine == null) {
+            //if stateMachine is null, that means the passed id is correlation id
             stateMachine = stateMachinesDAO.findByCorrelationId(machineId);
+
         }
 
         if (stateMachine == null) {
@@ -428,7 +428,7 @@ public class StateMachineResource {
         List<Long> erroredStateIds = new LinkedList<>();
 
         for (State state : stateMachine.getStates()) {
-            if(state.getStatus() == Status.errored || state.getStatus() == Status.sidelined) {
+            if (state.getStatus() == Status.errored || state.getStatus() == Status.sidelined) {
                 erroredStateIds.add(state.getId());
             }
         }
@@ -452,7 +452,7 @@ public class StateMachineResource {
                 EventDefinition eventDefinition = objectMapper.readValue(state.getOutputEvent(), EventDefinition.class);
                 final Event outputEvent = stateMachineEvents.get(eventDefinition.getName());
                 fsmGraph.addVertex(vertex,
-                        new FsmGraphEdge(getEventDisplayName(outputEvent.getName()), state.getStatus().name(), outputEvent.getEventSource(),outputEvent.getEventData()));
+                        new FsmGraphEdge(getEventDisplayName(outputEvent.getName()), state.getStatus().name(), outputEvent.getEventSource(), outputEvent.getEventData()));
                 final Set<State> dependantStates = ramContext.getDependantStates(outputEvent.getName());
                 dependantStates.forEach((aState) -> fsmGraph.addOutgoingEdge(vertex, aState.getId()));
                 allOutputEventNames.add(outputEvent.getName()); // we collect all output event names and use them below.

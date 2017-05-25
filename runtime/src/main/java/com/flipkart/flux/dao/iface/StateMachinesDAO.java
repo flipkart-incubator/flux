@@ -27,7 +27,7 @@ public interface StateMachinesDAO {
     StateMachine create(StateMachine stateMachine);
 
     /** Retrieves state machine by it's unique identifier*/
-    StateMachine findById(Long id);
+    StateMachine findById(String id);
 
     /** Retrieves set of state machines by State machine's Name*/
     Set<StateMachine> findByName(String stateMachineName);

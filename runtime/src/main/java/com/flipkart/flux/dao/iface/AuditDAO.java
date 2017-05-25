@@ -24,7 +24,7 @@ import java.util.List;
 public interface AuditDAO {
 
     /** Retrieves all the audit logs which belongs to a particular state machine*/
-    List<AuditRecord> findBySMInstanceId(Long stateMachineInstanceId);
+    List<AuditRecord> findBySMInstanceId(String stateMachineInstanceId);
 
     /** Creates Audit record and returns the saved object*/
     AuditRecord create(AuditRecord auditRecord);
