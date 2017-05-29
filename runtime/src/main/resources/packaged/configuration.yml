@@ -32,7 +32,6 @@ flux_scheduler.Hibernate:
   hibernate.c3p0.max_size: 100
 
 Dashboard:
-  service.host: localhost
   service.port: 9999
   service.acceptors: 5
   service.selectors: 10
