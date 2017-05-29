@@ -39,7 +39,6 @@ Dashboard:
   service.workers: 30
 
 Api:
-  service.host: localhost
   service.port: 9998
   service.acceptors: 4
   service.selectors: 4
