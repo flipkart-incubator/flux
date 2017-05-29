@@ -57,7 +57,7 @@ runtime:
     metrics: false
     name: FluxSystem
     configname: application.conf
-    maxTaskActorCreateRetries : 10
+    maxTaskActorCreateRetries : -1
 
 redriver:
   batchDelete:
