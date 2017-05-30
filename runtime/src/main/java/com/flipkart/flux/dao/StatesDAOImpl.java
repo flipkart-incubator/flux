@@ -90,7 +90,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @SelectDataSource(DataSourceType.READ_ONLY)
     public List findErroredStates(String stateMachineName, String fromStateMachineId, String toStateMachineId) {
         Query query = currentSession().createQuery("select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
-                "where sm.id between :fromStateMachineId and :toStateMachineId and sm.name = :stateMachineName and state.status in ('errored', 'sidelined', 'cancelled')");
+                "where sm.id >= :fromStateMachineId and sm.id  <= :toStateMachineId and sm.name = :stateMachineName and state.status in ('errored', 'sidelined', 'cancelled')");
 
         query.setString("fromStateMachineId", fromStateMachineId);
         query.setString("toStateMachineId", toStateMachineId);

@@ -31,7 +31,7 @@ import java.util.Set;
 public class StateMachine {
 
     /** Unique identifier of the state machine*/
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
     private String id;
 
     /* provided */
@@ -68,8 +68,9 @@ public class StateMachine {
 
     /** Constructors*/
     protected StateMachine() {}
-    public StateMachine(Long version, String name, String description, Set<State> states, String correlationId) {
+    public StateMachine(String id, Long version, String name, String description, Set<State> states, String correlationId) {
         super();
+        this.id = id;
         this.version = version;
         this.name = name;
         this.description = description;

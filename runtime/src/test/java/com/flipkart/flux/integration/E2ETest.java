@@ -80,7 +80,7 @@ public class E2ETest {
 
         /* Asserts*/
         final Set<StateMachine> smInDb = stateMachinesDAO.findByNameAndVersion("com.flipkart.flux.integration.SimpleWorkflow_simpleDummyWorkflow_void_com.flipkart.flux.integration.StringEvent_version1", 1l);
-        final Long smId = smInDb.stream().findFirst().get().getId();
+        final String smId = smInDb.stream().findFirst().get().getId();
         assertThat(smInDb).hasSize(1);
         assertThat(eventsDAO.findBySMInstanceId(smId)).hasSize(3);
 

@@ -58,6 +58,7 @@ public class StateMachinePersistenceService {
      * @return saved state machine object
      */
     public StateMachine createStateMachine(StateMachineDefinition stateMachineDefinition) {
+        final String stateMachineId = UUID.randomUUID().toString();
         final Map<EventDefinition, EventData> eventDataMap = stateMachineDefinition.getEventDataMap();
         Set<Event> allEvents = createAllEvents(eventDataMap);
         Set<StateDefinition> stateDefinitions = stateMachineDefinition.getStates();
@@ -69,7 +70,7 @@ public class StateMachinePersistenceService {
             states.add(state);
         }
 
-        StateMachine stateMachine = new StateMachine(stateMachineDefinition.getVersion(),
+        StateMachine stateMachine = new StateMachine(stateMachineId, stateMachineDefinition.getVersion(),
                 stateMachineDefinition.getName(),
                 stateMachineDefinition.getDescription(),
                 states, stateMachineDefinition.getCorrelationId());

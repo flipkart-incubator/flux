@@ -32,7 +32,7 @@ public class TestUtils {
             add(state3);
             add(state4);
         }};
-        return new StateMachine(1l,"test_state_machine","desc", states, "magic_number_1");
+        return new StateMachine(UUID.randomUUID().toString(), 1l, "test_state_machine","desc", states, "magic_number_1");
     }
 
     /** Returns a dummy State machine with states which have the Id's set*/
@@ -53,8 +53,7 @@ public class TestUtils {
             add(state3);
             add(state4);
         }};
-        StateMachine stateMachine = new StateMachine(1l,"test_state_machine","desc", states, "magic_number_1");
-        setProperty(stateMachine, "id", 1L);
+        StateMachine stateMachine = new StateMachine("standard-machine", 1l, "test_state_machine","desc", states, "magic_number_1");
         return stateMachine;
     }
 
