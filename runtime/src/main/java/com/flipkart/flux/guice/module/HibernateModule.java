@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.guice.module;
 
+import org.hibernate.shards.session.OpenSessionEvent;
 import com.flipkart.flux.dao.AuditDAOImpl;
 import com.flipkart.flux.dao.EventsDAOImpl;
 import com.flipkart.flux.dao.StateMachinesDAOImpl;
