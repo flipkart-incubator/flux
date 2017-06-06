@@ -86,4 +86,7 @@ public class ConfigModule extends AbstractModule {
     public ConfigurationProvider getConfigProvider() {
         return configProvider;
     }
+    public YamlConfiguration getYamlConfiguration(){
+        return yamlConfiguration;
+    }
 }

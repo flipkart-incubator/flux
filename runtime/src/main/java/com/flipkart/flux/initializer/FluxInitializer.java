@@ -16,6 +16,7 @@ package com.flipkart.flux.initializer;
 import com.flipkart.flux.MigrationUtil.MigrationsRunner;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.guice.module.*;
+import com.flipkart.flux.guice.module.HibernateShardModule;
 import com.flipkart.flux.impl.boot.TaskModule;
 import com.flipkart.polyguice.core.support.Polyguice;
 import org.slf4j.Logger;
@@ -105,6 +106,7 @@ public class FluxInitializer {
         fluxRuntimeContainer.modules(
                 configModule,
                 new HibernateModule(),
+                new HibernateShardModule(),
                 new ContainerModule(),
                 new DeploymentUnitModule(),
                 new AkkaModule(),

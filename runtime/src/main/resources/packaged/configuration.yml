@@ -1,3 +1,6 @@
+flux.Shard.Config:
+  master.slave.pair: "[ {master:127.0.0.1,slave:127.0.0.1,shardKeys:[0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f]} ]"
+
 flux.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
@@ -19,6 +22,7 @@ fluxReadOnly.Hibernate:
   connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
   hibernate.c3p0.min_size: 3
   hibernate.c3p0.max_size: 10
+
 
 flux_redriver.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
