@@ -28,7 +28,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "StateMachines")
-public class StateMachine {
+public class StateMachine implements ShardKey{
 
     /** Unique identifier of the state machine*/
     @Id
@@ -162,5 +162,10 @@ public class StateMachine {
             ", createdAt=" + createdAt +
             ", updatedAt=" + updatedAt +
             '}';
+    }
+
+    @Override
+    public String getShardKey() {
+        return id;
     }
 }

@@ -28,9 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
-
 /**
  * The service uses a scheduler to read the oldest message with fixed delay and redrives them if necessary. The task will
  * be scheduled for execution if the current time is greater than or equal to scheduledTime.

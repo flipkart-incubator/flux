@@ -13,7 +13,6 @@
 
 package com.flipkart.flux.redriver.dao;
 
-import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import org.hibernate.Query;
 import org.hibernate.Session;

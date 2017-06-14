@@ -1,7 +1,5 @@
 package com.flipkart.flux.domain;
 
-import sun.net.util.IPAddressUtil;
-
 import java.util.List;
 
 /**

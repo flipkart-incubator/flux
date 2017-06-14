@@ -14,7 +14,6 @@
 package com.flipkart.flux.redriver.dao;
 
 import com.flipkart.flux.guice.module.ConfigModule;
-import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.redriver.boot.RedriverTestModule;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.flux.runner.GuiceJunit4Runner;

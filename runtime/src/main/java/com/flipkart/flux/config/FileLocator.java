@@ -15,7 +15,6 @@
  */
 package com.flipkart.flux.config;
 
-import com.flipkart.flux.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,8 +23,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
-
-import static com.flipkart.flux.Constants.CONFIG_ROOT;
 
 /**
 *

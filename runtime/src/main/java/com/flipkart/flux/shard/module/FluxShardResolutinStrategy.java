@@ -5,7 +5,6 @@ import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import org.hibernate.shards.ShardId;
-import org.hibernate.shards.strategy.resolution.AllShardsShardResolutionStrategy;
 import org.hibernate.shards.strategy.resolution.ShardResolutionStrategy;
 import org.hibernate.shards.strategy.selection.ShardResolutionStrategyData;
 

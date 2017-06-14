@@ -22,7 +22,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
 
-import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)

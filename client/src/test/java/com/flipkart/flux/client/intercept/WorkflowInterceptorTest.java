@@ -37,7 +37,6 @@ import java.util.Collection;
 
 import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
 import static com.flipkart.flux.client.utils.TestUtil.dummyInvocation;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)

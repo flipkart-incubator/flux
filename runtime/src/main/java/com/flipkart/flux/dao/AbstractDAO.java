@@ -13,7 +13,7 @@
 
 package com.flipkart.flux.dao;
 
-import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.ShardedSessionFactoryContext;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
@@ -24,10 +24,10 @@ import org.hibernate.criterion.Restrictions;
  */
 public abstract class AbstractDAO<T> {
 
-    private SessionFactoryContext sessionFactoryContext;
+    private ShardedSessionFactoryContext shardedSessionFactoryContext;
 
-    public AbstractDAO(SessionFactoryContext sessionFactoryContext) {
-        this.sessionFactoryContext = sessionFactoryContext;
+    public AbstractDAO(ShardedSessionFactoryContext sessionFactoryContext) {
+        this.shardedSessionFactoryContext = sessionFactoryContext;
     }
 
     /**
@@ -35,7 +35,6 @@ public abstract class AbstractDAO<T> {
      * @return Session
      */
     public Session currentSession() {
-        return sessionFactoryContext.getSessionFactory().getCurrentSession();
     }
 
     /**

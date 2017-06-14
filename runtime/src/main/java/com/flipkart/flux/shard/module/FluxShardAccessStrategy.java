@@ -1,7 +1,6 @@
 package com.flipkart.flux.shard.module;
 
 import org.hibernate.shards.strategy.access.ParallelShardAccessStrategy;
-import org.hibernate.shards.strategy.access.ShardAccessStrategy;
 
 import java.util.concurrent.ThreadPoolExecutor;
 

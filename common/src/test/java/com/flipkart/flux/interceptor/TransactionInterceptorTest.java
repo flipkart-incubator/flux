@@ -18,8 +18,6 @@ package com.flipkart.flux.interceptor;
  */
 
 import com.flipkart.flux.persistence.DataSourceType;
-import com.flipkart.flux.persistence.SessionFactoryContext;
-import com.flipkart.flux.persistence.impl.SessionFactoryContextImpl;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.hibernate.Session;

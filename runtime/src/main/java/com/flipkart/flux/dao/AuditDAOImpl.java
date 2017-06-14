@@ -15,7 +15,6 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
-import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.google.inject.name.Named;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;

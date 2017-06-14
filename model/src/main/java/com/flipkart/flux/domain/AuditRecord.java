@@ -23,7 +23,7 @@ import java.sql.Timestamp;
 
 @Entity
 @Table(name = "AuditRecords")
-public class AuditRecord {
+public class AuditRecord implements ShardKey{
 
     /** Auto generated id */
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -133,5 +133,10 @@ public class AuditRecord {
         result = 31 * result + (stateStatus != null ? stateStatus.hashCode() : 0);
         result = 31 * result + (stateRollbackStatus != null ? stateRollbackStatus.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String getShardKey() {
+        return stateMachineInstanceId;
     }
 }

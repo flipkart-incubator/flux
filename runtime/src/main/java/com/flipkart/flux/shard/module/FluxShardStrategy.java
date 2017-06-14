@@ -1,6 +1,5 @@
 package com.flipkart.flux.shard.module;
 
-import org.hibernate.shards.strategy.ShardStrategy;
 import org.hibernate.shards.strategy.ShardStrategyImpl;
 import org.hibernate.shards.strategy.access.ShardAccessStrategy;
 import org.hibernate.shards.strategy.resolution.ShardResolutionStrategy;

@@ -36,9 +36,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.*;
 
-import static com.flipkart.flux.Constants.STATE_MACHINE_ID;
-import static com.flipkart.flux.Constants.TASK_ID;
-
 /**
  * <code>WorkFlowExecutionController</code> controls the execution flow of a given state machine
  * @author shyam.akirala

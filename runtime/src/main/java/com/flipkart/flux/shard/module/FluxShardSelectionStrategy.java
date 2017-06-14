@@ -8,7 +8,6 @@ import org.hibernate.shards.BaseHasShardIdList;
 import org.hibernate.shards.ShardId;
 import org.hibernate.shards.strategy.selection.ShardSelectionStrategy;
 
-import java.security.MessageDigest;
 import java.util.List;
 
 /**

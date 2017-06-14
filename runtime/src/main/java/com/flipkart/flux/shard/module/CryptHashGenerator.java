@@ -6,7 +6,9 @@ import java.security.MessageDigest;
  * Created by amitkumar.o on 06/06/17.
  */
 public class CryptHashGenerator {
+
     private static final String cryptHashAlgorithmPrefix = "SHA-256";
+
     public static Character getUniformCryptHash(String stateMachineId) {
         try {
             MessageDigest md = MessageDigest.getInstance(cryptHashAlgorithmPrefix);

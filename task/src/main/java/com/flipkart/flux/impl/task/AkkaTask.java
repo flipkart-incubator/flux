@@ -47,9 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.flipkart.flux.Constants.STATE_MACHINE_ID;
-import static com.flipkart.flux.Constants.TASK_ID;
-
 
 /**
  * <code>AkkaTask</code> is an Akka {@link UntypedActor} that executes {@link Task} instances concurrently. Tasks are executed using a {@link TaskExecutor} where

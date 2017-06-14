@@ -28,7 +28,7 @@ import java.sql.Timestamp;
 
 @Entity
 @Table(name = "Events")
-public class Event implements Serializable {
+public class Event implements Serializable,ShardKey {
 
     /** Default serial version UID*/
     private static final long serialVersionUID = 1L;
@@ -62,6 +62,11 @@ public class Event implements Serializable {
     /** Time at which this event is last updated */
     @Column(updatable = false)
     private Timestamp updatedAt;
+
+    @Override
+    public String getShardKey() {
+        return stateMachineInstanceId;
+    }
 
     /** Enum of Event statuses*/
     public enum EventStatus {

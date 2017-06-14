@@ -13,7 +13,6 @@
 
 package com.flipkart.flux.guice.module;
 
-import org.hibernate.shards.session.OpenSessionEvent;
 import com.flipkart.flux.dao.AuditDAOImpl;
 import com.flipkart.flux.dao.EventsDAOImpl;
 import com.flipkart.flux.dao.StateMachinesDAOImpl;
@@ -28,8 +27,6 @@ import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
 import com.flipkart.flux.persistence.DataSourceType;
-import com.flipkart.flux.persistence.SessionFactoryContext;
-import com.flipkart.flux.persistence.impl.SessionFactoryContextImpl;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.type.BlobType;
 import com.flipkart.flux.type.ListJsonType;

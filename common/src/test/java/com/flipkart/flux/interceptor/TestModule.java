@@ -14,7 +14,6 @@
 package com.flipkart.flux.interceptor;
 
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
-import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.google.inject.AbstractModule;
 import com.google.inject.matcher.Matchers;
 import org.hibernate.SessionFactory;

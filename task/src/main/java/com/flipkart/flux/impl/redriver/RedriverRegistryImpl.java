@@ -32,8 +32,6 @@ import org.slf4j.MDC;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import static com.flipkart.flux.Constants.TASK_ID;
-
 /**
  * <code>RedriverRegistryImpl</code> is an implementation of the {@link RedriverRegistry} that uses
  * {@link FluxRuntimeConnector} to submit taskExecution request and redriver's {@link MessageManagerService}

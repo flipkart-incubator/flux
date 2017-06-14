@@ -14,26 +14,34 @@
 package com.flipkart.flux.persistence;
 
 import org.hibernate.SessionFactory;
+import org.hibernate.shards.session.ShardedSessionFactory;
 
 /**
- * Context to set/get a particular {@link SessionFactory} for the ongoing transaction.
+ * Context to get a particular {@link ShardedSessionFactory} for the ongoing transaction.
  * @see com.flipkart.flux.guice.interceptor.TransactionInterceptor
  *
  * Created by gaurav.ashok on 23/11/16.
  */
-public interface SessionFactoryContext {
+public interface ShardedSessionFactoryContext {
 
     /**
      * Get the sessionFactory for the current thread context to be used for the ongoing transaction.
-     * @return {@link SessionFactory}
+     * @return {@link ShardedSessionFactory}
      */
-    SessionFactory getSessionFactory();
+
+    SessionFactory getCurrentSessionFactory();
+
+    void setSessionFactory( SessionFactory sessionFactory);
+
+    ShardedSessionFactory getShardedSessionFactory(DataSourceType type);
+
+    ShardedSessionFactory getDefaultShardedSessionFactory();
 
     /**
      * Set a particular sessionFactory in the current thread context based on the DataSourceType.
      * @param type {@link DataSourceType}
      */
-    void useSessionFactory(DataSourceType type);
+    void useShardedSessionFactory(DataSourceType type);
 
     /**
      * Set the default sessionFactory in the current thread context.
