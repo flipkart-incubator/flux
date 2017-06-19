@@ -30,6 +30,8 @@ import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.metrics.iface.MetricsClient;
+import com.flipkart.flux.persistence.ShouldShard;
+import com.flipkart.flux.persistence.ShouldShardData;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.google.inject.Inject;
@@ -139,6 +141,7 @@ public class StateMachineResource {
     /**
      * Creates and starts the state machine. Keeping this method as "protected" so that Transactional interceptor can intercept the call.
      */
+    @ShouldShardData(ShouldShard.YES)
     @Transactional
     protected StateMachine createAndInitStateMachine(StateMachineDefinition stateMachineDefinition) throws Exception {
 
@@ -225,6 +228,7 @@ public class StateMachineResource {
      */
     @POST
     @Path("/{machineId}/{stateId}/status")
+    @ShouldShardData(ShouldShard.YES)
     @Transactional
     @Timed
     public Response updateStatus(@PathParam("machineId") String machineId,
@@ -279,6 +283,7 @@ public class StateMachineResource {
      */
     @POST
     @Path("/{machineId}/{stateId}/retries/inc")
+    @ShouldShardData(ShouldShard.YES)
     @Transactional
     public Response incrementRetry(@PathParam("machineId") String machineId,
                                    @PathParam("stateId") Long stateId
@@ -295,6 +300,7 @@ public class StateMachineResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/redrivetask/{taskId}")
+    @ShouldShardData(ShouldShard.NO)
     @Timed
     public Response redriveTask(@PathParam("taskId") Long taskId) throws Exception {
 
@@ -398,6 +404,7 @@ public class StateMachineResource {
     @PUT
     @Path("/{stateMachineId}/{stateId}/unsideline")
     @Produces(MediaType.APPLICATION_JSON)
+    @ShouldShardData(ShouldShard.YES)
     @Transactional
     public Response unsidelineState(@PathParam("stateMachineId") String stateMachineId, @PathParam("stateId") Long stateId) {
         this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);

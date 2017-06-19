@@ -14,6 +14,8 @@
 package com.flipkart.flux.guice.interceptor;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.ShardedSessionFactoryContext;
+import com.flipkart.flux.persistence.ShouldShard;
+import com.flipkart.flux.persistence.ShouldShardData;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.hibernate.HibernateException;
@@ -75,7 +77,7 @@ public class TransactionInterceptor implements MethodInterceptor {
             //start a new session and transaction if current session is null
             //get DataSourceType first
             List sessionFactories = new LinkedList<SessionFactory>();
-            Object[] methodArguments = invocation.getArguments();
+            ShouldShardData shouldShard = invocation.getMethod().getAnnotation(ShouldShardData.class);
             SelectDataSource selectedDS = invocation.getMethod().getAnnotation(SelectDataSource.class);
             if(selectedDS == null) {
                 context.useDefault();
@@ -84,8 +86,21 @@ public class TransactionInterceptor implements MethodInterceptor {
                 context.useShardedSessionFactory(selectedDS.value());
                 sessionFactories = context.getShardedSessionFactory(selectedDS.value()).getSessionFactories();
             }
-            // set the correct sessionFactory in Context from all sessionFactories, based on argument
-            session = (sessionFactories, methodArguments);
+
+            //set the correct sessionFactory in Context from all sessionFactories, based on argument
+
+            if( shouldShard.equals(ShouldShard.YES)){
+                // should contain sharding  logic
+                Object args[] = invocation.getArguments();
+                if( args.length < 1)
+                    throw new RuntimeException();
+                // assert first key is always ShardId before invocation in the parent method.
+                final String shardKey = (String) args[0];
+
+            }
+            else{
+                // take default db factory and create sesssion from it.
+            }
             session = context.getCurrentSessionFactory().openSession();
             ManagedSessionContext.bind(session);
             transaction = session.getTransaction();

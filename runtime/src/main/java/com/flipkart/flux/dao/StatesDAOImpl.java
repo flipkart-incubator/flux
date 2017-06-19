@@ -17,6 +17,7 @@ import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.persistence.DataSourceType;
+import com.flipkart.flux.persistence.SelectDataSource;
 import com.google.inject.name.Named;
 import org.hibernate.Query;
 

@@ -16,6 +16,8 @@ package com.flipkart.flux.rule;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.persistence.ShouldShard;
+import com.flipkart.flux.persistence.ShouldShardData;
 import org.junit.rules.ExternalResource;
 
 import javax.inject.Inject;
@@ -41,6 +43,7 @@ public class TestSMRule extends ExternalResource {
     }
 
     @Override @Transactional
+    @ShouldShardData(ShouldShard.YES)
     protected void before() throws Throwable {
         String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
         String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";

@@ -28,7 +28,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "StateMachines")
-public class StateMachine implements ShardKey{
+public class StateMachine implements {
 
     /** Unique identifier of the state machine*/
     @Id
