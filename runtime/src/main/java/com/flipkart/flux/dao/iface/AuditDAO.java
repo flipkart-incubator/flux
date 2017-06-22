@@ -19,16 +19,23 @@ import java.util.List;
 
 /**
  * <code>AuditDAO</code> interface provides methods to perform CR operations on {@link AuditRecord}
+ *
  * @author shyam.akirala
  */
 public interface AuditDAO {
 
-    /** Retrieves all the audit logs which belongs to a particular state machine*/
+    /**
+     * Retrieves all the audit logs which belongs to a particular state machine
+     */
     List<AuditRecord> findBySMInstanceId(String stateMachineInstanceId);
 
-    /** Creates Audit record and returns the saved object*/
-    AuditRecord create(AuditRecord auditRecord);
+    /**
+     * Creates Audit record and returns the saved object
+     */
+    AuditRecord create(String stateMachineId, AuditRecord auditRecord);
 
-    /** Retrieves Audit record by it's unique identifier */
-    public AuditRecord findById(Long id);
+    /**
+     * Retrieves Audit record by it's unique identifier
+     */
+    public AuditRecord findById(String stateMachineId, Long id);
 }

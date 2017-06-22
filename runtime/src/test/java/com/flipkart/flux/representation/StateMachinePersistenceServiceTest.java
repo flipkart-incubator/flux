@@ -23,6 +23,7 @@ import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -56,7 +57,7 @@ public class StateMachinePersistenceServiceTest {
         StateMachineDefinition stateMachineDefinition = new StateMachineDefinition("desc", "state_machine_1", 1L, Collections.singleton(stateDefinition), null, null);
         stateMachinePersistenceService.createStateMachine(stateMachineDefinition);
         State state = new State(1L, "state1", "desc", null, "task1", null, Collections.emptyList(), 10L, 1000L, null, Status.initialized, null, 0L);
-        verify(stateMachinesDAO).create(new StateMachine("1", 1L, "state_machine_1", "desc", Collections.singleton(state), null));
+        verify(stateMachinesDAO).create(Matchers.anyString(), new StateMachine("1", 1L, "state_machine_1", "desc", Collections.singleton(state), null));
     }
 
     @Test
@@ -67,6 +68,6 @@ public class StateMachinePersistenceServiceTest {
         StateMachineDefinition stateMachineDefinition = new StateMachineDefinition("desc", "state_machine_1", 1L, Collections.singleton(stateDefinition), null, null);
         stateMachinePersistenceService.createStateMachine(stateMachineDefinition);
         State state = new State(1L, "state1", "desc", null, "task1", null, Collections.emptyList(), 3L, 1000L, null, Status.initialized, null, 0L);
-        verify(stateMachinesDAO).create(new StateMachine("1", 1L, "state_machine_1", "desc", Collections.singleton(state), null));
+        verify(stateMachinesDAO).create(Matchers.anyString(), new StateMachine("1", 1L, "state_machine_1", "desc", Collections.singleton(state), null));
     }
 }

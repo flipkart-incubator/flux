@@ -29,23 +29,25 @@ public interface StatesDAO {
     State create(State state);
 
     /** Updates a state in db */
-    void updateState(State state);
+    void updateState(String stateMachineInstanceId, State state);
 
     /** Updates status of a state*/
-    public void updateStatus(Long stateId, String stateMachineId, Status status);
+    void updateStatus(String stateMachineInstanceId, Long stateId, Status status);
 
     /** Updates rollback status of a state */
-    public void updateRollbackStatus(Long stateId, String stateMachineId, Status rollbackStatus);
+    public void updateRollbackStatus(String stateMachineInstanceId, Long stateId, Status rollbackStatus);
 
     /** Increments the attempted no.of retries of a state by 1 */
-    void incrementRetryCount(Long stateId, String stateMachineId);
+    void incrementRetryCount(String stateMachineId, Long stateId);
 
     /** Retrieves a state by it's unique identifier*/
     State findById(Long id);
 
+    // Scatter gather Query
     /** Retrieves all errored states for the given range of stateMachine ids */
     List findErroredStates(String stateMachineName, String fromStateMachineId, String toStateMachineId);
 
+    // Scatter gather query for slaves
     /**
      * Retrieves all states having one of the given statuses for a particular state machine name and the state machine creation time in
      * the given range fromTime and toTime with optional taskName parameter.

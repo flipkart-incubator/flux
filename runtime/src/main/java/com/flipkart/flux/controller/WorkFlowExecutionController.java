@@ -41,34 +41,51 @@ import static com.flipkart.flux.Constants.TASK_ID;
 
 /**
  * <code>WorkFlowExecutionController</code> controls the execution flow of a given state machine
+ *
  * @author shyam.akirala
  */
 @Singleton
 public class WorkFlowExecutionController {
 
-    /** Logger instance for this class*/
+    /**
+     * Logger instance for this class
+     */
     private static final Logger logger = LoggerFactory.getLogger(WorkFlowExecutionController.class);
 
-    /** FSM and Events DAOs*/
+    /**
+     * FSM and Events DAOs
+     */
     private StateMachinesDAO stateMachinesDAO;
     private EventsDAO eventsDAO;
 
-    /** The DAO for Task related DB operations*/
+    /**
+     * The DAO for Task related DB operations
+     */
     private StatesDAO statesDAO;
 
-    /** The DAO for AuditRecord related DB operations*/
+    /**
+     * The DAO for AuditRecord related DB operations
+     */
     private AuditDAO auditDAO;
 
-    /** The Router registry*/
+    /**
+     * The Router registry
+     */
     private RouterRegistry routerRegistry;
 
-    /** The Redriver Registry for driving stalled Tasks*/
+    /**
+     * The Redriver Registry for driving stalled Tasks
+     */
     private RedriverRegistry redriverRegistry;
 
-    /** Metrics client for keeping track of task metrics*/
+    /**
+     * Metrics client for keeping track of task metrics
+     */
     private MetricsClient metricsClient;
 
-    /** Constructor for this class */
+    /**
+     * Constructor for this class
+     */
     @Inject
     public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO,
                                        StatesDAO statesDAO, AuditDAO auditDAO, RouterRegistry routerRegistry, RedriverRegistry redriverRegistry, MetricsClient metricsClient) {
@@ -83,6 +100,7 @@ public class WorkFlowExecutionController {
 
     /**
      * Perform init operations on a state machine and starts execution of states which are not dependant on any events.
+     *
      * @param stateMachine
      * @return List of states that do not have any event dependencies on them
      */
@@ -100,6 +118,7 @@ public class WorkFlowExecutionController {
 
     /**
      * Retrieves the states which are dependant on this event and starts the execution of eligible states (whose all dependencies are met).
+     *
      * @param eventData
      * @param stateMachineInstanceId
      * @param correlationId
@@ -108,20 +127,20 @@ public class WorkFlowExecutionController {
         StateMachine stateMachine = null;
         if (stateMachineInstanceId != null) {
             stateMachine = retrieveStateMachine(stateMachineInstanceId);
-        } else if(correlationId != null) {
+        } else if (correlationId != null) {
             stateMachine = retrieveStateMachineByCorrelationId(correlationId);
             stateMachineInstanceId = (stateMachine == null) ? null : stateMachine.getId();
         }
-        if(stateMachine == null)
-            throw new UnknownStateMachine("State machine with id: "+stateMachineInstanceId+ " or correlation id " + correlationId + " not found");
+        if (stateMachine == null)
+            throw new UnknownStateMachine("State machine with id: " + stateMachineInstanceId + " or correlation id " + correlationId + " not found");
         //update event's data and status
         Event event = eventsDAO.findBySMIdAndName(stateMachineInstanceId, eventData.getName());
-        if(event == null)
-            throw new IllegalEventException("Event with stateMachineId: "+stateMachineInstanceId+", event name: "+ eventData.getName()+" not found");
+        if (event == null)
+            throw new IllegalEventException("Event with stateMachineId: " + stateMachineInstanceId + ", event name: " + eventData.getName() + " not found");
         event.setStatus(Event.EventStatus.triggered);
         event.setEventData(eventData.getData());
         event.setEventSource(eventData.getEventSource());
-        eventsDAO.updateEvent(event);
+        eventsDAO.updateEvent(event.getStateMachineInstanceId(), event);
 
         //create context and dependency graph
         Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine); //TODO: set context id, should we need it ?
@@ -139,16 +158,17 @@ public class WorkFlowExecutionController {
 
     /**
      * Updates the execution status for the specified State machine's Task
-     * @param stateMachineId the state machine identifier
-     * @param taskId the Task identifier
-     * @param status the Status to be updated to
-     * @param retryCount the configured retry count for the task
+     *
+     * @param stateMachineId    the state machine identifier
+     * @param taskId            the Task identifier
+     * @param status            the Status to be updated to
+     * @param retryCount        the configured retry count for the task
      * @param currentRetryCount current retry count for the task
-     * @param errorMessage the error message in case task has failed
+     * @param errorMessage      the error message in case task has failed
      */
     public void updateExecutionStatus(String stateMachineId, Long taskId, Status status, long retryCount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver) {
-        this.statesDAO.updateStatus(taskId, stateMachineId, status);
-        this.auditDAO.create(new AuditRecord(stateMachineId, taskId, currentRetryCount, status, null, errorMessage));
+        this.statesDAO.updateStatus(stateMachineId, taskId, status);
+        this.auditDAO.create(stateMachineId, new AuditRecord(stateMachineId, taskId, currentRetryCount, status, null, errorMessage));
         // cancel the redriver if the Task's original retry count is > 0 and deleteFromRedriver flag is true
         // Redriver would not have been registered if the retry count is 0
         if (retryCount > 0 && deleteFromRedriver) {
@@ -158,22 +178,23 @@ public class WorkFlowExecutionController {
 
     /**
      * Unsidelines a state and triggers its execution.
+     *
      * @param stateMachineId
      * @param stateId
      */
     public void unsidelineState(String stateMachineId, Long stateId) {
         State askedState = null;
         StateMachine stateMachine = retrieveStateMachine(stateMachineId);
-        if(stateMachine == null )
-            throw new UnknownStateMachine("State machine with id: "+ stateMachineId+ " not found");
-        for (State state : stateMachine.getStates()){
-            if(Objects.equals(state.getId(), stateId)){
+        if (stateMachine == null)
+            throw new UnknownStateMachine("State machine with id: " + stateMachineId + " not found");
+        for (State state : stateMachine.getStates()) {
+            if (Objects.equals(state.getId(), stateId)) {
                 askedState = state;
                 break;
             }
         }
 
-        if(askedState == null){
+        if (askedState == null) {
             throw new IllegalStateException("State with the asked id: " + stateId + " not found in stateMachine with id: " + stateMachineId);
         }
 
@@ -181,7 +202,7 @@ public class WorkFlowExecutionController {
             askedState.setStatus(Status.unsidelined);
             askedState.setAttemptedNoOfRetries(0L);
 
-            this.statesDAO.updateState(askedState);
+            this.statesDAO.updateState(stateMachineId, askedState);
 
             this.executeStates(stateMachine, Sets.newHashSet(Arrays.asList(askedState)));
         }
@@ -191,11 +212,12 @@ public class WorkFlowExecutionController {
 
     /**
      * Increments the no. of execution retries for the specified State machine's Task
+     *
      * @param stateMachineId the state machine identifier
-     * @param taskId the Task identifier
+     * @param taskId         the Task identifier
      */
-    public void incrementExecutionRetries(String stateMachineId,Long taskId) {
-        this.statesDAO.incrementRetryCount(taskId, stateMachineId);
+    public void incrementExecutionRetries(String stateMachineId, Long taskId) {
+        this.statesDAO.incrementRetryCount(stateMachineId, taskId );
     }
 
     private StateMachine retrieveStateMachineByCorrelationId(String correlationId) {
@@ -211,24 +233,25 @@ public class WorkFlowExecutionController {
 
     /**
      * Triggers the execution of executableStates using Akka router
-     * @param stateMachine the state machine
+     *
+     * @param stateMachine     the state machine
      * @param executableStates states whose all dependencies are met
      */
     private void executeStates(StateMachine stateMachine, Set<State> executableStates, Event currentEvent) {
         MDC.put(STATE_MACHINE_ID, stateMachine.getId().toString());
-        executableStates.forEach((state ->  {
-            MDC.put(TASK_ID,state.getId().toString());
-            if(state.getStatus() != Status.completed) {
+        executableStates.forEach((state -> {
+            MDC.put(TASK_ID, state.getId().toString());
+            if (state.getStatus() != Status.completed) {
                 List<EventData> eventDatas;
                 // If the state is dependant on only one event, that would be the event which came now, in that case don't make a call to DB
                 if (currentEvent != null && state.getDependencies() != null && state.getDependencies().size() == 1 && currentEvent.getName().equals(state.getDependencies().get(0))) {
                     eventDatas = Collections.singletonList(new EventData(currentEvent.getName(), currentEvent.getType(), currentEvent.getEventData(), currentEvent.getEventSource()));
                 } else {
-                    eventDatas = eventsDAO.findByEventNamesAndSMId(state.getDependencies(), stateMachine.getId());
+                    eventDatas = eventsDAO.findByEventNamesAndSMId(stateMachine.getId(), state.getDependencies());
                 }
                 final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
                         eventDatas.toArray(new EventData[]{}),
-                        stateMachine.getId(), stateMachine.getName() ,state.getOutputEvent(), state.getRetryCount(), state.getAttemptedNoOfRetries());
+                        stateMachine.getId(), stateMachine.getName(), state.getOutputEvent(), state.getRetryCount(), state.getAttemptedNoOfRetries());
                 if (state.getStatus().equals(Status.initialized) || state.getStatus().equals(Status.unsidelined)) {
                     msg.setFirstTimeExecution(true);
                 }
@@ -266,6 +289,7 @@ public class WorkFlowExecutionController {
 
     /**
      * Given states which are dependant on a particular event, returns which of them can be executable (states whose all dependencies are met)
+     *
      * @param dependantStates
      * @param stateMachineInstanceId
      * @return executableStates
@@ -290,11 +314,11 @@ public class WorkFlowExecutionController {
         MDC.put(TASK_ID, taskId.toString());
         State state = statesDAO.findById(taskId);
 
-        if(state != null && isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() < state.getRetryCount()) {
+        if (state != null && isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() < state.getRetryCount()) {
             StateMachine stateMachine = retrieveStateMachine(state.getStateMachineId());
-            MDC.put(STATE_MACHINE_ID,stateMachine.getId().toString());
+            MDC.put(STATE_MACHINE_ID, stateMachine.getId().toString());
             logger.info("Redriving a task with Id: {} for state machine: {}", state.getId(), state.getStateMachineId());
-                executeStates(stateMachine, Collections.singleton(state));
+            executeStates(stateMachine, Collections.singleton(state));
         } else {
             //cleanup the tasks which can't be redrived from redriver db
             this.redriverRegistry.deRegisterTask(taskId);

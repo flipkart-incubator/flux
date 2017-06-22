@@ -15,6 +15,9 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.ShouldShard;
+import com.flipkart.flux.persistence.ShouldShardData;
 import com.google.inject.name.Named;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
@@ -32,24 +35,27 @@ import java.util.Set;
 public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements StateMachinesDAO {
 
     @Inject
-    public StateMachinesDAOImpl(@Named("fluxSessionFactoryContext") SessionFactoryContext sessionFactoryContext) {
+    public StateMachinesDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
         super(sessionFactoryContext);
     }
 
     @Override
     @Transactional
-    public StateMachine create(StateMachine stateMachine) {
+    @ShouldShardData(ShouldShard.YES)
+    public StateMachine create(String stateMachineInstanceId, StateMachine stateMachine) {
         return super.save(stateMachine);
     }
 
     @Override
     @Transactional
-    public StateMachine findById(String id) {
-        return super.findById(StateMachine.class, id);
+    @ShouldShardData(ShouldShard.YES)
+    public StateMachine findById(String stateMachineInstanceId) {
+        return super.findById(StateMachine.class, stateMachineInstanceId);
     }
-
+    // scatter gather query
     @Override
     @Transactional
+    @ShouldShardData(ShouldShard.NO)
     public Set<StateMachine> findByName(String stateMachineName) {
         Criteria criteria = currentSession().createCriteria(StateMachine.class)
                 .add(Restrictions.eq("name", stateMachineName));
@@ -57,8 +63,10 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
         return new HashSet<>(stateMachines);
     }
 
+    //Scatter gather query
     @Override
     @Transactional
+    @ShouldShardData(ShouldShard.NO)
     public Set<StateMachine> findByNameAndVersion(String stateMachineName, Long version) {
         Criteria criteria = currentSession().createCriteria(StateMachine.class)
                 .add(Restrictions.eq("name", stateMachineName))
@@ -67,8 +75,10 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
         return new HashSet<>(stateMachines);
     }
 
+    // In this case, correlationId will be same as stateMachineId
     @Override
     @Transactional
+    @ShouldShardData(ShouldShard.YES)
     public StateMachine findByCorrelationId(String correlationId) {
         return (StateMachine) currentSession().createCriteria(StateMachine.class).add(Restrictions.eq("correlationId",correlationId)).uniqueResult();
     }

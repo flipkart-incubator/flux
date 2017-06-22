@@ -33,7 +33,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "States")
-public class State implements ShardKey {
+public class State {
 
     /** Unique identifier of the state*/
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -271,10 +271,5 @@ public class State implements ShardKey {
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
-    }
-
-    @Override
-    public String getShardKey() {
-        return stateMachineId;
     }
 }

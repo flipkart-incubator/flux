@@ -24,14 +24,16 @@ import java.util.Set;
 public interface StateMachinesDAO {
 
     /** Creates state machine and returns saved object*/
-    StateMachine create(StateMachine stateMachine);
+    StateMachine create(String StateMachineInstanceId, StateMachine stateMachine);
 
     /** Retrieves state machine by it's unique identifier*/
     StateMachine findById(String id);
 
+    //Scatter gather query
     /** Retrieves set of state machines by State machine's Name*/
     Set<StateMachine> findByName(String stateMachineName);
 
+    //Scatter gather query
     /** Retrieves set of state machines by Name and version*/
     Set<StateMachine> findByNameAndVersion(String stateMachineName, Long Version);
 

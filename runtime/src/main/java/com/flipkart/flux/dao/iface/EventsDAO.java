@@ -25,16 +25,16 @@ import java.util.List;
 public interface EventsDAO {
 
     /** Creates Event in the db, and returns the saved object*/
-    Event create(Event event);
+    Event create(String stateMachineInstanceId, Event event);
 
     /** Updates the event */
-    void updateEvent(Event event);
+    void updateEvent(String stateMachineInstanceId, Event event);
 
     /** Retrieves all the events which belongs to a particular state machine instance*/
     List<Event> findBySMInstanceId(String stateMachineInstanceId);
 
     /** Retrieves Event by it's unique identifier*/
-    Event findById(Long id);
+    Event findById(String stateMachineInstanceId, Long id);
 
     /** Retrieves Event by state machine instance id and event name */
     Event findBySMIdAndName(String stateMachineInstanceId, String eventName);
@@ -46,5 +46,5 @@ public interface EventsDAO {
     public List<Event> findTriggeredEventsBySMId(String stateMachineInstanceId);
 
     /** Retrieves list of events by their names and state machine id */
-    public List<EventData> findByEventNamesAndSMId(List<String> eventNames, String stateMachineInstanceId);
+    public List<EventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames );
 }

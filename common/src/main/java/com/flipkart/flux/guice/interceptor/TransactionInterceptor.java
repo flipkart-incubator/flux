@@ -12,10 +12,9 @@
  */
 
 package com.flipkart.flux.guice.interceptor;
-import com.flipkart.flux.persistence.SelectDataSource;
-import com.flipkart.flux.persistence.ShardedSessionFactoryContext;
-import com.flipkart.flux.persistence.ShouldShard;
-import com.flipkart.flux.persistence.ShouldShardData;
+
+import com.flipkart.flux.persistence.*;
+import com.flipkart.flux.shard.ShardId;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.hibernate.HibernateException;
@@ -25,37 +24,32 @@ import org.hibernate.Transaction;
 import org.hibernate.context.internal.ManagedSessionContext;
 
 import javax.inject.Provider;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * <code>TransactionInterceptor</code> is a {@link MethodInterceptor} implementation to provide
  * transactional boundaries to methods which are annotated with {@link javax.transaction.Transactional}.
  * It appropriately selects a dataSource based on present {@link com.flipkart.flux.persistence.SelectDataSource} annotation.
- *
+ * <p>
  * Example:
  * {
- *     method1(); //call method1 which is annotated with transactional
+ * method1(); //call method1 which is annotated with transactional
  * }
- *
- * @Transactional
- * void method1() {
- *      method2(); //call method2 which is annotated with transactional
- * }
- *
- * @Transactional
- * void method2() {}
- *
- * In the above case a transaction would be started before method1 invocation using this interceptor and ended once method1's execution is over.
- * Same session and transaction would be used throughout.
  *
  * @author shyam.akirala
+ * @Transactional void method1() {
+ * method2(); //call method2 which is annotated with transactional
+ * }
+ * @Transactional void method2() {}
+ * <p>
+ * In the above case a transaction would be started before method1 invocation using this interceptor and ended once method1's execution is over.
+ * Same session and transaction would be used throughout.
  */
 public class TransactionInterceptor implements MethodInterceptor {
 
-    private final Provider<ShardedSessionFactoryContext> contextProvider;
+    public static final String DEFAULT_SHARD_KEY = "default-shard-key";
+    private final Provider<SessionFactoryContext> contextProvider;
 
-    public TransactionInterceptor(Provider<ShardedSessionFactoryContext> contextProvider) {
+    public TransactionInterceptor(Provider<SessionFactoryContext> contextProvider) {
         this.contextProvider = contextProvider;
     }
 
@@ -64,43 +58,49 @@ public class TransactionInterceptor implements MethodInterceptor {
 
         Transaction transaction = null;
         Session session = null;
-        ShardedSessionFactoryContext context = contextProvider.get();
+        SessionFactoryContext context = contextProvider.get();
 
         try {
             SessionFactory currentSessionFactory = context.getCurrentSessionFactory();
-            if(currentSessionFactory != null) {
+            if (currentSessionFactory != null) {
                 session = currentSessionFactory.getCurrentSession();
             }
-        } catch (HibernateException e) {}
+        } catch (HibernateException e) {
+        }
 
         if (session == null) {
             //start a new session and transaction if current session is null
-            //get DataSourceType first
-            List sessionFactories = new LinkedList<SessionFactory>();
+
+            //get shardKey from method argument if there is any
+            String shardKey;
+
             ShouldShardData shouldShard = invocation.getMethod().getAnnotation(ShouldShardData.class);
             SelectDataSource selectedDS = invocation.getMethod().getAnnotation(SelectDataSource.class);
-            if(selectedDS == null) {
-                context.useDefault();
-                sessionFactories = context.getDefaultShardedSessionFactory().getSessionFactories();
+
+            if (shouldShard.equals(ShouldShard.YES)) {
+                Object[] args = invocation.getArguments();
+                shardKey = (String) args[0];
             } else {
-                context.useShardedSessionFactory(selectedDS.value());
-                sessionFactories = context.getShardedSessionFactory(selectedDS.value()).getSessionFactories();
+                // shardKey is default which will always point to same shard
+                shardKey = DEFAULT_SHARD_KEY;
             }
 
-            //set the correct sessionFactory in Context from all sessionFactories, based on argument
+            Character shardHash = CryptHashGenerator.getUniformCryptHash(shardKey);
 
-            if( shouldShard.equals(ShouldShard.YES)){
-                // should contain sharding  logic
-                Object args[] = invocation.getArguments();
-                if( args.length < 1)
-                    throw new RuntimeException();
-                // assert first key is always ShardId before invocation in the parent method.
-                final String shardKey = (String) args[0];
+            ShardId shardId;
+            SessionFactory sessionFactory;
 
+            if (selectedDS == null || selectedDS.equals(DataSourceType.READ_WRITE)) {
+                shardId = context.getRWShardIdForShardKey(shardHash);
+                sessionFactory = context.getRWSessionFactory(shardId);
+            } else {
+                shardId = context.getROShardIdForShardKey(shardHash);
+                sessionFactory = context.getROSessionFactory(shardId);
             }
-            else{
-                // take default db factory and create sesssion from it.
-            }
+
+            //set the  sessionFactory in Context, for further nested Transactions
+            context.setSessionFactory(sessionFactory);
+
             session = context.getCurrentSessionFactory().openSession();
             ManagedSessionContext.bind(session);
             transaction = session.getTransaction();

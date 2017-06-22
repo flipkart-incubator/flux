@@ -1,0 +1,268 @@
+/*
+ * Copyright 2012-2016, the original author or authors.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.flipkart.flux.guice.module;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.core.FluxError;
+import com.flipkart.flux.dao.AuditDAOImpl;
+import com.flipkart.flux.dao.EventsDAOImpl;
+import com.flipkart.flux.dao.StateMachinesDAOImpl;
+import com.flipkart.flux.dao.StatesDAOImpl;
+import com.flipkart.flux.dao.iface.AuditDAO;
+import com.flipkart.flux.dao.iface.EventsDAO;
+import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.dao.iface.StatesDAO;
+import com.flipkart.flux.domain.AuditRecord;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.State;
+import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
+import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.impl.SessionFactoryContextImpl;
+import com.flipkart.flux.redriver.dao.MessageDao;
+import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.flux.shard.MasterSlavePair;
+import com.flipkart.flux.shard.MasterSlavePairList;
+import com.flipkart.flux.shard.ShardHostModel;
+import com.flipkart.flux.type.BlobType;
+import com.flipkart.flux.type.ListJsonType;
+import com.flipkart.flux.type.StoreFQNType;
+import com.flipkart.polyguice.config.YamlConfiguration;
+import com.google.common.collect.ImmutableMap;
+import com.google.inject.AbstractModule;
+import com.google.inject.Key;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.matcher.Matchers;
+import com.google.inject.name.Named;
+import com.google.inject.name.Names;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.shards.ShardId;
+import org.hibernate.shards.cfg.ConfigurationToShardConfigurationAdapter;
+import org.hibernate.shards.cfg.ShardConfiguration;
+
+import javax.inject.Provider;
+import javax.transaction.Transactional;
+import java.io.IOException;
+import java.util.*;
+
+/**
+ * <code>ShardModule</code> is a Guice {@link AbstractModule} implementation used for wiring SessionFactory, DAO and Interceptor classes for the shards.
+ *
+ * @author amitkumar.o
+ */
+public class ShardModule extends AbstractModule {
+
+    public static final String FLUX_HIBERNATE_SHARD_CONFIG_NAME_SPACE = "flux.Shard.Config";
+    public static final String FLUX_HIBERNATE_SHARD_CONFIG_NAME = "master.slave.pair.list";
+    public static final String FLUX_HIBERNATE_CONFIG_NAME_SPACE = "flux.Hibernate";
+    public static final String FLUX_READ_ONLY_HIBERNATE_CONFIG_NAME_SPACE = "fluxReadOnly.Hibernate";
+
+    /**
+     * Performs concrete bindings for interfaces
+     *
+     * @see com.google.inject.AbstractModule#configure()
+     */
+    @Override
+    protected void configure() {
+        //bind entity classes
+        bind(AuditDAO.class).to(AuditDAOImpl.class).in(Singleton.class);
+        bind(EventsDAO.class).to(EventsDAOImpl.class).in(Singleton.class);
+        bind(StateMachinesDAO.class).to(StateMachinesDAOImpl.class).in(Singleton.class);
+        bind(StatesDAO.class).to(StatesDAOImpl.class).in(Singleton.class);
+
+        //bind Transactional Interceptor to intercept methods which are annotated with javax.transaction.Transactional
+        Provider<SessionFactoryContext> provider = getProvider(Key.get(SessionFactoryContext.class, Names.named("fluxSessionFactoriesContext")));
+        final TransactionInterceptor transactionInterceptor = new TransactionInterceptor(provider);
+        // Weird way of getting a package but java.lang.Package.getName(<String>) was no working for some reason.
+        // todo [yogesh] dig deeper and fix this ^
+        bindInterceptor(Matchers.not(Matchers.inPackage(MessageDao.class.getPackage())),
+                Matchers.annotatedWith(Transactional.class), transactionInterceptor);
+    }
+
+    /**
+     * Creates hibernate configuration from the configuration yaml properties.
+     * Since the yaml properties are already flattened in input param <code>yamlConfiguration</code>
+     * the method loops over them to selectively pick Hibernate specific properties.
+     */
+    public ShardConfiguration getConfiguration(YamlConfiguration yamlConfiguration, String host) {
+        return new ConfigurationToShardConfigurationAdapter(getConfiguration(yamlConfiguration, FLUX_HIBERNATE_CONFIG_NAME_SPACE, host));
+    }
+
+    public ShardConfiguration getReadOnlyConfiguration(YamlConfiguration yamlConfiguration, String host) {
+        return new ConfigurationToShardConfigurationAdapter(getConfiguration(yamlConfiguration, FLUX_READ_ONLY_HIBERNATE_CONFIG_NAME_SPACE, host));
+    }
+
+    @Provides
+    @Singleton
+    @Named("fluxMasterSlavePairList")
+    public List getFluxMasterSlavePairList(YamlConfiguration yamlConfiguration) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        MasterSlavePairList masterSlavePairList = null;
+        try {
+            masterSlavePairList = objectMapper.readValue(yamlConfiguration.subset(FLUX_HIBERNATE_SHARD_CONFIG_NAME_SPACE).
+                    getProperty(FLUX_HIBERNATE_SHARD_CONFIG_NAME).toString(), MasterSlavePairList.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new FluxError(FluxError.ErrorType.runtime, "Not able to read Master Slave Config from Config File", e.getCause());
+        }
+        return masterSlavePairList.getMasterSlavePairList();
+    }
+
+    /**
+     * Provides a immutable map with Shard id to Shard Host Model mapping.
+     *
+     * @param masterSlavePairList
+     * @return
+     */
+
+    @Provides
+    @Singleton
+    @Named("fluxShardIdToShardMapping")
+    public ImmutableMap getFluxShardIdToShardMapping(@Named("fluxMasterSlavePairList") List<MasterSlavePair> masterSlavePairList) {
+        final ImmutableMap<ShardId, ShardHostModel> shardIdToShardHostModelMap;
+        Map tempShardIdToShardModelMap = new HashMap<ShardId, ShardHostModel>();
+        masterSlavePairList.stream().forEach(masterSlavePair -> {
+            tempShardIdToShardModelMap.put(masterSlavePair.getMaster().getShardId(), masterSlavePair.getMaster());
+            tempShardIdToShardModelMap.put(masterSlavePair.getSlave().getShardId(), masterSlavePair.getSlave());
+        });
+        return shardIdToShardHostModelMap = ImmutableMap.copyOf(tempShardIdToShardModelMap);
+    }
+
+    /**
+     * Provides a immutable map with Shard Key (Character) to ShardHostModel Mapping for ReadWrite(Master) shards only.
+     *
+     * @param masterSlavePairList
+     * @return
+     */
+    @Provides
+    @Singleton
+    @Named("fluxRWShardKeyToShardMapping")
+    public Map getFluxRWShardKeyToShardIdMapping(@Named("fluxMasterSlavePairList") List<MasterSlavePair> masterSlavePairList) {
+        Map shardKeyToShardIdMap = new HashMap<Character, com.flipkart.flux.shard.ShardId>();
+        masterSlavePairList.stream().forEach(masterSlavePair -> {
+            masterSlavePair.getMaster().getShardKeys().forEach(character -> {
+                shardKeyToShardIdMap.put(character, masterSlavePair.getMaster().getShardId());
+            });
+        });
+        return shardKeyToShardIdMap;
+    }
+
+    /**
+     * Provides a immutable map with Shard Key (Character) to ShardHostModel Mapping for ReadOnly(Slave) shards only.
+     *
+     * @param masterSlavePairList
+     * @return
+     */
+    @Provides
+    @Singleton
+    @Named("fluxROShardKeyToShardMapping")
+    public Map getFluxROShardKeyToShardIdMapping(@Named("fluxMasterSlavePairList") List<MasterSlavePair> masterSlavePairList) {
+        Map shardKeyToShardIdMap = new HashMap<Character, com.flipkart.flux.shard.ShardId>();
+        masterSlavePairList.stream().forEach(masterSlavePair -> {
+            masterSlavePair.getSlave().getShardKeys().forEach(character -> {
+                shardKeyToShardIdMap.put(character, masterSlavePair.getSlave().getShardId());
+            });
+        });
+        return shardKeyToShardIdMap;
+    }
+
+    /**
+     * Creates hibernate configuration from the configuration yaml properties.
+     * Since the yaml properties are already flattened in input param <code>yamlConfiguration</code>
+     * the method loops over them to selectively pick Hibernate specific properties.
+     */
+    public Configuration getRWConfiguration(YamlConfiguration yamlConfiguration, String host) {
+        return getConfiguration(yamlConfiguration, FLUX_HIBERNATE_CONFIG_NAME_SPACE, host);
+    }
+
+    public Configuration getROConfiguration(YamlConfiguration yamlConfiguration, String host) {
+        return getConfiguration(yamlConfiguration, FLUX_READ_ONLY_HIBERNATE_CONFIG_NAME_SPACE, host);
+    }
+
+    @Provides
+    @Singleton
+    @Named("fluxRWSessionFactoriesMap")
+    public Map getFluxRWSessionFactoryMap(@Named("fluxMasterSlavePairList") List<MasterSlavePair> fluxMasterSlavePairList,
+                                          YamlConfiguration yamlConfiguration) {
+        Map fluxRWSessionFactories = new HashMap<com.flipkart.flux.shard.ShardId, SessionFactory>();
+        fluxMasterSlavePairList.stream().forEach(masterSlavePair -> {
+            Configuration conf = getRWConfiguration(yamlConfiguration, masterSlavePair.getMaster().getIp());
+            fluxRWSessionFactories.put(masterSlavePair.getMaster().getShardId(), conf.buildSessionFactory());
+        });
+        return fluxRWSessionFactories;
+    }
+
+    @Provides
+    @Singleton
+    @Named("fluxROSessionFactoriesMap")
+    public Map getFluxROSessionFactoryMap(@Named("fluxMasterSlavePairList") List<MasterSlavePair> fluxMasterSlavePairList,
+                                          YamlConfiguration yamlConfiguration) {
+        Map fluxRWSessionFactories = new HashMap<com.flipkart.flux.shard.ShardId, SessionFactory>();
+        fluxMasterSlavePairList.stream().forEach(masterSlavePair -> {
+            Configuration conf = getRWConfiguration(yamlConfiguration, masterSlavePair.getSlave().getIp());
+            fluxRWSessionFactories.put(masterSlavePair.getSlave().getShardId(), conf.buildSessionFactory());
+        });
+        return fluxRWSessionFactories;
+    }
+
+    @Provides
+    @Singleton
+    @Named("fluxSessionFactoriesContext")
+    public SessionFactoryContextImpl getSessionFactoryProvider(@Named("fluxRWSessionFactoriesMap") Map fluxRWSessionFactoriesMap,
+                                                               @Named("fluxROSessionFactoriesMap") Map fluxROSessionFactoriesMap,
+                                                               @Named("fluxRWShardKeyToShardMapping") Map fluxRWShardKeyToShardMapping,
+                                                               @Named("fluxROShardKeyToShardMapping") Map fluxROShardKeyToShardMapping) {
+
+        return new SessionFactoryContextImpl(fluxRWSessionFactoriesMap, fluxROSessionFactoriesMap,
+                fluxRWShardKeyToShardMapping, fluxROShardKeyToShardMapping);
+    }
+
+
+    /**
+     * Adds annotated classes and custom types to passed Hibernate configuration.
+     */
+    private void addAnnotatedClassesAndTypes(Configuration configuration) {
+        //register hibernate custom types
+        configuration.registerTypeOverride(new BlobType(), new String[]{"BlobType"});
+        configuration.registerTypeOverride(new StoreFQNType(), new String[]{"StoreFQNOnly"});
+        configuration.registerTypeOverride(new ListJsonType(), new String[]{"ListJsonType"});
+
+        //add annotated classes to configuration
+        configuration.addAnnotatedClass(AuditRecord.class);
+        configuration.addAnnotatedClass(Event.class);
+        configuration.addAnnotatedClass(State.class);
+        configuration.addAnnotatedClass(StateMachine.class);
+
+        // added Redriver class as well
+        configuration.addAnnotatedClass(ScheduledMessage.class);
+
+    }
+
+    private Configuration getConfiguration(YamlConfiguration yamlConfiguration, String prefix, String host) {
+        Configuration configuration = new Configuration();
+        org.apache.commons.configuration.Configuration hibernateConfig = yamlConfiguration.subset(prefix);
+        Iterator<String> propertyKeys = hibernateConfig.getKeys();
+        Properties configProperties = new Properties();
+        while (propertyKeys.hasNext()) {
+            String propertyKey = propertyKeys.next();
+            Object propertyValue = hibernateConfig.getProperty(propertyKey);
+            configProperties.put(propertyKey, propertyValue);
+        }
+        configProperties.setProperty("hibernate.connection.url", "jdbc:mysql://" + host + ":3306/flux_sharding");
+        configuration.addProperties(configProperties);
+        return configuration;
+    }
+}

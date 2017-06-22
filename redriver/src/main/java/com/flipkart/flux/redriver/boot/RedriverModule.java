@@ -15,6 +15,7 @@ package com.flipkart.flux.redriver.boot;
 
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
 import com.flipkart.flux.persistence.DataSourceType;
+import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.polyguice.config.YamlConfiguration;

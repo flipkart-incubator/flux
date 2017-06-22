@@ -14,6 +14,8 @@
 package com.flipkart.flux.interceptor;
 
 import com.flipkart.flux.persistence.DataSourceType;
+import com.flipkart.flux.persistence.SelectDataSource;
+import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.google.inject.Inject;
 import org.hibernate.SessionFactory;
 import org.junit.Assert;

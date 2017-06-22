@@ -223,12 +223,14 @@ public class StateMachineResourceTest {
 
         /* mark 1 of the state as errored */
         sm.getStates().stream().findFirst().get().setStatus(Status.errored);
+        String firstSmId = UUID.randomUUID().toString();
         /* persist */
-        final StateMachine firstSM = stateMachinesDAO.create(new StateMachine(UUID.randomUUID().toString(), sm.getVersion(), sm.getName(), sm.getDescription(), sm.getStates(), "uniqueCorId1"));
+        final StateMachine firstSM = stateMachinesDAO.create(firstSmId, new StateMachine(firstSmId, sm.getVersion(), sm.getName(), sm.getDescription(), sm.getStates(), "uniqueCorId1"));
 
         /* change name and persist as 2nd statemachine */
+        String secondSmId = UUID.randomUUID().toString();
         final String differentSMName = "differentStateMachine";
-        final StateMachine secondSM = stateMachinesDAO.create(new StateMachine(UUID.randomUUID().toString(), sm.getVersion(), differentSMName, sm.getDescription(), sm.getStates(), "uniqueCorId2"));
+        final StateMachine secondSM = stateMachinesDAO.create(secondSmId, new StateMachine(secondSmId, sm.getVersion(), differentSMName, sm.getDescription(), sm.getStates(), "uniqueCorId2"));
 
         /* fetch errored states with name "differentStateMachine" */
         final HttpResponse<String> stringHttpResponse = Unirest.get(STATE_MACHINE_RESOURCE_URL + "/" + differentSMName + "/states/errored?fromSmId=" + firstSM.getId() + "&toSmId=" + secondSM.getId()).header("Content-Type", "application/json").asString();

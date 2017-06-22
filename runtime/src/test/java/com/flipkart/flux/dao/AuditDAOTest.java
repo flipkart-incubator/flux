@@ -21,7 +21,7 @@ import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.guice.module.AkkaModule;
 import com.flipkart.flux.guice.module.ContainerModule;
-import com.flipkart.flux.guice.module.HibernateModule;
+import com.flipkart.flux.guice.module.ShardModule;
 import com.flipkart.flux.impl.boot.TaskModule;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
 import com.flipkart.flux.module.RuntimeTestModule;
@@ -43,7 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author kartik.bommepally
  */
 @RunWith(GuiceJunit4Runner.class)
-@Modules({DeploymentUnitTestModule.class,HibernateModule.class,RuntimeTestModule.class,ContainerModule.class,AkkaModule.class,TaskModule.class,FluxClientInterceptorModule.class})
+@Modules({DeploymentUnitTestModule.class,ShardModule.class,RuntimeTestModule.class,ContainerModule.class,AkkaModule.class,TaskModule.class,FluxClientInterceptorModule.class})
 public class AuditDAOTest {
 
     @Inject
@@ -65,9 +65,9 @@ public class AuditDAOTest {
             break;
         }
         AuditRecord auditRecord = new AuditRecord(stateMachine.getId(), (state!=null) ? state.getId() : null, 0L, Status.completed, null, null);
-        Long recordId = auditDAO.create(auditRecord).getId();
+        Long recordId = auditDAO.create(stateMachine.getId() ,auditRecord).getId();
 
-        AuditRecord auditRecord1 = auditDAO.findById(recordId);
+        AuditRecord auditRecord1 = auditDAO.findById(stateMachine.getId() ,recordId);
         assertThat(auditRecord1).isEqualTo(auditRecord);
     }
 }

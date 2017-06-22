@@ -125,7 +125,14 @@ public class StateMachineResource {
         StateMachine stateMachine = null;
 
         try {
-            stateMachine = createAndInitStateMachine(stateMachineDefinition);
+            final String stateMachineInstanceId;
+            if(stateMachineDefinition.getCorrelationId() != null && !stateMachineDefinition.getCorrelationId().isEmpty()){
+                stateMachineInstanceId = stateMachineDefinition.getCorrelationId();
+            }
+            else{
+                stateMachineInstanceId = UUID.randomUUID().toString();
+            };
+            stateMachine = createAndInitStateMachine(stateMachineInstanceId, stateMachineDefinition);
             metricsClient.markMeter(new StringBuilder().
                     append("stateMachine.").
                     append(stateMachine.getName()).
@@ -143,10 +150,10 @@ public class StateMachineResource {
      */
     @ShouldShardData(ShouldShard.YES)
     @Transactional
-    protected StateMachine createAndInitStateMachine(StateMachineDefinition stateMachineDefinition) throws Exception {
+    protected StateMachine createAndInitStateMachine(String stateMachineInstanceId, StateMachineDefinition stateMachineDefinition) throws Exception {
 
         // 1. Convert to StateMachine (domain object) and save in DB
-        StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineDefinition);
+        StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineInstanceId, stateMachineDefinition);
         MDC.clear();
         MDC.put(STATE_MACHINE_ID, stateMachine.getId().toString());
         logger.info("Created state machine with Id: {} and correlation Id: {}", stateMachine.getId(), stateMachine.getCorrelationId());

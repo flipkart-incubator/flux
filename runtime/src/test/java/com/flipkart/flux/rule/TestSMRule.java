@@ -42,7 +42,8 @@ public class TestSMRule extends ExternalResource {
         this.stateMachinesDAO = stateMachinesDAO;
     }
 
-    @Override @Transactional
+    @Override
+    @Transactional
     @ShouldShardData(ShouldShard.YES)
     protected void before() throws Throwable {
         String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
@@ -54,7 +55,7 @@ public class TestSMRule extends ExternalResource {
         states.add(state1);
         states.add(state2);
         StateMachine stateMachine1 = new StateMachine("1", 2L, "SM_name", "SM_desc", states,null);
-        stateMachine = stateMachinesDAO.create(stateMachine1);
+        stateMachine = stateMachinesDAO.create(stateMachine1.getId(), stateMachine1);
     }
 
     public StateMachine getStateMachine() {

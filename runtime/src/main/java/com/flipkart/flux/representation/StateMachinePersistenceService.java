@@ -29,6 +29,7 @@ import java.util.*;
 
 /**
  * <code>StateMachinePersistenceService</code> class converts user provided state machine entity definition to domain type object and stores in DB.
+ *
  * @author shyam.akirala
  */
 @Singleton
@@ -54,18 +55,19 @@ public class StateMachinePersistenceService {
 
     /**
      * Converts state machine definition to state machine domain object and saves in DB.
+     *
      * @param stateMachineDefinition
      * @return saved state machine object
      */
-    public StateMachine createStateMachine(StateMachineDefinition stateMachineDefinition) {
-        final String stateMachineId = UUID.randomUUID().toString();
+    public StateMachine createStateMachine(String stateMachineId, StateMachineDefinition stateMachineDefinition) {
+
         final Map<EventDefinition, EventData> eventDataMap = stateMachineDefinition.getEventDataMap();
         Set<Event> allEvents = createAllEvents(eventDataMap);
         Set<StateDefinition> stateDefinitions = stateMachineDefinition.getStates();
         Set<State> states = new HashSet<>();
 
 
-        for(StateDefinition stateDefinition : stateDefinitions) {
+        for (StateDefinition stateDefinition : stateDefinitions) {
             State state = convertStateDefinitionToState(stateDefinition);
             states.add(state);
         }
@@ -75,16 +77,16 @@ public class StateMachinePersistenceService {
                 stateMachineDefinition.getDescription(),
                 states, stateMachineDefinition.getCorrelationId());
 
-        stateMachinesDAO.create(stateMachine);
+        stateMachinesDAO.create(stateMachineId ,stateMachine);
 
-        for(Event event: allEvents) {
+        for (Event event : allEvents) {
             event.setStateMachineInstanceId(stateMachine.getId());
             eventPersistenceService.persistEvent(event);
         }
 
         //create audit records for all the states
-        for(State state : stateMachine.getStates()) {
-            auditDAO.create(new AuditRecord(stateMachine.getId(), state.getId(), 0L, Status.initialized, null, null));
+        for (State state : stateMachine.getStates()) {
+            auditDAO.create(stateMachine.getId(), new AuditRecord(stateMachine.getId(), state.getId(), 0L, Status.initialized, null, null));
         }
 
         return stateMachine;
@@ -92,6 +94,7 @@ public class StateMachinePersistenceService {
 
     /**
      * creates event domain objects from event definitions.
+     *
      * @param eventDataMap
      * @return set of events
      */
@@ -111,15 +114,16 @@ public class StateMachinePersistenceService {
 
     /**
      * Converts state definition to state domain object.
+     *
      * @param stateDefinition
      * @return state
      */
-    private State convertStateDefinitionToState(StateDefinition stateDefinition)    {
+    private State convertStateDefinitionToState(StateDefinition stateDefinition) {
         try {
             List<EventDefinition> eventDefinitions = stateDefinition.getDependencies();
             List<String> events = new LinkedList<>();
-            if(eventDefinitions != null) {
-                for(EventDefinition e : eventDefinitions) {
+            if (eventDefinitions != null) {
+                for (EventDefinition e : eventDefinitions) {
                     events.add(e.getName());
                 }
             }
@@ -132,7 +136,7 @@ public class StateMachinePersistenceService {
                     events,
                     Math.min(stateDefinition.getRetryCount(), maxRetryCount),
                     stateDefinition.getTimeout(),
-                    stateDefinition.getOutputEvent() != null? objectMapper.writeValueAsString(stateDefinition.getOutputEvent()) : null,
+                    stateDefinition.getOutputEvent() != null ? objectMapper.writeValueAsString(stateDefinition.getOutputEvent()) : null,
                     Status.initialized, null, 0l);
             return state;
         } catch (Exception e) {
