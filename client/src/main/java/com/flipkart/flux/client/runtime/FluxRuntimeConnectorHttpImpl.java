@@ -137,7 +137,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
 
 	/**
 	 * Interface method implementation. Increments the execution retries in persistence by invoking suitable Flux runtime API
-	 * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#incrementExecutionRetries(java.lang.Long, java.lang.Long)
+	 * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#incrementExecutionRetries(String, Long)
 	 */
 	@Override
 	public void incrementExecutionRetries(String stateMachineId, Long taskId) {
@@ -150,9 +150,9 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
      * Interface method implementation. Posts to Flux Runtime API to redrive a task.
      */
     @Override
-    public void redriveTask(Long taskId) {
+    public void redriveTask(String stateMachineId, Long taskId) {
         CloseableHttpResponse httpResponse = null;
-        httpResponse = postOverHttp(null,  "/redrivetask/" + taskId);
+        httpResponse = postOverHttp(null,  "/redrivetask/" + stateMachineId + "/taskId/"+ taskId);
         HttpClientUtils.closeQuietly(httpResponse);
     }
 	

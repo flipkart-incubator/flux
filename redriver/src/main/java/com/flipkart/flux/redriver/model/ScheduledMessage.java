@@ -29,15 +29,17 @@ public class ScheduledMessage implements Serializable {
 
     @Id
     private Long taskId;
+    private String stateMachineId;
     private long scheduledTime;
 
     /* For Hibernate */
     ScheduledMessage() {
     }
 
-    public ScheduledMessage(Long taskId, Long scheduledTime) {
+    public ScheduledMessage(Long taskId, String stateMachineId, Long scheduledTime) {
         this();
         this.taskId = taskId;
+        this.stateMachineId = stateMachineId;
         this.scheduledTime = scheduledTime;
     }
 
@@ -45,31 +47,39 @@ public class ScheduledMessage implements Serializable {
         return scheduledTime;
     }
 
+    public String getStateMachineId() {
+        return stateMachineId;
+    }
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof ScheduledMessage)) return false;
 
         ScheduledMessage that = (ScheduledMessage) o;
 
-        if (scheduledTime != that.scheduledTime) return false;
-        return taskId.equals(that.taskId);
+        if (getScheduledTime() != that.getScheduledTime()) return false;
+        if (!getTaskId().equals(that.getTaskId())) return false;
+        return getStateMachineId().equals(that.getStateMachineId());
 
     }
 
     @Override
     public int hashCode() {
-        int result = taskId.hashCode();
-        result = 31 * result + (int) (scheduledTime ^ (scheduledTime >>> 32));
+        int result = getTaskId().hashCode();
+        result = 31 * result + getStateMachineId().hashCode();
+        result = 31 * result + (int) (getScheduledTime() ^ (getScheduledTime() >>> 32));
         return result;
     }
 
     @Override
     public String toString() {
         return "ScheduledMessage{" +
-            ", taskId=" + taskId +
-            ", scheduledTime=" + scheduledTime +
-            '}';
+                "taskId=" + taskId +
+                ", stateMachineId='" + stateMachineId + '\'' +
+                ", scheduledTime=" + scheduledTime +
+                '}';
     }
 
     public Long getTaskId() {

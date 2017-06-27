@@ -33,17 +33,19 @@ public class SessionFactoryContextImpl implements SessionFactoryContext {
     private final ImmutableMap<ShardId, SessionFactory> ROSessionFactoryImmutableMap;
     private final ImmutableMap<Character, ShardId> shardKeyToRWShardIdImmutableMap;
     private final ImmutableMap<Character, ShardId> shardKeyToROShardIdImmutableMap;
+    private final SessionFactory redriverSessionFactory ;
 
 
     private final ThreadLocal<SessionFactory> currentSessionFactory = new ThreadLocal<>();
 
     public SessionFactoryContextImpl(Map<ShardId, SessionFactory> rwSessionFactoryMap, Map<ShardId, SessionFactory> roSessionFactoryMap,
-                                     Map<Character, ShardId> shardKeyToRWShardIdMap, Map<Character, ShardId> shardKeyToROShardIdMap) {
+                                     Map<Character, ShardId> shardKeyToRWShardIdMap, Map<Character, ShardId> shardKeyToROShardIdMap,
+                                     SessionFactory redriverSessionFactory) {
         this.RWSessionFactoryImmutableMap = ImmutableMap.copyOf(rwSessionFactoryMap);
         this.ROSessionFactoryImmutableMap = ImmutableMap.copyOf(roSessionFactoryMap);
         this.shardKeyToRWShardIdImmutableMap = ImmutableMap.copyOf(shardKeyToRWShardIdMap);
         this.shardKeyToROShardIdImmutableMap = ImmutableMap.copyOf(shardKeyToROShardIdMap);
-
+        this.redriverSessionFactory = redriverSessionFactory;
     }
 
 
@@ -57,6 +59,10 @@ public class SessionFactoryContextImpl implements SessionFactoryContext {
         return currentSessionFactory.get();
     }
 
+    @Override
+    public SessionFactory getRedriverSessionFactory(){
+        return redriverSessionFactory;
+    }
 
     @Override
     public SessionFactory getRWSessionFactory(ShardId shardId) {

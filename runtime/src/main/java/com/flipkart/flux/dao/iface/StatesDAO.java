@@ -38,10 +38,10 @@ public interface StatesDAO {
     public void updateRollbackStatus(String stateMachineInstanceId, Long stateId, Status rollbackStatus);
 
     /** Increments the attempted no.of retries of a state by 1 */
-    void incrementRetryCount(String stateMachineId, Long stateId);
+    void incrementRetryCount(String stateMachineInstanceId, Long stateId);
 
     /** Retrieves a state by it's unique identifier*/
-    State findById(Long id);
+    State findById(String stateMachineInstanceId, Long id);
 
     // Scatter gather Query
     /** Retrieves all errored states for the given range of stateMachine ids */

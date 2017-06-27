@@ -39,20 +39,21 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
+    @DataStorage(STORAGE.SHARDED)
     public State create(State state) {
         return super.save(state);
     }
 
     @Override
     @Transactional
-    @ShouldShardData(ShouldShard.YES)
+    @DataStorage(STORAGE.SHARDED)
     public void updateState(String stateMachineInstanceId, State state) {
         super.update(state);
     }
 
     @Override
     @Transactional
-    @ShouldShardData(ShouldShard.YES)
+    @DataStorage(STORAGE.SHARDED)
     public void updateStatus(String stateMachineId, Long stateId, Status status) {
         Query query = currentSession().createQuery("update State set status = :status where id = :stateId and stateMachineId = :stateMachineId");
         query.setString("status", status != null ? status.toString() : null);
@@ -63,7 +64,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
-    @ShouldShardData(ShouldShard.YES)
+    @DataStorage(STORAGE.SHARDED)
     public void updateRollbackStatus(String stateMachineId, Long stateId, Status rollbackStatus) {
         Query query = currentSession().createQuery("update State set rollbackStatus = :rollbackStatus where id = :stateId and stateMachineId = :stateMachineId");
         query.setString("rollbackStatus", rollbackStatus != null ? rollbackStatus.toString() : null);
@@ -74,7 +75,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
-    @ShouldShardData(ShouldShard.YES)
+    @DataStorage(STORAGE.SHARDED)
     public void incrementRetryCount(String stateMachineId, Long stateId) {
         Query query = currentSession().createQuery("update State set attemptedNoOfRetries = attemptedNoOfRetries + 1 where id = :stateId and stateMachineId = :stateMachineId");
         query.setLong("stateId", stateId);
@@ -84,13 +85,14 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     /**
      * Query should go to Default Shard , As it is a redriver Task
+     *
      * @param id
      * @return
      */
     @Override
     @Transactional
-    @ShouldShardData(ShouldShard.NO)
-    public State findById(Long id) {
+    @DataStorage(STORAGE.SHARDED)
+    public State findById(String stateMachineId, Long id) {
         return super.findById(State.class, id);
     }
 

@@ -73,29 +73,33 @@ public class TransactionInterceptor implements MethodInterceptor {
 
             //get shardKey from method argument if there is any
             String shardKey;
+            ShardId shardId;
+            SessionFactory sessionFactory = null;
 
-            ShouldShardData shouldShard = invocation.getMethod().getAnnotation(ShouldShardData.class);
+            DataStorage dataStorage = invocation.getMethod().getAnnotation(DataStorage.class);
             SelectDataSource selectedDS = invocation.getMethod().getAnnotation(SelectDataSource.class);
 
-            if (shouldShard.equals(ShouldShard.YES)) {
+            if (dataStorage.equals(STORAGE.SHARDED)) {
                 Object[] args = invocation.getArguments();
                 shardKey = (String) args[0];
+            }
+            //shardKey is default which will always point to same shard
+            else if (dataStorage.equals(STORAGE.REDRIVER)) {
+                shardKey = DEFAULT_SHARD_KEY;
+                sessionFactory = context.getRedriverSessionFactory();
             } else {
-                // shardKey is default which will always point to same shard
                 shardKey = DEFAULT_SHARD_KEY;
             }
 
-            Character shardHash = CryptHashGenerator.getUniformCryptHash(shardKey);
-
-            ShardId shardId;
-            SessionFactory sessionFactory;
-
-            if (selectedDS == null || selectedDS.equals(DataSourceType.READ_WRITE)) {
-                shardId = context.getRWShardIdForShardKey(shardHash);
-                sessionFactory = context.getRWSessionFactory(shardId);
-            } else {
-                shardId = context.getROShardIdForShardKey(shardHash);
-                sessionFactory = context.getROSessionFactory(shardId);
+            if (sessionFactory == null) {
+                Character shardHash = CryptHashGenerator.getUniformCryptHash(shardKey);
+                if (selectedDS == null || selectedDS.equals(DataSourceType.READ_WRITE)) {
+                    shardId = context.getRWShardIdForShardKey(shardHash);
+                    sessionFactory = context.getRWSessionFactory(shardId);
+                } else {
+                    shardId = context.getROShardIdForShardKey(shardHash);
+                    sessionFactory = context.getROSessionFactory(shardId);
+                }
             }
 
             //set the  sessionFactory in Context, for further nested Transactions

@@ -27,6 +27,14 @@ import org.hibernate.shards.session.ShardedSessionFactory;
 public interface SessionFactoryContext {
 
     /**
+     * Get the Redriver sessionFactory for the current thread context to be used for the ongoing transaction.
+     *
+     * @return {@link ShardedSessionFactory}
+     */
+
+    SessionFactory getRedriverSessionFactory();
+
+    /**
      * Get the sessionFactory for the current thread context to be used for the ongoing transaction.
      *
      * @return {@link ShardedSessionFactory}

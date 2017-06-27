@@ -261,7 +261,7 @@ public class WorkFlowExecutionController {
                     // Delay between retires is exponential (2, 4, 8, 16, 32.... seconds) as seen in AkkaTask.
                     // Redriver interval is set as 2 x ( 2^(retryCount+1) x 1s + (retryCount+1) x timeout)
                     long redriverInterval = 2 * ((int) Math.pow(2, state.getRetryCount() + 1) * 1000 + (state.getRetryCount() + 1) * state.getTimeout());
-                    this.redriverRegistry.registerTask(state.getId(), redriverInterval);
+                    this.redriverRegistry.registerTask(state.getId(), state.getStateMachineId() ,redriverInterval);
                 }
 
                 //send the message to the Router
@@ -310,9 +310,9 @@ public class WorkFlowExecutionController {
     /**
      * Performs task execution if the task is stalled and no.of retries are not exhausted
      */
-    public void redriveTask(Long taskId) {
+    public void redriveTask(String machineId, Long taskId) {
         MDC.put(TASK_ID, taskId.toString());
-        State state = statesDAO.findById(taskId);
+        State state = statesDAO.findById(machineId, taskId);
 
         if (state != null && isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() < state.getRetryCount()) {
             StateMachine stateMachine = retrieveStateMachine(state.getStateMachineId());

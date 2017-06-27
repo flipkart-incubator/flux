@@ -103,7 +103,7 @@ public class RedriverService {
             messages = messageService.retrieveOldest(offset, batchSize);
             messages.stream().filter(e -> e.getScheduledTime() < now).forEach(e -> {
                 try {
-                    redriverRegistry.redriveTask(e.getTaskId());
+                    redriverRegistry.redriveTask(e.getStateMachineId(), e.getTaskId());
                 } catch (Exception ex) {}
             });
             offset += batchSize;

@@ -14,7 +14,6 @@
 package com.flipkart.flux.redriver.boot;
 
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
-import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
@@ -31,9 +30,7 @@ import org.hibernate.cfg.Configuration;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.transaction.Transactional;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -49,7 +46,7 @@ public class RedriverModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        Provider<SessionFactoryContext> provider = getProvider(Key.get(SessionFactoryContext.class, Names.named("redriverSessionFactoryContext")));
+        Provider<SessionFactoryContext> provider = getProvider(Key.get(SessionFactoryContext.class, Names.named("fluxSessionFactoriesContext")));
         bindInterceptor(Matchers.inPackage(MessageDao.class.getPackage()), Matchers.annotatedWith(Transactional.class), new TransactionInterceptor(provider));
     }
 
@@ -81,12 +78,9 @@ public class RedriverModule extends AbstractModule {
      */
     @Provides
     @Singleton
-    @Named("redriverSessionFactoryContext")
-    public SessionFactoryContext getSessionFactoryProvider(@Named("redriverHibernateConfiguration") Configuration configuration) {
-        SessionFactory sessionFactory = configuration.buildSessionFactory();
-        Map<DataSourceType, SessionFactory> map = new HashMap<>();
-        map.put(DataSourceType.READ_WRITE, sessionFactory);
-        return new SessionFactoryContextImpl(map, DataSourceType.READ_WRITE);
+    @Named("redriverSessionFactory")
+    public SessionFactory getSessionFactoryProvider(@Named("redriverHibernateConfiguration") Configuration configuration) {
+        return configuration.buildSessionFactory();
     }
 
     private void addAnnotatedClassesAndTypes(Configuration configuration) {

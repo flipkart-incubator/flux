@@ -1,4 +1,4 @@
-package com.flipkart.flux.shard.module;
+package com.flipkart.flux.persistence;
 
 import java.security.MessageDigest;
 

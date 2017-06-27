@@ -45,13 +45,6 @@
     <dependencies>
         <!-- Flux dependencies -->
         <dependency>
-            <groupId>com.hibernate.shards</groupId>
-            <artifactId>hibernate-shards</artifactId>
-            <version>1.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/hibernate-shards.jar</systemPath>
-        </dependency>
-        <dependency>
             <groupId>com.flipkart.flux</groupId>
             <artifactId>persistence-mysql</artifactId>
             <version>${project.version}</version>

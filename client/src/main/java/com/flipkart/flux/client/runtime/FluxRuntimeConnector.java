@@ -57,6 +57,7 @@ public interface FluxRuntimeConnector {
     /**
      * Posts to Flux Runtime by connecting over Http to redrive a task.
      * @param taskId the task/state identifier
+     * @param stateMachineId stateMachine Id, to which the task belongs
      */
-    void redriveTask(Long taskId);
+    void redriveTask(String stateMachineId, Long taskId);
 }

@@ -10,6 +10,6 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ShouldShardData {
-    ShouldShard value() default ShouldShard.YES;
+public @interface DataStorage {
+    STORAGE value() default STORAGE.SHARDED;
 }

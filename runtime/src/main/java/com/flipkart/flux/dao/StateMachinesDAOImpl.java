@@ -15,9 +15,9 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.persistence.DataStorage;
+import com.flipkart.flux.persistence.STORAGE;
 import com.flipkart.flux.persistence.SessionFactoryContext;
-import com.flipkart.flux.persistence.ShouldShard;
-import com.flipkart.flux.persistence.ShouldShardData;
 import com.google.inject.name.Named;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
@@ -41,21 +41,21 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
 
     @Override
     @Transactional
-    @ShouldShardData(ShouldShard.YES)
+    @DataStorage(STORAGE.SHARDED)
     public StateMachine create(String stateMachineInstanceId, StateMachine stateMachine) {
         return super.save(stateMachine);
     }
 
     @Override
     @Transactional
-    @ShouldShardData(ShouldShard.YES)
+    @DataStorage(STORAGE.SHARDED)
     public StateMachine findById(String stateMachineInstanceId) {
         return super.findById(StateMachine.class, stateMachineInstanceId);
     }
     // scatter gather query
     @Override
     @Transactional
-    @ShouldShardData(ShouldShard.NO)
+    @DataStorage(STORAGE.SHARDED)
     public Set<StateMachine> findByName(String stateMachineName) {
         Criteria criteria = currentSession().createCriteria(StateMachine.class)
                 .add(Restrictions.eq("name", stateMachineName));
@@ -66,7 +66,7 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     //Scatter gather query
     @Override
     @Transactional
-    @ShouldShardData(ShouldShard.NO)
+    @DataStorage(STORAGE.SHARDED)
     public Set<StateMachine> findByNameAndVersion(String stateMachineName, Long version) {
         Criteria criteria = currentSession().createCriteria(StateMachine.class)
                 .add(Restrictions.eq("name", stateMachineName))
@@ -78,7 +78,7 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     // In this case, correlationId will be same as stateMachineId
     @Override
     @Transactional
-    @ShouldShardData(ShouldShard.YES)
+    @DataStorage(STORAGE.SHARDED)
     public StateMachine findByCorrelationId(String correlationId) {
         return (StateMachine) currentSession().createCriteria(StateMachine.class).add(Restrictions.eq("correlationId",correlationId)).uniqueResult();
     }

@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.redriver.dao;
 
+import com.flipkart.flux.persistence.DataStorage;
+import com.flipkart.flux.persistence.STORAGE;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import org.hibernate.Query;
@@ -36,11 +38,12 @@ public class MessageDao {
     private SessionFactoryContext sessionFactoryContext;
 
     @Inject
-    public MessageDao(@Named("redriverSessionFactoryContext") SessionFactoryContext sessionFactoryContext) {
+    public MessageDao(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
         this.sessionFactoryContext = sessionFactoryContext;
     }
 
     @Transactional
+    @DataStorage(STORAGE.REDRIVER)
     public void save(ScheduledMessage scheduledMessage) {
         currentSession().saveOrUpdate(scheduledMessage);
     }
@@ -51,6 +54,7 @@ public class MessageDao {
      * @param rowCount
      */
     @Transactional
+    @DataStorage(STORAGE.REDRIVER)
     public List<ScheduledMessage> retrieveOldest(int offset, int rowCount) {
         return currentSession()
                 .createCriteria(ScheduledMessage.class)
@@ -65,6 +69,7 @@ public class MessageDao {
      * @param messageIdsToDelete List of {@link ScheduledMessage} Ids
      */
     @Transactional
+    @DataStorage(STORAGE.REDRIVER)
     public void deleteInBatch(List<Long> messageIdsToDelete) {
         final Query deleteQuery = currentSession().createQuery("delete ScheduledMessage s where s.taskId in :msgList ");
         deleteQuery.setParameterList("msgList",messageIdsToDelete);
@@ -76,6 +81,6 @@ public class MessageDao {
      * @return Session
      */
     private Session currentSession() {
-        return sessionFactoryContext.getCurrentSessionFactory().;
+        return sessionFactoryContext.getCurrentSessionFactory().getCurrentSession();
     }
 }

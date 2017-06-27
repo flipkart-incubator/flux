@@ -16,9 +16,9 @@ package com.flipkart.flux.dao;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.persistence.DataStorage;
+import com.flipkart.flux.persistence.STORAGE;
 import com.flipkart.flux.persistence.SessionFactoryContext;
-import com.flipkart.flux.persistence.ShouldShard;
-import com.flipkart.flux.persistence.ShouldShardData;
 import com.google.inject.name.Named;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
@@ -44,35 +44,35 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    @ShouldShardData(ShouldShard.YES)
+    @DataStorage(STORAGE.SHARDED)
     public Event create(String stateMachineInstanceId, Event event) {
         return super.save(event);
     }
 
     @Override
     @Transactional
-    @ShouldShardData(ShouldShard.YES)
+    @DataStorage(STORAGE.SHARDED)
     public void updateEvent(String stateMachineInstanceId, Event event) {
         super.update(event);
     }
 
     @Override
     @Transactional
-    @ShouldShardData(ShouldShard.YES)
+    @DataStorage(STORAGE.SHARDED)
     public List<Event> findBySMInstanceId(String stateMachineInstanceId) {
         return currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId)).list();
     }
 
     @Override
     @Transactional
-    @ShouldShardData(ShouldShard.YES)
+    @DataStorage(STORAGE.SHARDED)
     public Event findById(String stateMachineInstanceId, Long id) {
         return super.findById(Event.class, id);
     }
 
     @Override
     @Transactional
-    @ShouldShardData(ShouldShard.YES)
+    @DataStorage(STORAGE.SHARDED)
     public Event findBySMIdAndName(String stateMachineInstanceId, String eventName) {
         Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("name", eventName));
@@ -81,7 +81,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    @ShouldShardData(ShouldShard.YES)
+    @DataStorage(STORAGE.SHARDED)
     public List<String> findTriggeredEventsNamesBySMId(String stateMachineInstanceId) {
         Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("status", Event.EventStatus.triggered))
@@ -91,7 +91,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    @ShouldShardData(ShouldShard.YES)
+    @DataStorage(STORAGE.SHARDED)
     public List<Event> findTriggeredEventsBySMId(String stateMachineInstanceId) {
         Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("status", Event.EventStatus.triggered));
@@ -100,7 +100,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    @ShouldShardData(ShouldShard.YES)
+    @DataStorage(STORAGE.SHARDED)
     public List<EventData> findByEventNamesAndSMId( String stateMachineInstanceId, List<String> eventNames) {
         if (eventNames.isEmpty()) {
             return new ArrayList<>();

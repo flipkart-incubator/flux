@@ -39,13 +39,6 @@
     <dependencies>
         <!-- Third party dependencies -->
         <dependency>
-            <groupId>com.hibernate.shards</groupId>
-            <artifactId>hibernate-shards</artifactId>
-            <version>1.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/java/com/flipkart/flux/resources/hibernate-shards.jar</systemPath>
-        </dependency>
-        <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
             <version>${javax.inject.version}</version>
