@@ -39,14 +39,10 @@ import java.util.concurrent.CountDownLatch;
  */
 public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
-    private Map<ShardId, ShardHostModel> fluxROShardIdToShardMap;
-    private static final Logger logger = LoggerFactory.getLogger(StatesDAOImpl.class);
 
     @Inject
-    public StatesDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext,
-                         @Named("fluxROShardIdToShardMapping") Map fluxROShardIdToShardMapping) {
+    public StatesDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
         super(sessionFactoryContext);
-        fluxROShardIdToShardMap = fluxROShardIdToShardMapping;
     }
 
     @Override
@@ -114,36 +110,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         return super.findById(State.class, id);
     }
 
-    @Override
-    public List findErroredStates(String stateMachineName, String fromStateMachineId, String toStateMachineId) {
-        // noOfThreads spawned = no. of Slave Shards
-        List result = Collections.synchronizedList(new ArrayList<>());
-        int noOfThreads = fluxROShardIdToShardMap.size();
-        final CountDownLatch latch = new CountDownLatch(noOfThreads);
-        fluxROShardIdToShardMap.entrySet().forEach(mapping -> {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        result.addAll(findErroredStates(mapping.getKey(), stateMachineName, fromStateMachineId, toStateMachineId));
-                    } catch (Exception ex) {
-                        logger.error("Error in fetching errored States from Slave with id {} , ip {} {}",
-                                mapping.getKey(), mapping.getValue().getIp(), ex.getStackTrace());
-                    }
-                    finally {
-                        latch.countDown();
-                    }
-                }
-            });
-        });
-        try {
-            // wait till all the results are returned from all shards
-            latch.await();
-        } catch (InterruptedException e) {
-            logger.error("Exception occured while gathering errored states from Slaves : {}", e.getStackTrace());
-        }
-        return result;
-    }
+
 
     @Transactional
     @DataStorage(STORAGE.SHARDED)
@@ -162,7 +129,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Transactional
     @DataStorage(STORAGE.SHARDED)
     @SelectDataSource(DataSourceType.READ_ONLY)
-    public List findStatesByStatus(String stateMachineName, Timestamp fromTime, Timestamp toTime, String stateName, List<Status> statuses) {
+    public List findStatesByStatus(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime, String stateName, List<Status> statuses) {
         Query query;
         String queryString = "select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
                 "where sm.id between (select min(id) from StateMachine where createdAt >= :fromTime) and (select max(id) from StateMachine where createdAt <= :toTime) " +

@@ -15,6 +15,7 @@ package com.flipkart.flux.dao.iface;
 
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.shard.ShardId;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -43,15 +44,17 @@ public interface StatesDAO {
     /** Retrieves a state by it's unique identifier*/
     State findById(String stateMachineInstanceId, Long id);
 
-    // Scatter gather Query
-    /** Retrieves all errored states for the given range of stateMachine ids */
-    List findErroredStates(String stateMachineName, String fromStateMachineId, String toStateMachineId);
-
-    // Scatter gather query for slaves
     /**
+     * Scatter gather query for slaves
+     * Retrieves all errored states for the given range of stateMachine ids */
+    List findErroredStates(ShardId shardId, String stateMachineName, String fromStateMachineId, String toStateMachineId);
+
+
+    /**
+     * Scatter gather query for slave shards
      * Retrieves all states having one of the given statuses for a particular state machine name and the state machine creation time in
      * the given range fromTime and toTime with optional taskName parameter.
      * If status list is empty/null, returns all tasks.
      */
-    List findStatesByStatus(String stateMachineName, Timestamp fromTime, Timestamp toTime, String taskName, List<Status> statuses);
+    List findStatesByStatus(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime, String taskName, List<Status> statuses);
 }

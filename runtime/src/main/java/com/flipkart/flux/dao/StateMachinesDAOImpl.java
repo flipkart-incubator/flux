@@ -16,6 +16,7 @@ package com.flipkart.flux.dao;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.persistence.*;
+import com.flipkart.flux.shard.ShardId;
 import com.google.inject.name.Named;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
@@ -28,6 +29,7 @@ import java.util.Set;
 
 /**
  * <code>StateMachinesDAOImpl</code> is an implementation of {@link StateMachinesDAO} which uses Hibernate to perform operations.
+ *
  * @author shyam.akirala
  */
 public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements StateMachinesDAO {
@@ -52,12 +54,13 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     public StateMachine findById(String stateMachineInstanceId) {
         return super.findById(StateMachine.class, stateMachineInstanceId);
     }
+
     // scatter gather query
     @Override
     @Transactional
     @DataStorage(STORAGE.SHARDED)
     @SelectDataSource(DataSourceType.READ_ONLY)
-    public Set<StateMachine> findByName(String stateMachineName) {
+    public Set<StateMachine> findByName(ShardId shardId, String stateMachineName) {
         Criteria criteria = currentSession().createCriteria(StateMachine.class)
                 .add(Restrictions.eq("name", stateMachineName));
         List<StateMachine> stateMachines = criteria.list();
@@ -69,7 +72,7 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     @Transactional
     @DataStorage(STORAGE.SHARDED)
     @SelectDataSource(DataSourceType.READ_ONLY)
-    public Set<StateMachine> findByNameAndVersion(String stateMachineName, Long version) {
+    public Set<StateMachine> findByNameAndVersion(ShardId shardId, String stateMachineName, Long version) {
         Criteria criteria = currentSession().createCriteria(StateMachine.class)
                 .add(Restrictions.eq("name", stateMachineName))
                 .add(Restrictions.eq("version", version));
@@ -83,6 +86,6 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     @DataStorage(STORAGE.SHARDED)
     @SelectDataSource(DataSourceType.READ_WRITE)
     public StateMachine findByCorrelationId(String correlationId) {
-        return (StateMachine) currentSession().createCriteria(StateMachine.class).add(Restrictions.eq("correlationId",correlationId)).uniqueResult();
+        return (StateMachine) currentSession().createCriteria(StateMachine.class).add(Restrictions.eq("correlationId", correlationId)).uniqueResult();
     }
 }

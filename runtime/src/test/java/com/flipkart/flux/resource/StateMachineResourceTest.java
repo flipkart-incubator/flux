@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.constant.RuntimeConstants;
+import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
 import com.flipkart.flux.dao.TestWorkflow;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
@@ -27,6 +28,7 @@ import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.guice.module.AkkaModule;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.HibernateModule;
+import com.flipkart.flux.guice.module.ShardModule;
 import com.flipkart.flux.impl.boot.TaskModule;
 import com.flipkart.flux.initializer.OrderedComponentBooter;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
@@ -53,7 +55,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(GuiceJunit4Runner.class)
-@Modules({DeploymentUnitTestModule.class,HibernateModule.class,RuntimeTestModule.class,ContainerModule.class,AkkaModule.class,TaskModule.class,FluxClientInterceptorModule.class})
+@Modules({DeploymentUnitTestModule.class,ShardModule.class,RuntimeTestModule.class,ContainerModule.class,AkkaModule.class,TaskModule.class,FluxClientInterceptorModule.class})
 public class StateMachineResourceTest {
 
     @Inject
@@ -62,6 +64,9 @@ public class StateMachineResourceTest {
 
     @Inject
     private StateMachinesDAO stateMachinesDAO;
+
+    @Inject
+    private ParallelScatterGatherQueryHelper parallelScatterGatherQueryHelper;
 
     @Inject
     private EventsDAO eventsDAO;
@@ -95,9 +100,9 @@ public class StateMachineResourceTest {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
         final HttpResponse<String> response = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
-        assertThat(stateMachinesDAO.findByName("test_state_machine")).hasSize(1);
+        assertThat(parallelScatterGatherQueryHelper.findByName("test_state_machine")).hasSize(1);
         Thread.sleep(1000);
-        TestUtils.assertStateMachineEquality(stateMachinesDAO.findByName("test_state_machine").iterator().next(), TestUtils.getStandardTestMachine());
+        TestUtils.assertStateMachineEquality(parallelScatterGatherQueryHelper.findByName("test_state_machine").iterator().next(), TestUtils.getStandardTestMachine());
     }
 
     @Test
@@ -143,7 +148,7 @@ public class StateMachineResourceTest {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
         final HttpResponse<String> response = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
-        assertThat(stateMachinesDAO.findByName("test_state_machine")).hasSize(1);
+        assertThat(parallelScatterGatherQueryHelper.findByName("test_state_machine")).hasSize(1);
         final HttpResponse<String> secondResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
         assertThat(secondResponse.getStatus()).isEqualTo(Response.Status.CONFLICT.getStatusCode());
     }

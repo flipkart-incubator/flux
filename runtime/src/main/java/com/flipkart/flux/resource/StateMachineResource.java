@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.*;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
+import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
@@ -92,9 +93,13 @@ public class StateMachineResource {
 
     private MetricsClient metricsClient;
 
+    private ParallelScatterGatherQueryHelper parallelScatterGatherQueryHelper;
+
     @Inject
     public StateMachineResource(EventsDAO eventsDAO, StateMachinePersistenceService stateMachinePersistenceService,
-                                AuditDAO auditDAO, StateMachinesDAO stateMachinesDAO, StatesDAO statesDAO, WorkFlowExecutionController workFlowExecutionController, MetricsClient metricsClient) {
+                                AuditDAO auditDAO, StateMachinesDAO stateMachinesDAO, StatesDAO statesDAO,
+                                WorkFlowExecutionController workFlowExecutionController, MetricsClient metricsClient,
+                                ParallelScatterGatherQueryHelper parallelScatterGatherQueryHelper) {
         this.eventsDAO = eventsDAO;
         this.stateMachinePersistenceService = stateMachinePersistenceService;
         this.stateMachinesDAO = stateMachinesDAO;
@@ -103,6 +108,7 @@ public class StateMachineResource {
         this.workFlowExecutionController = workFlowExecutionController;
         objectMapper = new ObjectMapper();
         this.metricsClient = metricsClient;
+        this.parallelScatterGatherQueryHelper = parallelScatterGatherQueryHelper;
     }
 
     /**
@@ -365,7 +371,7 @@ public class StateMachineResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("Not a valid ending stateMachineId, either null or empty!!").build();
         }
 
-        return Response.status(200).entity(statesDAO.findErroredStates(stateMachineName, fromStateMachineId, toStateMachineId)).build();
+        return Response.status(200).entity(parallelScatterGatherQueryHelper.findErroredStates(stateMachineName, fromStateMachineId, toStateMachineId)).build();
     }
 
     /**
@@ -402,7 +408,7 @@ public class StateMachineResource {
                 }
             }
         }
-        return Response.status(200).entity(statesDAO.findStatesByStatus(stateMachineName, fromTimestamp, toTimestamp, stateName, statuses)).build();
+        return Response.status(200).entity(parallelScatterGatherQueryHelper.findStatesByStatus(stateMachineName, fromTimestamp, toTimestamp, stateName, statuses)).build();
     }
 
     /**
