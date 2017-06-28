@@ -17,13 +17,20 @@ import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.persistence.*;
+import com.flipkart.flux.resource.StateMachineResource;
+import com.flipkart.flux.shard.ShardHostModel;
+import com.flipkart.flux.shard.ShardId;
 import com.google.inject.name.Named;
 import org.hibernate.Query;
+import org.hibernate.annotations.common.util.impl.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * <code>StatesDAOImpl</code> is an implementation of {@link StatesDAO} which uses Hibernate to perform operations.
@@ -32,14 +39,20 @@ import java.util.List;
  */
 public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
+    private Map<ShardId, ShardHostModel> fluxROShardIdToShardMap;
+    private static final Logger logger = LoggerFactory.getLogger(StatesDAOImpl.class);
+
     @Inject
-    public StatesDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
+    public StatesDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext,
+                         @Named("fluxROShardIdToShardMapping") Map fluxROShardIdToShardMapping) {
         super(sessionFactoryContext);
+        fluxROShardIdToShardMap = fluxROShardIdToShardMapping;
     }
 
     @Override
     @Transactional
     @DataStorage(STORAGE.SHARDED)
+    @SelectDataSource(DataSourceType.READ_WRITE)
     public State create(State state) {
         return super.save(state);
     }
@@ -47,6 +60,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Override
     @Transactional
     @DataStorage(STORAGE.SHARDED)
+    @SelectDataSource(DataSourceType.READ_WRITE)
     public void updateState(String stateMachineInstanceId, State state) {
         super.update(state);
     }
@@ -54,6 +68,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Override
     @Transactional
     @DataStorage(STORAGE.SHARDED)
+    @SelectDataSource(DataSourceType.READ_WRITE)
     public void updateStatus(String stateMachineId, Long stateId, Status status) {
         Query query = currentSession().createQuery("update State set status = :status where id = :stateId and stateMachineId = :stateMachineId");
         query.setString("status", status != null ? status.toString() : null);
@@ -65,6 +80,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Override
     @Transactional
     @DataStorage(STORAGE.SHARDED)
+    @SelectDataSource(DataSourceType.READ_WRITE)
     public void updateRollbackStatus(String stateMachineId, Long stateId, Status rollbackStatus) {
         Query query = currentSession().createQuery("update State set rollbackStatus = :rollbackStatus where id = :stateId and stateMachineId = :stateMachineId");
         query.setString("rollbackStatus", rollbackStatus != null ? rollbackStatus.toString() : null);
@@ -76,6 +92,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Override
     @Transactional
     @DataStorage(STORAGE.SHARDED)
+    @SelectDataSource(DataSourceType.READ_WRITE)
     public void incrementRetryCount(String stateMachineId, Long stateId) {
         Query query = currentSession().createQuery("update State set attemptedNoOfRetries = attemptedNoOfRetries + 1 where id = :stateId and stateMachineId = :stateMachineId");
         query.setLong("stateId", stateId);
@@ -92,26 +109,58 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Override
     @Transactional
     @DataStorage(STORAGE.SHARDED)
+    @SelectDataSource(DataSourceType.READ_WRITE)
     public State findById(String stateMachineId, Long id) {
         return super.findById(State.class, id);
     }
 
     @Override
-    @Transactional
-    @SelectDataSource(DataSourceType.READ_ONLY)
     public List findErroredStates(String stateMachineName, String fromStateMachineId, String toStateMachineId) {
+        // noOfThreads spawned = no. of Slave Shards
+        List result = Collections.synchronizedList(new ArrayList<>());
+        int noOfThreads = fluxROShardIdToShardMap.size();
+        final CountDownLatch latch = new CountDownLatch(noOfThreads);
+        fluxROShardIdToShardMap.entrySet().forEach(mapping -> {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        result.addAll(findErroredStates(mapping.getKey(), stateMachineName, fromStateMachineId, toStateMachineId));
+                    } catch (Exception ex) {
+                        logger.error("Error in fetching errored States from Slave with id {} , ip {} {}",
+                                mapping.getKey(), mapping.getValue().getIp(), ex.getStackTrace());
+                    }
+                    finally {
+                        latch.countDown();
+                    }
+                }
+            });
+        });
+        try {
+            // wait till all the results are returned from all shards
+            latch.await();
+        } catch (InterruptedException e) {
+            logger.error("Exception occured while gathering errored states from Slaves : {}", e.getStackTrace());
+        }
+        return result;
+    }
+
+    @Transactional
+    @DataStorage(STORAGE.SHARDED)
+    @SelectDataSource(DataSourceType.READ_ONLY)
+    public List findErroredStates(ShardId shardId, String stateMachineName, String fromStateMachineId, String toStateMachineId) {
         Query query = currentSession().createQuery("select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
                 "where sm.id >= :fromStateMachineId and sm.id  <= :toStateMachineId and sm.name = :stateMachineName and state.status in ('errored', 'sidelined', 'cancelled')");
 
         query.setString("fromStateMachineId", fromStateMachineId);
         query.setString("toStateMachineId", toStateMachineId);
         query.setString("stateMachineName", stateMachineName);
-
         return query.list();
     }
 
     @Override
     @Transactional
+    @DataStorage(STORAGE.SHARDED)
     @SelectDataSource(DataSourceType.READ_ONLY)
     public List findStatesByStatus(String stateMachineName, Timestamp fromTime, Timestamp toTime, String stateName, List<Status> statuses) {
         Query query;

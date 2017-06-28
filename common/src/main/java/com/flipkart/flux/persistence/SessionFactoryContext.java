@@ -15,10 +15,9 @@ package com.flipkart.flux.persistence;
 
 import com.flipkart.flux.shard.ShardId;
 import org.hibernate.SessionFactory;
-import org.hibernate.shards.session.ShardedSessionFactory;
 
 /**
- * Context to get a particular {@link ShardedSessionFactory} for the ongoing transaction.
+ * Context to get a particular {@link SessionFactory} for the ongoing transaction.
  *
  * @see com.flipkart.flux.guice.interceptor.TransactionInterceptor
  * <p>
@@ -29,7 +28,7 @@ public interface SessionFactoryContext {
     /**
      * Get the Redriver sessionFactory for the current thread context to be used for the ongoing transaction.
      *
-     * @return {@link ShardedSessionFactory}
+     * @return {@link SessionFactory}
      */
 
     SessionFactory getRedriverSessionFactory();
@@ -37,7 +36,7 @@ public interface SessionFactoryContext {
     /**
      * Get the sessionFactory for the current thread context to be used for the ongoing transaction.
      *
-     * @return {@link ShardedSessionFactory}
+     * @return {@link SessionFactory}
      */
 
     SessionFactory getCurrentSessionFactory();

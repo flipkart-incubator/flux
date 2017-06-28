@@ -30,8 +30,10 @@ import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.metrics.iface.MetricsClient;
+import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.DataStorage;
 import com.flipkart.flux.persistence.STORAGE;
+import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.google.inject.Inject;
@@ -150,6 +152,7 @@ public class StateMachineResource {
      */
     @Transactional
     @DataStorage(STORAGE.SHARDED)
+    @SelectDataSource(DataSourceType.READ_WRITE)
     protected StateMachine createAndInitStateMachine(String stateMachineInstanceId, StateMachineDefinition stateMachineDefinition) throws Exception {
 
         // 1. Convert to StateMachine (domain object) and save in DB
@@ -235,8 +238,6 @@ public class StateMachineResource {
      */
     @POST
     @Path("/{machineId}/{stateId}/status")
-    @Transactional
-    @DataStorage(STORAGE.SHARDED)
     @Timed
     public Response updateStatus(@PathParam("machineId") String machineId,
                                  @PathParam("stateId") Long stateId,
@@ -246,6 +247,9 @@ public class StateMachineResource {
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
+    @Transactional
+    @DataStorage(STORAGE.SHARDED)
+    @SelectDataSource(DataSourceType.READ_WRITE)
     private void updateTaskStatus(String machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
         com.flipkart.flux.domain.Status updateStatus = null;
         switch (executionUpdateData.getStatus()) {
@@ -292,6 +296,7 @@ public class StateMachineResource {
     @Path("/{machineId}/{stateId}/retries/inc")
     @Transactional
     @DataStorage(STORAGE.SHARDED)
+    @SelectDataSource(DataSourceType.READ_WRITE)
     public Response incrementRetry(@PathParam("machineId") String machineId,
                                    @PathParam("stateId") Long stateId
     ) throws Exception {
@@ -412,6 +417,7 @@ public class StateMachineResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @DataStorage(STORAGE.SHARDED)
+    @SelectDataSource(DataSourceType.READ_WRITE)
     public Response unsidelineState(@PathParam("stateMachineId") String stateMachineId, @PathParam("stateId") Long stateId) {
         this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
 

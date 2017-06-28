@@ -22,6 +22,8 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.context.internal.ManagedSessionContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Provider;
 
@@ -47,6 +49,8 @@ import javax.inject.Provider;
 public class TransactionInterceptor implements MethodInterceptor {
 
     public static final String DEFAULT_SHARD_KEY = "default-shard-key";
+    private static final Logger logger = LoggerFactory.getLogger(TransactionInterceptor.class);
+
     private final Provider<SessionFactoryContext> contextProvider;
 
     public TransactionInterceptor(Provider<SessionFactoryContext> contextProvider) {
@@ -69,48 +73,63 @@ public class TransactionInterceptor implements MethodInterceptor {
         }
 
         if (session == null) {
-            //start a new session and transaction if current session is null
+            //start a new session if current session is null
 
             //get shardKey from method argument if there is any
             String shardKey;
             ShardId shardId;
-            SessionFactory sessionFactory = null;
+            SessionFactory sessionFactory = null ;
 
-            DataStorage dataStorage = invocation.getMethod().getAnnotation(DataStorage.class);
-            SelectDataSource selectedDS = invocation.getMethod().getAnnotation(SelectDataSource.class);
-
-            if (dataStorage.equals(STORAGE.SHARDED)) {
-                Object[] args = invocation.getArguments();
-                shardKey = (String) args[0];
-            }
-            //shardKey is default which will always point to same shard
-            else if (dataStorage.equals(STORAGE.REDRIVER)) {
-                shardKey = DEFAULT_SHARD_KEY;
-                sessionFactory = context.getRedriverSessionFactory();
-            } else {
-                shardKey = DEFAULT_SHARD_KEY;
-            }
-
-            if (sessionFactory == null) {
-                Character shardHash = CryptHashGenerator.getUniformCryptHash(shardKey);
-                if (selectedDS == null || selectedDS.equals(DataSourceType.READ_WRITE)) {
-                    shardId = context.getRWShardIdForShardKey(shardHash);
-                    sessionFactory = context.getRWSessionFactory(shardId);
-                } else {
-                    shardId = context.getROShardIdForShardKey(shardHash);
-                    sessionFactory = context.getROSessionFactory(shardId);
+            try {
+                DataStorage dataStorage = invocation.getMethod().getAnnotation(DataStorage.class);
+                switch (dataStorage.value()) {
+                    case SHARDED: {
+                        try {
+                            SelectDataSource selectedDS = invocation.getMethod().getAnnotation(SelectDataSource.class);
+                            switch (selectedDS.value()) {
+                                // in this case invocation method will provide slave's shardId as the first argument,
+                                // whose sessionFactory will be used
+                                case READ_ONLY: {
+                                    Object[] args = invocation.getArguments();
+                                    shardId = (ShardId) args[0];
+                                    sessionFactory = context.getROSessionFactory(shardId);
+                                }
+                                // in this case invocation method will provide shardKey i.e stateMachineId, as the first argument,
+                                // which will determine to which master shard the query should go to.
+                                case READ_WRITE: {
+                                    Object[] args = invocation.getArguments();
+                                    shardKey = (String) args[0];
+                                    Character shardHash = CryptHashGenerator.getUniformCryptHash(shardKey);
+                                    shardId = context.getRWShardIdForShardKey(shardHash);
+                                    sessionFactory = context.getRWSessionFactory(shardId);
+                                }
+                            }
+                        }
+                        catch (Exception ex){
+                            logger.error("Current Transactional Method doesn't have annotation @SelectDataSource Method_name:{} {}"
+                                    , invocation.getMethod().getName(), ex.getMessage());
+                            return new Error("Something wrong with Method's annotations");
+                        }
+                    }
+                    case REDRIVER: {
+                        sessionFactory = context.getRedriverSessionFactory();
+                    }
                 }
             }
-
+            catch (Exception ex){
+                logger.error("Current Transactional Method doesn't have annotation @DataStorage Method_name:{} {}"
+                        , invocation.getMethod().getName(), ex.getMessage());
+                return new Error("Something wrong with Method's annotations");
+            }
             //set the  sessionFactory in Context, for further nested Transactions
             context.setSessionFactory(sessionFactory);
-
+            // open session
             session = context.getCurrentSessionFactory().openSession();
-            ManagedSessionContext.bind(session);
-            transaction = session.getTransaction();
-            transaction.begin();
         }
 
+        ManagedSessionContext.bind(session);
+        transaction = session.getTransaction();
+        transaction.begin();
         try {
 
             Object result = invocation.proceed();

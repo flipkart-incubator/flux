@@ -16,8 +16,10 @@ package com.flipkart.flux.rule;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.DataStorage;
 import com.flipkart.flux.persistence.STORAGE;
+import com.flipkart.flux.persistence.SelectDataSource;
 import org.junit.rules.ExternalResource;
 
 import javax.inject.Inject;
@@ -45,6 +47,7 @@ public class TestSMRule extends ExternalResource {
     @Override
     @Transactional
     @DataStorage(STORAGE.SHARDED)
+    @SelectDataSource(DataSourceType.READ_WRITE)
     protected void before() throws Throwable {
         String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
         String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";
