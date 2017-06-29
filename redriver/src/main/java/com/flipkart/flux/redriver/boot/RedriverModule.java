@@ -15,22 +15,26 @@ package com.flipkart.flux.redriver.boot;
 
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
 import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.impl.SessionFactoryContextImpl;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.flux.shard.ShardId;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import com.google.inject.AbstractModule;
 import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.matcher.Matchers;
+import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
-import javax.inject.Named;
 import javax.inject.Provider;
 import javax.transaction.Transactional;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -46,7 +50,7 @@ public class RedriverModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        Provider<SessionFactoryContext> provider = getProvider(Key.get(SessionFactoryContext.class, Names.named("fluxSessionFactoriesContext")));
+        Provider<SessionFactoryContext> provider = getProvider(Key.get(SessionFactoryContext.class, Names.named("redriverSessionFactoriesContext")));
         bindInterceptor(Matchers.inPackage(MessageDao.class.getPackage()), Matchers.annotatedWith(Transactional.class), new TransactionInterceptor(provider));
     }
 
@@ -78,12 +82,24 @@ public class RedriverModule extends AbstractModule {
      */
     @Provides
     @Singleton
-    @Named("redriverSessionFactory")
+    @Named("reDriverSessionFactory")
     public SessionFactory getSessionFactoryProvider(@Named("redriverHibernateConfiguration") Configuration configuration) {
         return configuration.buildSessionFactory();
     }
 
     private void addAnnotatedClassesAndTypes(Configuration configuration) {
         configuration.addAnnotatedClass(ScheduledMessage.class);
+    }
+
+    @Provides
+    @Singleton
+    @Named("redriverSessionFactoriesContext")
+    public SessionFactoryContext getSessionFactoryProvider(@Named("reDriverSessionFactory") SessionFactory redriverSessionFactory) {
+        Map fluxRWSessionFactoriesMap = new HashMap<ShardId, SessionFactory>();
+        Map fluxROSessionFactoriesMap = new HashMap<ShardId, SessionFactory>();
+        Map fluxRWShardKeyToShardMapping = new HashMap<Character, com.flipkart.flux.shard.ShardId>();
+        Map fluxROShardKeyToShardMapping = new HashMap<Character, com.flipkart.flux.shard.ShardId>();
+        return new SessionFactoryContextImpl(fluxRWSessionFactoriesMap, fluxROSessionFactoriesMap,
+                fluxRWShardKeyToShardMapping, fluxROShardKeyToShardMapping, redriverSessionFactory);
     }
 }

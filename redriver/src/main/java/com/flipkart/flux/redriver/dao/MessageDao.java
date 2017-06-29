@@ -38,7 +38,7 @@ public class MessageDao {
     private SessionFactoryContext sessionFactoryContext;
 
     @Inject
-    public MessageDao(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
+    public MessageDao(@Named("redriverSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
         this.sessionFactoryContext = sessionFactoryContext;
     }
 
@@ -50,6 +50,7 @@ public class MessageDao {
 
     /**
      * Retrieves rows offset to offset+rowCount from ScheduledMessages table ordered by scheduledTime ascending.
+     *
      * @param offset
      * @param rowCount
      */
@@ -66,18 +67,20 @@ public class MessageDao {
 
     /**
      * Deletes the corresponding {@link ScheduledMessage}s from ScheduledMessages table in one shot.
+     *
      * @param messageIdsToDelete List of {@link ScheduledMessage} Ids
      */
     @Transactional
     @DataStorage(STORAGE.REDRIVER)
     public void deleteInBatch(List<Long> messageIdsToDelete) {
         final Query deleteQuery = currentSession().createQuery("delete ScheduledMessage s where s.taskId in :msgList ");
-        deleteQuery.setParameterList("msgList",messageIdsToDelete);
+        deleteQuery.setParameterList("msgList", messageIdsToDelete);
         deleteQuery.executeUpdate();
     }
 
     /**
      * Provides the session which is bound to current thread.
+     *
      * @return Session
      */
     private Session currentSession() {

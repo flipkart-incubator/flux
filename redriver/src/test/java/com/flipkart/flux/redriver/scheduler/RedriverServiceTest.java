@@ -58,13 +58,14 @@ public class RedriverServiceTest {
     public void testRedriveMessage_shouldRedriveWhenOldMessageFound() throws Exception {
         long now = System.currentTimeMillis();
         when(messageManagerService.retrieveOldest(0, batchSize)).
-                thenReturn(Arrays.asList(new ScheduledMessage(1l, now - 2), new ScheduledMessage(2l, now + 10000))).
-                thenReturn(Arrays.asList(new ScheduledMessage(2l, now + 10000)));
-        
+                thenReturn(Arrays.asList(new ScheduledMessage(1l, "sample-state-machine-uuid", now - 2),
+                        new ScheduledMessage(2l, "sample-state-machine-uuid", now + 10000))).
+                thenReturn(Arrays.asList(new ScheduledMessage(2l, "sample-state-machine-uuid", now + 10000)));
+
         redriverService.start();
 
         Thread.sleep(300);
-        verify(redriverRegistry).redriveTask(1l);
+        verify(redriverRegistry).redriveTask("sample-state-machine-uuid", 1l);
         Thread.sleep(500);
         verifyNoMoreInteractions(redriverRegistry);
     }
@@ -73,7 +74,8 @@ public class RedriverServiceTest {
     public void testNoRedriveMessages_shouldNotRedriveMessagesWithScheduledTimeOfFuture() throws Exception {
         long now = System.currentTimeMillis();
         when(messageManagerService.retrieveOldest(0, batchSize)).
-                thenReturn(Arrays.asList(new ScheduledMessage(1l, now + 9000), new ScheduledMessage(2l, now + 10000)));
+                thenReturn(Arrays.asList(new ScheduledMessage(1l, "sample-state-machine-uuid", now + 9000),
+                        new ScheduledMessage(2l, "sample-state-machine-uuid", now + 10000)));
 
         redriverService.start();
 
@@ -84,13 +86,13 @@ public class RedriverServiceTest {
     @Test
     public void testStartStopCycle() throws Exception {
         when(messageManagerService.retrieveOldest(0, batchSize)).
-                thenReturn(Arrays.asList(new ScheduledMessage(3l, 1l))).
-                thenReturn(Arrays.asList(new ScheduledMessage(4l, 2l)));
+                thenReturn(Arrays.asList(new ScheduledMessage(3l, "sample-state-machine-uuid", 1l))).
+                thenReturn(Arrays.asList(new ScheduledMessage(4l, "sample-state-machine-uuid", 2l)));
 
         redriverService.start();
         Thread.sleep(100);
         Assert.assertTrue(redriverService.isRunning());
-        verify(redriverRegistry).redriveTask(3l);
+        verify(redriverRegistry).redriveTask("sample-state-machine-uuid", 3l);
 
         redriverService.stop();
         Thread.sleep(600);
@@ -100,7 +102,7 @@ public class RedriverServiceTest {
         redriverService.start();
         Thread.sleep(100);
 
-        verify(redriverRegistry).redriveTask(4l);
+        verify(redriverRegistry).redriveTask("sample-state-machine-uuid", 4l);
         verifyNoMoreInteractions(redriverRegistry);
     }
 }
