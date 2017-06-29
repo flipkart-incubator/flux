@@ -82,7 +82,7 @@ public class ParallelScatterGatherQueryHelper {
                         latch.countDown();
                     }
                 }
-            }).run();
+                }).run();
         });
         try {
             // wait till all the results are returned from all shards

@@ -33,7 +33,7 @@ public class SessionFactoryContextImpl implements SessionFactoryContext {
     private final ImmutableMap<ShardId, SessionFactory> ROSessionFactoryImmutableMap;
     private final ImmutableMap<Character, ShardId> shardKeyToRWShardIdImmutableMap;
     private final ImmutableMap<Character, ShardId> shardKeyToROShardIdImmutableMap;
-    private final SessionFactory redriverSessionFactory ;
+    private final SessionFactory redriverSessionFactory;
 
 
     private final ThreadLocal<SessionFactory> currentSessionFactory = new ThreadLocal<>();
@@ -60,7 +60,7 @@ public class SessionFactoryContextImpl implements SessionFactoryContext {
     }
 
     @Override
-    public SessionFactory getRedriverSessionFactory(){
+    public SessionFactory getRedriverSessionFactory() {
         return redriverSessionFactory;
     }
 

@@ -13,10 +13,10 @@
 
 package com.flipkart.flux.interceptor;
 
-import com.flipkart.flux.persistence.DataSourceType;
-import com.flipkart.flux.persistence.SelectDataSource;
-import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.*;
+import com.flipkart.flux.shard.ShardId;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import org.hibernate.SessionFactory;
 import org.junit.Assert;
 
@@ -31,19 +31,37 @@ public class InterceptedClass {
     private SessionFactoryContext context;
 
     @Inject
-    private SessionFactory readOnlySessionFactory;
+    @Named("shardedReadWriteSessionFactory")
+    private SessionFactory shardedReadWriteSessionFactory;
+
+    @Inject
+    @Named("shardedReadOnlySessionFactory")
+    private SessionFactory shardedReadOnlySessionFactory;
+
+    @Inject
+    @Named("redriverSessionFactory")
+    private SessionFactory redriverSessionFactory;
 
     @Transactional
+    @DataStorage(STORAGE.SHARDED)
+    @SelectDataSource(DataSourceType.READ_WRITE)
+    public void verifySessionFactoryAndSessionAndTransactionForShardedMaster(String shardKey){
+        Assert.assertSame(context.getCurrentSessionFactory(), shardedReadWriteSessionFactory);
+    }
+
+    @Transactional
+    @DataStorage(STORAGE.SHARDED)
     @SelectDataSource(DataSourceType.READ_ONLY)
-    public void readSome() {
-        /* assert that the current session factory in context is equals to readOnlySessionFactory. */
-        Assert.assertSame(context.getSessionFactory(), readOnlySessionFactory);
+    public void verifySessionFactoryAndSessionAndTransactionForShardedSlave(ShardId shardId){
+        Assert.assertSame(context.getCurrentSessionFactory(), shardedReadOnlySessionFactory);
     }
 
     @Transactional
-    public void writeSome() {
-        /* assert that the current session factory in context is not null and not equals to readOnlySessionFactory. */
-        Assert.assertNotNull(context.getSessionFactory());
-        Assert.assertNotSame(context.getSessionFactory(), readOnlySessionFactory);
+    @DataStorage(STORAGE.REDRIVER)
+    public void verifySessionFactoryAndSessionAndTransactionForRedriverHost(){
+        Assert.assertSame(context.getCurrentSessionFactory(), redriverSessionFactory);
     }
+
+    // Add more tests which gives wrong Annotations which should throw Exceptions
+
 }

@@ -17,7 +17,9 @@ package com.flipkart.flux.interceptor;
  * Created by gaurav.ashok on 24/11/16.
  */
 
-import com.flipkart.flux.persistence.DataSourceType;
+import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.impl.SessionFactoryContextImpl;
+import com.flipkart.flux.shard.ShardId;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.hibernate.Session;
@@ -36,34 +38,62 @@ public class TransactionInterceptorTest {
     @Test
     public void testTransactionInterceptorWithSessionFactoryContext() {
 
+        final Map RWSessionFactoryMap = new HashMap<ShardId, SessionFactory>();
+        final Map ROSessionFactoryMap = new HashMap<ShardId, SessionFactory>();
+        final Map shardKeyToRWShardIdMap = new HashMap<Character, ShardId>();
+        final Map shardKeyToROShardIdMap = new HashMap<Character, ShardId>();
+        final SessionFactory redriverSessionFactory;
+
+
         /* create a dummy SessionFactoryContext */
-        SessionFactory readWriteSf = mock(SessionFactory.class);
-        SessionFactory readOnlySf = mock(SessionFactory.class);
+        ShardId writeOnlyShardId = new ShardId(1);
+        ShardId readOnlyShardId = new ShardId(2);
+        SessionFactory masterWriteSF = mock(SessionFactory.class);
+        SessionFactory slaveReadSF = mock(SessionFactory.class);
+        redriverSessionFactory = mock(SessionFactory.class);
+        RWSessionFactoryMap.put(writeOnlyShardId, masterWriteSF);
+        ROSessionFactoryMap.put(readOnlyShardId, slaveReadSF);
 
-        prepareInteractions(readWriteSf);
-        prepareInteractions(readOnlySf);
+        for (Integer i = 0; i < 16; i++) {
+            shardKeyToRWShardIdMap.put(Integer.toHexString(i).charAt(0), writeOnlyShardId);
+            shardKeyToROShardIdMap.put(Integer.toHexString(i).charAt(0), readOnlyShardId);
+        }
 
-        Map<DataSourceType, SessionFactory> map = new HashMap<>();
-        map.put(DataSourceType.READ_WRITE, readWriteSf);
-        map.put(DataSourceType.READ_ONLY, readOnlySf);
+        SessionFactoryContext context = new SessionFactoryContextImpl(RWSessionFactoryMap,
+                ROSessionFactoryMap,
+                shardKeyToRWShardIdMap,
+                shardKeyToROShardIdMap,
+                redriverSessionFactory);
 
-        SessionFactoryContext context = new SessionFactoryContextImpl(map, DataSourceType.READ_WRITE);
+        Session mockedShardedReadWriteSession = mock(Session.class);
+        Transaction mockedShardedReadWriteTransaction = mock(Transaction.class);
+        when(masterWriteSF.openSession()).thenReturn(mockedShardedReadWriteSession);
+        when(masterWriteSF.getCurrentSession()).thenReturn(null, mockedShardedReadWriteSession);
+        when(mockedShardedReadWriteSession.getTransaction()).thenReturn(mockedShardedReadWriteTransaction);
 
-        Injector injector = Guice.createInjector(new TestModule(context, readOnlySf));
+
+        Session mockedShardedReadOnlySession = mock(Session.class);
+        Transaction mockedShardedReadOnlyTransaction = mock(Transaction.class);
+        when(slaveReadSF.openSession()).thenReturn(mockedShardedReadOnlySession);
+        when(slaveReadSF.getCurrentSession()).thenReturn(null, mockedShardedReadOnlySession);
+        when(mockedShardedReadOnlySession.getTransaction()).thenReturn(mockedShardedReadOnlyTransaction);
+
+        Session mockedRedriverSession = mock(Session.class);
+        Transaction mockedRedriverTransaction = mock(Transaction.class);
+        when(redriverSessionFactory.openSession()).thenReturn(mockedRedriverSession);
+        when(redriverSessionFactory.getCurrentSession()).thenReturn(null, mockedRedriverSession);
+        when(mockedRedriverSession.getTransaction()).thenReturn(mockedRedriverTransaction);
+
+
+        Injector injector = Guice.createInjector(new TestModule(context, masterWriteSF, slaveReadSF,
+                redriverSessionFactory));
         InterceptedClass obj = injector.getInstance(InterceptedClass.class);
 
-        obj.readSome();
-        obj.writeSome();
-        obj.readSome();
-        obj.writeSome();
+        obj.verifySessionFactoryAndSessionAndTransactionForShardedMaster("sample-shard-key");
+        obj.verifySessionFactoryAndSessionAndTransactionForShardedSlave(readOnlyShardId);
+        obj.verifySessionFactoryAndSessionAndTransactionForRedriverHost();
+
+        // add more tests , check InterceptedClass
     }
 
-    private void prepareInteractions(SessionFactory sf) {
-        Session mockedSession1 = mock(Session.class);
-        Transaction mockedTransaction1 = mock(Transaction.class);
-
-        when(sf.openSession()).thenReturn(mockedSession1);
-        when(sf.getCurrentSession()).thenReturn(null, mockedSession1);
-        when(mockedSession1.getTransaction()).thenReturn(mockedTransaction1);
-    }
 }

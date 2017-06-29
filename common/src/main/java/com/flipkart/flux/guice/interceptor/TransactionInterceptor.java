@@ -93,6 +93,7 @@ public class TransactionInterceptor implements MethodInterceptor {
                                     Object[] args = invocation.getArguments();
                                     shardId = (ShardId) args[0];
                                     sessionFactory = context.getROSessionFactory(shardId);
+                                    break;
                                 }
                                 // in this case invocation method will provide shardKey i.e stateMachineId, as the first argument,
                                 // which will determine to which master shard the query should go to.
@@ -102,6 +103,7 @@ public class TransactionInterceptor implements MethodInterceptor {
                                     Character shardHash = CryptHashGenerator.getUniformCryptHash(shardKey);
                                     shardId = context.getRWShardIdForShardKey(shardHash);
                                     sessionFactory = context.getRWSessionFactory(shardId);
+                                    break;
                                 }
                             }
                         }
@@ -110,9 +112,11 @@ public class TransactionInterceptor implements MethodInterceptor {
                                     , invocation.getMethod().getName(), ex.getMessage());
                             return new Error("Something wrong with Method's annotations");
                         }
+                        break;
                     }
                     case REDRIVER: {
                         sessionFactory = context.getRedriverSessionFactory();
+                        break;
                     }
                 }
             }

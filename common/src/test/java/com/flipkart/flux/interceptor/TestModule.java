@@ -14,8 +14,10 @@
 package com.flipkart.flux.interceptor;
 
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
+import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.google.inject.AbstractModule;
 import com.google.inject.matcher.Matchers;
+import com.google.inject.name.Names;
 import org.hibernate.SessionFactory;
 
 import javax.transaction.Transactional;
@@ -26,17 +28,30 @@ import javax.transaction.Transactional;
 public class TestModule extends AbstractModule {
 
     private final SessionFactoryContext context;
-    private final SessionFactory readOnlySessionFactory;
+    private final SessionFactory shardedReadWriteSessionFactory;
+    private final SessionFactory shardedReadOnlySessionFactory;
+    private final SessionFactory redriverSessionFactory;
 
-    public TestModule(SessionFactoryContext context, SessionFactory readOnlySessionFactory) {
+
+    public TestModule(SessionFactoryContext context, SessionFactory shardedReadWriteSessionFactory,
+                      SessionFactory shardedReadOnlySessionFactory, SessionFactory redriverSessionFactory) {
         this.context = context;
-        this.readOnlySessionFactory = readOnlySessionFactory;
+        this.shardedReadWriteSessionFactory = shardedReadWriteSessionFactory;
+        this.shardedReadOnlySessionFactory = shardedReadOnlySessionFactory;
+        this.redriverSessionFactory = redriverSessionFactory;
     }
 
     @Override
     protected void configure() {
         bind(SessionFactoryContext.class).toInstance(context);
-        bind(SessionFactory.class).toInstance(readOnlySessionFactory);
+
+        bind(SessionFactory.class).annotatedWith(Names.named("shardedReadWriteSessionFactory")).
+                toInstance(shardedReadWriteSessionFactory);
+        bind(SessionFactory.class).annotatedWith(Names.named("shardedReadOnlySessionFactory")).
+                toInstance(shardedReadOnlySessionFactory);
+        bind(SessionFactory.class).annotatedWith(Names.named("redriverSessionFactory")).
+                toInstance(redriverSessionFactory);
+
         bind(InterceptedClass.class);
         bindInterceptor(Matchers.subclassesOf(InterceptedClass.class), Matchers.annotatedWith(Transactional.class), new TransactionInterceptor(() -> context));
     }
