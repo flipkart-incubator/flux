@@ -177,12 +177,6 @@ public class AkkaTask extends UntypedActor {
                                 cause = cause.getCause();
                             }
                             if (isFluxRetriableException) {
-                                metricsClient.incCounter(new StringBuilder().
-                                        append("stateMachine.").
-                                        append(taskAndEvent.getStateMachineName()).
-                                        append(".task.").
-                                        append(taskAndEvent.getTaskName()).
-                                        append(".queueSize").toString());
                                 // mark the task outcome as execution failure, and the task is retriable
                                 updateExecutionStatus(taskAndEvent, Status.errored, cause.getClass().getName() + " : " + cause.getMessage(), false);
 
@@ -226,7 +220,12 @@ public class AkkaTask extends UntypedActor {
                                 getSelf(),
                                 message,
                                 getContext().system().dispatcher(), null);
-
+                        metricsClient.incCounter(new StringBuilder().
+                                append("stateMachine.").
+                                append(fe.getExecutionContextMeta().getStateMachineName()).
+                                append(".task.").
+                                append(fe.getExecutionContextMeta().getTaskName()).
+                                append(".queueSize").toString());
                     } else {
                         logger.warning("Aborting retries for Task Id : {}. Retry count exceeded : {}", fe.getExecutionContextMeta().getTaskId(),
                                 fe.getExecutionContextMeta().getAttemptedNoOfRetries());

@@ -20,10 +20,8 @@ import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.dao.TestWorkflow;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.State;
-import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.dao.iface.StatesDAO;
+import com.flipkart.flux.domain.*;
 import com.flipkart.flux.eventscheduler.dao.EventSchedulerDao;
 import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
 import com.flipkart.flux.guice.module.AkkaModule;
@@ -62,6 +60,9 @@ public class StateMachineResourceTest {
 
     @Inject
     private StateMachinesDAO stateMachinesDAO;
+
+    @Inject
+    private StatesDAO statesDAO;
 
     @Inject
     private EventsDAO eventsDAO;
@@ -297,5 +298,43 @@ public class StateMachineResourceTest {
         assertThat(stringHttpResponse.getBody()).isEqualTo("[[" + secondSM.getId() + "," +
                 secondSM.getStates().stream().filter(e -> Status.errored.equals(e.getStatus())).findFirst().get().getId() + "," +
                 "\"errored\"]]");
+    }
+
+    @Test
+    public void testCancelWorkflow() throws Exception {
+        final StateMachine sm = stateMachinePersistenceService.createStateMachine(objectMapper.readValue(this.getClass().getClassLoader().getResource("state_machine_definition.json"), StateMachineDefinition.class));
+        Long stateMachineId = sm.getId();
+        State state = sm.getStates().stream().findFirst().get();
+        state.setStatus(Status.running);
+        statesDAO.updateState(state);
+        Unirest.put(STATE_MACHINE_RESOURCE_URL+SLASH+stateMachineId+"/cancel").asString();
+
+        Thread.sleep(200);
+        StateMachine cancelledSM = stateMachinesDAO.findById(stateMachineId);
+        assertThat(cancelledSM.getStatus()).isEqualTo(StateMachineStatus.cancelled);
+
+        int cancelledStateCount = 0;
+        for(State st : cancelledSM.getStates()) {
+            if(st.getStatus() == Status.cancelled)
+                cancelledStateCount++;
+        }
+
+        // 3 were in initialized state and one in running state before cancel call, after call, all 3 initialized states should be marked as cancelled
+        assertThat(cancelledStateCount).isEqualTo(3);
+    }
+
+    @Test
+    public void testCancelWorkflow_withCorrelationId() throws Exception {
+        final StateMachine sm = stateMachinePersistenceService.createStateMachine(objectMapper.readValue(this.getClass().getClassLoader().getResource("state_machine_definition.json"), StateMachineDefinition.class));
+        String stateMachineId = sm.getCorrelationId();
+        Unirest.put(STATE_MACHINE_RESOURCE_URL+SLASH+stateMachineId+"/cancel?searchField=correlationId").asString();
+
+        Thread.sleep(200);
+        StateMachine cancelledSM = stateMachinesDAO.findByCorrelationId(stateMachineId);
+        assertThat(cancelledSM.getStatus()).isEqualTo(StateMachineStatus.cancelled);
+
+        cancelledSM.getStates().forEach(st -> {
+            assertThat(st.getStatus()).isEqualTo(Status.cancelled);
+        });
     }
 }
