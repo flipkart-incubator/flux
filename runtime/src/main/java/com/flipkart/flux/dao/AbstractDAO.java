@@ -35,7 +35,7 @@ public abstract class AbstractDAO<T> {
      * @return Session
      */
     public Session currentSession() {
-        return sessionFactoryContext.getCurrentSessionFactory().getCurrentSession();
+        return sessionFactoryContext.getThreadLocalSession();
     }
 
     /**

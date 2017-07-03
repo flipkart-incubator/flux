@@ -85,8 +85,8 @@ public class TransactionInterceptorTest {
         when(mockedRedriverSession.getTransaction()).thenReturn(mockedRedriverTransaction);
 
 
-        Injector injector = Guice.createInjector(new TestModule(context, masterWriteSF, slaveReadSF,
-                redriverSessionFactory));
+        Injector injector = Guice.createInjector(new TestModule(context, mockedShardedReadWriteSession, mockedShardedReadOnlySession,
+                mockedRedriverSession));
         InterceptedClass obj = injector.getInstance(InterceptedClass.class);
 
         obj.verifySessionFactoryAndSessionAndTransactionForShardedMaster("sample-shard-key");

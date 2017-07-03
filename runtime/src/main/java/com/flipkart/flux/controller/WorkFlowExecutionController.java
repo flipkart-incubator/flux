@@ -131,6 +131,7 @@ public class WorkFlowExecutionController {
             stateMachine = retrieveStateMachineByCorrelationId(correlationId);
             stateMachineInstanceId = (stateMachine == null) ? null : stateMachine.getId();
         }
+
         if (stateMachine == null)
             throw new UnknownStateMachine("State machine with id: " + stateMachineInstanceId + " or correlation id " + correlationId + " not found");
         //update event's data and status

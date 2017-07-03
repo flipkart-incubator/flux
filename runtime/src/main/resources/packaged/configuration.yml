@@ -1,6 +1,5 @@
 flux.Shard.Config:
-  master.slave.pair.list: { "masterSlavePairList" : [ { "master":{ "shardId":1, "ip": "127.0.0.1", "shardKeys": ["0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f"] },"slave":{ "shardId":2, "ip":"127.0.0.1", "shardKeys": ["0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f"] }}  ]  }
-
+  master.slave.pair.list: "{ \"masterSlavePairList\" : [ { \"master\":{ \"shardId\":1, \"ip\": \"127.0.0.1\", \"shardKeys\": [\"0\",\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\",\"a\",\"b\",\"c\",\"d\",\"e\",\"f\"] },\"slave\":{ \"shardId\":2, \"ip\":\"127.0.0.1\", \"shardKeys\": [\"0\",\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\",\"a\",\"b\",\"c\",\"d\",\"e\",\"f\"] }}  ]  }"
 flux.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"

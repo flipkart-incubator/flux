@@ -132,14 +132,15 @@ public class StateMachineResource {
 
         StateMachine stateMachine = null;
 
+
+        final String stateMachineInstanceId;
+        if (stateMachineDefinition.getCorrelationId() != null && !stateMachineDefinition.getCorrelationId().isEmpty()) {
+            stateMachineInstanceId = stateMachineDefinition.getCorrelationId();
+        } else {
+            stateMachineInstanceId = UUID.randomUUID().toString();
+        }
+
         try {
-            final String stateMachineInstanceId;
-            if(stateMachineDefinition.getCorrelationId() != null && !stateMachineDefinition.getCorrelationId().isEmpty()){
-                stateMachineInstanceId = stateMachineDefinition.getCorrelationId();
-            }
-            else{
-                stateMachineInstanceId = UUID.randomUUID().toString();
-            };
             stateMachine = createAndInitStateMachine(stateMachineInstanceId, stateMachineDefinition);
             metricsClient.markMeter(new StringBuilder().
                     append("stateMachine.").
@@ -148,6 +149,9 @@ public class StateMachineResource {
         } catch (ConstraintViolationException ex) {
             //in case of Duplicate correlation key, return http code 409 conflict
             return Response.status(Response.Status.CONFLICT.getStatusCode()).entity(ex.getCause() != null ? ex.getCause().getMessage() : null).build();
+        } catch (Exception ex) {
+            logger.error("Failed During Creating or Initiating StateMachine with id {}", stateMachineInstanceId);
+            ex.printStackTrace();
         }
 
         return Response.status(Response.Status.CREATED.getStatusCode()).entity(stateMachine.getId()).build();
@@ -156,9 +160,7 @@ public class StateMachineResource {
     /**
      * Creates and starts the state machine. Keeping this method as "protected" so that Transactional interceptor can intercept the call.
      */
-    @Transactional
-    @DataStorage(STORAGE.SHARDED)
-    @SelectDataSource(DataSourceType.READ_WRITE)
+
     protected StateMachine createAndInitStateMachine(String stateMachineInstanceId, StateMachineDefinition stateMachineDefinition) throws Exception {
 
         // 1. Convert to StateMachine (domain object) and save in DB
@@ -319,7 +321,7 @@ public class StateMachineResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/redrivetask/{machineId}/taskid/{taskId}")
     @Timed
-    public Response redriveTask(@PathParam("machineId") String machineId ,@PathParam("taskId") Long taskId) throws Exception {
+    public Response redriveTask(@PathParam("machineId") String machineId, @PathParam("taskId") Long taskId) throws Exception {
 
         this.workFlowExecutionController.redriveTask(machineId, taskId);
 

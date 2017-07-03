@@ -23,7 +23,6 @@ import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -55,9 +54,9 @@ public class StateMachinePersistenceServiceTest {
         StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(stateMachinesDAO, auditDAO, eventPersistenceService, maxTaskRetryCount);
         StateDefinition stateDefinition = new StateDefinition(1L, "state1", "desc", null, "task1", null, 13L, 1000L, Collections.emptyList(), null);
         StateMachineDefinition stateMachineDefinition = new StateMachineDefinition("desc", "state_machine_1", 1L, Collections.singleton(stateDefinition), null, null);
-        stateMachinePersistenceService.createStateMachine(stateMachineDefinition);
-        State state = new State(1L, "state1", "desc", null, "task1", null, Collections.emptyList(), 10L, 1000L, null, Status.initialized, null, 0L);
-        verify(stateMachinesDAO).create(Matchers.anyString(), new StateMachine("1", 1L, "state_machine_1", "desc", Collections.singleton(state), null));
+        stateMachinePersistenceService.createStateMachine("sample-state-machine-id", stateMachineDefinition);
+        State state = new State(1L, "state1", "desc", null, "task1", null, Collections.emptyList(), 10L, 1000L, null, Status.initialized, null, 0L, "sample-state-machine-id" );
+        verify(stateMachinesDAO).create("sample-state-machine-id", new StateMachine("sample-state-machine-id", 1L, "state_machine_1", "desc", Collections.singleton(state), null));
     }
 
     @Test
@@ -66,8 +65,8 @@ public class StateMachinePersistenceServiceTest {
         StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(stateMachinesDAO, auditDAO, eventPersistenceService, maxTaskRetryCount);
         StateDefinition stateDefinition = new StateDefinition(1L, "state1", "desc", null, "task1", null, 3L, 1000L, Collections.emptyList(), null);
         StateMachineDefinition stateMachineDefinition = new StateMachineDefinition("desc", "state_machine_1", 1L, Collections.singleton(stateDefinition), null, null);
-        stateMachinePersistenceService.createStateMachine(stateMachineDefinition);
-        State state = new State(1L, "state1", "desc", null, "task1", null, Collections.emptyList(), 3L, 1000L, null, Status.initialized, null, 0L);
-        verify(stateMachinesDAO).create(Matchers.anyString(), new StateMachine("1", 1L, "state_machine_1", "desc", Collections.singleton(state), null));
+        stateMachinePersistenceService.createStateMachine("sample-state-machine-id", stateMachineDefinition);
+        State state = new State(1L, "state1", "desc", null, "task1", null, Collections.emptyList(), 3L, 1000L, null, Status.initialized, null, 0L, "sample-state-machine-id");
+        verify(stateMachinesDAO).create("sample-state-machine-id", new StateMachine("sample-state-machine-id", 1L, "state_machine_1", "desc", Collections.singleton(state), null));
     }
 }

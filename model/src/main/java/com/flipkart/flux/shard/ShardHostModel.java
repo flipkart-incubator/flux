@@ -6,11 +6,11 @@ import java.util.List;
  * Created by amitkumar.o on 05/06/17.
  */
 public class ShardHostModel {
-    private int shardId;
+    private ShardId shardId;
     private String ip;
     private List<Character> shardKeys;
 
-    public ShardHostModel(int shardId, String ip, List<Character> shardKeys) {
+    public ShardHostModel(ShardId shardId, String ip, List<Character> shardKeys) {
         this.shardId = shardId;
         this.ip = ip;
         this.shardKeys = shardKeys;
@@ -19,11 +19,11 @@ public class ShardHostModel {
     public ShardHostModel() {
     }
 
-    public int getShardId() {
+    public ShardId getShardId() {
         return shardId;
     }
 
-    public void setShardId(int shardId) {
+    public void setShardId(ShardId shardId) {
         this.shardId = shardId;
     }
 
@@ -58,7 +58,7 @@ public class ShardHostModel {
 
     @Override
     public int hashCode() {
-        int result = getShardId();
+        int result = getShardId().hashCode();
         result = 31 * result + getIp().hashCode();
         result = 31 * result + getShardKeys().hashCode();
         return result;

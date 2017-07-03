@@ -47,6 +47,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static com.flipkart.flux.Constants.STATE_MACHINE_ID;
+import static com.flipkart.flux.Constants.TASK_ID;
 
 /**
  * <code>AkkaTask</code> is an Akka {@link UntypedActor} that executes {@link Task} instances concurrently. Tasks are executed using a {@link TaskExecutor} where
@@ -93,6 +95,7 @@ public class AkkaTask extends UntypedActor {
 
     /**
      * The Akka Actor callback method for processing the Task
+     *
      * @see akka.actor.UntypedActor#onReceive(java.lang.Object)
      */
     public void onReceive(Object message) throws Exception {
@@ -124,7 +127,7 @@ public class AkkaTask extends UntypedActor {
                     } catch (RuntimeCommunicationException e) {
                         logger.error("Error occurred while updating task: {} status to running. Error: {}", taskAndEvent.getTaskId(), e.getMessage());
                         throw new FluxError(FluxError.ErrorType.retriable, e.getMessage(), e, false,
-                                new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName() ,taskAndEvent.getTaskName(), taskAndEvent.getTaskId(),
+                                new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(),
                                         taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
                     }
                     // Execute any pre-exec HookS
@@ -143,20 +146,20 @@ public class AkkaTask extends UntypedActor {
                             fluxRuntimeConnector.submitEventAndUpdateStatus(
                                     new EventData(outputEvent.getName(), outputEvent.getType(), outputEvent.getEventData(), outputEvent.getEventSource()),
                                     outputEvent.getStateMachineInstanceId(),
-                                    new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName() ,taskAndEvent.getTaskId(), Status.completed, taskAndEvent.getRetryCount(),
+                                    new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(), Status.completed, taskAndEvent.getRetryCount(),
                                             taskAndEvent.getCurrentRetryCount(), null, true));
                         } else {
                             // update the Flux runtime with status of the Task as completed
                             updateExecutionStatus(taskAndEvent, Status.completed, null, true);
                         }
-                        logger.info("State machine: {} task: {} execution time: {}ms event/status submission time: {}ms", taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), (endTime-startTime), (System.currentTimeMillis()-endTime));
+                        logger.info("State machine: {} task: {} execution time: {}ms event/status submission time: {}ms", taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), (endTime - startTime), (System.currentTimeMillis() - endTime));
 
                     } catch (HystrixRuntimeException hre) {
                         FailureType ft = hre.getFailureType();
                         // we signal a timeout for any of Timeout, ThreadPool Rejection or Short-Circuit - all of these may go through with time and retry
                         if (ft.equals(FailureType.REJECTED_THREAD_EXECUTION) || ft.equals(FailureType.SHORTCIRCUIT) || ft.equals(FailureType.TIMEOUT)) {
                             // update flux runtime with task outcome as timeout
-                            updateExecutionStatus(taskAndEvent, Status.errored, ft.toString().toLowerCase() , false);
+                            updateExecutionStatus(taskAndEvent, Status.errored, ft.toString().toLowerCase(), false);
 
                             throw new FluxError(FluxError.ErrorType.timeout, ft.toString().toLowerCase(),
                                     null, false,
@@ -227,7 +230,7 @@ public class AkkaTask extends UntypedActor {
                         logger.warning("Aborting retries for Task Id : {}. Retry count exceeded : {}", fe.getExecutionContextMeta().getTaskId(),
                                 fe.getExecutionContextMeta().getAttemptedNoOfRetries());
                         // update the Flux runtime to mark the Task as sidelined
-                        fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(fe.getExecutionContextMeta().getStateMachineId(), fe.getExecutionContextMeta().getStateMachineName() ,fe.getExecutionContextMeta().getTaskName(),
+                        fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(fe.getExecutionContextMeta().getStateMachineId(), fe.getExecutionContextMeta().getStateMachineName(), fe.getExecutionContextMeta().getTaskName(),
                                 fe.getExecutionContextMeta().getTaskId(), Status.sidelined, fe.getExecutionContextMeta().getMaxRetries(),
                                 fe.getExecutionContextMeta().getAttemptedNoOfRetries(), fe.getMessage(), true));
                     }
@@ -237,7 +240,7 @@ public class AkkaTask extends UntypedActor {
             // do nothing as we don't process or interpret Hook execution responses
         } else if (message instanceof Terminated) {
             /*
-			 * add a fresh local AkkaHook instance to the router. This happens only for local JVM routers i.e when Flux runtime 
+             * add a fresh local AkkaHook instance to the router. This happens only for local JVM routers i.e when Flux runtime
 			 * in local and not distributed/clustered
 			 */
             hookRouter = hookRouter.removeRoutee(((Terminated) message).actor());
@@ -275,7 +278,7 @@ public class AkkaTask extends UntypedActor {
      */
     private void updateExecutionStatus(TaskAndEvents taskAndEvent, Status status, String errorMsg, boolean deleteFromRedriver) {
         fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(
-                taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName() ,taskAndEvent.getTaskName(), taskAndEvent.getTaskId(), status, taskAndEvent.getRetryCount(),
+                taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(), status, taskAndEvent.getRetryCount(),
                 taskAndEvent.getCurrentRetryCount(), errorMsg, deleteFromRedriver));
     }
 }

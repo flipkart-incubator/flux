@@ -17,7 +17,10 @@ import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.flux.shard.MasterSlavePairList;
+import com.flipkart.flux.shard.ShardId;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -37,6 +40,7 @@ public class DbClearRule extends ExternalResource{
 
     private final SessionFactoryContext fluxSessionFactoryContext;
     private final SessionFactoryContext redriverSessionFactoryContext;
+    private final MasterSlavePairList masterSlavePairList ;
 
     /** List of entity tables which need to be cleared from flux db*/
     private static Class[] fluxTables = {StateMachine.class, State.class, AuditRecord.class, Event.class};
@@ -46,20 +50,31 @@ public class DbClearRule extends ExternalResource{
 
 
     @Inject
-    public DbClearRule(@Named("fluxSessionFactoryContext") SessionFactoryContext fluxSessionFactoryContext,
-                       @Named("redriverSessionFactoryContext") SessionFactoryContext redriverSessionFactoryContext) {
+    public DbClearRule(@Named("fluxSessionFactoriesContext") SessionFactoryContext fluxSessionFactoryContext,
+                       @Named("redriverSessionFactoriesContext") SessionFactoryContext redriverSessionFactoryContext,
+                       @Named("fluxMasterSlavePairList") MasterSlavePairList masterSlavePairList) {
         this.fluxSessionFactoryContext = fluxSessionFactoryContext;
         this.redriverSessionFactoryContext = redriverSessionFactoryContext;
+        this.masterSlavePairList = masterSlavePairList;
     }
 
     @Override
     protected void before() throws Throwable {
-        fluxSessionFactoryContext.useDefault();
-        clearDb(fluxTables,fluxSessionFactoryContext.getSessionFactory());
-        fluxSessionFactoryContext.clear();
+       explicitClearTables();
+    }
 
-        redriverSessionFactoryContext.useDefault();
-        clearDb(fluxRedriverTables,redriverSessionFactoryContext.getSessionFactory());
+    public void explicitClearTables(){
+        masterSlavePairList.getMasterSlavePairList().forEach(masterSlavePair -> {
+            ShardId shardId = masterSlavePair.getMaster().getShardId();
+            clearDb(fluxTables,fluxSessionFactoryContext.getRWSessionFactory(shardId));
+            fluxSessionFactoryContext.clear();
+            shardId = masterSlavePair.getSlave().getShardId();
+            clearDb(fluxTables,fluxSessionFactoryContext.getROSessionFactory(shardId));
+            fluxSessionFactoryContext.clear();
+
+        });
+
+        clearDb(fluxRedriverTables,redriverSessionFactoryContext.getRedriverSessionFactory());
         redriverSessionFactoryContext.clear();
     }
 

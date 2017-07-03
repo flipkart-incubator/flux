@@ -14,6 +14,7 @@
 package com.flipkart.flux.persistence;
 
 import com.flipkart.flux.shard.ShardId;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 /**
@@ -39,14 +40,14 @@ public interface SessionFactoryContext {
      * @return {@link SessionFactory}
      */
 
-    SessionFactory getCurrentSessionFactory();
+     Session getThreadLocalSession();
 
     /**
      * Set the sessionFactory for the current thread context to be used for the next transaction
      *
-     * @param sessionFactory
+     * @param session
      */
-    void setSessionFactory(SessionFactory sessionFactory);
+    void setSession(Session session);
 
     /**
      * Get Session Factory for the given shardId from RWSessionFactoryMap

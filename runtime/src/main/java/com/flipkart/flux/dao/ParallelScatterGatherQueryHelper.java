@@ -7,6 +7,7 @@ import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.shard.ShardHostModel;
 import com.flipkart.flux.shard.ShardId;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,7 @@ import java.util.function.Function;
  *
  * @author amitkumar.o
  */
+@Singleton
 public class ParallelScatterGatherQueryHelper {
     private Map<ShardId, ShardHostModel> fluxROShardIdToShardMap;
     private StatesDAO statesDAO;
@@ -29,8 +31,7 @@ public class ParallelScatterGatherQueryHelper {
     private static final Logger logger = LoggerFactory.getLogger(StatesDAOImpl.class);
 
     @Inject
-    public ParallelScatterGatherQueryHelper(@Named("fluxROShardIdToShardMapping") Map<ShardId, ShardHostModel> fluxROShardIdToShardMap,
-                                            StatesDAO statesDAO, StateMachinesDAO stateMachinesDAO) {
+    public ParallelScatterGatherQueryHelper(@Named("fluxROShardIdToShardMapping") Map fluxROShardIdToShardMap, StatesDAO statesDAO, StateMachinesDAO stateMachinesDAO) {
         this.fluxROShardIdToShardMap = fluxROShardIdToShardMap;
         this.statesDAO = statesDAO;
         this.stateMachinesDAO = stateMachinesDAO;

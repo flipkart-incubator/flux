@@ -16,15 +16,10 @@ package com.flipkart.flux.rule;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.persistence.DataSourceType;
-import com.flipkart.flux.persistence.DataStorage;
-import com.flipkart.flux.persistence.STORAGE;
-import com.flipkart.flux.persistence.SelectDataSource;
 import org.junit.rules.ExternalResource;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -45,15 +40,12 @@ public class TestSMRule extends ExternalResource {
     }
 
     @Override
-    @Transactional
-    @DataStorage(STORAGE.SHARDED)
-    @SelectDataSource(DataSourceType.READ_WRITE)
     protected void before() throws Throwable {
         String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
         String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";
         String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
-        State state1 = new State(2L, "state1", "desc1", onEntryHook, task, onExitHook, null, 3L, 60L, null, null, null, 0l);
-        State state2 = new State(2L, "state2", "desc2", onEntryHook, task, onExitHook, null, 3L, 60L, null, null, null, 0l);
+        State state1 = new State(2L, "state1", "desc1", onEntryHook, task, onExitHook, null, 3L, 60L, null, null, null, 0l, "1");
+        State state2 = new State(2L, "state2", "desc2", onEntryHook, task, onExitHook, null, 3L, 60L, null, null, null, 0l, "1");
         Set<State> states = new HashSet<>();
         states.add(state1);
         states.add(state2);

@@ -27,7 +27,6 @@ import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.guice.module.AkkaModule;
 import com.flipkart.flux.guice.module.ContainerModule;
-import com.flipkart.flux.guice.module.HibernateModule;
 import com.flipkart.flux.guice.module.ShardModule;
 import com.flipkart.flux.impl.boot.TaskModule;
 import com.flipkart.flux.initializer.OrderedComponentBooter;
@@ -49,13 +48,12 @@ import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
-
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(GuiceJunit4Runner.class)
-@Modules({DeploymentUnitTestModule.class,ShardModule.class,RuntimeTestModule.class,ContainerModule.class,AkkaModule.class,TaskModule.class,FluxClientInterceptorModule.class})
+@Modules({DeploymentUnitTestModule.class, ShardModule.class, RuntimeTestModule.class, ContainerModule.class, AkkaModule.class, TaskModule.class, FluxClientInterceptorModule.class})
 public class StateMachineResourceTest {
 
     @Inject
@@ -79,11 +77,13 @@ public class StateMachineResourceTest {
 
     public static final String STATE_MACHINE_RESOURCE_URL = "http://localhost:9998" + RuntimeConstants.API_CONTEXT_PATH + RuntimeConstants.STATE_MACHINE_RESOURCE_RELATIVE_PATH;
     private static final String SLASH = "/";
+    private static final String standardStateMachine = "standard-state-machine";
     private ObjectMapper objectMapper;
 
     @Before
     public void setUp() throws Exception {
         objectMapper = new ObjectMapper();
+        dbClearRule.explicitClearTables();
     }
 
     @AfterClass
@@ -98,7 +98,7 @@ public class StateMachineResourceTest {
     @Test
     public void testCreateStateMachine() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
-        final HttpResponse<String> response = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+        final HttpResponse<String> response = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
         assertThat(parallelScatterGatherQueryHelper.findByName("test_state_machine")).hasSize(1);
         Thread.sleep(1000);
@@ -108,7 +108,7 @@ public class StateMachineResourceTest {
     @Test
     public void testUnsideline() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
-        final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+        final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
         Event event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event0");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.pending);
 
@@ -146,22 +146,22 @@ public class StateMachineResourceTest {
     @Test
     public void testCreateStateMachine_shouldBombDueToDuplicateCorrelationId() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
-        final HttpResponse<String> response = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+        final HttpResponse<String> response = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
         assertThat(parallelScatterGatherQueryHelper.findByName("test_state_machine")).hasSize(1);
-        final HttpResponse<String> secondResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+        final HttpResponse<String> secondResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
         assertThat(secondResponse.getStatus()).isEqualTo(Response.Status.CONFLICT.getStatusCode());
     }
 
     @Test
     public void testPostEvent() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
-        final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+        final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
         Event event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event0");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.pending);
 
         String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
-        final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+smCreationResponse.getBody()+"/context/events").header("Content-Type","application/json").body(eventJson).asString();
+        final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events").header("Content-Type", "application/json").body(eventJson).asString();
         assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
         // give some time to execute
         Thread.sleep(2000);
@@ -172,7 +172,10 @@ public class StateMachineResourceTest {
         // event3 was waiting on event1, so event3 should also be triggered
         event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event3");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.triggered);
-
+        Thread.sleep(2000);
+        stateMachinesDAO.findById(smCreationResponse.getBody()).getStates().forEach(s -> {
+            System.out.println(s.toString());
+        });
         boolean anyNotCompleted = stateMachinesDAO.findById(smCreationResponse.getBody()).getStates().stream().anyMatch(e -> !e.getStatus().equals(Status.completed));
         assertThat(anyNotCompleted).isFalse();
     }
@@ -180,12 +183,12 @@ public class StateMachineResourceTest {
     @Test
     public void testPostEvent_withCorrelationId() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
-        final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+        final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
         Event event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event0");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.pending);
 
         String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
-        final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+"magic_number_1"+"/context/events?searchField=correlationId").header("Content-Type","application/json").body(eventJson).asString();
+        final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/events?searchField=correlationId").header("Content-Type", "application/json").body(eventJson).asString();
         assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
         // give some time to execute
         Thread.sleep(2000);
@@ -204,19 +207,19 @@ public class StateMachineResourceTest {
     @Test
     public void testPostEvent_againstNonExistingCorrelationId() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
-        final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+        final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
         Event event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event0");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.pending);
 
         String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
         // state machine with correlationId magic_number_2 does not exist. The following call should bomb
-        final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+"magic_number_2"+"/context/events?searchField=correlationId").header("Content-Type","application/json").body(eventJson).asString();
+        final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_2" + "/context/events?searchField=correlationId").header("Content-Type", "application/json").body(eventJson).asString();
         assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
     public void testFsmGraphCreation() throws Exception {
-        final StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(objectMapper.readValue(this.getClass().getClassLoader().getResource("state_machine_definition_fork_join.json"), StateMachineDefinition.class));
+        final StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(standardStateMachine, objectMapper.readValue(this.getClass().getClassLoader().getResource("state_machine_definition_fork_join.json"), StateMachineDefinition.class));
         final HttpResponse<String> stringHttpResponse = Unirest.get(STATE_MACHINE_RESOURCE_URL + "/" + stateMachine.getId() + "/fsmdata").header("Content-Type", "application/json").asString();
         assertThat(stringHttpResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         //TODO - we need a better assert here, but since we're using database IDs in the implementation, we cannot simply validate it with a static json
@@ -224,7 +227,7 @@ public class StateMachineResourceTest {
 
     //@Test
     public void testGetErroredStates() throws Exception {
-        final StateMachine sm = stateMachinePersistenceService.createStateMachine(objectMapper.readValue(this.getClass().getClassLoader().getResource("state_machine_definition.json"), StateMachineDefinition.class));
+        final StateMachine sm = stateMachinePersistenceService.createStateMachine(standardStateMachine, objectMapper.readValue(this.getClass().getClassLoader().getResource("state_machine_definition.json"), StateMachineDefinition.class));
 
         /* mark 1 of the state as errored */
         sm.getStates().stream().findFirst().get().setStatus(Status.errored);

@@ -136,8 +136,8 @@ public class WorkFlowExecutionControllerTest {
         // give time to execute
         Thread.sleep(2000);
 
-        verify(redriverRegistry).registerTask(2L, 32800); //state with id 2 has 3 retries and 100ms timeout
-        verify(redriverRegistry).registerTask(4L, 8400); //state with id 4 has 1 retries and 100ms timeout
+        verify(redriverRegistry).registerTask(2L, "standard-machine", 32800); //state with id 2 has 3 retries and 100ms timeout
+        verify(redriverRegistry).registerTask(4L, "standard-machine", 8400); //state with id 4 has 1 retries and 100ms timeout
     }
 
     @Test

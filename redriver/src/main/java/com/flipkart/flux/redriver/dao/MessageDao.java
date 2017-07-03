@@ -84,6 +84,6 @@ public class MessageDao {
      * @return Session
      */
     private Session currentSession() {
-        return sessionFactoryContext.getCurrentSessionFactory().getCurrentSession();
+        return sessionFactoryContext.getThreadLocalSession();
     }
 }

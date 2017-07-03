@@ -40,22 +40,22 @@ public class MessageDaoTest {
 
     @Inject
     @Named("redriverSessionFactoriesContext")
-    SessionFactoryContext sessionFactory;
+    SessionFactoryContext context;
 
     @Before
     public void setUp() throws Exception {
-        sessionFactory.setSessionFactory(sessionFactory.getRedriverSessionFactory());
-        Session session = sessionFactory.getCurrentSessionFactory().openSession();
+        context.setSession(context.getRedriverSessionFactory().openSession());
+        Session session = context.getThreadLocalSession();
         ManagedSessionContext.bind(session);
         Transaction tx = session.beginTransaction();
         try {
-            sessionFactory.getCurrentSessionFactory().getCurrentSession().createSQLQuery("delete from ScheduledMessages").executeUpdate();
+            session.createSQLQuery("delete from ScheduledMessages").executeUpdate();
             tx.commit();
         } finally {
             if(session != null) {
-                ManagedSessionContext.unbind(sessionFactory.getCurrentSessionFactory());
+                ManagedSessionContext.unbind(context.getThreadLocalSession().getSessionFactory());
                 session.close();
-                sessionFactory.clear();
+                context.clear();
             }
         }
     }

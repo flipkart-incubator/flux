@@ -17,7 +17,7 @@ import com.flipkart.flux.persistence.*;
 import com.flipkart.flux.shard.ShardId;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import org.hibernate.SessionFactory;
+import org.hibernate.Session;
 import org.junit.Assert;
 
 import javax.transaction.Transactional;
@@ -31,35 +31,35 @@ public class InterceptedClass {
     private SessionFactoryContext context;
 
     @Inject
-    @Named("shardedReadWriteSessionFactory")
-    private SessionFactory shardedReadWriteSessionFactory;
+    @Named("shardedReadWriteSession")
+    private Session shardedReadWriteSession;
 
     @Inject
-    @Named("shardedReadOnlySessionFactory")
-    private SessionFactory shardedReadOnlySessionFactory;
+    @Named("shardedReadOnlySession")
+    private Session shardedReadOnlySession;
 
     @Inject
-    @Named("redriverSessionFactory")
-    private SessionFactory redriverSessionFactory;
+    @Named("redriverSession")
+    private Session redriverSession;
 
     @Transactional
     @DataStorage(STORAGE.SHARDED)
     @SelectDataSource(DataSourceType.READ_WRITE)
     public void verifySessionFactoryAndSessionAndTransactionForShardedMaster(String shardKey){
-        Assert.assertSame(context.getCurrentSessionFactory(), shardedReadWriteSessionFactory);
+        Assert.assertSame(context.getThreadLocalSession(), shardedReadWriteSession);
     }
 
     @Transactional
     @DataStorage(STORAGE.SHARDED)
     @SelectDataSource(DataSourceType.READ_ONLY)
     public void verifySessionFactoryAndSessionAndTransactionForShardedSlave(ShardId shardId){
-        Assert.assertSame(context.getCurrentSessionFactory(), shardedReadOnlySessionFactory);
+        Assert.assertSame(context.getThreadLocalSession(), shardedReadOnlySession);
     }
 
     @Transactional
     @DataStorage(STORAGE.REDRIVER)
     public void verifySessionFactoryAndSessionAndTransactionForRedriverHost(){
-        Assert.assertSame(context.getCurrentSessionFactory(), redriverSessionFactory);
+        Assert.assertSame(context.getThreadLocalSession(), redriverSession);
     }
 
     // Add more tests which gives wrong Annotations which should throw Exceptions

@@ -21,10 +21,15 @@ import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.*;
+import com.flipkart.flux.persistence.DataSourceType;
+import com.flipkart.flux.persistence.DataStorage;
+import com.flipkart.flux.persistence.STORAGE;
+import com.flipkart.flux.persistence.SelectDataSource;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.transaction.Transactional;
 import java.util.*;
 
 /**
@@ -59,6 +64,9 @@ public class StateMachinePersistenceService {
      * @param stateMachineDefinition
      * @return saved state machine object
      */
+    @Transactional
+    @DataStorage(STORAGE.SHARDED)
+    @SelectDataSource(DataSourceType.READ_WRITE)
     public StateMachine createStateMachine(String stateMachineId, StateMachineDefinition stateMachineDefinition) {
 
         final Map<EventDefinition, EventData> eventDataMap = stateMachineDefinition.getEventDataMap();
@@ -68,7 +76,7 @@ public class StateMachinePersistenceService {
 
 
         for (StateDefinition stateDefinition : stateDefinitions) {
-            State state = convertStateDefinitionToState(stateDefinition);
+            State state = convertStateDefinitionToState(stateDefinition, stateMachineId);
             states.add(state);
         }
 
@@ -77,7 +85,7 @@ public class StateMachinePersistenceService {
                 stateMachineDefinition.getDescription(),
                 states, stateMachineDefinition.getCorrelationId());
 
-        stateMachinesDAO.create(stateMachineId ,stateMachine);
+        stateMachinesDAO.create(stateMachineId, stateMachine);
 
         for (Event event : allEvents) {
             event.setStateMachineInstanceId(stateMachine.getId());
@@ -88,7 +96,7 @@ public class StateMachinePersistenceService {
         for (State state : stateMachine.getStates()) {
             auditDAO.create(stateMachine.getId(), new AuditRecord(stateMachine.getId(), state.getId(), 0L, Status.initialized, null, null));
         }
-
+        int i = 0 ;
         return stateMachine;
     }
 
@@ -118,7 +126,7 @@ public class StateMachinePersistenceService {
      * @param stateDefinition
      * @return state
      */
-    private State convertStateDefinitionToState(StateDefinition stateDefinition) {
+    private State convertStateDefinitionToState(StateDefinition stateDefinition, String stateMachineId) {
         try {
             List<EventDefinition> eventDefinitions = stateDefinition.getDependencies();
             List<String> events = new LinkedList<>();
@@ -137,7 +145,7 @@ public class StateMachinePersistenceService {
                     Math.min(stateDefinition.getRetryCount(), maxRetryCount),
                     stateDefinition.getTimeout(),
                     stateDefinition.getOutputEvent() != null ? objectMapper.writeValueAsString(stateDefinition.getOutputEvent()) : null,
-                    Status.initialized, null, 0l);
+                    Status.initialized, null, 0l, stateMachineId);
             return state;
         } catch (Exception e) {
             throw new IllegalRepresentationException("Unable to create state domain object", e);

@@ -31,8 +31,6 @@ import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.impl.SessionFactoryContextImpl;
 import com.flipkart.flux.redriver.dao.MessageDao;
-import com.flipkart.flux.redriver.model.ScheduledMessage;
-import com.flipkart.flux.shard.MasterSlavePair;
 import com.flipkart.flux.shard.MasterSlavePairList;
 import com.flipkart.flux.shard.ShardHostModel;
 import com.flipkart.flux.shard.ShardId;
@@ -53,7 +51,10 @@ import org.hibernate.cfg.Configuration;
 import javax.inject.Provider;
 import javax.transaction.Transactional;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * <code>ShardModule</code> is a Guice {@link AbstractModule} implementation used for wiring SessionFactory, DAO and Interceptor classes for the shards.
@@ -62,7 +63,7 @@ import java.util.*;
  */
 public class ShardModule extends AbstractModule {
 
-    public static final String FLUX_HIBERNATE_SHARD_CONFIG_NAME_SPACE = "flux.Shard.Config";
+    public static final String FLUX_HIBERNATE_SHARD_CONFIG_NAME_SPACE = "flux.Shard.Config.master.slave.pair.list";
     public static final String FLUX_HIBERNATE_SHARD_CONFIG_NAME = "master.slave.pair.list";
     public static final String FLUX_HIBERNATE_CONFIG_NAME_SPACE = "flux.Hibernate";
     public static final String FLUX_READ_ONLY_HIBERNATE_CONFIG_NAME_SPACE = "fluxReadOnly.Hibernate";
@@ -92,17 +93,18 @@ public class ShardModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("fluxMasterSlavePairList")
-    public List getFluxMasterSlavePairList(YamlConfiguration yamlConfiguration) {
+    public MasterSlavePairList getFluxMasterSlavePairList(YamlConfiguration yamlConfiguration) {
+        String json = yamlConfiguration.getProperty(FLUX_HIBERNATE_SHARD_CONFIG_NAME_SPACE).toString();
+
         ObjectMapper objectMapper = new ObjectMapper();
-        MasterSlavePairList masterSlavePairList = null;
+        MasterSlavePairList masterSlavePairList ;
         try {
-            masterSlavePairList = objectMapper.readValue(yamlConfiguration.subset(FLUX_HIBERNATE_SHARD_CONFIG_NAME_SPACE).
-                    getProperty(FLUX_HIBERNATE_SHARD_CONFIG_NAME).toString(), MasterSlavePairList.class);
+            masterSlavePairList = objectMapper.readValue(json, MasterSlavePairList.class);
         } catch (IOException e) {
             e.printStackTrace();
             throw new FluxError(FluxError.ErrorType.runtime, "Not able to read Master Slave Config from Config File", e.getCause());
         }
-        return masterSlavePairList.getMasterSlavePairList();
+        return masterSlavePairList;
     }
 
     /**
@@ -115,23 +117,23 @@ public class ShardModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("fluxRWShardIdToShardMapping")
-    public Map getFluxRWShardIdToShardMapping(@Named("fluxMasterSlavePairList") List<MasterSlavePair> masterSlavePairList) {
+    public Map getFluxRWShardIdToShardMapping(@Named("fluxMasterSlavePairList") MasterSlavePairList masterSlavePairList) {
         Map shardIdToShardHostModelMap = new HashMap<ShardId, ShardHostModel>();
-        masterSlavePairList.stream().forEach(masterSlavePair -> {
+        masterSlavePairList.getMasterSlavePairList().forEach(masterSlavePair -> {
             shardIdToShardHostModelMap.put(masterSlavePair.getMaster().getShardId(), masterSlavePair.getMaster());
         });
-        return shardIdToShardHostModelMap ;
+        return shardIdToShardHostModelMap;
     }
 
     @Provides
     @Singleton
     @Named("fluxROShardIdToShardMapping")
-    public Map getFluxShardIdToShardMapping(@Named("fluxMasterSlavePairList") List<MasterSlavePair> masterSlavePairList) {
+    public Map getFluxShardIdToShardMapping(@Named("fluxMasterSlavePairList") MasterSlavePairList masterSlavePairList) {
         Map shardIdToShardHostModelMap = new HashMap<ShardId, ShardHostModel>();
-        masterSlavePairList.stream().forEach(masterSlavePair -> {
+        masterSlavePairList.getMasterSlavePairList().forEach(masterSlavePair -> {
             shardIdToShardHostModelMap.put(masterSlavePair.getSlave().getShardId(), masterSlavePair.getSlave());
         });
-        return shardIdToShardHostModelMap ;
+        return shardIdToShardHostModelMap;
     }
 
     /**
@@ -143,9 +145,9 @@ public class ShardModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("fluxRWShardKeyToShardMapping")
-    public Map getFluxRWShardKeyToShardIdMapping(@Named("fluxMasterSlavePairList") List<MasterSlavePair> masterSlavePairList) {
+    public Map getFluxRWShardKeyToShardIdMapping(@Named("fluxMasterSlavePairList") MasterSlavePairList masterSlavePairList) {
         Map shardKeyToShardIdMap = new HashMap<Character, com.flipkart.flux.shard.ShardId>();
-        masterSlavePairList.forEach(masterSlavePair -> {
+        masterSlavePairList.getMasterSlavePairList().forEach(masterSlavePair -> {
             masterSlavePair.getMaster().getShardKeys().forEach(character -> {
                 shardKeyToShardIdMap.put(character, masterSlavePair.getMaster().getShardId());
             });
@@ -162,9 +164,9 @@ public class ShardModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("fluxROShardKeyToShardMapping")
-    public Map getFluxROShardKeyToShardIdMapping(@Named("fluxMasterSlavePairList") List<MasterSlavePair> masterSlavePairList) {
+    public Map getFluxROShardKeyToShardIdMapping(@Named("fluxMasterSlavePairList") MasterSlavePairList masterSlavePairList) {
         Map shardKeyToShardIdMap = new HashMap<Character, com.flipkart.flux.shard.ShardId>();
-        masterSlavePairList.forEach(masterSlavePair -> {
+        masterSlavePairList.getMasterSlavePairList().forEach(masterSlavePair -> {
             masterSlavePair.getSlave().getShardKeys().forEach(character -> {
                 shardKeyToShardIdMap.put(character, masterSlavePair.getSlave().getShardId());
             });
@@ -188,10 +190,10 @@ public class ShardModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("fluxRWSessionFactoriesMap")
-    public Map getFluxRWSessionFactoryMap(@Named("fluxMasterSlavePairList") List<MasterSlavePair> fluxMasterSlavePairList,
+    public Map getFluxRWSessionFactoryMap(@Named("fluxMasterSlavePairList") MasterSlavePairList fluxMasterSlavePairList,
                                           YamlConfiguration yamlConfiguration) {
         Map fluxRWSessionFactories = new HashMap<com.flipkart.flux.shard.ShardId, SessionFactory>();
-        fluxMasterSlavePairList.forEach(masterSlavePair -> {
+        fluxMasterSlavePairList.getMasterSlavePairList().forEach(masterSlavePair -> {
             Configuration conf = getRWConfiguration(yamlConfiguration, masterSlavePair.getMaster().getIp());
             fluxRWSessionFactories.put(masterSlavePair.getMaster().getShardId(), conf.buildSessionFactory());
         });
@@ -201,11 +203,11 @@ public class ShardModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("fluxROSessionFactoriesMap")
-    public Map getFluxROSessionFactoryMap(@Named("fluxMasterSlavePairList") List<MasterSlavePair> fluxMasterSlavePairList,
+    public Map getFluxROSessionFactoryMap(@Named("fluxMasterSlavePairList") MasterSlavePairList fluxMasterSlavePairList,
                                           YamlConfiguration yamlConfiguration) {
         Map fluxRWSessionFactories = new HashMap<com.flipkart.flux.shard.ShardId, SessionFactory>();
-        fluxMasterSlavePairList.forEach(masterSlavePair -> {
-            Configuration conf = getRWConfiguration(yamlConfiguration, masterSlavePair.getSlave().getIp());
+        fluxMasterSlavePairList.getMasterSlavePairList().forEach(masterSlavePair -> {
+            Configuration conf = getROConfiguration(yamlConfiguration, masterSlavePair.getSlave().getIp());
             fluxRWSessionFactories.put(masterSlavePair.getSlave().getShardId(), conf.buildSessionFactory());
         });
         return fluxRWSessionFactories;
@@ -214,11 +216,11 @@ public class ShardModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("fluxSessionFactoriesContext")
-    public SessionFactoryContextImpl getSessionFactoryProvider(@Named("fluxRWSessionFactoriesMap") Map fluxRWSessionFactoriesMap,
-                                                               @Named("fluxROSessionFactoriesMap") Map fluxROSessionFactoriesMap,
-                                                               @Named("fluxRWShardKeyToShardMapping") Map fluxRWShardKeyToShardMapping,
-                                                               @Named("fluxROShardKeyToShardMapping") Map fluxROShardKeyToShardMapping,
-                                                               @Named("redriverSessionFactory") SessionFactory redriverSessionFactory
+    public SessionFactoryContext getSessionFactoryProvider(@Named("fluxRWSessionFactoriesMap") Map fluxRWSessionFactoriesMap,
+                                                           @Named("fluxROSessionFactoriesMap") Map fluxROSessionFactoriesMap,
+                                                           @Named("fluxRWShardKeyToShardMapping") Map fluxRWShardKeyToShardMapping,
+                                                           @Named("fluxROShardKeyToShardMapping") Map fluxROShardKeyToShardMapping,
+                                                           @Named("reDriverSessionFactory") SessionFactory redriverSessionFactory
     ) {
 
         return new SessionFactoryContextImpl(fluxRWSessionFactoriesMap, fluxROSessionFactoriesMap,
@@ -242,12 +244,13 @@ public class ShardModule extends AbstractModule {
         configuration.addAnnotatedClass(StateMachine.class);
 
         // added Redriver class as well
-        configuration.addAnnotatedClass(ScheduledMessage.class);
+        // configuration.addAnnotatedClass(ScheduledMessage.class);
 
     }
 
     private Configuration getConfiguration(YamlConfiguration yamlConfiguration, String prefix, String host) {
         Configuration configuration = new Configuration();
+        addAnnotatedClassesAndTypes(configuration);
         org.apache.commons.configuration.Configuration hibernateConfig = yamlConfiguration.subset(prefix);
         Iterator<String> propertyKeys = hibernateConfig.getKeys();
         Properties configProperties = new Properties();

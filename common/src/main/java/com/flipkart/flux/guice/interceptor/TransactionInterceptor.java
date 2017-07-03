@@ -65,20 +65,16 @@ public class TransactionInterceptor implements MethodInterceptor {
         SessionFactoryContext context = contextProvider.get();
 
         try {
-            SessionFactory currentSessionFactory = context.getCurrentSessionFactory();
-            if (currentSessionFactory != null) {
-                session = currentSessionFactory.getCurrentSession();
-            }
+            session = context.getThreadLocalSession();
         } catch (HibernateException e) {
         }
 
         if (session == null) {
             //start a new session if current session is null
-
             //get shardKey from method argument if there is any
             String shardKey;
             ShardId shardId;
-            SessionFactory sessionFactory = null ;
+            SessionFactory sessionFactory = null;
 
             try {
                 DataStorage dataStorage = invocation.getMethod().getAnnotation(DataStorage.class);
@@ -106,10 +102,9 @@ public class TransactionInterceptor implements MethodInterceptor {
                                     break;
                                 }
                             }
-                        }
-                        catch (Exception ex){
+                        } catch (Exception ex) {
                             logger.error("Current Transactional Method doesn't have annotation @SelectDataSource Method_name:{} {}"
-                                    , invocation.getMethod().getName(), ex.getMessage());
+                                    , invocation.getMethod().getName(), ex.getStackTrace());
                             return new Error("Something wrong with Method's annotations");
                         }
                         break;
@@ -119,44 +114,39 @@ public class TransactionInterceptor implements MethodInterceptor {
                         break;
                     }
                 }
-            }
-            catch (Exception ex){
+            } catch (Exception ex) {
                 logger.error("Current Transactional Method doesn't have annotation @DataStorage Method_name:{} {}"
-                        , invocation.getMethod().getName(), ex.getMessage());
+                        , invocation.getMethod().getName(), ex.getStackTrace());
                 return new Error("Something wrong with Method's annotations");
             }
-            //set the  sessionFactory in Context, for further nested Transactions
-            context.setSessionFactory(sessionFactory);
-            // open session
-            session = context.getCurrentSessionFactory().openSession();
-        }
-
-        ManagedSessionContext.bind(session);
-        transaction = session.getTransaction();
-        transaction.begin();
-        try {
-
-            Object result = invocation.proceed();
-
-            if (transaction != null) {
+            // open a new session, and set it in the ThreadLocal Context
+            session = sessionFactory.openSession();
+            context.setSession(session);
+            logger.debug("Open new session for the thread, using it: {}, {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
+            ManagedSessionContext.bind(session);
+            transaction = session.getTransaction();
+            transaction.begin();
+            try {
+                Object result = invocation.proceed();
                 transaction.commit();
-            }
-
-            return result;
-
-        } catch (Exception e) {
-            if (transaction != null) {
+                return result;
+            } catch (Exception e) {
                 transaction.rollback();
-            }
-            throw e;
-        } finally {
-            if (transaction != null && session != null) {
-                ManagedSessionContext.unbind(context.getCurrentSessionFactory());
+                throw e;
+            } finally {
+                ManagedSessionContext.unbind(session.getSessionFactory());
+                logger.debug("Transaction completed for method : {} {} {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
                 session.close();
                 context.clear();
+                logger.debug("Clearing session from ThreadLocal Context {} {} {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
+
             }
+
+        } else {
+            Object result = invocation.proceed();
+            logger.debug("Use old session for the thread, reusing it: {}, {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
+            return result;
         }
     }
-
 }
 
