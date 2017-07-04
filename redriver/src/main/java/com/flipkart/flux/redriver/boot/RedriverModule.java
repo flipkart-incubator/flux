@@ -44,6 +44,7 @@ import java.util.Properties;
  * Presently, it is assumed that {@link TransactionInterceptor} is already configured by another module
  *
  * @author yogesh.nachnani
+ * @author amitkumar.o
  */
 public class RedriverModule extends AbstractModule {
     private static final String FLUX_REDRIVER_HIBERNATE_CONFIG_NAME_SPACE = "flux_redriver.Hibernate";
