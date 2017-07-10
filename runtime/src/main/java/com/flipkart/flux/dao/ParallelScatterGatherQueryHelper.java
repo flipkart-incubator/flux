@@ -17,17 +17,14 @@ import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
-import com.flipkart.flux.shard.ShardHostModel;
 import com.flipkart.flux.shard.ShardId;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.google.inject.name.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.function.Function;
 
 /**
@@ -37,15 +34,13 @@ import java.util.function.Function;
  */
 @Singleton
 public class ParallelScatterGatherQueryHelper {
-    private Map<ShardId, ShardHostModel> fluxROShardIdToShardMap;
     private StatesDAO statesDAO;
     private StateMachinesDAO stateMachinesDAO;
 
     private static final Logger logger = LoggerFactory.getLogger(StatesDAOImpl.class);
 
     @Inject
-    public ParallelScatterGatherQueryHelper(@Named("fluxROShardIdToShardMapping") Map fluxROShardIdToShardMap, StatesDAO statesDAO, StateMachinesDAO stateMachinesDAO) {
-        this.fluxROShardIdToShardMap = fluxROShardIdToShardMap;
+    public ParallelScatterGatherQueryHelper(StatesDAO statesDAO, StateMachinesDAO stateMachinesDAO) {
         this.statesDAO = statesDAO;
         this.stateMachinesDAO = stateMachinesDAO;
     }
@@ -82,28 +77,28 @@ public class ParallelScatterGatherQueryHelper {
 
     private void scatterGatherQueryHelper(Function<ShardId, Collection> reader, Collection result, String errorMessage) {
         // noOfThreads spawned = no. of Slave Shards
-        final CountDownLatch latch = new CountDownLatch(fluxROShardIdToShardMap.size());
-        fluxROShardIdToShardMap.entrySet().forEach(entry -> {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        result.addAll(reader.apply(entry.getKey()));
-                    } catch (Exception ex) {
-                        logger.error("Error in fetching {} from Slave with id {} , ip {} {}",
-                                errorMessage ,entry.getKey(), entry.getValue().getIp(), ex.getStackTrace());
-                    } finally {
-                        latch.countDown();
-                    }
-                }
-                }).run();
-        });
-        try {
-            // wait till all the results are returned from all shards
-            latch.await();
-        } catch (InterruptedException e) {
-            logger.error("Exception occured while gathering {} from Slaves : {}", errorMessage ,e.getStackTrace());
-        }
+//        final CountDownLatch latch = new CountDownLatch(fluxShardIdToShardPairMap.size());
+//        fluxShardIdToShardPairMap.entrySet().forEach(entry -> {
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    try {
+//                        result.addAll(reader.apply(entry.getKey()));
+//                    } catch (Exception ex) {
+//                        logger.error("Error in fetching {} from Slave with id {} , ip {} {}",
+//                                errorMessage ,entry.getKey(), entry.getValue().getSlaveIp(), ex.getStackTrace());
+//                    } finally {
+//                        latch.countDown();
+//                    }
+//                }
+//                }).run();
+//        });
+//        try {
+//            // wait till all the results are returned from all shards
+//            latch.await();
+//        } catch (InterruptedException e) {
+//            logger.error("Exception occured while gathering {} from Slaves : {}", errorMessage ,e.getStackTrace());
+//        }
     }
 
 

@@ -19,21 +19,21 @@ import java.util.List;
  * Created by amitkumar.o on 19/06/17.
  */
 public class MasterSlavePairList {
-    private List<MasterSlavePair>  masterSlavePairList;
+    private List<ShardPairModel>  shardPairModelList;
 
-    public MasterSlavePairList(List<MasterSlavePair> masterSlavePairList) {
-        this.masterSlavePairList = masterSlavePairList;
+    public MasterSlavePairList(List<ShardPairModel> shardPairModelList) {
+        this.shardPairModelList = shardPairModelList;
     }
 
     public MasterSlavePairList() {
     }
 
-    public List<MasterSlavePair> getMasterSlavePairList() {
-        return masterSlavePairList;
+    public List<ShardPairModel> getShardPairModelList() {
+        return shardPairModelList;
     }
 
-    public void setMasterSlavePairList(List<MasterSlavePair> masterSlavePairList) {
-        this.masterSlavePairList = masterSlavePairList;
+    public void setShardPairModelList(List<ShardPairModel> shardPairModelList) {
+        this.shardPairModelList = shardPairModelList;
     }
 
     @Override
@@ -43,19 +43,19 @@ public class MasterSlavePairList {
 
         MasterSlavePairList that = (MasterSlavePairList) o;
 
-        return getMasterSlavePairList().equals(that.getMasterSlavePairList());
+        return getShardPairModelList().equals(that.getShardPairModelList());
 
     }
 
     @Override
     public int hashCode() {
-        return getMasterSlavePairList().hashCode();
+        return getShardPairModelList().hashCode();
     }
 
     @Override
     public String toString() {
         return "MasterSlavePairList{" +
-                "masterSlavePairList=" + masterSlavePairList +
+                "shardPairModelList=" + shardPairModelList +
                 '}';
     }
 }

@@ -13,8 +13,10 @@
 
 package com.flipkart.flux.guice.interceptor;
 
-import com.flipkart.flux.persistence.*;
-import com.flipkart.flux.shard.ShardId;
+import com.flipkart.flux.persistence.CryptHashGenerator;
+import com.flipkart.flux.persistence.DataStorage;
+import com.flipkart.flux.persistence.SelectDataSource;
+import com.flipkart.flux.persistence.SessionFactoryContext;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.hibernate.HibernateException;
@@ -38,6 +40,8 @@ import javax.inject.Provider;
  * method1(); //call method1 which is annotated with transactional
  * }
  *
+ * @author shyam.akirala
+ * @author amitkumar.o
  * @Transactional void method1() {
  * method2(); //call method2 which is annotated with transactional
  * }
@@ -45,13 +49,9 @@ import javax.inject.Provider;
  * <p>
  * In the above case a transaction would be started before method1 invocation using this interceptor and ended once method1's execution is over.
  * Same session and transaction would be used throughout.
- *
- * @author shyam.akirala
- * @author amitkumar.o
  */
 public class TransactionInterceptor implements MethodInterceptor {
 
-    public static final String DEFAULT_SHARD_KEY = "default-shard-key";
     private static final Logger logger = LoggerFactory.getLogger(TransactionInterceptor.class);
 
     private final Provider<SessionFactoryContext> contextProvider;
@@ -76,7 +76,6 @@ public class TransactionInterceptor implements MethodInterceptor {
             //start a new session if current session is null
             //get shardKey from method argument if there is any
             String shardKey;
-            ShardId shardId;
             SessionFactory sessionFactory = null;
 
             try {
@@ -86,22 +85,20 @@ public class TransactionInterceptor implements MethodInterceptor {
                         try {
                             SelectDataSource selectedDS = invocation.getMethod().getAnnotation(SelectDataSource.class);
                             switch (selectedDS.value()) {
-                                // in this case invocation method will provide slave's shardId as the first argument,
+                                // in this case invocation method will provide shardKey as the first argument,
                                 // whose sessionFactory will be used
                                 case READ_ONLY: {
                                     Object[] args = invocation.getArguments();
-                                    shardId = (ShardId) args[0];
-                                    sessionFactory = context.getROSessionFactory(shardId);
+                                    shardKey = (String) args[0];
+                                    sessionFactory = context.getROSessionFactory(shardKey);
                                     break;
                                 }
                                 // in this case invocation method will provide shardKey i.e stateMachineId, as the first argument,
                                 // which will determine to which master shard the query should go to.
                                 case READ_WRITE: {
                                     Object[] args = invocation.getArguments();
-                                    shardKey = (String) args[0];
-                                    Character shardHash = CryptHashGenerator.getUniformCryptHash(shardKey);
-                                    shardId = context.getRWShardIdForShardKey(shardHash);
-                                    sessionFactory = context.getRWSessionFactory(shardId);
+                                    String shardKeyPrefix = CryptHashGenerator.getUniformCryptHash((String) args[0]);
+                                    sessionFactory = context.getRWSessionFactory(shardKeyPrefix);
                                     break;
                                 }
                             }

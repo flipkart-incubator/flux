@@ -14,7 +14,7 @@
 package com.flipkart.flux.shard;
 
 /* Unique numeric Identifier for a Particular MySQl shard
- * Created by amitkumar.o on 19/06/17.
+ * @author amitkumar.o
  */
 public class ShardId {
 

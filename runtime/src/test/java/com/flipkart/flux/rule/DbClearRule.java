@@ -73,7 +73,6 @@ public class DbClearRule extends ExternalResource{
             fluxSessionFactoryContext.clear();
 
         });
-
         clearDb(fluxRedriverTables,redriverSessionFactoryContext.getRedriverSessionFactory());
         redriverSessionFactoryContext.clear();
     }

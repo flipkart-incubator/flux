@@ -13,7 +13,6 @@
 
 package com.flipkart.flux.persistence;
 
-import com.flipkart.flux.shard.ShardId;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
@@ -52,42 +51,18 @@ public interface SessionFactoryContext {
     /**
      * Get Session Factory for the given shardId from RWSessionFactoryMap
      *
-     * @param shardId
+     * @param shardKey
      * @return
      */
-    SessionFactory getRWSessionFactory(ShardId shardId);
+    SessionFactory getRWSessionFactory(String shardKey);
 
     /**
      * Get Session Factory for the given  shardId from ROSessionFactoryMap
      *
      * @return
      */
-    SessionFactory getROSessionFactory(ShardId shardId);
+    SessionFactory getROSessionFactory(String shardKey);
 
-
-    /**
-     * Get the Default(Read-Write) Session Factory of the given shardId
-     *
-     * @param shardId
-     * @return
-     */
-    SessionFactory getDefaultSessionFactoryMap(ShardId shardId);
-
-    /**
-     * Get the Read-Write(RW)(Master) shardId in which this key resides.
-     *
-     * @param shardKey
-     * @return
-     */
-    ShardId getRWShardIdForShardKey(Character shardKey);
-
-    /**
-     * Get the Read-Only(RW)(Slave) shardId in which this key resides.
-     *
-     * @param shardKey
-     * @return
-     */
-    ShardId getROShardIdForShardKey(Character shardKey);
 
     /**
      * Clear the context.

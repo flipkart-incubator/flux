@@ -32,8 +32,8 @@ import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.impl.SessionFactoryContextImpl;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.shard.MasterSlavePairList;
-import com.flipkart.flux.shard.ShardHostModel;
 import com.flipkart.flux.shard.ShardId;
+import com.flipkart.flux.shard.ShardPairModel;
 import com.flipkart.flux.type.BlobType;
 import com.flipkart.flux.type.ListJsonType;
 import com.flipkart.flux.type.StoreFQNType;
@@ -47,6 +47,8 @@ import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Provider;
 import javax.transaction.Transactional;
@@ -67,6 +69,8 @@ public class ShardModule extends AbstractModule {
     public static final String FLUX_HIBERNATE_SHARD_CONFIG_NAME = "master.slave.pair.list";
     public static final String FLUX_HIBERNATE_CONFIG_NAME_SPACE = "flux.Hibernate";
     public static final String FLUX_READ_ONLY_HIBERNATE_CONFIG_NAME_SPACE = "fluxReadOnly.Hibernate";
+    public static final String DB_PREFIX = "fluxShard_";
+    private static final Logger logger = LoggerFactory.getLogger(ShardModule.class);
 
     /**
      * Performs concrete bindings for interfaces
@@ -97,7 +101,7 @@ public class ShardModule extends AbstractModule {
         String json = yamlConfiguration.getProperty(FLUX_HIBERNATE_SHARD_CONFIG_NAME_SPACE).toString();
 
         ObjectMapper objectMapper = new ObjectMapper();
-        MasterSlavePairList masterSlavePairList ;
+        MasterSlavePairList masterSlavePairList;
         try {
             masterSlavePairList = objectMapper.readValue(json, MasterSlavePairList.class);
         } catch (IOException e) {
@@ -116,100 +120,103 @@ public class ShardModule extends AbstractModule {
 
     @Provides
     @Singleton
-    @Named("fluxRWShardIdToShardMapping")
+    @Named("fluxShardIdToShardPairMapping")
     public Map getFluxRWShardIdToShardMapping(@Named("fluxMasterSlavePairList") MasterSlavePairList masterSlavePairList) {
-        Map shardIdToShardHostModelMap = new HashMap<ShardId, ShardHostModel>();
-        masterSlavePairList.getMasterSlavePairList().forEach(masterSlavePair -> {
-            shardIdToShardHostModelMap.put(masterSlavePair.getMaster().getShardId(), masterSlavePair.getMaster());
-        });
-        return shardIdToShardHostModelMap;
-    }
-
-    @Provides
-    @Singleton
-    @Named("fluxROShardIdToShardMapping")
-    public Map getFluxShardIdToShardMapping(@Named("fluxMasterSlavePairList") MasterSlavePairList masterSlavePairList) {
-        Map shardIdToShardHostModelMap = new HashMap<ShardId, ShardHostModel>();
-        masterSlavePairList.getMasterSlavePairList().forEach(masterSlavePair -> {
-            shardIdToShardHostModelMap.put(masterSlavePair.getSlave().getShardId(), masterSlavePair.getSlave());
+        Map shardIdToShardHostModelMap = new HashMap<ShardId, ShardPairModel>();
+        masterSlavePairList.getShardPairModelList().forEach(masterSlavePair -> {
+            shardIdToShardHostModelMap.put(masterSlavePair.getShardId(), masterSlavePair);
         });
         return shardIdToShardHostModelMap;
     }
 
     /**
-     * Provides a immutable map with Shard Key (Character) to ShardHostModel Mapping for ReadWrite(Master) shards only.
+     * Provides a  map with Shard Key (Character) to ShardHostModel Mapping for shards only.
      *
      * @param masterSlavePairList
      * @return
      */
     @Provides
     @Singleton
-    @Named("fluxRWShardKeyToShardMapping")
+    @Named("fluxShardKeyToShardIdMapping")
     public Map getFluxRWShardKeyToShardIdMapping(@Named("fluxMasterSlavePairList") MasterSlavePairList masterSlavePairList) {
-        Map shardKeyToShardIdMap = new HashMap<Character, com.flipkart.flux.shard.ShardId>();
-        masterSlavePairList.getMasterSlavePairList().forEach(masterSlavePair -> {
-            masterSlavePair.getMaster().getShardKeys().forEach(character -> {
-                shardKeyToShardIdMap.put(character, masterSlavePair.getMaster().getShardId());
-            });
+        Map shardKeyToShardIdMap = new HashMap<String, com.flipkart.flux.shard.ShardId>();
+        masterSlavePairList.getShardPairModelList().forEach(masterSlavePair -> {
+            String startKey = masterSlavePair.getStartKey();
+            String endKey = masterSlavePair.getEndKey();
+            for (int i = 0; i < 16; i++)
+                for (int j = 0; j < 16; j++) {
+                    String shardPrefix = Integer.toHexString(i) + Integer.toHexString(j);
+                    if (shardPrefix.compareTo(startKey) >= 0 && shardPrefix.compareTo(endKey) <= 0) {
+                        shardKeyToShardIdMap.put(shardPrefix, masterSlavePair.getShardId());
+                    }
+                }
         });
+        if (shardKeyToShardIdMap.size() != (1<<8)) {
+            throw new RuntimeException("No. of shardKeys should be 16*16, currently it is " +
+                    Integer.toString(shardKeyToShardIdMap.size()));
+        }
         return shardKeyToShardIdMap;
     }
 
-    /**
-     * Provides a immutable map with Shard Key (Character) to ShardHostModel Mapping for ReadOnly(Slave) shards only.
-     *
-     * @param masterSlavePairList
-     * @return
-     */
-    @Provides
-    @Singleton
-    @Named("fluxROShardKeyToShardMapping")
-    public Map getFluxROShardKeyToShardIdMapping(@Named("fluxMasterSlavePairList") MasterSlavePairList masterSlavePairList) {
-        Map shardKeyToShardIdMap = new HashMap<Character, com.flipkart.flux.shard.ShardId>();
-        masterSlavePairList.getMasterSlavePairList().forEach(masterSlavePair -> {
-            masterSlavePair.getSlave().getShardKeys().forEach(character -> {
-                shardKeyToShardIdMap.put(character, masterSlavePair.getSlave().getShardId());
-            });
-        });
-        return shardKeyToShardIdMap;
-    }
 
     /**
      * Creates hibernate configuration from the configuration yaml properties.
      * Since the yaml properties are already flattened in input param <code>yamlConfiguration</code>
      * the method loops over them to selectively pick Hibernate specific properties.
      */
-    public Configuration getRWConfiguration(YamlConfiguration yamlConfiguration, String host) {
-        return getConfiguration(yamlConfiguration, FLUX_HIBERNATE_CONFIG_NAME_SPACE, host);
+    public Configuration getRWConfiguration(YamlConfiguration yamlConfiguration, String host, String dbNameSuffix) {
+        return getConfiguration(yamlConfiguration, FLUX_HIBERNATE_CONFIG_NAME_SPACE, host, dbNameSuffix);
     }
 
-    public Configuration getROConfiguration(YamlConfiguration yamlConfiguration, String host) {
-        return getConfiguration(yamlConfiguration, FLUX_READ_ONLY_HIBERNATE_CONFIG_NAME_SPACE, host);
+    public Configuration getROConfiguration(YamlConfiguration yamlConfiguration, String host, String dbNameSuffix) {
+        return getConfiguration(yamlConfiguration, FLUX_READ_ONLY_HIBERNATE_CONFIG_NAME_SPACE, host, dbNameSuffix);
     }
 
     @Provides
     @Singleton
     @Named("fluxRWSessionFactoriesMap")
-    public Map getFluxRWSessionFactoryMap(@Named("fluxMasterSlavePairList") MasterSlavePairList fluxMasterSlavePairList,
+    public Map getFluxRWSessionFactoryMap(@Named("fluxShardKeyToShardIdMapping") Map<String, ShardId>
+                                                  fluxShardKeyToShardIdMap,
+                                          @Named("fluxShardIdToShardPairMapping") Map<ShardId, ShardPairModel>
+                                                  fluxShardIdToShardPairMap,
                                           YamlConfiguration yamlConfiguration) {
-        Map fluxRWSessionFactories = new HashMap<com.flipkart.flux.shard.ShardId, SessionFactory>();
-        fluxMasterSlavePairList.getMasterSlavePairList().forEach(masterSlavePair -> {
-            Configuration conf = getRWConfiguration(yamlConfiguration, masterSlavePair.getMaster().getIp());
-            fluxRWSessionFactories.put(masterSlavePair.getMaster().getShardId(), conf.buildSessionFactory());
+        Map fluxROSessionFactories = new HashMap<String, SessionFactory>();
+        fluxShardKeyToShardIdMap.entrySet().forEach(shardKeyToShardIdMapping -> {
+            String shardKey = shardKeyToShardIdMapping.getKey();
+            ShardId shardId = shardKeyToShardIdMapping.getValue();
+            ShardPairModel shardPairModel = fluxShardIdToShardPairMap.get(shardId);
+            Configuration conf = getRWConfiguration(yamlConfiguration, shardPairModel.getSlaveIp(), shardKey);
+            fluxROSessionFactories.put(shardKey, conf.buildSessionFactory());
+
         });
-        return fluxRWSessionFactories;
+        if( fluxROSessionFactories.size() != (1<<8)){
+            throw new RuntimeException("No. of RW Session Factories should be 16*16, currently it is " +
+                    Integer.toString(fluxROSessionFactories.size()));
+        }
+        return fluxROSessionFactories;
     }
 
     @Provides
     @Singleton
     @Named("fluxROSessionFactoriesMap")
-    public Map getFluxROSessionFactoryMap(@Named("fluxMasterSlavePairList") MasterSlavePairList fluxMasterSlavePairList,
+    public Map getFluxROSessionFactoryMap(@Named("fluxShardKeyToShardIdMapping") Map<String, ShardId>
+                                                      fluxShardKeyToShardIdMap,
+                                          @Named("fluxShardIdToShardPairMapping") Map<ShardId, ShardPairModel>
+                                                      fluxShardIdToShardPairMap,
                                           YamlConfiguration yamlConfiguration) {
-        Map fluxRWSessionFactories = new HashMap<com.flipkart.flux.shard.ShardId, SessionFactory>();
-        fluxMasterSlavePairList.getMasterSlavePairList().forEach(masterSlavePair -> {
-            Configuration conf = getROConfiguration(yamlConfiguration, masterSlavePair.getSlave().getIp());
-            fluxRWSessionFactories.put(masterSlavePair.getSlave().getShardId(), conf.buildSessionFactory());
+        Map fluxRWSessionFactories = new HashMap<String, SessionFactory>();
+        fluxShardKeyToShardIdMap.entrySet().forEach(shardKeyToShardIdMapping -> {
+            String shardKey = shardKeyToShardIdMapping.getKey();
+            ShardId shardId = shardKeyToShardIdMapping.getValue();
+            ShardPairModel shardPairModel = fluxShardIdToShardPairMap.get(shardId);
+            Configuration conf = getRWConfiguration(yamlConfiguration, shardPairModel.getMasterIp(), shardKey);
+            fluxRWSessionFactories.put(shardKey, conf.buildSessionFactory());
+
         });
+        if( fluxRWSessionFactories.size() != (1<<8)){
+            throw new RuntimeException("No. of RW Session Factories should be 16*16, currently it is " +
+                    Integer.toString(fluxRWSessionFactories.size()));
+        }
         return fluxRWSessionFactories;
     }
 
@@ -218,13 +225,10 @@ public class ShardModule extends AbstractModule {
     @Named("fluxSessionFactoriesContext")
     public SessionFactoryContext getSessionFactoryProvider(@Named("fluxRWSessionFactoriesMap") Map fluxRWSessionFactoriesMap,
                                                            @Named("fluxROSessionFactoriesMap") Map fluxROSessionFactoriesMap,
-                                                           @Named("fluxRWShardKeyToShardMapping") Map fluxRWShardKeyToShardMapping,
-                                                           @Named("fluxROShardKeyToShardMapping") Map fluxROShardKeyToShardMapping,
                                                            @Named("reDriverSessionFactory") SessionFactory redriverSessionFactory
     ) {
 
-        return new SessionFactoryContextImpl(fluxRWSessionFactoriesMap, fluxROSessionFactoriesMap,
-                fluxRWShardKeyToShardMapping, fluxROShardKeyToShardMapping, redriverSessionFactory);
+        return new SessionFactoryContextImpl(fluxRWSessionFactoriesMap, fluxROSessionFactoriesMap, redriverSessionFactory);
     }
 
 
@@ -248,7 +252,7 @@ public class ShardModule extends AbstractModule {
 
     }
 
-    private Configuration getConfiguration(YamlConfiguration yamlConfiguration, String prefix, String host) {
+    private Configuration getConfiguration(YamlConfiguration yamlConfiguration, String prefix, String host, String dbNameSuffix) {
         Configuration configuration = new Configuration();
         addAnnotatedClassesAndTypes(configuration);
         org.apache.commons.configuration.Configuration hibernateConfig = yamlConfiguration.subset(prefix);
@@ -259,7 +263,7 @@ public class ShardModule extends AbstractModule {
             Object propertyValue = hibernateConfig.getProperty(propertyKey);
             configProperties.put(propertyKey, propertyValue);
         }
-        configProperties.setProperty("hibernate.connection.url", "jdbc:mysql://" + host + ":3306/flux_sharding");
+        configProperties.setProperty("hibernate.connection.url", "jdbc:mysql://" + host + ":3306/" + DB_PREFIX + dbNameSuffix);
         configuration.addProperties(configProperties);
         return configuration;
     }

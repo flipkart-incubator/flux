@@ -38,42 +38,62 @@ public class TransactionInterceptorTest {
     @Test
     public void testTransactionInterceptorWithSessionFactoryContext() {
 
-        final Map RWSessionFactoryMap = new HashMap<ShardId, SessionFactory>();
-        final Map ROSessionFactoryMap = new HashMap<ShardId, SessionFactory>();
-        final Map shardKeyToRWShardIdMap = new HashMap<Character, ShardId>();
-        final Map shardKeyToROShardIdMap = new HashMap<Character, ShardId>();
+        final Map RWSessionFactoryMap = new HashMap<String, SessionFactory>();
+        final Map ROSessionFactoryMap = new HashMap<String, SessionFactory>();
         final SessionFactory redriverSessionFactory;
 
 
         /* create a dummy SessionFactoryContext */
-        ShardId writeOnlyShardId = new ShardId(1);
-        ShardId readOnlyShardId = new ShardId(2);
-        SessionFactory masterWriteSF = mock(SessionFactory.class);
-        SessionFactory slaveReadSF = mock(SessionFactory.class);
         redriverSessionFactory = mock(SessionFactory.class);
-        RWSessionFactoryMap.put(writeOnlyShardId, masterWriteSF);
-        ROSessionFactoryMap.put(readOnlyShardId, slaveReadSF);
 
-        for (Integer i = 0; i < 16; i++) {
-            shardKeyToRWShardIdMap.put(Integer.toHexString(i).charAt(0), writeOnlyShardId);
-            shardKeyToROShardIdMap.put(Integer.toHexString(i).charAt(0), readOnlyShardId);
-        }
+        SessionFactory [] rwSessionFactoriesArray = new SessionFactory[1<<8];
+        Session []  rwSessions = new Session[1<<8];
+        Transaction[] rwTransactions = new Transaction[1<<8];
+
+        SessionFactory [] roSessionFactoriesArray = new SessionFactory[1<<8];
+        Session []  roSessions = new Session[1<<8];
+        Transaction[] roTransactions = new Transaction[1<<8];
+
+
+
+
+        for (Integer i = 0; i < 16; i++)
+            for (Integer j = 0; j < 16; j++) {
+                // Read - Write Mock Setup
+                String shardKey = Integer.toHexString(i) + Integer.toHexString(j);
+                SessionFactory masterWriteSF = mock(SessionFactory.class);
+                Session mockedShardedReadWriteSession = mock(Session.class);
+                Transaction mockedShardedReadWriteTransaction = mock(Transaction.class);
+                rwSessionFactoriesArray[i*16 + j] = masterWriteSF;
+                rwSessions[i*16 + j] = mockedShardedReadWriteSession;
+                rwTransactions[i*16 + j] = mockedShardedReadWriteTransaction;
+
+                RWSessionFactoryMap.put(shardKey, masterWriteSF);
+                when( rwSessionFactoriesArray[i*16 + j].openSession()).thenReturn(rwSessions[i*16 + j]);
+                when(rwSessionFactoriesArray[i*16 + j].getCurrentSession()).thenReturn(null, rwSessions[i*16 + j]);
+                when(rwSessions[i*16 + j].getTransaction()).thenReturn(rwTransactions[i*16 + j]);
+
+                // Read Only Mock Set up
+                SessionFactory slaveReadSF = mock(SessionFactory.class);
+                Session mockedShardedReadOnlySession = mock(Session.class);
+                Transaction mockedShardedReadOnlyTransaction = mock(Transaction.class);
+                roSessionFactoriesArray[i*16 + j] = slaveReadSF;
+                roSessions[i*16 + j] = mockedShardedReadOnlySession;
+                rwTransactions[i*16 + j] = mockedShardedReadOnlyTransaction;
+
+                ROSessionFactoryMap.put(shardKey, masterWriteSF);
+                when( rwSessionFactoriesArray[i*16 + j].openSession()).thenReturn(rwSessions[i*16 + j]);
+                when(rwSessionFactoriesArray[i*16 + j].getCurrentSession()).thenReturn(null, rwSessions[i*16 + j]);
+                when(rwSessions[i*16 + j].getTransaction()).thenReturn(rwTransactions[i*16 + j]);
+            }
 
         SessionFactoryContext context = new SessionFactoryContextImpl(RWSessionFactoryMap,
                 ROSessionFactoryMap,
-                shardKeyToRWShardIdMap,
-                shardKeyToROShardIdMap,
                 redriverSessionFactory);
 
-        Session mockedShardedReadWriteSession = mock(Session.class);
-        Transaction mockedShardedReadWriteTransaction = mock(Transaction.class);
-        when(masterWriteSF.openSession()).thenReturn(mockedShardedReadWriteSession);
-        when(masterWriteSF.getCurrentSession()).thenReturn(null, mockedShardedReadWriteSession);
-        when(mockedShardedReadWriteSession.getTransaction()).thenReturn(mockedShardedReadWriteTransaction);
 
 
-        Session mockedShardedReadOnlySession = mock(Session.class);
-        Transaction mockedShardedReadOnlyTransaction = mock(Transaction.class);
+
         when(slaveReadSF.openSession()).thenReturn(mockedShardedReadOnlySession);
         when(slaveReadSF.getCurrentSession()).thenReturn(null, mockedShardedReadOnlySession);
         when(mockedShardedReadOnlySession.getTransaction()).thenReturn(mockedShardedReadOnlyTransaction);

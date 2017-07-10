@@ -84,13 +84,19 @@ public class FluxInitializer {
                 fluxInitializer.start();
                 break;
             case "migrate" :
-                if (args.length < 2) {
-                    throw new RuntimeException("<migrate> must be followed with db name");
-                }
-                if (!(args[1].equals("flux_sharding") || args[1].equals("flux_redriver"))) {
-                    throw new RuntimeException("<migrate> works only for 'flux_sharding' or 'flux_redriver'");
-                }
-                fluxInitializer.migrate(args[1]);
+
+//                if (args.length < 2) {
+//                    throw new RuntimeException("<migrate> must be followed with db name");
+//                }
+//                if (!(args[1].equals("flux_sharding") || args[1].equals("flux_redriver"))) {
+//                    throw new RuntimeException("<migrate> works only for 'flux_sharding' or 'flux_redriver'");
+//                }
+                String dbnamePrefix = "fluxShard_";
+                for(int i = 0 ; i < 16; i++)
+                    for(int j = 0 ; j < 16; j++) {
+                        String dbnameSuffix = Integer.toHexString(i) + Integer.toHexString(j);
+                        fluxInitializer.migrate(dbnamePrefix + dbnameSuffix);
+                    }
                 break;
         }
     }

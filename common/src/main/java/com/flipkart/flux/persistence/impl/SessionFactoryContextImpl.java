@@ -26,26 +26,22 @@ import java.util.Map;
  * for Master(Read-Write) and Slave(Read-Only) Shards, {@link SessionFactory} redriverSessionFactory  as well as shardString to ShardId Mapping for both Slave,Master
  * and uses a thread local to save the SessionFactory that is being used in an ongoing transaction.
  * <p>
- * Created by gaurav.ashok on 23/11/16.
+ * @author amitkumar.o
+ * @author gourav.ashok
  */
 public class SessionFactoryContextImpl implements SessionFactoryContext {
 
-    private final ImmutableMap<ShardId, SessionFactory> RWSessionFactoryImmutableMap;
-    private final ImmutableMap<ShardId, SessionFactory> ROSessionFactoryImmutableMap;
-    private final ImmutableMap<Character, ShardId> shardKeyToRWShardIdImmutableMap;
-    private final ImmutableMap<Character, ShardId> shardKeyToROShardIdImmutableMap;
+    private final ImmutableMap<String, SessionFactory> RWSessionFactoryImmutableMap;
+    private final ImmutableMap<String, SessionFactory> ROSessionFactoryImmutableMap;
     private final SessionFactory redriverSessionFactory;
 
 
     private final ThreadLocal<Session> currentSessionFactoryContext = new ThreadLocal<>();
 
-    public SessionFactoryContextImpl(Map<ShardId, SessionFactory> rwSessionFactoryMap, Map<ShardId, SessionFactory> roSessionFactoryMap,
-                                     Map<Character, ShardId> shardKeyToRWShardIdMap, Map<Character, ShardId> shardKeyToROShardIdMap,
+    public SessionFactoryContextImpl(Map<String, SessionFactory> rwSessionFactoryMap, Map<String, SessionFactory> roSessionFactoryMap,
                                      SessionFactory redriverSessionFactory) {
         this.RWSessionFactoryImmutableMap = ImmutableMap.copyOf(rwSessionFactoryMap);
         this.ROSessionFactoryImmutableMap = ImmutableMap.copyOf(roSessionFactoryMap);
-        this.shardKeyToRWShardIdImmutableMap = ImmutableMap.copyOf(shardKeyToRWShardIdMap);
-        this.shardKeyToROShardIdImmutableMap = ImmutableMap.copyOf(shardKeyToROShardIdMap);
         this.redriverSessionFactory = redriverSessionFactory;
     }
 
@@ -66,26 +62,13 @@ public class SessionFactoryContextImpl implements SessionFactoryContext {
     }
 
     @Override
-    public SessionFactory getRWSessionFactory(ShardId shardId) {
-        return RWSessionFactoryImmutableMap.get(shardId);
+    public SessionFactory getRWSessionFactory(String shardKey) {
+        return RWSessionFactoryImmutableMap.get(shardKey);
     }
 
     @Override
-    public SessionFactory getROSessionFactory(ShardId shardId) {
-        return ROSessionFactoryImmutableMap.get(shardId);
-    }
-
-    @Override
-    public SessionFactory getDefaultSessionFactoryMap(ShardId shardId) {
-        return RWSessionFactoryImmutableMap.get(shardId);
-    }
-
-    public ShardId getRWShardIdForShardKey(Character shardKey) {
-        return shardKeyToRWShardIdImmutableMap.get(shardKey);
-    }
-
-    public ShardId getROShardIdForShardKey(Character shardKey) {
-        return shardKeyToROShardIdImmutableMap.get(shardKey);
+    public SessionFactory getROSessionFactory(String shardKey) {
+        return ROSessionFactoryImmutableMap.get(shardKey);
     }
 
     @Override

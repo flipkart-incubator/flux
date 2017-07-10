@@ -13,6 +13,9 @@
 
 package com.flipkart.flux.persistence;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.security.MessageDigest;
 
 /**
@@ -21,15 +24,18 @@ import java.security.MessageDigest;
 public class CryptHashGenerator {
 
     private static final String cryptHashAlgorithmPrefix = "SHA-256";
+    private static final Logger logger = LoggerFactory.getLogger(CryptHashGenerator.class);
 
-    public static Character getUniformCryptHash(String stateMachineId) {
+
+    public static String getUniformCryptHash(String stateMachineId) {
         try {
             MessageDigest md = MessageDigest.getInstance(cryptHashAlgorithmPrefix);
             md.update(stateMachineId.getBytes());
             String cryptHash = javax.xml.bind.DatatypeConverter.printHexBinary(md.digest()).toLowerCase();
-            return cryptHash.charAt(0);
+            return Character.toString(cryptHash.charAt(0)) + Character.toString(cryptHash.charAt(1));
         } catch (Exception ex) {
-            throw new RuntimeException();
+            logger.error("Unable to generate Hash for the given stateMachine Id {} {}", stateMachineId, ex.getStackTrace());
+            throw new RuntimeException("Exception in generating cryptic has given a shard key");
         }
     }
 }
