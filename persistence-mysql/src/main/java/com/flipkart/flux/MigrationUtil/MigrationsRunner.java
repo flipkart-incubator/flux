@@ -45,6 +45,7 @@ public class MigrationsRunner {
             properties.put("user", configuration.getProperty("hibernate.connection.username"));
             properties.put("password", configuration.getProperty("hibernate.connection.password"));
             String url = (String) configuration.getProperty("hibernate.connection.url");
+            url = url.concat(dbName);
             Class.forName("com.mysql.jdbc.Driver").newInstance();
             java.sql.Connection connection = DriverManager.getConnection(url, properties);
             Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
@@ -56,6 +57,7 @@ public class MigrationsRunner {
             System.err.println("Unable to perform database migration.");
             e.printStackTrace();
         }
+
     }
 
 }

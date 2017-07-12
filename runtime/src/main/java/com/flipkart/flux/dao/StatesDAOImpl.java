@@ -18,7 +18,6 @@ import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.persistence.*;
 import com.flipkart.flux.resource.StateMachineResource;
-import com.flipkart.flux.shard.ShardHostModel;
 import com.flipkart.flux.shard.ShardId;
 import com.google.inject.name.Named;
 import org.hibernate.Query;
@@ -111,11 +110,10 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     }
 
 
-
     @Transactional
     @DataStorage(STORAGE.SHARDED)
     @SelectDataSource(DataSourceType.READ_ONLY)
-    public List findErroredStates(ShardId shardId, String stateMachineName, String fromStateMachineId, String toStateMachineId) {
+    public List findErroredStates(String shardKey, String stateMachineName, String fromStateMachineId, String toStateMachineId) {
         Query query = currentSession().createQuery("select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
                 "where sm.id >= :fromStateMachineId and sm.id  <= :toStateMachineId and sm.name = :stateMachineName and state.status in ('errored', 'sidelined', 'cancelled')");
 
@@ -129,7 +127,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Transactional
     @DataStorage(STORAGE.SHARDED)
     @SelectDataSource(DataSourceType.READ_ONLY)
-    public List findStatesByStatus(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime, String stateName, List<Status> statuses) {
+    public List findStatesByStatus(String shardKey, String stateMachineName, Timestamp fromTime, Timestamp toTime, String stateName, List<Status> statuses) {
         Query query;
         String queryString = "select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
                 "where sm.id between (select min(id) from StateMachine where createdAt >= :fromTime) and (select max(id) from StateMachine where createdAt <= :toTime) " +

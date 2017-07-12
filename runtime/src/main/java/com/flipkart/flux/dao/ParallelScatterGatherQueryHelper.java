@@ -20,11 +20,16 @@ import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.shard.ShardId;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
@@ -34,71 +39,79 @@ import java.util.function.Function;
  */
 @Singleton
 public class ParallelScatterGatherQueryHelper {
-    private StatesDAO statesDAO;
-    private StateMachinesDAO stateMachinesDAO;
+    private final StatesDAO statesDAO;
+    private final StateMachinesDAO stateMachinesDAO;
+    private final Map<String, ShardId> fluxShardKeyToShardIdMap;
+    private final ExecutorService executorService;
 
     private static final Logger logger = LoggerFactory.getLogger(StatesDAOImpl.class);
 
     @Inject
-    public ParallelScatterGatherQueryHelper(StatesDAO statesDAO, StateMachinesDAO stateMachinesDAO) {
+    public ParallelScatterGatherQueryHelper(StatesDAO statesDAO, StateMachinesDAO stateMachinesDAO,
+                                            @Named("fluxShardKeyToShardIdMap") Map<String, ShardId> fluxShardKeyToShardIdMap) {
         this.statesDAO = statesDAO;
         this.stateMachinesDAO = stateMachinesDAO;
+        this.fluxShardKeyToShardIdMap = fluxShardKeyToShardIdMap;
+        executorService = Executors.newFixedThreadPool(10);
     }
 
 
     public List findErroredStates(String stateMachineName, String fromStateMachineId, String toStateMachineId) {
         List result = Collections.synchronizedList(new ArrayList<>());
         scatterGatherQueryHelper((shardKey) ->
-                statesDAO.findErroredStates(shardKey, stateMachineName, fromStateMachineId, toStateMachineId), result , "errored states");
-        return  result;
+                statesDAO.findErroredStates(shardKey, stateMachineName, fromStateMachineId, toStateMachineId), result, "errored states");
+        return result;
     }
 
 
     public List findStatesByStatus(String stateMachineName, Timestamp fromTime, Timestamp toTime, String taskName, List<Status> statuses) {
         List result = Collections.synchronizedList(new ArrayList<>());
         scatterGatherQueryHelper((shardKey) ->
-                statesDAO.findStatesByStatus(shardKey, stateMachineName, fromTime, toTime, taskName, statuses),result , "states by status");
+                statesDAO.findStatesByStatus(shardKey, stateMachineName, fromTime, toTime, taskName, statuses), result, "states by status");
         return result;
     }
 
-    public Set<StateMachine> findByName(String stateMachineName){
+    public Set<StateMachine> findByName(String stateMachineName) {
         Set result = Collections.synchronizedSet(new HashSet<StateMachine>());
         scatterGatherQueryHelper((shardKey) ->
-                stateMachinesDAO.findByName(shardKey, stateMachineName), result , "states by status");
-        return  result;
+                stateMachinesDAO.findByName(shardKey, stateMachineName), result, "states by status");
+        return result;
     }
 
-    public Set<StateMachine> findByNameAndVersion(String stateMachineName, Long Version){
+    public Set<StateMachine> findByNameAndVersion(String stateMachineName, Long Version) {
         Set result = Collections.synchronizedSet(new HashSet<StateMachine>());
         scatterGatherQueryHelper((shardKey) ->
-                stateMachinesDAO.findByNameAndVersion(shardKey, stateMachineName, Version), result , "states by status");
-        return  result;
+                stateMachinesDAO.findByNameAndVersion(shardKey, stateMachineName, Version), result, "states by status");
+        return result;
     }
 
-    private void scatterGatherQueryHelper(Function<ShardId, Collection> reader, Collection result, String errorMessage) {
-        // noOfThreads spawned = no. of Slave Shards
-//        final CountDownLatch latch = new CountDownLatch(fluxShardIdToShardPairMap.size());
-//        fluxShardIdToShardPairMap.entrySet().forEach(entry -> {
-//            new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    try {
-//                        result.addAll(reader.apply(entry.getKey()));
-//                    } catch (Exception ex) {
-//                        logger.error("Error in fetching {} from Slave with id {} , ip {} {}",
-//                                errorMessage ,entry.getKey(), entry.getValue().getSlaveIp(), ex.getStackTrace());
-//                    } finally {
-//                        latch.countDown();
-//                    }
-//                }
-//                }).run();
-//        });
-//        try {
-//            // wait till all the results are returned from all shards
-//            latch.await();
-//        } catch (InterruptedException e) {
-//            logger.error("Exception occured while gathering {} from Slaves : {}", errorMessage ,e.getStackTrace());
-//        }
+    private void scatterGatherQueryHelper(Function<String, Collection> reader, Collection result, String errorMessage) {
+        Future[] tasksCompleted = new Future[fluxShardKeyToShardIdMap.size()];
+        AtomicInteger tasks = new AtomicInteger(0);
+        fluxShardKeyToShardIdMap.entrySet().forEach(entry -> {
+            tasksCompleted[tasks.get()] = executorService.submit(() -> {
+                try {
+                    result.addAll(reader.apply(entry.getKey()));
+                } catch (Exception ex) {
+                    logger.error("Error in fetching {} from Slave with key {} , id {} {}",
+                            errorMessage, entry.getKey(), entry.getValue(), ex.getStackTrace());
+                }
+            });
+            tasks.getAndIncrement();
+        });
+        try {
+            boolean allDone = false;
+            while (!allDone) {
+                allDone = true;
+                for (int i = 0; i < fluxShardKeyToShardIdMap.size(); i++)
+                    if (!tasksCompleted[i].isDone() && !tasksCompleted[i].isCancelled()) {
+                        allDone = false;
+                        break;
+                    }
+            }
+        } catch (Exception e) {
+            logger.error("Exception occured while gathering {} from Slaves : {}", errorMessage, e.getStackTrace());
+        }
     }
 
 

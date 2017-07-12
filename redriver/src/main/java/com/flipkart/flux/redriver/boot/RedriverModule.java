@@ -18,7 +18,6 @@ import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.impl.SessionFactoryContextImpl;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
-import com.flipkart.flux.shard.ShardId;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import com.google.inject.AbstractModule;
 import com.google.inject.Key;
@@ -96,11 +95,8 @@ public class RedriverModule extends AbstractModule {
     @Singleton
     @Named("redriverSessionFactoriesContext")
     public SessionFactoryContext getSessionFactoryProvider(@Named("reDriverSessionFactory") SessionFactory redriverSessionFactory) {
-        Map fluxRWSessionFactoriesMap = new HashMap<ShardId, SessionFactory>();
-        Map fluxROSessionFactoriesMap = new HashMap<ShardId, SessionFactory>();
-        Map fluxRWShardKeyToShardMapping = new HashMap<Character, com.flipkart.flux.shard.ShardId>();
-        Map fluxROShardKeyToShardMapping = new HashMap<Character, com.flipkart.flux.shard.ShardId>();
-        return new SessionFactoryContextImpl(fluxRWSessionFactoriesMap, fluxROSessionFactoriesMap,
-                fluxRWShardKeyToShardMapping, fluxROShardKeyToShardMapping, redriverSessionFactory);
+        Map fluxRWSessionFactoriesMap = new HashMap<String, SessionFactory>();
+        Map fluxROSessionFactoriesMap = new HashMap<String, SessionFactory>();
+        return new SessionFactoryContextImpl(fluxRWSessionFactoriesMap, fluxROSessionFactoriesMap, redriverSessionFactory);
     }
 }

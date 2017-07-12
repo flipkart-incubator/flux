@@ -19,7 +19,6 @@ import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
-import com.flipkart.flux.shard.MasterSlavePairList;
 import com.flipkart.flux.shard.ShardId;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -30,54 +29,65 @@ import org.junit.rules.ExternalResource;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * <code>DbClearRule</code> is a Junit Rule which clears db tables before running a test.
+ *
  * @author shyam.akirala
  */
 @Singleton
-public class DbClearRule extends ExternalResource{
+public class DbClearRule extends ExternalResource {
 
     private final SessionFactoryContext fluxSessionFactoryContext;
     private final SessionFactoryContext redriverSessionFactoryContext;
-    private final MasterSlavePairList masterSlavePairList ;
+    private final Map<String, ShardId> shardKeyToShardIdMap;
 
-    /** List of entity tables which need to be cleared from flux db*/
+    /**
+     * List of entity tables which need to be cleared from flux db
+     */
     private static Class[] fluxTables = {StateMachine.class, State.class, AuditRecord.class, Event.class};
 
-    /** List of entity tables which need to be cleared from flux redriver db*/
+    /**
+     * List of entity tables which need to be cleared from flux redriver db
+     */
     private static Class[] fluxRedriverTables = {ScheduledMessage.class};
 
 
     @Inject
     public DbClearRule(@Named("fluxSessionFactoriesContext") SessionFactoryContext fluxSessionFactoryContext,
                        @Named("redriverSessionFactoriesContext") SessionFactoryContext redriverSessionFactoryContext,
-                       @Named("fluxMasterSlavePairList") MasterSlavePairList masterSlavePairList) {
+                       @Named("fluxShardKeyToShardIdMap") Map<String, ShardId> shardKeyToShardIdMap) {
         this.fluxSessionFactoryContext = fluxSessionFactoryContext;
         this.redriverSessionFactoryContext = redriverSessionFactoryContext;
-        this.masterSlavePairList = masterSlavePairList;
+        this.shardKeyToShardIdMap = shardKeyToShardIdMap;
     }
 
     @Override
     protected void before() throws Throwable {
-       explicitClearTables();
+        explicitClearTables();
     }
 
-    public void explicitClearTables(){
-        masterSlavePairList.getMasterSlavePairList().forEach(masterSlavePair -> {
-            ShardId shardId = masterSlavePair.getMaster().getShardId();
-            clearDb(fluxTables,fluxSessionFactoryContext.getRWSessionFactory(shardId));
+    public void explicitClearTables() {
+        AtomicInteger masterClearTasks = new AtomicInteger(0);
+        AtomicInteger slaveClearTask = new AtomicInteger(0);
+        shardKeyToShardIdMap.entrySet().forEach(entry -> {
+            clearDb(fluxTables, fluxSessionFactoryContext.getRWSessionFactory(entry.getKey()));
             fluxSessionFactoryContext.clear();
-            shardId = masterSlavePair.getSlave().getShardId();
-            clearDb(fluxTables,fluxSessionFactoryContext.getROSessionFactory(shardId));
+            masterClearTasks.incrementAndGet();
+            clearDb(fluxTables, fluxSessionFactoryContext.getROSessionFactory(entry.getKey()));
+            slaveClearTask.incrementAndGet();
             fluxSessionFactoryContext.clear();
 
         });
-        clearDb(fluxRedriverTables,redriverSessionFactoryContext.getRedriverSessionFactory());
+        clearDb(fluxRedriverTables, redriverSessionFactoryContext.getRedriverSessionFactory());
         redriverSessionFactoryContext.clear();
     }
 
-    /** Clears all given tables which are mentioned using the given sessionFactory*/
+    /**
+     * Clears all given tables which are mentioned using the given sessionFactory
+     */
     private void clearDb(Class[] tables, SessionFactory sessionFactory) {
         Session session = sessionFactory.openSession();
         ManagedSessionContext.bind(session);
@@ -90,11 +100,11 @@ public class DbClearRule extends ExternalResource{
             sessionFactory.getCurrentSession().createSQLQuery("set foreign_key_checks=1").executeUpdate();
             tx.commit();
         } catch (Exception e) {
-            if(tx != null)
+            if (tx != null)
                 tx.rollback();
-            throw new RuntimeException("Unable to clear tables. Exception: "+e.getMessage(), e);
+            throw new RuntimeException("Unable to clear tables. Exception: " + e.getMessage(), e);
         } finally {
-            if(session != null) {
+            if (session != null) {
                 ManagedSessionContext.unbind(sessionFactory);
                 session.close();
             }

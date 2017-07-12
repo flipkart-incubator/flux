@@ -31,6 +31,9 @@ public class ShardPairModel {
         this.endKey = endKey;
     }
 
+    public ShardPairModel() {
+    }
+
     public ShardId getShardId() {
         return shardId;
     }

@@ -65,8 +65,7 @@ import java.util.Properties;
  */
 public class ShardModule extends AbstractModule {
 
-    public static final String FLUX_HIBERNATE_SHARD_CONFIG_NAME_SPACE = "flux.Shard.Config.master.slave.pair.list";
-    public static final String FLUX_HIBERNATE_SHARD_CONFIG_NAME = "master.slave.pair.list";
+    public static final String FLUX_HIBERNATE_SHARD_CONFIG_NAME_SPACE = "flux.Shard.Pair.Config";
     public static final String FLUX_HIBERNATE_CONFIG_NAME_SPACE = "flux.Hibernate";
     public static final String FLUX_READ_ONLY_HIBERNATE_CONFIG_NAME_SPACE = "fluxReadOnly.Hibernate";
     public static final String DB_PREFIX = "fluxShard_";
@@ -120,12 +119,13 @@ public class ShardModule extends AbstractModule {
 
     @Provides
     @Singleton
-    @Named("fluxShardIdToShardPairMapping")
-    public Map getFluxRWShardIdToShardMapping(@Named("fluxMasterSlavePairList") MasterSlavePairList masterSlavePairList) {
+    @Named("fluxShardIdToShardPairMap")
+    public Map<ShardId, ShardPairModel> getFluxRWShardIdToShardMapping(@Named("fluxMasterSlavePairList") MasterSlavePairList masterSlavePairList) {
         Map shardIdToShardHostModelMap = new HashMap<ShardId, ShardPairModel>();
         masterSlavePairList.getShardPairModelList().forEach(masterSlavePair -> {
             shardIdToShardHostModelMap.put(masterSlavePair.getShardId(), masterSlavePair);
         });
+        assert masterSlavePairList.getShardPairModelList().size() == shardIdToShardHostModelMap.size();
         return shardIdToShardHostModelMap;
     }
 
@@ -137,9 +137,9 @@ public class ShardModule extends AbstractModule {
      */
     @Provides
     @Singleton
-    @Named("fluxShardKeyToShardIdMapping")
-    public Map getFluxRWShardKeyToShardIdMapping(@Named("fluxMasterSlavePairList") MasterSlavePairList masterSlavePairList) {
-        Map shardKeyToShardIdMap = new HashMap<String, com.flipkart.flux.shard.ShardId>();
+    @Named("fluxShardKeyToShardIdMap")
+    public Map<String, ShardId> getFluxRWShardKeyToShardIdMapping(@Named("fluxMasterSlavePairList") MasterSlavePairList masterSlavePairList) {
+        Map shardKeyToShardIdMap = new HashMap<String, ShardId>();
         masterSlavePairList.getShardPairModelList().forEach(masterSlavePair -> {
             String startKey = masterSlavePair.getStartKey();
             String endKey = masterSlavePair.getEndKey();
@@ -151,7 +151,7 @@ public class ShardModule extends AbstractModule {
                     }
                 }
         });
-        if (shardKeyToShardIdMap.size() != (1<<8)) {
+        if (shardKeyToShardIdMap.size() != (1 << 8)) {
             throw new RuntimeException("No. of shardKeys should be 16*16, currently it is " +
                     Integer.toString(shardKeyToShardIdMap.size()));
         }
@@ -174,22 +174,21 @@ public class ShardModule extends AbstractModule {
 
     @Provides
     @Singleton
-    @Named("fluxRWSessionFactoriesMap")
-    public Map getFluxRWSessionFactoryMap(@Named("fluxShardKeyToShardIdMapping") Map<String, ShardId>
-                                                  fluxShardKeyToShardIdMap,
-                                          @Named("fluxShardIdToShardPairMapping") Map<ShardId, ShardPairModel>
-                                                  fluxShardIdToShardPairMap,
-                                          YamlConfiguration yamlConfiguration) {
+    @Named("fluxROSessionFactoriesMap")
+    public Map<String, SessionFactory> getFluxROSessionFactoryMap(@Named("fluxShardKeyToShardIdMap") Map<String, ShardId>
+                                                                          fluxShardKeyToShardIdMap,
+                                                                  @Named("fluxShardIdToShardPairMap") Map<ShardId, ShardPairModel>
+                                                                          fluxShardIdToShardPairMap,
+                                                                  YamlConfiguration yamlConfiguration) {
         Map fluxROSessionFactories = new HashMap<String, SessionFactory>();
         fluxShardKeyToShardIdMap.entrySet().forEach(shardKeyToShardIdMapping -> {
             String shardKey = shardKeyToShardIdMapping.getKey();
             ShardId shardId = shardKeyToShardIdMapping.getValue();
             ShardPairModel shardPairModel = fluxShardIdToShardPairMap.get(shardId);
-            Configuration conf = getRWConfiguration(yamlConfiguration, shardPairModel.getSlaveIp(), shardKey);
+            Configuration conf = getROConfiguration(yamlConfiguration, shardPairModel.getSlaveIp(), shardKey);
             fluxROSessionFactories.put(shardKey, conf.buildSessionFactory());
-
         });
-        if( fluxROSessionFactories.size() != (1<<8)){
+        if (fluxROSessionFactories.size() != (1 << 8)) {
             throw new RuntimeException("No. of RW Session Factories should be 16*16, currently it is " +
                     Integer.toString(fluxROSessionFactories.size()));
         }
@@ -198,12 +197,12 @@ public class ShardModule extends AbstractModule {
 
     @Provides
     @Singleton
-    @Named("fluxROSessionFactoriesMap")
-    public Map getFluxROSessionFactoryMap(@Named("fluxShardKeyToShardIdMapping") Map<String, ShardId>
-                                                      fluxShardKeyToShardIdMap,
-                                          @Named("fluxShardIdToShardPairMapping") Map<ShardId, ShardPairModel>
-                                                      fluxShardIdToShardPairMap,
-                                          YamlConfiguration yamlConfiguration) {
+    @Named("fluxRWSessionFactoriesMap")
+    public Map<String, SessionFactory> getFluxRWSessionFactoryMap(@Named("fluxShardKeyToShardIdMap") Map<String, ShardId>
+                                                                          fluxShardKeyToShardIdMap,
+                                                                  @Named("fluxShardIdToShardPairMap") Map<ShardId, ShardPairModel>
+                                                                          fluxShardIdToShardPairMap,
+                                                                  YamlConfiguration yamlConfiguration) {
         Map fluxRWSessionFactories = new HashMap<String, SessionFactory>();
         fluxShardKeyToShardIdMap.entrySet().forEach(shardKeyToShardIdMapping -> {
             String shardKey = shardKeyToShardIdMapping.getKey();
@@ -211,9 +210,8 @@ public class ShardModule extends AbstractModule {
             ShardPairModel shardPairModel = fluxShardIdToShardPairMap.get(shardId);
             Configuration conf = getRWConfiguration(yamlConfiguration, shardPairModel.getMasterIp(), shardKey);
             fluxRWSessionFactories.put(shardKey, conf.buildSessionFactory());
-
         });
-        if( fluxRWSessionFactories.size() != (1<<8)){
+        if (fluxRWSessionFactories.size() != (1 << 8)) {
             throw new RuntimeException("No. of RW Session Factories should be 16*16, currently it is " +
                     Integer.toString(fluxRWSessionFactories.size()));
         }
@@ -223,8 +221,8 @@ public class ShardModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("fluxSessionFactoriesContext")
-    public SessionFactoryContext getSessionFactoryProvider(@Named("fluxRWSessionFactoriesMap") Map fluxRWSessionFactoriesMap,
-                                                           @Named("fluxROSessionFactoriesMap") Map fluxROSessionFactoriesMap,
+    public SessionFactoryContext getSessionFactoryProvider(@Named("fluxRWSessionFactoriesMap") Map<String, SessionFactory> fluxRWSessionFactoriesMap,
+                                                           @Named("fluxROSessionFactoriesMap") Map<String, SessionFactory> fluxROSessionFactoriesMap,
                                                            @Named("reDriverSessionFactory") SessionFactory redriverSessionFactory
     ) {
 
@@ -246,9 +244,6 @@ public class ShardModule extends AbstractModule {
         configuration.addAnnotatedClass(Event.class);
         configuration.addAnnotatedClass(State.class);
         configuration.addAnnotatedClass(StateMachine.class);
-
-        // added Redriver class as well
-        // configuration.addAnnotatedClass(ScheduledMessage.class);
 
     }
 

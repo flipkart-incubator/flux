@@ -39,11 +39,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * <code>AuditDAOTest</code> class tests the functionality of {@link AuditDAO} using JUnit tests.
+ *
  * @author shyam.akirala
  * @author kartik.bommepally
  */
 @RunWith(GuiceJunit4Runner.class)
-@Modules({DeploymentUnitTestModule.class,ShardModule.class,RuntimeTestModule.class,ContainerModule.class,AkkaModule.class,TaskModule.class,FluxClientInterceptorModule.class})
+@Modules({DeploymentUnitTestModule.class, ShardModule.class, RuntimeTestModule.class, ContainerModule.class, AkkaModule.class, TaskModule.class, FluxClientInterceptorModule.class})
 public class AuditDAOTest {
 
     @Inject
@@ -54,20 +55,21 @@ public class AuditDAOTest {
     public DbClearWithTestSMRule dbClearWithTestSMRule;
 
     @Before
-    public void setup() {}
+    public void setup() {
+    }
 
     @Test
     public void createAuditRecordTest() {
         StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
         State state = null;
-        for(Object ob : stateMachine.getStates()) {
+        for (Object ob : stateMachine.getStates()) {
             state = (State) ob;
             break;
         }
-        AuditRecord auditRecord = new AuditRecord(stateMachine.getId(), (state!=null) ? state.getId() : null, 0L, Status.completed, null, null);
-        Long recordId = auditDAO.create(stateMachine.getId() ,auditRecord).getId();
+        AuditRecord auditRecord = new AuditRecord(stateMachine.getId(), (state != null) ? state.getId() : null, 0L, Status.completed, null, null);
+        Long recordId = auditDAO.create(stateMachine.getId(), auditRecord).getId();
 
-        AuditRecord auditRecord1 = auditDAO.findById(stateMachine.getId() ,recordId);
+        AuditRecord auditRecord1 = auditDAO.findById(stateMachine.getId(), recordId);
         assertThat(auditRecord1).isEqualTo(auditRecord);
     }
 }

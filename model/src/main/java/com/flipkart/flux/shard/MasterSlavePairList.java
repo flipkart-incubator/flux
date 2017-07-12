@@ -16,7 +16,7 @@ package com.flipkart.flux.shard;
 import java.util.List;
 
 /* Mapper Class to read the shard configuration from Config File as Json
- * Created by amitkumar.o on 19/06/17.
+ * @author amitkumar.o
  */
 public class MasterSlavePairList {
     private List<ShardPairModel>  shardPairModelList;

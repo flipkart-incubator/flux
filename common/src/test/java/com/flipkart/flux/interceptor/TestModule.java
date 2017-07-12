@@ -50,7 +50,6 @@ public class TestModule extends AbstractModule {
                 toInstance(shardedReadOnlySession);
         bind(Session.class).annotatedWith(Names.named("redriverSession")).
                 toInstance(redriverSession);
-
         bind(InterceptedClass.class);
         bindInterceptor(Matchers.subclassesOf(InterceptedClass.class), Matchers.annotatedWith(Transactional.class), new TransactionInterceptor(() -> context));
     }

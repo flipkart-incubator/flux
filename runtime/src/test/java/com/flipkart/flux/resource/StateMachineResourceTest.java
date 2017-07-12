@@ -231,13 +231,13 @@ public class StateMachineResourceTest {
 
         /* mark 1 of the state as errored */
         sm.getStates().stream().findFirst().get().setStatus(Status.errored);
-        String firstSmId = UUID.randomUUID().toString();
+        String firstSmId = "state-machine-1";
         /* persist */
         final StateMachine firstSM = stateMachinesDAO.create(firstSmId, new StateMachine(firstSmId, sm.getVersion(), sm.getName(), sm.getDescription(), sm.getStates(), "uniqueCorId1"));
 
         /* change name and persist as 2nd statemachine */
         String secondSmId = UUID.randomUUID().toString();
-        final String differentSMName = "differentStateMachine";
+        final String differentSMName = "state-machine-2";
         final StateMachine secondSM = stateMachinesDAO.create(secondSmId, new StateMachine(secondSmId, sm.getVersion(), differentSMName, sm.getDescription(), sm.getStates(), "uniqueCorId2"));
 
         /* fetch errored states with name "differentStateMachine" */

@@ -16,7 +16,6 @@ package com.flipkart.flux.dao;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.persistence.*;
-import com.flipkart.flux.shard.ShardId;
 import com.google.inject.name.Named;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
@@ -60,7 +59,7 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     @Transactional
     @DataStorage(STORAGE.SHARDED)
     @SelectDataSource(DataSourceType.READ_ONLY)
-    public Set<StateMachine> findByName(ShardId shardId, String stateMachineName) {
+    public Set<StateMachine> findByName(String shardKey, String stateMachineName) {
         Criteria criteria = currentSession().createCriteria(StateMachine.class)
                 .add(Restrictions.eq("name", stateMachineName));
         List<StateMachine> stateMachines = criteria.list();
@@ -72,7 +71,7 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     @Transactional
     @DataStorage(STORAGE.SHARDED)
     @SelectDataSource(DataSourceType.READ_ONLY)
-    public Set<StateMachine> findByNameAndVersion(ShardId shardId, String stateMachineName, Long version) {
+    public Set<StateMachine> findByNameAndVersion(String shardKey, String stateMachineName, Long version) {
         Criteria criteria = currentSession().createCriteria(StateMachine.class)
                 .add(Restrictions.eq("name", stateMachineName))
                 .add(Restrictions.eq("version", version));

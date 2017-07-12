@@ -14,7 +14,6 @@
 package com.flipkart.flux.interceptor;
 
 import com.flipkart.flux.persistence.*;
-import com.flipkart.flux.shard.ShardId;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.hibernate.Session;
@@ -45,23 +44,20 @@ public class InterceptedClass {
     @Transactional
     @DataStorage(STORAGE.SHARDED)
     @SelectDataSource(DataSourceType.READ_WRITE)
-    public void verifySessionFactoryAndSessionAndTransactionForShardedMaster(String shardKey){
+    public void verifySessionFactoryAndSessionAndTransactionForShardedMaster(String shardKey) {
         Assert.assertSame(context.getThreadLocalSession(), shardedReadWriteSession);
     }
 
     @Transactional
     @DataStorage(STORAGE.SHARDED)
     @SelectDataSource(DataSourceType.READ_ONLY)
-    public void verifySessionFactoryAndSessionAndTransactionForShardedSlave(ShardId shardId){
+    public void verifySessionFactoryAndSessionAndTransactionForShardedSlave(String shardPrefix) {
         Assert.assertSame(context.getThreadLocalSession(), shardedReadOnlySession);
     }
 
     @Transactional
     @DataStorage(STORAGE.REDRIVER)
-    public void verifySessionFactoryAndSessionAndTransactionForRedriverHost(){
+    public void verifySessionFactoryAndSessionAndTransactionForRedriverHost() {
         Assert.assertSame(context.getThreadLocalSession(), redriverSession);
     }
-
-    // Add more tests which gives wrong Annotations which should throw Exceptions
-
 }

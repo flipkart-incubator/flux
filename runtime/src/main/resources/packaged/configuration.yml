@@ -1,59 +1,62 @@
-flux.Shard.Config:
-  master.slave.pair.list:
-  "{
-    \"masterSlavePairList\" :
-    [
-        {
-          \"shardId\":1,
-          \"masterIp\": \"127.0.0.1\",
-          \"masterIp\": \"127.0.0.1\",
-          \"startKey\": \"00\",
-          \"endKey\":   \"3f\"
-        },
-        {
-          \"shardId\":2,
-          \"masterIp\": \"127.0.0.1\",
-          \"masterIp\": \"127.0.0.1\",
-          \"startKey\": \"40\",
-          \"endKey\":   \"7f\"
-        },
-        {
-          \"shardId\":3,
-          \"masterIp\": \"127.0.0.1\",
-          \"masterIp\": \"127.0.0.1\",
-          \"startKey\": \"80\",
-          \"endKey\":   \"bf\"
-        },
-        {
-          \"shardId\":4,
-          \"masterIp\": \"127.0.0.1\",
-          \"masterIp\": \"127.0.0.1\",
-          \"startKey\": \"c0\",
-          \"endKey\":   \"ff\"
-        },
-    ]
-  }"
+flux.Shard.Pair.Config: "{
+                            \"shardPairModelList\" :
+                                                  [
+                                                      {
+                                                        \"shardId\": 1,
+                                                        \"masterIp\": \"127.0.0.1\",
+                                                        \"slaveIp\": \"127.0.0.1\",
+                                                        \"startKey\": \"00\",
+                                                        \"endKey\":   \"3f\"
+                                                      },
+                                                      {
+                                                        \"shardId\": 2,
+                                                        \"masterIp\": \"127.0.0.1\",
+                                                        \"slaveIp\": \"127.0.0.1\",
+                                                        \"startKey\": \"40\",
+                                                        \"endKey\":   \"7f\"
+                                                      },
+                                                      {
+                                                        \"shardId\": 3,
+                                                        \"masterIp\": \"127.0.0.1\",
+                                                        \"slaveIp\": \"127.0.0.1\",
+                                                        \"startKey\": \"80\",
+                                                        \"endKey\":   \"bf\"
+                                                      },
+                                                      {
+                                                        \"shardId\": 4,
+                                                        \"masterIp\": \"127.0.0.1\",
+                                                        \"slaveIp\": \"127.0.0.1\",
+                                                        \"startKey\": \"c0\",
+                                                        \"endKey\":   \"ff\"
+                                                      }
+                                                  ]
+                          }"
 flux.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
-  hibernate.connection.url: "jdbc:mysql://localhost:3306/fluxShard_"
+  hibernate.connection.url: "jdbc:mysql://localhost:3306/"
   hibernate.connection.username: "root"
   hibernate.connection.password: ""
   hibernate.current_session_context_class: "managed"
   connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
-  hibernate.c3p0.min_size: 10
-  hibernate.c3p0.max_size: 100
+  hibernate.c3p0.min_size: 1
+  hibernate.c3p0.max_size: 1
+  hibernate.c3p0.numHelperThreads: 1
+  hibernate.c3p0.maxIdleTime: 5000
+
 
 fluxReadOnly.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
-  hibernate.connection.url: "jdbc:mysql://localhost:3306/fluxShard_"
+  hibernate.connection.url: "jdbc:mysql://localhost:3306/"
   hibernate.connection.username: "root"
   hibernate.connection.password: ""
   hibernate.current_session_context_class: "managed"
   connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
-  hibernate.c3p0.min_size: 3
-  hibernate.c3p0.max_size: 10
+  hibernate.c3p0.min_size: 1
+  hibernate.c3p0.max_size: 1
+  hibernate.c3p0.numHelperThreads: 1
+  hibernate.c3p0.maxIdleTime: 5000
 
 flux_redriver.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
@@ -63,8 +66,10 @@ flux_redriver.Hibernate:
   hibernate.connection.password: ""
   hibernate.current_session_context_class: "managed"
   connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
-  hibernate.c3p0.min_size: 10
-  hibernate.c3p0.max_size: 100
+  hibernate.c3p0.min_size: 1
+  hibernate.c3p0.max_size: 1
+  hibernate.c3p0.numHelperThreads: 1
+  hibernate.c3p0.maxIdleTime: 5000
 
 Dashboard:
   service.port: 9999
@@ -76,7 +81,7 @@ Api:
   service.port: 9998
   service.acceptors: 4
   service.selectors: 4
-  service.workers: 200
+  service.workers: 20
 
 routers:
   default:
@@ -99,7 +104,7 @@ redriver:
   batchread:
     batchsize: 100
     intervalms: 20000
-  noOfPersistenceWorkers: 10
+  noOfPersistenceWorkers: 5
 
 deploymentType: directory
 deploymentUnitsPath: "/tmp/workflows/"
