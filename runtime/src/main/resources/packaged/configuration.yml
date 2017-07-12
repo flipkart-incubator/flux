@@ -42,7 +42,7 @@ flux.Hibernate:
   hibernate.c3p0.min_size: 1
   hibernate.c3p0.max_size: 1
   hibernate.c3p0.numHelperThreads: 1
-  hibernate.c3p0.maxIdleTime: 5000
+  hibernate.c3p0.maxIdleTime: 1000
 
 
 fluxReadOnly.Hibernate:
@@ -56,7 +56,7 @@ fluxReadOnly.Hibernate:
   hibernate.c3p0.min_size: 1
   hibernate.c3p0.max_size: 1
   hibernate.c3p0.numHelperThreads: 1
-  hibernate.c3p0.maxIdleTime: 5000
+  hibernate.c3p0.maxIdleTime: 1000
 
 flux_redriver.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
@@ -69,7 +69,7 @@ flux_redriver.Hibernate:
   hibernate.c3p0.min_size: 1
   hibernate.c3p0.max_size: 1
   hibernate.c3p0.numHelperThreads: 1
-  hibernate.c3p0.maxIdleTime: 5000
+  hibernate.c3p0.maxIdleTime: 1000
 
 Dashboard:
   service.port: 9999
@@ -81,7 +81,7 @@ Api:
   service.port: 9998
   service.acceptors: 4
   service.selectors: 4
-  service.workers: 20
+  service.workers: 30
 
 routers:
   default:
