@@ -30,15 +30,15 @@ public class TestModule extends AbstractModule {
     private final SessionFactoryContext context;
     private final Session shardedReadWriteSession;
     private final Session shardedReadOnlySession;
-    private final Session redriverSession;
+    private final Session schedulerSession;
 
 
     public TestModule(SessionFactoryContext context, Session shardedReadWriteSession,
-                      Session shardedReadOnlySession, Session redriverSession) {
+                      Session shardedReadOnlySession, Session schedulerSession) {
         this.context = context;
         this.shardedReadWriteSession = shardedReadWriteSession;
         this.shardedReadOnlySession = shardedReadOnlySession;
-        this.redriverSession = redriverSession;
+        this.schedulerSession = schedulerSession;
     }
 
     @Override
@@ -48,8 +48,8 @@ public class TestModule extends AbstractModule {
                 toInstance(shardedReadWriteSession);
         bind(Session.class).annotatedWith(Names.named("shardedReadOnlySession")).
                 toInstance(shardedReadOnlySession);
-        bind(Session.class).annotatedWith(Names.named("redriverSession")).
-                toInstance(redriverSession);
+        bind(Session.class).annotatedWith(Names.named("schedulerSession")).
+                toInstance(schedulerSession);
         bind(InterceptedClass.class);
         bindInterceptor(Matchers.subclassesOf(InterceptedClass.class), Matchers.annotatedWith(Transactional.class), new TransactionInterceptor(() -> context));
     }

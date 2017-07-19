@@ -49,7 +49,7 @@ public class SchedulerModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        Provider<SessionFactoryContext> provider = getProvider(Key.get(SessionFactoryContext.class, Names.named("schedulerSessionFactoryContext")));
+        Provider<SessionFactoryContext> provider = getProvider(Key.get(SessionFactoryContext.class, Names.named("schedulerSessionFactoriesContext")));
         final TransactionInterceptor transactionInterceptor = new TransactionInterceptor(provider);
         bindInterceptor(Matchers.inPackage(MessageDao.class.getPackage()), Matchers.annotatedWith(Transactional.class), transactionInterceptor);
         bindInterceptor(Matchers.inPackage(EventSchedulerDao.class.getPackage()), Matchers.annotatedWith(Transactional.class), transactionInterceptor);

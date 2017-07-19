@@ -39,12 +39,12 @@ public class MessageDaoTest {
     MessageDao messageDao;
 
     @Inject
-    @Named("schedulerSessionFactoryContext")
-    SessionFactoryContext sessionFactory;
+    @Named("schedulerSessionFactoriesContext")
+    SessionFactoryContext context;
 
     @Before
     public void setUp() throws Exception {
-        context.setSession(context.getRedriverSessionFactory().openSession());
+        context.setSession(context.getSchedulerSessionFactory().openSession());
         Session session = context.getThreadLocalSession();
         ManagedSessionContext.bind(session);
         Transaction tx = session.beginTransaction();

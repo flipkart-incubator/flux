@@ -17,7 +17,6 @@ import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.flux.shard.ShardId;
@@ -85,7 +84,7 @@ public class DbClearRule extends ExternalResource {
         });
         assert masterClearTasks.get() == (1<<8);
         assert slaveClearTask.get() == (1<<8);
-        clearDb(fluxRedriverTables, schedulerSessionFactoryContext.getRedriverSessionFactory());
+        clearDb(fluxRedriverTables, schedulerSessionFactoryContext.getSchedulerSessionFactory());
         schedulerSessionFactoryContext.clear();
     }
 

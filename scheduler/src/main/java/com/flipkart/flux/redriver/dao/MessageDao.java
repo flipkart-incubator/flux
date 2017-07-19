@@ -38,7 +38,7 @@ public class MessageDao {
     private SessionFactoryContext sessionFactoryContext;
 
     @Inject
-    public MessageDao(@Named("schedulerSessionFactoryContext") SessionFactoryContext sessionFactoryContext) {
+    public MessageDao(@Named("schedulerSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
         this.sessionFactoryContext = sessionFactoryContext;
     }
 

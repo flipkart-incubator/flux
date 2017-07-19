@@ -244,7 +244,6 @@ public class StateMachineResource {
                 }
                 stateMachine = stateMachinesDAO.findByCorrelationId(machineId);
             } else {
-                workFlowExecutionController.postEvent(eventData, machineId, null);
                 stateMachine = stateMachinesDAO.findById(machineId);
             }
 
@@ -257,7 +256,7 @@ public class StateMachineResource {
                 return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + machineId + " is in 'cancelled' state. Discarding the event.").build();
             }
 
-            workFlowExecutionController.postEvent(eventData, stateMachine);
+            workFlowExecutionController.postEvent(eventData, machineId, null);
         } catch (IllegalEventException ex) {
             return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
         }

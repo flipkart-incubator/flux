@@ -41,11 +41,11 @@ public class TransactionInterceptorTest {
 
         final Map RWSessionFactoryMap = new HashMap<String, SessionFactory>();
         final Map ROSessionFactoryMap = new HashMap<String, SessionFactory>();
-        final SessionFactory redriverSessionFactory;
+        final SessionFactory schedulerSessionFactory;
 
 
         /* create a dummy SessionFactoryContext */
-        redriverSessionFactory = mock(SessionFactory.class);
+        schedulerSessionFactory = mock(SessionFactory.class);
 
         SessionFactory[] rwSessionFactoriesArray = new SessionFactory[1 << 8];
         Session[] rwSessions = new Session[1 << 8];
@@ -55,11 +55,11 @@ public class TransactionInterceptorTest {
         Session[] roSessions = new Session[1 << 8];
         Transaction[] roTransactions = new Transaction[1 << 8];
 
-        Session mockedRedriverSession = mock(Session.class);
-        Transaction mockedRedriverTransaction = mock(Transaction.class);
-        when(redriverSessionFactory.openSession()).thenReturn(mockedRedriverSession);
-        when(redriverSessionFactory.getCurrentSession()).thenReturn(null, mockedRedriverSession);
-        when(mockedRedriverSession.getTransaction()).thenReturn(mockedRedriverTransaction);
+        Session mockedSchedulerSession = mock(Session.class);
+        Transaction mockedSchedulerTransaction = mock(Transaction.class);
+        when(schedulerSessionFactory.openSession()).thenReturn(mockedSchedulerSession);
+        when(schedulerSessionFactory.getCurrentSession()).thenReturn(null, mockedSchedulerSession);
+        when(mockedSchedulerSession.getTransaction()).thenReturn(mockedSchedulerTransaction);
 
         Map<String, Integer> shardIndexes = new HashMap<>();
         for (Integer i = 0; i < 16; i++)
@@ -99,14 +99,14 @@ public class TransactionInterceptorTest {
         assert ROSessionFactoryMap.size() == (1 << 8);
         SessionFactoryContext context = new SessionFactoryContextImpl(RWSessionFactoryMap,
                 ROSessionFactoryMap,
-                redriverSessionFactory);
+                schedulerSessionFactory);
         for (int i = 0; i <= 5000; i++) {
             String random_Shard_Id = UUID.randomUUID().toString();
             String shardKey = CryptHashGenerator.getUniformCryptHash(random_Shard_Id);
             int index = shardIndexes.get(shardKey);
             Injector injector = Guice.createInjector(new TestModule(context, rwSessions[index],
                     roSessions[index],
-                    mockedRedriverSession));
+                    mockedSchedulerSession));
             InterceptedClass obj = injector.getInstance(InterceptedClass.class);
 
             obj.verifySessionFactoryAndSessionAndTransactionForShardedMaster(random_Shard_Id);

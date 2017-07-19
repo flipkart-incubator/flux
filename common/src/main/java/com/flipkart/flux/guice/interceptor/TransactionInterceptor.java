@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Provider;
 
-
 /**
  * <code>TransactionInterceptor</code> is a {@link MethodInterceptor} implementation to provide
  * transactional boundaries to methods which are annotated with {@link javax.transaction.Transactional}.
@@ -40,8 +39,6 @@ import javax.inject.Provider;
  * method1(); //call method1 which is annotated with transactional
  * }
  *
- * @author shyam.akirala
- * @author amitkumar.o
  * @Transactional void method1() {
  * method2(); //call method2 which is annotated with transactional
  * }
@@ -49,6 +46,8 @@ import javax.inject.Provider;
  * <p>
  * In the above case a transaction would be started before method1 invocation using this interceptor and ended once method1's execution is over.
  * Same session and transaction would be used throughout.
+ * @author shyam.akirala
+ * @author amitkumar.o
  */
 public class TransactionInterceptor implements MethodInterceptor {
 
@@ -98,6 +97,7 @@ public class TransactionInterceptor implements MethodInterceptor {
                                 case READ_WRITE: {
                                     Object[] args = invocation.getArguments();
                                     String shardKeyPrefix = CryptHashGenerator.getUniformCryptHash((String) args[0]);
+                                    System.out.println("shardKeyPrefix " + shardKeyPrefix);
                                     sessionFactory = context.getRWSessionFactory(shardKeyPrefix);
                                     break;
                                 }

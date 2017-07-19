@@ -38,8 +38,8 @@ public class InterceptedClass {
     private Session shardedReadOnlySession;
 
     @Inject
-    @Named("redriverSession")
-    private Session redriverSession;
+    @Named("schedulerSession")
+    private Session schedulerSession;
 
     @Transactional
     @DataStorage(STORAGE.SHARDED)
@@ -58,6 +58,6 @@ public class InterceptedClass {
     @Transactional
     @DataStorage(STORAGE.REDRIVER)
     public void verifySessionFactoryAndSessionAndTransactionForRedriverHost() {
-        Assert.assertSame(context.getThreadLocalSession(), redriverSession);
+        Assert.assertSame(context.getThreadLocalSession(), schedulerSession);
     }
 }
