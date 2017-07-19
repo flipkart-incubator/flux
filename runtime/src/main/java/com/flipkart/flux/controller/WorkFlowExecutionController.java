@@ -138,6 +138,7 @@ public class WorkFlowExecutionController {
         Event event = eventsDAO.findBySMIdAndName(stateMachineInstanceId, eventData.getName());
         if (event == null)
             throw new IllegalEventException("Event with stateMachineId: " + stateMachineInstanceId + ", event name: " + eventData.getName() + " not found");
+
         event.setStatus(Event.EventStatus.triggered);
         event.setEventData(eventData.getData());
         event.setEventSource(eventData.getEventSource());
@@ -149,7 +150,7 @@ public class WorkFlowExecutionController {
         //get the states whose dependencies are met
         final Set<State> dependantStates = context.getDependantStates(eventData.getName());
         logger.debug("These states {} depend on event {}", dependantStates, eventData.getName());
-        Set<State> executableStates = getExecutableStates(dependantStates, stateMachineInstanceId);
+        Set<State> executableStates = getExecutableStates(dependantStates, stateMachine.getId());
         logger.debug("These states {} are now unblocked after event {}", executableStates, eventData.getName());
         //start execution of the above states
         executeStates(stateMachine, executableStates, event);
@@ -218,7 +219,7 @@ public class WorkFlowExecutionController {
      * @param taskId         the Task identifier
      */
     public void incrementExecutionRetries(String stateMachineId, Long taskId) {
-        this.statesDAO.incrementRetryCount(stateMachineId, taskId );
+        this.statesDAO.incrementRetryCount(stateMachineId, taskId);
     }
 
     private StateMachine retrieveStateMachineByCorrelationId(String correlationId) {
@@ -242,7 +243,9 @@ public class WorkFlowExecutionController {
         MDC.put(STATE_MACHINE_ID, stateMachine.getId().toString());
         executableStates.forEach((state -> {
             MDC.put(TASK_ID, state.getId().toString());
-            if (state.getStatus() != Status.completed) {
+            // trigger execution if state is not in completed|cancelled state
+            if (!(state.getStatus() == Status.completed || state.getStatus() == Status.cancelled)) {
+
                 List<EventData> eventDatas;
                 // If the state is dependant on only one event, that would be the event which came now, in that case don't make a call to DB
                 if (currentEvent != null && state.getDependencies() != null && state.getDependencies().size() == 1 && currentEvent.getName().equals(state.getDependencies().get(0))) {
@@ -262,7 +265,7 @@ public class WorkFlowExecutionController {
                     // Delay between retires is exponential (2, 4, 8, 16, 32.... seconds) as seen in AkkaTask.
                     // Redriver interval is set as 2 x ( 2^(retryCount+1) x 1s + (retryCount+1) x timeout)
                     long redriverInterval = 2 * ((int) Math.pow(2, state.getRetryCount() + 1) * 1000 + (state.getRetryCount() + 1) * state.getTimeout());
-                    this.redriverRegistry.registerTask(state.getId(), state.getStateMachineId() ,redriverInterval);
+                    this.redriverRegistry.registerTask(state.getId(), state.getStateMachineId(), redriverInterval);
                 }
 
                 //send the message to the Router
@@ -279,7 +282,7 @@ public class WorkFlowExecutionController {
                         append(".queueSize").toString());
                 logger.info("Sending msg to router: {} to execute state machine: {} task: {}", router.path(), stateMachine.getId(), msg.getTaskId());
             } else {
-                logger.info("State machine: {} Task: {} execution request got discarded as the task is already completed", state.getStateMachineId(), state.getId());
+                logger.info("State machine: {} Task: {} execution request got discarded as the task is {}", state.getStateMachineId(), state.getId(), state.getStatus());
             }
         }));
     }
@@ -333,5 +336,16 @@ public class WorkFlowExecutionController {
         return !(taskStatus.equals(Status.completed) ||
                 taskStatus.equals(Status.sidelined) ||
                 taskStatus.equals(Status.cancelled));
+    }
+
+    /**
+     * Cancels the corresponding state machine (marks statemachine's and its states' statuses as cancelled)
+     */
+    public void cancelWorkflow(StateMachine stateMachine) {
+        stateMachinesDAO.updateStatus(stateMachine.getId(), StateMachineStatus.cancelled);
+        stateMachine.getStates().stream().filter(state -> state.getStatus() == Status.initialized).forEach(state -> {
+            this.statesDAO.updateStatus(stateMachine.getId(), state.getId(),  Status.cancelled);
+            this.auditDAO.create(stateMachine.getId(), new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNoOfRetries(), Status.cancelled, null, null));
+        });
     }
 }

@@ -58,10 +58,10 @@ fluxReadOnly.Hibernate:
   hibernate.c3p0.numHelperThreads: 1
   hibernate.c3p0.maxIdleTime: 1000
 
-flux_redriver.Hibernate:
+flux_scheduler.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
-  hibernate.connection.url: "jdbc:mysql://localhost:3306/flux_redriver"
+  hibernate.connection.url: "jdbc:mysql://localhost:3306/flux_scheduler"
   hibernate.connection.username: "root"
   hibernate.connection.password: ""
   hibernate.current_session_context_class: "managed"
@@ -98,13 +98,18 @@ runtime:
     maxTaskActorCreateRetries : -1
 
 redriver:
-  batchdelete:
-    batchsize: 50
+  batchDelete:
+    batchSize: 50
     intervalms: 1000
-  batchread:
-    batchsize: 100
+  batchRead:
+    batchSize: 100
     intervalms: 20000
   noOfPersistenceWorkers: 5
+
+eventScheduler:
+  batchRead:
+    batchSize: 50
+    intervalms: 1000
 
 deploymentType: directory
 deploymentUnitsPath: "/tmp/workflows/"

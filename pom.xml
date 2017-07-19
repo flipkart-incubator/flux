@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.flipkart</groupId>
     <artifactId>flux</artifactId>
-    <version>1.0.1</version>
+    <version>1.1.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>flux</name>
@@ -66,7 +66,7 @@
     <modules>
         <module>model</module>
         <module>common</module>
-        <module>redriver</module>
+        <module>scheduler</module>
         <module>persistence-mysql</module>
         <module>runtime</module>
         <module>task</module>

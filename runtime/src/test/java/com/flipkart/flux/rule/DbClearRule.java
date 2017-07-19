@@ -17,6 +17,7 @@ import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.flux.shard.ShardId;
@@ -41,8 +42,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class DbClearRule extends ExternalResource {
 
     private final SessionFactoryContext fluxSessionFactoryContext;
-    private final SessionFactoryContext redriverSessionFactoryContext;
     private final Map<String, ShardId> shardKeyToShardIdMap;
+    private final SessionFactoryContext schedulerSessionFactoryContext;
 
     /**
      * List of entity tables which need to be cleared from flux db
@@ -57,12 +58,13 @@ public class DbClearRule extends ExternalResource {
 
     @Inject
     public DbClearRule(@Named("fluxSessionFactoriesContext") SessionFactoryContext fluxSessionFactoryContext,
-                       @Named("redriverSessionFactoriesContext") SessionFactoryContext redriverSessionFactoryContext,
+                       @Named("schedulerSessionFactoriesContext") SessionFactoryContext schedulerSessionFactoryContext,
                        @Named("fluxShardKeyToShardIdMap") Map<String, ShardId> shardKeyToShardIdMap) {
         this.fluxSessionFactoryContext = fluxSessionFactoryContext;
-        this.redriverSessionFactoryContext = redriverSessionFactoryContext;
+        this.schedulerSessionFactoryContext = schedulerSessionFactoryContext;
         this.shardKeyToShardIdMap = shardKeyToShardIdMap;
     }
+
 
     @Override
     protected void before() throws Throwable {
@@ -81,8 +83,10 @@ public class DbClearRule extends ExternalResource {
             fluxSessionFactoryContext.clear();
 
         });
-        clearDb(fluxRedriverTables, redriverSessionFactoryContext.getRedriverSessionFactory());
-        redriverSessionFactoryContext.clear();
+        assert masterClearTasks.get() == (1<<8);
+        assert slaveClearTask.get() == (1<<8);
+        clearDb(fluxRedriverTables, schedulerSessionFactoryContext.getRedriverSessionFactory());
+        schedulerSessionFactoryContext.clear();
     }
 
     /**

@@ -31,7 +31,7 @@ public interface SessionFactoryContext {
      * @return {@link SessionFactory}
      */
 
-    SessionFactory getRedriverSessionFactory();
+    SessionFactory getSchedulerSessionFactory();
 
     /**
      * Get the sessionFactory for the current thread context to be used for the ongoing transaction.

@@ -23,12 +23,9 @@ import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.State;
-import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.*;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
-import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.persistence.DataSourceType;
@@ -37,6 +34,7 @@ import com.flipkart.flux.persistence.STORAGE;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
+import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
 import com.google.inject.Inject;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
@@ -89,6 +87,8 @@ public class StateMachineResource {
 
     private AuditDAO auditDAO;
 
+    private EventSchedulerRegistry eventSchedulerRegistry;
+
     private ObjectMapper objectMapper;
 
     private MetricsClient metricsClient;
@@ -99,14 +99,16 @@ public class StateMachineResource {
     public StateMachineResource(EventsDAO eventsDAO, StateMachinePersistenceService stateMachinePersistenceService,
                                 AuditDAO auditDAO, StateMachinesDAO stateMachinesDAO, StatesDAO statesDAO,
                                 WorkFlowExecutionController workFlowExecutionController, MetricsClient metricsClient,
-                                ParallelScatterGatherQueryHelper parallelScatterGatherQueryHelper) {
+                                ParallelScatterGatherQueryHelper parallelScatterGatherQueryHelper,
+                                EventSchedulerRegistry eventSchedulerRegistry) {
         this.eventsDAO = eventsDAO;
         this.stateMachinePersistenceService = stateMachinePersistenceService;
         this.stateMachinesDAO = stateMachinesDAO;
         this.statesDAO = statesDAO;
         this.auditDAO = auditDAO;
+        this.eventSchedulerRegistry = eventSchedulerRegistry;
         this.workFlowExecutionController = workFlowExecutionController;
-        objectMapper = new ObjectMapper();
+        this.objectMapper = new ObjectMapper();
         this.metricsClient = metricsClient;
         this.parallelScatterGatherQueryHelper = parallelScatterGatherQueryHelper;
     }
@@ -187,13 +189,26 @@ public class StateMachineResource {
     @Timed
     public Response submitEvent(@PathParam("machineId") String machineId,
                                 @QueryParam("searchField") String searchField,
+                                @QueryParam("triggerTime") Long triggerTime,
                                 EventData eventData
     ) throws Exception {
         MDC.clear();
         MDC.put(STATE_MACHINE_ID, machineId);
         logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
 
-        return postEvent(machineId, searchField, eventData);
+        if (triggerTime == null) {
+            logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
+            return postEvent(machineId, searchField, eventData);
+        } else {
+            logger.info("Received event: {} for state machine: {} with triggerTime: {}", eventData.getName(), machineId, triggerTime);
+            if (searchField == null || !searchField.equals(CORRELATION_ID))
+                return Response.status(Response.Status.BAD_REQUEST).entity("searchField=correlationId is missing in the request").build();
+            //if trigger time is more than below value, it means the value has been passed in milliseconds, convert it to seconds and register
+            if (triggerTime > 9999999999L)
+                triggerTime = triggerTime / 1000;
+            eventSchedulerRegistry.registerEvent(machineId, eventData.getName(), objectMapper.writeValueAsString(eventData), triggerTime);
+            return Response.status(Response.Status.ACCEPTED).build();
+        }
     }
 
     /**
@@ -222,15 +237,28 @@ public class StateMachineResource {
 
     private Response postEvent(String machineId, String searchField, EventData eventData) {
         try {
+            StateMachine stateMachine = null;
             if (searchField != null) {
                 if (!searchField.equals(CORRELATION_ID)) {
                     return Response.status(Response.Status.BAD_REQUEST).build();
                 }
-                workFlowExecutionController.postEvent(eventData, null, machineId);
+                stateMachine = stateMachinesDAO.findByCorrelationId(machineId);
             } else {
                 workFlowExecutionController.postEvent(eventData, machineId, null);
+                stateMachine = stateMachinesDAO.findById(machineId);
             }
-        } catch (UnknownStateMachine | IllegalEventException ex) {
+
+            if (stateMachine == null) {
+                return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity("State machine with Id: " + machineId + " not found").build();
+            }
+
+            if (stateMachine.getStatus() == StateMachineStatus.cancelled) {
+                logger.info("Discarding event: {} as State machine: {} is in cancelled state", eventData.getName(), stateMachine.getId());
+                return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + machineId + " is in 'cancelled' state. Discarding the event.").build();
+            }
+
+            workFlowExecutionController.postEvent(eventData, stateMachine);
+        } catch (IllegalEventException ex) {
             return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
         }
         return Response.status(Response.Status.ACCEPTED).build();
@@ -329,17 +357,6 @@ public class StateMachineResource {
     }
 
     /**
-     * Cancel a machine being executed.*
-     *
-     * @param machineId The machineId to be cancelled
-     */
-    @PUT
-    @Path("/{machineId}/cancel")
-    public void cancelExecution(@PathParam("machineId") Long machineId) {
-        // Trigger cancellation on all currently executing states
-    }
-
-    /**
      * Provides json data to build fsm status graph.
      *
      * @param machineId
@@ -430,6 +447,62 @@ public class StateMachineResource {
         this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
 
         return Response.status(Response.Status.ACCEPTED).build();
+    }
+
+    @PUT
+    @Path("/{stateMachineId}/cancel")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    @DataStorage(STORAGE.SHARDED)
+    @SelectDataSource(DataSourceType.READ_WRITE)
+    public Response cancelWorkflow(@PathParam("stateMachineId") String stateMachineId,
+                                   @QueryParam("searchField") String searchField) {
+
+        String machineId = null;
+        StateMachine stateMachine = null;
+        if (searchField != null && searchField.equals(CORRELATION_ID)) {
+            stateMachine = stateMachinesDAO.findByCorrelationId(stateMachineId);
+        } else {
+            machineId = stateMachineId;
+            stateMachine = stateMachinesDAO.findById(machineId);
+        }
+        if (stateMachine == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("State machine with id: " + stateMachineId + " not found").build();
+        }
+
+        workFlowExecutionController.cancelWorkflow(stateMachine);
+
+        return Response.status(Response.Status.ACCEPTED).build();
+    }
+
+    @GET
+    @Path("/{stateMachineId}/info")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    @DataStorage(STORAGE.SHARDED)
+    @SelectDataSource(DataSourceType.READ_WRITE)
+    public Response getStateMachine(@PathParam("stateMachineId") String stateMachineId,
+                                    @QueryParam("searchField") String searchField) {
+        String machineId = null;
+        StateMachine stateMachine = null;
+        if (searchField != null && searchField.equals(CORRELATION_ID)) {
+            stateMachine = stateMachinesDAO.findByCorrelationId(stateMachineId);
+        } else {
+            machineId = stateMachineId;
+            stateMachine = stateMachinesDAO.findById(machineId);
+        }
+        if (stateMachine == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("State machine with id: " + stateMachineId + " not found").build();
+        }
+
+        List<Event> events = eventsDAO.findBySMInstanceId(stateMachine.getId());
+        List<AuditRecord> auditRecords = auditDAO.findBySMInstanceId(stateMachine.getId());
+
+        Map<String, Object> stateMachineInfo = objectMapper.convertValue(stateMachine, Map.class);
+        stateMachineInfo.put("events", events);
+        stateMachineInfo.put("auditrecords", auditRecords);
+
+        return Response.status(Response.Status.OK).entity(stateMachineInfo).build();
     }
 
     /**

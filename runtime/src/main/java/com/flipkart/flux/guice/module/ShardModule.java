@@ -223,10 +223,10 @@ public class ShardModule extends AbstractModule {
     @Named("fluxSessionFactoriesContext")
     public SessionFactoryContext getSessionFactoryProvider(@Named("fluxRWSessionFactoriesMap") Map<String, SessionFactory> fluxRWSessionFactoriesMap,
                                                            @Named("fluxROSessionFactoriesMap") Map<String, SessionFactory> fluxROSessionFactoriesMap,
-                                                           @Named("reDriverSessionFactory") SessionFactory redriverSessionFactory
+                                                           @Named("schedulerSessionFactory") SessionFactory schedulerSessionFactory
     ) {
 
-        return new SessionFactoryContextImpl(fluxRWSessionFactoriesMap, fluxROSessionFactoriesMap, redriverSessionFactory);
+        return new SessionFactoryContextImpl(fluxRWSessionFactoriesMap, fluxROSessionFactoriesMap, schedulerSessionFactory);
     }
 
 

@@ -50,6 +50,10 @@ public class StateMachine {
     @JoinColumn(name = "stateMachineId")
     private Set<State> states;
 
+    /** Status of the state machine, denotes whether it is active or cancelled */
+    @Enumerated(EnumType.STRING)
+    private StateMachineStatus status;
+
     /* maintained */
     /** Current states of this state machine*/
     @Transient
@@ -76,6 +80,7 @@ public class StateMachine {
         this.description = description;
         this.states = states;
         this.correlationId = correlationId;
+        this.status = StateMachineStatus.active;
     }
 
     /** Accessor/Mutator methods */
@@ -105,6 +110,12 @@ public class StateMachine {
     }
     public Set<State> getStates() {
         return states;
+    }
+    public StateMachineStatus getStatus() {
+        return status;
+    }
+    public void setStatus(StateMachineStatus status) {
+        this.status = status;
     }
     public Timestamp getCreatedAt() {
         return createdAt;

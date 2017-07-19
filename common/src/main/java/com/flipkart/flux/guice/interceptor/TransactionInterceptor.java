@@ -110,7 +110,7 @@ public class TransactionInterceptor implements MethodInterceptor {
                         break;
                     }
                     case REDRIVER: {
-                        sessionFactory = context.getRedriverSessionFactory();
+                        sessionFactory = context.getSchedulerSessionFactory();
                         break;
                     }
                 }

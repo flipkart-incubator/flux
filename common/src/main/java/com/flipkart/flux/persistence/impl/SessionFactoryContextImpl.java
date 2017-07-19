@@ -33,16 +33,16 @@ public class SessionFactoryContextImpl implements SessionFactoryContext {
 
     private final ImmutableMap<String, SessionFactory> RWSessionFactoryImmutableMap;
     private final ImmutableMap<String, SessionFactory> ROSessionFactoryImmutableMap;
-    private final SessionFactory redriverSessionFactory;
+    private final SessionFactory schedulerSessionFactory;
 
 
     private final ThreadLocal<Session> currentSessionFactoryContext = new ThreadLocal<>();
 
     public SessionFactoryContextImpl(Map<String, SessionFactory> rwSessionFactoryMap, Map<String, SessionFactory> roSessionFactoryMap,
-                                     SessionFactory redriverSessionFactory) {
+                                     SessionFactory schedulerSessionFactory) {
         this.RWSessionFactoryImmutableMap = ImmutableMap.copyOf(rwSessionFactoryMap);
         this.ROSessionFactoryImmutableMap = ImmutableMap.copyOf(roSessionFactoryMap);
-        this.redriverSessionFactory = redriverSessionFactory;
+        this.schedulerSessionFactory = schedulerSessionFactory;
     }
 
 
@@ -57,8 +57,8 @@ public class SessionFactoryContextImpl implements SessionFactoryContext {
     }
 
     @Override
-    public SessionFactory getRedriverSessionFactory() {
-        return redriverSessionFactory;
+    public SessionFactory getSchedulerSessionFactory() {
+        return schedulerSessionFactory;
     }
 
     @Override
