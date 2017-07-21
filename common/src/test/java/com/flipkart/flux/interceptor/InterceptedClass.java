@@ -42,21 +42,19 @@ public class InterceptedClass {
     private Session schedulerSession;
 
     @Transactional
-    @DataStorage(STORAGE.SHARDED)
-    @SelectDataSource(DataSourceType.READ_WRITE)
+    @SelectDataSource(type=DataSourceType.READ_WRITE, storage=STORAGE.SHARDED)
     public void verifySessionFactoryAndSessionAndTransactionForShardedMaster(String shardKey) {
         Assert.assertSame(context.getThreadLocalSession(), shardedReadWriteSession);
     }
 
     @Transactional
-    @DataStorage(STORAGE.SHARDED)
-    @SelectDataSource(DataSourceType.READ_ONLY)
+    @SelectDataSource(type=DataSourceType.READ_ONLY, storage=STORAGE.SHARDED)
     public void verifySessionFactoryAndSessionAndTransactionForShardedSlave(String shardPrefix) {
         Assert.assertSame(context.getThreadLocalSession(), shardedReadOnlySession);
     }
 
     @Transactional
-    @DataStorage(STORAGE.REDRIVER)
+    @SelectDataSource(type=DataSourceType.READ_WRITE, storage=STORAGE.SCHEDULER)
     public void verifySessionFactoryAndSessionAndTransactionForRedriverHost() {
         Assert.assertSame(context.getThreadLocalSession(), schedulerSession);
     }

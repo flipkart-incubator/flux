@@ -19,5 +19,5 @@ package com.flipkart.flux.persistence;
  */
 public enum STORAGE {
     SHARDED,
-    REDRIVER
+    SCHEDULER
 }

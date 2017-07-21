@@ -29,7 +29,6 @@ import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.persistence.DataSourceType;
-import com.flipkart.flux.persistence.DataStorage;
 import com.flipkart.flux.persistence.STORAGE;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.representation.IllegalRepresentationException;
@@ -283,8 +282,7 @@ public class StateMachineResource {
     }
 
     @Transactional
-    @DataStorage(STORAGE.SHARDED)
-    @SelectDataSource(DataSourceType.READ_WRITE)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
     private void updateTaskStatus(String machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
         com.flipkart.flux.domain.Status updateStatus = null;
         switch (executionUpdateData.getStatus()) {
@@ -330,8 +328,7 @@ public class StateMachineResource {
     @POST
     @Path("/{machineId}/{stateId}/retries/inc")
     @Transactional
-    @DataStorage(STORAGE.SHARDED)
-    @SelectDataSource(DataSourceType.READ_WRITE)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
     public Response incrementRetry(@PathParam("machineId") String machineId,
                                    @PathParam("stateId") Long stateId
     ) throws Exception {
@@ -440,8 +437,7 @@ public class StateMachineResource {
     @Path("/{stateMachineId}/{stateId}/unsideline")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @DataStorage(STORAGE.SHARDED)
-    @SelectDataSource(DataSourceType.READ_WRITE)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
     public Response unsidelineState(@PathParam("stateMachineId") String stateMachineId, @PathParam("stateId") Long stateId) {
         this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
 
@@ -452,8 +448,7 @@ public class StateMachineResource {
     @Path("/{stateMachineId}/cancel")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @DataStorage(STORAGE.SHARDED)
-    @SelectDataSource(DataSourceType.READ_WRITE)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
     public Response cancelWorkflow(@PathParam("stateMachineId") String stateMachineId,
                                    @QueryParam("searchField") String searchField) {
 
@@ -478,8 +473,7 @@ public class StateMachineResource {
     @Path("/{stateMachineId}/info")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @DataStorage(STORAGE.SHARDED)
-    @SelectDataSource(DataSourceType.READ_WRITE)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
     public Response getStateMachine(@PathParam("stateMachineId") String stateMachineId,
                                     @QueryParam("searchField") String searchField) {
         String machineId = null;

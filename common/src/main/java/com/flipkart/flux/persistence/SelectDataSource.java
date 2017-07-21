@@ -27,5 +27,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface SelectDataSource {
-    DataSourceType value() default DataSourceType.READ_WRITE;
+    DataSourceType type() default DataSourceType.READ_WRITE;
+    STORAGE storage() default STORAGE.SHARDED;
 }

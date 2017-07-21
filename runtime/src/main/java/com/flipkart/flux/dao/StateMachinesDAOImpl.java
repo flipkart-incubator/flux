@@ -42,16 +42,14 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
 
     @Override
     @Transactional
-    @DataStorage(STORAGE.SHARDED)
-    @SelectDataSource(DataSourceType.READ_WRITE)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
     public StateMachine create(String stateMachineInstanceId, StateMachine stateMachine) {
         return super.save(stateMachine);
     }
 
     @Override
     @Transactional
-    @DataStorage(STORAGE.SHARDED)
-    @SelectDataSource(DataSourceType.READ_WRITE)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
     public StateMachine findById(String stateMachineInstanceId) {
         return super.findById(StateMachine.class, stateMachineInstanceId);
     }
@@ -59,8 +57,7 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     // scatter gather query
     @Override
     @Transactional
-    @DataStorage(STORAGE.SHARDED)
-    @SelectDataSource(DataSourceType.READ_ONLY)
+    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = STORAGE.SHARDED)
     public Set<StateMachine> findByName(String shardKey, String stateMachineName) {
         Criteria criteria = currentSession().createCriteria(StateMachine.class)
                 .add(Restrictions.eq("name", stateMachineName));
@@ -71,8 +68,7 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     //Scatter gather query
     @Override
     @Transactional
-    @DataStorage(STORAGE.SHARDED)
-    @SelectDataSource(DataSourceType.READ_ONLY)
+    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = STORAGE.SHARDED)
     public Set<StateMachine> findByNameAndVersion(String shardKey, String stateMachineName, Long version) {
         Criteria criteria = currentSession().createCriteria(StateMachine.class)
                 .add(Restrictions.eq("name", stateMachineName))
@@ -84,16 +80,14 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     // In this case, correlationId will be same as stateMachineId
     @Override
     @Transactional
-    @DataStorage(STORAGE.SHARDED)
-    @SelectDataSource(DataSourceType.READ_WRITE)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
     public StateMachine findByCorrelationId(String correlationId) {
         return (StateMachine) currentSession().createCriteria(StateMachine.class).add(Restrictions.eq("correlationId", correlationId)).uniqueResult();
     }
 
     @Override
     @Transactional
-    @DataStorage(STORAGE.SHARDED)
-    @SelectDataSource(DataSourceType.READ_WRITE)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
     public void updateStatus(String stateMachineId, StateMachineStatus status) {
         Query query = currentSession().createQuery("update StateMachine set status = :status where id = :stateMachineId");
         query.setString("status", status != null ? status.toString() : null);

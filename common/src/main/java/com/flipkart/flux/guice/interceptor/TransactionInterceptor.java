@@ -13,10 +13,7 @@
 
 package com.flipkart.flux.guice.interceptor;
 
-import com.flipkart.flux.persistence.CryptHashGenerator;
-import com.flipkart.flux.persistence.DataStorage;
-import com.flipkart.flux.persistence.SelectDataSource;
-import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.*;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.hibernate.HibernateException;
@@ -46,6 +43,7 @@ import javax.inject.Provider;
  * <p>
  * In the above case a transaction would be started before method1 invocation using this interceptor and ended once method1's execution is over.
  * Same session and transaction would be used throughout.
+ *
  * @author shyam.akirala
  * @author amitkumar.o
  */
@@ -78,12 +76,12 @@ public class TransactionInterceptor implements MethodInterceptor {
             SessionFactory sessionFactory = null;
 
             try {
-                DataStorage dataStorage = invocation.getMethod().getAnnotation(DataStorage.class);
-                switch (dataStorage.value()) {
+                STORAGE storage = invocation.getMethod().getAnnotation(SelectDataSource.class).storage();
+                switch (storage) {
                     case SHARDED: {
                         try {
-                            SelectDataSource selectedDS = invocation.getMethod().getAnnotation(SelectDataSource.class);
-                            switch (selectedDS.value()) {
+                            DataSourceType dataSourceType = invocation.getMethod().getAnnotation(SelectDataSource.class).type();
+                            switch (dataSourceType) {
                                 // in this case invocation method will provide shardKey as the first argument,
                                 // whose sessionFactory will be used
                                 case READ_ONLY: {
@@ -96,7 +94,7 @@ public class TransactionInterceptor implements MethodInterceptor {
                                 // which will determine to which master shard the query should go to.
                                 case READ_WRITE: {
                                     Object[] args = invocation.getArguments();
-                                    String instanceId = (String)args[0];
+                                    String instanceId = (String) args[0];
                                     String shardKeyPrefix = CryptHashGenerator.getUniformCryptHash(instanceId);
                                     sessionFactory = context.getRWSessionFactory(shardKeyPrefix);
                                     break;
@@ -105,11 +103,11 @@ public class TransactionInterceptor implements MethodInterceptor {
                         } catch (Exception ex) {
                             logger.error("Current Transactional Method doesn't have annotation @SelectDataSource Method_name:{} {}"
                                     , invocation.getMethod().getName(), ex.getStackTrace());
-                            return new Error("Something wrong with Method's annotations");
+                            return new Error("Something wrong with Method's annotations " + ex.getMessage());
                         }
                         break;
                     }
-                    case REDRIVER: {
+                    case SCHEDULER: {
                         sessionFactory = context.getSchedulerSessionFactory();
                         break;
                     }
@@ -117,7 +115,7 @@ public class TransactionInterceptor implements MethodInterceptor {
             } catch (Exception ex) {
                 logger.error("Current Transactional Method doesn't have annotation @DataStorage Method_name:{} {}"
                         , invocation.getMethod().getName(), ex.getStackTrace());
-                return new Error("Something wrong with Method's annotations");
+                return new Error("Something wrong with Method's annotations " + ex.getMessage());
             }
             // open a new session, and set it in the ThreadLocal Context
             session = sessionFactory.openSession();

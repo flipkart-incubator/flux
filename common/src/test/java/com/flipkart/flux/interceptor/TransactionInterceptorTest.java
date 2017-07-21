@@ -100,7 +100,7 @@ public class TransactionInterceptorTest {
         SessionFactoryContext context = new SessionFactoryContextImpl(RWSessionFactoryMap,
                 ROSessionFactoryMap,
                 schedulerSessionFactory);
-        for (int i = 0; i <= 5000; i++) {
+        for (int i = 0; i <= 1000; i++) {
             String random_Shard_Id = UUID.randomUUID().toString();
             String shardKey = CryptHashGenerator.getUniformCryptHash(random_Shard_Id);
             int index = shardIndexes.get(shardKey);

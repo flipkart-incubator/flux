@@ -13,9 +13,7 @@
 
 package com.flipkart.flux.redriver.dao;
 
-import com.flipkart.flux.persistence.DataStorage;
-import com.flipkart.flux.persistence.STORAGE;
-import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.*;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -43,7 +41,7 @@ public class MessageDao {
     }
 
     @Transactional
-    @DataStorage(STORAGE.REDRIVER)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SCHEDULER)
     public void save(ScheduledMessage scheduledMessage) {
         currentSession().saveOrUpdate(scheduledMessage);
     }
@@ -55,7 +53,7 @@ public class MessageDao {
      * @param rowCount
      */
     @Transactional
-    @DataStorage(STORAGE.REDRIVER)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SCHEDULER)
     public List<ScheduledMessage> retrieveOldest(int offset, int rowCount) {
         return currentSession()
                 .createCriteria(ScheduledMessage.class)
@@ -71,7 +69,7 @@ public class MessageDao {
      * @param messageIdsToDelete List of {@link ScheduledMessage} Ids
      */
     @Transactional
-    @DataStorage(STORAGE.REDRIVER)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SCHEDULER)
     public void deleteInBatch(List<Long> messageIdsToDelete) {
         final Query deleteQuery = currentSession().createQuery("delete ScheduledMessage s where s.taskId in :msgList ");
         deleteQuery.setParameterList("msgList", messageIdsToDelete);
