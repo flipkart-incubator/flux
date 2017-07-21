@@ -96,8 +96,8 @@ public class TransactionInterceptor implements MethodInterceptor {
                                 // which will determine to which master shard the query should go to.
                                 case READ_WRITE: {
                                     Object[] args = invocation.getArguments();
-                                    String shardKeyPrefix = CryptHashGenerator.getUniformCryptHash((String) args[0]);
-                                    System.out.println("shardKeyPrefix " + shardKeyPrefix);
+                                    String instanceId = (String)args[0];
+                                    String shardKeyPrefix = CryptHashGenerator.getUniformCryptHash(instanceId);
                                     sessionFactory = context.getRWSessionFactory(shardKeyPrefix);
                                     break;
                                 }
@@ -122,7 +122,7 @@ public class TransactionInterceptor implements MethodInterceptor {
             // open a new session, and set it in the ThreadLocal Context
             session = sessionFactory.openSession();
             context.setSession(session);
-            logger.debug("Open new session for the thread, using it: {}, {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
+            logger.info("Open new session for the thread transaction started, using it: {}, {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
             ManagedSessionContext.bind(session);
             transaction = session.getTransaction();
             transaction.begin();
@@ -135,10 +135,10 @@ public class TransactionInterceptor implements MethodInterceptor {
                 throw e;
             } finally {
                 ManagedSessionContext.unbind(session.getSessionFactory());
-                logger.debug("Transaction completed for method : {} {} {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
+                logger.info("Transaction completed for method : {} {} {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
                 session.close();
                 context.clear();
-                logger.debug("Clearing session from ThreadLocal Context {} {} {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
+                logger.info("Clearing session from ThreadLocal Context {} {} {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
 
             }
 

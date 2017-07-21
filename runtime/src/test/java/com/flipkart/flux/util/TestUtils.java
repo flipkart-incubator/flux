@@ -7,7 +7,9 @@ import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
+import com.google.inject.name.Named;
 
+import javax.inject.Inject;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -17,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Dumping ground for all Utils Big and small to be used in tests
  */
 public class TestUtils {
+    @Inject
+    @Named("")
     private static ObjectMapper objectMapper = new ObjectMapper();
 
     public static StateMachine getStandardTestMachine() throws Exception {

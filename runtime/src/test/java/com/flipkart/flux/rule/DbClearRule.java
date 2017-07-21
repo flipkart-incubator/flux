@@ -17,6 +17,7 @@ import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.flux.shard.ShardId;
@@ -52,7 +53,7 @@ public class DbClearRule extends ExternalResource {
     /**
      * List of entity tables which need to be cleared from flux redriver db
      */
-    private static Class[] fluxRedriverTables = {ScheduledMessage.class};
+    private static Class[] fluxSchedulerTables = {ScheduledMessage.class, ScheduledEvent.class};
 
 
     @Inject
@@ -72,19 +73,13 @@ public class DbClearRule extends ExternalResource {
 
     public void explicitClearTables() {
         AtomicInteger masterClearTasks = new AtomicInteger(0);
-        AtomicInteger slaveClearTask = new AtomicInteger(0);
         shardKeyToShardIdMap.entrySet().forEach(entry -> {
             clearDb(fluxTables, fluxSessionFactoryContext.getRWSessionFactory(entry.getKey()));
             fluxSessionFactoryContext.clear();
             masterClearTasks.incrementAndGet();
-            clearDb(fluxTables, fluxSessionFactoryContext.getROSessionFactory(entry.getKey()));
-            slaveClearTask.incrementAndGet();
-            fluxSessionFactoryContext.clear();
-
         });
-        assert masterClearTasks.get() == (1<<8);
-        assert slaveClearTask.get() == (1<<8);
-        clearDb(fluxRedriverTables, schedulerSessionFactoryContext.getSchedulerSessionFactory());
+        assert masterClearTasks.get() == (1 << 8);
+        clearDb(fluxSchedulerTables, schedulerSessionFactoryContext.getSchedulerSessionFactory());
         schedulerSessionFactoryContext.clear();
     }
 
@@ -96,11 +91,11 @@ public class DbClearRule extends ExternalResource {
         ManagedSessionContext.bind(session);
         Transaction tx = session.beginTransaction();
         try {
-            sessionFactory.getCurrentSession().createSQLQuery("set foreign_key_checks=0").executeUpdate();
+                session.createSQLQuery("set foreign_key_checks=0").executeUpdate();
             for (Class anEntity : tables) {
-                sessionFactory.getCurrentSession().createSQLQuery("delete from " + anEntity.getSimpleName() + "s").executeUpdate(); //table name is plural form of class name, so appending 's'
+                session.createSQLQuery("delete from " + anEntity.getSimpleName() + "s").executeUpdate(); //table name is plural form of class name, so appending 's'
             }
-            sessionFactory.getCurrentSession().createSQLQuery("set foreign_key_checks=1").executeUpdate();
+                session.createSQLQuery("set foreign_key_checks=1").executeUpdate();
             tx.commit();
         } catch (Exception e) {
             if (tx != null)

@@ -96,7 +96,6 @@ public class StateMachinePersistenceService {
         for (State state : stateMachine.getStates()) {
             auditDAO.create(stateMachine.getId(), new AuditRecord(stateMachine.getId(), state.getId(), 0L, Status.initialized, null, null));
         }
-        int i = 0 ;
         return stateMachine;
     }
 

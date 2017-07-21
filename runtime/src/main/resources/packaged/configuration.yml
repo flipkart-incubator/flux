@@ -6,27 +6,6 @@ flux.Shard.Pair.Config: "{
                                                         \"masterIp\": \"127.0.0.1\",
                                                         \"slaveIp\": \"127.0.0.1\",
                                                         \"startKey\": \"00\",
-                                                        \"endKey\":   \"3f\"
-                                                      },
-                                                      {
-                                                        \"shardId\": 2,
-                                                        \"masterIp\": \"127.0.0.1\",
-                                                        \"slaveIp\": \"127.0.0.1\",
-                                                        \"startKey\": \"40\",
-                                                        \"endKey\":   \"7f\"
-                                                      },
-                                                      {
-                                                        \"shardId\": 3,
-                                                        \"masterIp\": \"127.0.0.1\",
-                                                        \"slaveIp\": \"127.0.0.1\",
-                                                        \"startKey\": \"80\",
-                                                        \"endKey\":   \"bf\"
-                                                      },
-                                                      {
-                                                        \"shardId\": 4,
-                                                        \"masterIp\": \"127.0.0.1\",
-                                                        \"slaveIp\": \"127.0.0.1\",
-                                                        \"startKey\": \"c0\",
                                                         \"endKey\":   \"ff\"
                                                       }
                                                   ]
@@ -42,7 +21,6 @@ flux.Hibernate:
   hibernate.c3p0.min_size: 1
   hibernate.c3p0.max_size: 1
   hibernate.c3p0.numHelperThreads: 1
-  hibernate.c3p0.maxIdleTime: 1000
 
 
 fluxReadOnly.Hibernate:
@@ -56,7 +34,6 @@ fluxReadOnly.Hibernate:
   hibernate.c3p0.min_size: 1
   hibernate.c3p0.max_size: 1
   hibernate.c3p0.numHelperThreads: 1
-  hibernate.c3p0.maxIdleTime: 1000
 
 flux_scheduler.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
@@ -66,10 +43,9 @@ flux_scheduler.Hibernate:
   hibernate.connection.password: ""
   hibernate.current_session_context_class: "managed"
   connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
-  hibernate.c3p0.min_size: 1
-  hibernate.c3p0.max_size: 1
-  hibernate.c3p0.numHelperThreads: 1
-  hibernate.c3p0.maxIdleTime: 1000
+  hibernate.c3p0.min_size: 2
+  hibernate.c3p0.max_size: 3
+  hibernate.c3p0.numHelperThreads: 2
 
 Dashboard:
   service.port: 9999

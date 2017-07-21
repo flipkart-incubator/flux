@@ -31,6 +31,7 @@ import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.impl.SessionFactoryContextImpl;
 import com.flipkart.flux.redriver.dao.MessageDao;
+import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.flux.shard.MasterSlavePairList;
 import com.flipkart.flux.shard.ShardId;
 import com.flipkart.flux.shard.ShardPairModel;
@@ -90,6 +91,8 @@ public class ShardModule extends AbstractModule {
         // Weird way of getting a package but java.lang.Package.getName(<String>) was no working for some reason.
         // todo [yogesh] dig deeper and fix this ^
         bindInterceptor(Matchers.not(Matchers.inPackage(MessageDao.class.getPackage())),
+                Matchers.annotatedWith(Transactional.class), transactionInterceptor);
+        bindInterceptor(Matchers.not(Matchers.inPackage(ScheduledMessage.class.getPackage())),
                 Matchers.annotatedWith(Transactional.class), transactionInterceptor);
     }
 
@@ -225,7 +228,6 @@ public class ShardModule extends AbstractModule {
                                                            @Named("fluxROSessionFactoriesMap") Map<String, SessionFactory> fluxROSessionFactoriesMap,
                                                            @Named("schedulerSessionFactory") SessionFactory schedulerSessionFactory
     ) {
-
         return new SessionFactoryContextImpl(fluxRWSessionFactoriesMap, fluxROSessionFactoriesMap, schedulerSessionFactory);
     }
 

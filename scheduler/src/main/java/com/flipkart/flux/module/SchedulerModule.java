@@ -20,6 +20,9 @@ import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.impl.SessionFactoryContextImpl;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.flux.type.BlobType;
+import com.flipkart.flux.type.ListJsonType;
+import com.flipkart.flux.type.StoreFQNType;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import com.google.inject.AbstractModule;
 import com.google.inject.Key;
@@ -89,6 +92,11 @@ public class SchedulerModule extends AbstractModule {
     }
 
     private void addAnnotatedClassesAndTypes(Configuration configuration) {
+        //register hibernate custom types
+        configuration.registerTypeOverride(new BlobType(), new String[]{"BlobType"});
+        configuration.registerTypeOverride(new StoreFQNType(), new String[]{"StoreFQNOnly"});
+        configuration.registerTypeOverride(new ListJsonType(), new String[]{"ListJsonType"});
+
         configuration.addAnnotatedClass(ScheduledMessage.class);
         configuration.addAnnotatedClass(ScheduledEvent.class);
     }
@@ -96,9 +104,9 @@ public class SchedulerModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("schedulerSessionFactoriesContext")
-    public SessionFactoryContext getSessionFactoryProvider(@Named("schedulerSessionFactory") SessionFactory redriverSessionFactory) {
+    public SessionFactoryContext getSessionFactoryProvider(@Named("schedulerSessionFactory") SessionFactory schedulerSessionFactory) {
         Map fluxRWSessionFactoriesMap = new HashMap<String, SessionFactory>();
         Map fluxROSessionFactoriesMap = new HashMap<String, SessionFactory>();
-        return new SessionFactoryContextImpl(fluxRWSessionFactoriesMap, fluxROSessionFactoriesMap, redriverSessionFactory);
+        return new SessionFactoryContextImpl(fluxRWSessionFactoriesMap, fluxROSessionFactoriesMap, schedulerSessionFactory);
     }
 }

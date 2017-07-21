@@ -48,7 +48,6 @@ import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -89,7 +88,6 @@ public class StateMachineResourceTest {
     @Before
     public void setUp() throws Exception {
         objectMapper = new ObjectMapper();
-        dbClearRule.explicitClearTables();
     }
 
     @AfterClass
@@ -244,7 +242,7 @@ public class StateMachineResourceTest {
         //create state machine
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
         final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
-
+        assertThat(smCreationResponse.getStatus()).isEqualTo(org.eclipse.jetty.http.HttpStatus.CREATED_201);
         Thread.sleep(100);
 
         //post an scheduled event
@@ -265,7 +263,7 @@ public class StateMachineResourceTest {
         assertThat(eventSchedulerDao.retrieveOldest(1)).hasSize(0);
     }
 
-    @Test
+   @Test
     public void testPostScheduledEvent_withTriggerTimeInMilliSeconds() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
         Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
@@ -299,12 +297,11 @@ public class StateMachineResourceTest {
         final StateMachine firstSM = stateMachinesDAO.create(firstSmId, new StateMachine(firstSmId, sm.getVersion(), sm.getName(), sm.getDescription(), sm.getStates(), "uniqueCorId1"));
 
         /* change name and persist as 2nd statemachine */
-        String secondSmId = UUID.randomUUID().toString();
         final String differentSMName = "state-machine-2";
-        final StateMachine secondSM = stateMachinesDAO.create(secondSmId, new StateMachine(secondSmId, sm.getVersion(), differentSMName, sm.getDescription(), sm.getStates(), "uniqueCorId2"));
+        final StateMachine secondSM = stateMachinesDAO.create(differentSMName, new StateMachine(differentSMName, sm.getVersion(), sm.getName(), sm.getDescription(), sm.getStates(), "uniqueCorId2"));
 
         /* fetch errored states with name "differentStateMachine" */
-        final HttpResponse<String> stringHttpResponse = Unirest.get(STATE_MACHINE_RESOURCE_URL + "/" + differentSMName + "/states/errored?fromSmId=" + firstSM.getId() + "&toSmId=" + secondSM.getId()).header("Content-Type", "application/json").asString();
+        final HttpResponse<String> stringHttpResponse = Unirest.get(STATE_MACHINE_RESOURCE_URL + "/" + standardStateMachine + "/states/errored?fromSmId=" + firstSM.getId() + "&toSmId=" + secondSM.getId()).header("Content-Type", "application/json").asString();
 
         assertThat(stringHttpResponse.getStatus()).isEqualTo(200);
         assertThat(stringHttpResponse.getBody()).isEqualTo("[[" + secondSM.getId() + "," +
