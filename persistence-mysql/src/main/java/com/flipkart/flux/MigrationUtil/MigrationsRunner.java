@@ -38,14 +38,13 @@ public class MigrationsRunner {
     @Inject
     private YamlConfiguration yamlConfiguration;
 
-    public void migrate(String dbName) {
+    public void migrate(String host, String dbName) {
         try {
             Configuration configuration = yamlConfiguration.subset("flux.Hibernate");
             Properties properties = new Properties();
             properties.put("user", configuration.getProperty("hibernate.connection.username"));
             properties.put("password", configuration.getProperty("hibernate.connection.password"));
-            String url = (String) configuration.getProperty("hibernate.connection.url");
-            url = url.concat(dbName);
+            String url = "jdbc:mysql://" + host + ":3306/" + dbName;
             Class.forName("com.mysql.jdbc.Driver").newInstance();
             java.sql.Connection connection = DriverManager.getConnection(url, properties);
             Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));

@@ -148,13 +148,22 @@ public class FluxInitializer {
         loadFluxRuntimeContainer();
         MigrationsRunner migrationsRunner = fluxRuntimeContainer.getComponentContext().getInstance(MigrationsRunner.class);
         String dbNamePrefix = "fluxShard_";
-        for (int i = 0; i < 16; i++)
-            for (int j = 0; j < 16; j++) {
-                String dbNameSuffix = Integer.toHexString(i) + Integer.toHexString(j);
-                migrationsRunner.migrate(dbNamePrefix + dbNameSuffix);
-                Thread.sleep(1000);
-            }
+        String[] hosts = {"10.33.85.96", "10.33.217.241", "10.33.213.26", "10.32.105.84"};
+        String[] startPf = {"00", "40", "80", "c0"};
+        String[] endPf = {"3f", "7f", "80", "ff"};
+
+        for (int k = 0; k < hosts.length; k++)
+        if (k==2){
+            for (int i = 0; i < 16; i++)
+                for (int j = 0; j < 16; j++) {
+                    String dbNameSuffix = Integer.toHexString(i) + Integer.toHexString(j);
+                    if (dbNameSuffix.compareTo(startPf[k]) >= 0 && dbNameSuffix.compareTo(endPf[k]) <= 0) {
+                        System.out.println(hosts[k] + " " + dbNamePrefix+ dbNameSuffix);
+                        migrationsRunner.migrate(hosts[k], dbNamePrefix + dbNameSuffix);
+                        Thread.sleep(1000);
+                    }
+                }
+        }
+
     }
-
-
 }
