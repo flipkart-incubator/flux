@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.persistence;
 
+import com.flipkart.flux.shard.ShardId;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
@@ -61,7 +62,7 @@ public interface SessionFactoryContext {
      *
      * @return
      */
-    SessionFactory getROSessionFactory(String shardKey);
+    SessionFactory getROSessionFactory(ShardId shardId);
 
 
     /**

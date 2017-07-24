@@ -167,32 +167,30 @@ public class ShardModule extends AbstractModule {
      * Since the yaml properties are already flattened in input param <code>yamlConfiguration</code>
      * the method loops over them to selectively pick Hibernate specific properties.
      */
-    public Configuration getRWConfiguration(YamlConfiguration yamlConfiguration, String host, String dbNameSuffix) {
-        return getConfiguration(yamlConfiguration, FLUX_HIBERNATE_CONFIG_NAME_SPACE, host, dbNameSuffix);
+    public Configuration getRWConfiguration(YamlConfiguration yamlConfiguration, String host) {
+        return getConfiguration(yamlConfiguration, FLUX_HIBERNATE_CONFIG_NAME_SPACE, host);
     }
 
-    public Configuration getROConfiguration(YamlConfiguration yamlConfiguration, String host, String dbNameSuffix) {
-        return getConfiguration(yamlConfiguration, FLUX_READ_ONLY_HIBERNATE_CONFIG_NAME_SPACE, host, dbNameSuffix);
+    public Configuration getROConfiguration(YamlConfiguration yamlConfiguration, String host) {
+        return getConfiguration(yamlConfiguration, FLUX_READ_ONLY_HIBERNATE_CONFIG_NAME_SPACE, host);
     }
 
     @Provides
     @Singleton
     @Named("fluxROSessionFactoriesMap")
-    public Map<String, SessionFactory> getFluxROSessionFactoryMap(@Named("fluxShardKeyToShardIdMap") Map<String, ShardId>
-                                                                          fluxShardKeyToShardIdMap,
-                                                                  @Named("fluxShardIdToShardPairMap") Map<ShardId, ShardPairModel>
-                                                                          fluxShardIdToShardPairMap,
-                                                                  YamlConfiguration yamlConfiguration) {
-        Map fluxROSessionFactories = new HashMap<String, SessionFactory>();
-        fluxShardKeyToShardIdMap.entrySet().forEach(shardKeyToShardIdMapping -> {
-            String shardKey = shardKeyToShardIdMapping.getKey();
-            ShardId shardId = shardKeyToShardIdMapping.getValue();
+    public Map<ShardId, SessionFactory> getFluxROSessionFactoryMap(@Named("fluxShardIdToShardPairMap") Map<ShardId, ShardPairModel>
+                                                                           fluxShardIdToShardPairMap,
+                                                                   YamlConfiguration yamlConfiguration) {
+        Map fluxROSessionFactories = new HashMap<ShardId, SessionFactory>();
+        fluxShardIdToShardPairMap.entrySet().forEach(shardKeyToShardIdMapping -> {
+            ShardId shardId = shardKeyToShardIdMapping.getKey();
             ShardPairModel shardPairModel = fluxShardIdToShardPairMap.get(shardId);
-            Configuration conf = getROConfiguration(yamlConfiguration, shardPairModel.getSlaveIp(), shardKey);
-            fluxROSessionFactories.put(shardKey, conf.buildSessionFactory());
+            Configuration conf = getROConfiguration(yamlConfiguration, shardPairModel.getSlaveIp());
+            fluxROSessionFactories.putIfAbsent(shardId, conf.buildSessionFactory());
         });
-        if (fluxROSessionFactories.size() != (1 << 8)) {
-            throw new RuntimeException("No. of RW Session Factories should be 16*16, currently it is " +
+
+        if (fluxROSessionFactories.size() != (fluxShardIdToShardPairMap.size())) {
+            throw new RuntimeException("No. of RW Session Factories should be " + fluxShardIdToShardPairMap.size() + " currently it is " +
                     Integer.toString(fluxROSessionFactories.size()));
         }
         return fluxROSessionFactories;
@@ -201,21 +199,20 @@ public class ShardModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("fluxRWSessionFactoriesMap")
-    public Map<String, SessionFactory> getFluxRWSessionFactoryMap(@Named("fluxShardKeyToShardIdMap") Map<String, ShardId>
-                                                                          fluxShardKeyToShardIdMap,
-                                                                  @Named("fluxShardIdToShardPairMap") Map<ShardId, ShardPairModel>
-                                                                          fluxShardIdToShardPairMap,
-                                                                  YamlConfiguration yamlConfiguration) {
-        Map fluxRWSessionFactories = new HashMap<String, SessionFactory>();
-        fluxShardKeyToShardIdMap.entrySet().forEach(shardKeyToShardIdMapping -> {
-            String shardKey = shardKeyToShardIdMapping.getKey();
-            ShardId shardId = shardKeyToShardIdMapping.getValue();
+    public Map<ShardId, SessionFactory> getFluxRWSessionFactoryMap(@Named("fluxShardIdToShardPairMap") Map<ShardId, ShardPairModel>
+                                                                           fluxShardIdToShardPairMap,
+                                                                   YamlConfiguration yamlConfiguration) {
+        Map fluxRWSessionFactories = new HashMap<ShardId, SessionFactory>();
+        fluxShardIdToShardPairMap.entrySet().forEach(shardKeyToShardIdMapping -> {
+            ShardId shardId = shardKeyToShardIdMapping.getKey();
             ShardPairModel shardPairModel = fluxShardIdToShardPairMap.get(shardId);
-            Configuration conf = getRWConfiguration(yamlConfiguration, shardPairModel.getMasterIp(), shardKey);
-            fluxRWSessionFactories.put(shardKey, conf.buildSessionFactory());
+            Configuration conf = getRWConfiguration(yamlConfiguration, shardPairModel.getMasterIp());
+            fluxRWSessionFactories.putIfAbsent(shardId, conf.buildSessionFactory());
         });
-        if (fluxRWSessionFactories.size() != (1 << 8)) {
-            throw new RuntimeException("No. of RW Session Factories should be 16*16, currently it is " +
+
+
+        if (fluxRWSessionFactories.size() != (fluxShardIdToShardPairMap.size())) {
+            throw new RuntimeException("No. of RW Session Factories should be " + fluxShardIdToShardPairMap.size() + ", currently it is " +
                     Integer.toString(fluxRWSessionFactories.size()));
         }
         return fluxRWSessionFactories;
@@ -224,17 +221,21 @@ public class ShardModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("fluxSessionFactoriesContext")
-    public SessionFactoryContext getSessionFactoryProvider(@Named("fluxRWSessionFactoriesMap") Map<String, SessionFactory> fluxRWSessionFactoriesMap,
-                                                           @Named("fluxROSessionFactoriesMap") Map<String, SessionFactory> fluxROSessionFactoriesMap,
-                                                           @Named("schedulerSessionFactory") SessionFactory schedulerSessionFactory
-    ) {
-        return new SessionFactoryContextImpl(fluxRWSessionFactoriesMap, fluxROSessionFactoriesMap, schedulerSessionFactory);
+    public SessionFactoryContext getSessionFactoryProvider
+            (@Named("fluxRWSessionFactoriesMap") Map<ShardId, SessionFactory> fluxRWSessionFactoriesMap,
+             @Named("fluxROSessionFactoriesMap") Map<ShardId, SessionFactory> fluxROSessionFactoriesMap,
+             @Named("fluxShardKeyToShardIdMap") Map<String, ShardId> shardKeyToShardIdMap,
+             @Named("schedulerSessionFactory") SessionFactory schedulerSessionFactory
+            ) {
+        return new SessionFactoryContextImpl(fluxRWSessionFactoriesMap, fluxROSessionFactoriesMap, shardKeyToShardIdMap,
+                schedulerSessionFactory);
     }
 
 
     /**
      * Adds annotated classes and custom types to passed Hibernate configuration.
      */
+
     private void addAnnotatedClassesAndTypes(Configuration configuration) {
         //register hibernate custom types
         configuration.registerTypeOverride(new BlobType(), new String[]{"BlobType"});
@@ -249,7 +250,7 @@ public class ShardModule extends AbstractModule {
 
     }
 
-    private Configuration getConfiguration(YamlConfiguration yamlConfiguration, String prefix, String host, String dbNameSuffix) {
+    private Configuration getConfiguration(YamlConfiguration yamlConfiguration, String prefix, String host) {
         Configuration configuration = new Configuration();
         addAnnotatedClassesAndTypes(configuration);
         org.apache.commons.configuration.Configuration hibernateConfig = yamlConfiguration.subset(prefix);
@@ -260,7 +261,7 @@ public class ShardModule extends AbstractModule {
             Object propertyValue = hibernateConfig.getProperty(propertyKey);
             configProperties.put(propertyKey, propertyValue);
         }
-        configProperties.setProperty("hibernate.connection.url", "jdbc:mysql://" + host + ":3306/" + DB_PREFIX + dbNameSuffix);
+        configProperties.setProperty("hibernate.connection.url", "jdbc:mysql://" + host + ":3306/" + "flux");
         configuration.addProperties(configProperties);
         return configuration;
     }

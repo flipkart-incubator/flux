@@ -15,6 +15,7 @@ package com.flipkart.flux.dao.iface;
 
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.StateMachineStatus;
+import com.flipkart.flux.shard.ShardId;
 
 import java.util.Set;
 
@@ -39,13 +40,13 @@ public interface StateMachinesDAO {
     /**
      * Retrieves set of state machines by State machine's Name
      */
-    Set<StateMachine> findByName(String shardKey, String stateMachineName);
+    Set<StateMachine> findByName(ShardId shardId, String stateMachineName);
 
 
     /**
      * Retrieves set of state machines by Name and version
      */
-    Set<StateMachine> findByNameAndVersion(String shardKey, String stateMachineName, Long Version);
+    Set<StateMachine> findByNameAndVersion(ShardId shardId, String stateMachineName, Long Version);
 
     /**
      * Retrieves state machine by it's unique correlationId

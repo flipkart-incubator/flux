@@ -93,13 +93,13 @@ public class FluxInitializer {
                 fluxInitializer.start();
                 break;
             case "migrate":
-//                if (args.length < 2) {
-//                    throw new RuntimeException("<migrate> must be followed with db name");
-//                }
-//                if (!(args[1].equals("flux_sharding") || args[1].equals("flux_redriver"))) {
-//                    throw new RuntimeException("<migrate> works only for 'flux_sharding' or 'flux_redriver'");
-//                }
-                fluxInitializer.migrate();
+                if (args.length < 2) {
+                    throw new RuntimeException("<migrate> must be followed with db name");
+                }
+                if (!(args[1].equals("flux") || args[1].equals("flux_scheduler"))) {
+                    throw new RuntimeException("<migrate> works only for 'flux_sharding' or 'flux_redriver'");
+                }
+                fluxInitializer.migrate(args[1]);
         }
     }
 
@@ -144,26 +144,10 @@ public class FluxInitializer {
     /**
      * Helper method to perform migrations
      */
-    private void migrate() throws InterruptedException {
+    private void migrate(String dbName) throws InterruptedException {
         loadFluxRuntimeContainer();
         MigrationsRunner migrationsRunner = fluxRuntimeContainer.getComponentContext().getInstance(MigrationsRunner.class);
-        String dbNamePrefix = "fluxShard_";
-        String[] hosts = {"10.33.85.96", "10.33.217.241", "10.33.213.26", "10.32.105.84"};
-        String[] startPf = {"00", "40", "80", "c0"};
-        String[] endPf = {"3f", "7f", "80", "ff"};
-
-        for (int k = 0; k < hosts.length; k++)
-        if (k==2){
-            for (int i = 0; i < 16; i++)
-                for (int j = 0; j < 16; j++) {
-                    String dbNameSuffix = Integer.toHexString(i) + Integer.toHexString(j);
-                    if (dbNameSuffix.compareTo(startPf[k]) >= 0 && dbNameSuffix.compareTo(endPf[k]) <= 0) {
-                        System.out.println(hosts[k] + " " + dbNamePrefix+ dbNameSuffix);
-                        migrationsRunner.migrate(hosts[k], dbNamePrefix + dbNameSuffix);
-                        Thread.sleep(1000);
-                    }
-                }
-        }
+        migrationsRunner.migrate(dbName);
 
     }
 }

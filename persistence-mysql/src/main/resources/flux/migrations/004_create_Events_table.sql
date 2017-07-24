@@ -1,4 +1,4 @@
-  --liquibase formatted sql
+--liquibase formatted sql
 
 --changeset shyam.akirala:4 runOnChange:false
 

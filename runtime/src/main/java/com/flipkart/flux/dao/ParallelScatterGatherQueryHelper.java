@@ -18,6 +18,7 @@ import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.shard.ShardId;
+import com.flipkart.flux.shard.ShardPairModel;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -41,54 +42,54 @@ import java.util.function.Function;
 public class ParallelScatterGatherQueryHelper {
     private final StatesDAO statesDAO;
     private final StateMachinesDAO stateMachinesDAO;
-    private final Map<String, ShardId> fluxShardKeyToShardIdMap;
+    private final Map<ShardId, ShardPairModel> fluxShardIdToShardPairModelMap;
     private final ExecutorService executorService;
 
     private static final Logger logger = LoggerFactory.getLogger(StatesDAOImpl.class);
 
     @Inject
     public ParallelScatterGatherQueryHelper(StatesDAO statesDAO, StateMachinesDAO stateMachinesDAO,
-                                            @Named("fluxShardKeyToShardIdMap") Map<String, ShardId> fluxShardKeyToShardIdMap) {
+                                            @Named("fluxShardIdToShardPairMap") Map<ShardId, ShardPairModel> fluxShardKeyToShardIdMap) {
         this.statesDAO = statesDAO;
         this.stateMachinesDAO = stateMachinesDAO;
-        this.fluxShardKeyToShardIdMap = fluxShardKeyToShardIdMap;
+        this.fluxShardIdToShardPairModelMap = fluxShardKeyToShardIdMap;
         executorService = Executors.newFixedThreadPool(10);
     }
 
 
     public List findErroredStates(String stateMachineName, String fromStateMachineId, String toStateMachineId) {
         List result = Collections.synchronizedList(new ArrayList<>());
-        scatterGatherQueryHelper((shardKey) ->
-                statesDAO.findErroredStates(shardKey, stateMachineName, fromStateMachineId, toStateMachineId), result, "errored states");
+        scatterGatherQueryHelper((shardId) ->
+                statesDAO.findErroredStates(shardId, stateMachineName, fromStateMachineId, toStateMachineId), result, "errored states");
         return result;
     }
 
 
     public List findStatesByStatus(String stateMachineName, Timestamp fromTime, Timestamp toTime, String taskName, List<Status> statuses) {
         List result = Collections.synchronizedList(new ArrayList<>());
-        scatterGatherQueryHelper((shardKey) ->
-                statesDAO.findStatesByStatus(shardKey, stateMachineName, fromTime, toTime, taskName, statuses), result, "states by status");
+        scatterGatherQueryHelper((shardId) ->
+                statesDAO.findStatesByStatus(shardId, stateMachineName, fromTime, toTime, taskName, statuses), result, "states by status");
         return result;
     }
 
     public Set<StateMachine> findByName(String stateMachineName) {
         Set result = Collections.synchronizedSet(new HashSet<StateMachine>());
-        scatterGatherQueryHelper((shardKey) ->
-                stateMachinesDAO.findByName(shardKey, stateMachineName), result, "states by status");
+        scatterGatherQueryHelper((shardId) ->
+                stateMachinesDAO.findByName(shardId, stateMachineName), result, "states by status");
         return result;
     }
 
     public Set<StateMachine> findByNameAndVersion(String stateMachineName, Long Version) {
         Set result = Collections.synchronizedSet(new HashSet<StateMachine>());
-        scatterGatherQueryHelper((shardKey) ->
-                stateMachinesDAO.findByNameAndVersion(shardKey, stateMachineName, Version), result, "states by status");
+        scatterGatherQueryHelper((shardId) ->
+                stateMachinesDAO.findByNameAndVersion(shardId, stateMachineName, Version), result, "states by status");
         return result;
     }
 
-    private void scatterGatherQueryHelper(Function<String, Collection> reader, Collection result, String errorMessage) {
-        Future[] tasksCompleted = new Future[fluxShardKeyToShardIdMap.size()];
+    private void scatterGatherQueryHelper(Function<ShardId, Collection> reader, Collection result, String errorMessage) {
+        Future[] tasksCompleted = new Future[fluxShardIdToShardPairModelMap.size()];
         AtomicInteger tasks = new AtomicInteger(0);
-        fluxShardKeyToShardIdMap.entrySet().forEach(entry -> {
+        fluxShardIdToShardPairModelMap.entrySet().forEach(entry -> {
             tasksCompleted[tasks.get()] = executorService.submit(() -> {
                 try {
                     result.addAll(reader.apply(entry.getKey()));
@@ -103,7 +104,7 @@ public class ParallelScatterGatherQueryHelper {
             boolean allDone = false;
             while (!allDone) {
                 allDone = true;
-                for (int i = 0; i < fluxShardKeyToShardIdMap.size(); i++)
+                for (int i = 0; i < fluxShardIdToShardPairModelMap.size(); i++)
                     if (!tasksCompleted[i].isDone() && !tasksCompleted[i].isCancelled()) {
                         allDone = false;
                         break;

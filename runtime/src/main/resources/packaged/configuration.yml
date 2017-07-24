@@ -3,40 +3,19 @@ flux.Shard.Pair.Config: "{
                                                   [
                                                       {
                                                         \"shardId\": 1,
-                                                        \"masterIp\": \"10.33.85.96\",
-                                                        \"slaveIp\": \"10.33.85.96\",
+                                                        \"masterIp\": \"localhost\",
+                                                        \"slaveIp\": \"localhost\",
                                                         \"startKey\": \"00\",
-                                                        \"endKey\":   \"3f\"
-                                                      },
-                                                      {
-                                                        \"shardId\": 2,
-                                                        \"masterIp\": \"10.33.217.241\",
-                                                        \"slaveIp\": \"10.33.217.241\",
-                                                        \"startKey\": \"40\",
-                                                        \"endKey\":   \"7f\"
-                                                      },
-                                                      {
-                                                        \"shardId\": 3,
-                                                        \"masterIp\": \"10.33.213.26\",
-                                                        \"slaveIp\": \"10.33.213.26\",
-                                                        \"startKey\": \"80\",
-                                                        \"endKey\":   \"bf\"
-                                                      },
-                                                      {
-                                                        \"shardId\": 4,
-                                                        \"masterIp\": \"10.32.105.84\",
-                                                        \"slaveIp\": \"10.32.105.84\",
-                                                        \"startKey\": \"c0\",
                                                         \"endKey\":   \"ff\"
-                                                      }
+                                                     }
                                                   ]
                           }"
 flux.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
-  hibernate.connection.url: "jdbc:mysql://localhost:3306/"
+  hibernate.connection.url: "jdbc:mysql://localhost:3306/flux"
   hibernate.connection.username: "root"
-  hibernate.connection.password: "fk-flux"
+  hibernate.connection.password: ""
   hibernate.current_session_context_class: "managed"
   connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
   hibernate.c3p0.min_size: 1
@@ -47,9 +26,9 @@ flux.Hibernate:
 fluxReadOnly.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
-  hibernate.connection.url: "jdbc:mysql://localhost:3306/"
+  hibernate.connection.url: "jdbc:mysql://localhost:3306/flux"
   hibernate.connection.username: "root"
-  hibernate.connection.password: "fk-flux"
+  hibernate.connection.password: ""
   hibernate.current_session_context_class: "managed"
   connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
   hibernate.c3p0.min_size: 1
@@ -59,9 +38,9 @@ fluxReadOnly.Hibernate:
 flux_scheduler.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
-  hibernate.connection.url: "jdbc:mysql://10.33.85.96:3306/flux_scheduler"
+  hibernate.connection.url: "jdbc:mysql://localhost:3306/flux_scheduler"
   hibernate.connection.username: "root"
-  hibernate.connection.password: "fk-flux"
+  hibernate.connection.password: ""
   hibernate.current_session_context_class: "managed"
   connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
   hibernate.c3p0.min_size: 3
@@ -78,7 +57,7 @@ Api:
   service.port: 9998
   service.acceptors: 4
   service.selectors: 4
-  service.workers: 30
+  service.workers: 100
 
 routers:
   default:

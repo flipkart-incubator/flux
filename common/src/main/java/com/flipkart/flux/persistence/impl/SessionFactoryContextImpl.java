@@ -31,17 +31,20 @@ import java.util.Map;
  */
 public class SessionFactoryContextImpl implements SessionFactoryContext {
 
-    private final ImmutableMap<String, SessionFactory> RWSessionFactoryImmutableMap;
-    private final ImmutableMap<String, SessionFactory> ROSessionFactoryImmutableMap;
+    private final ImmutableMap<ShardId, SessionFactory> RWSessionFactoryImmutableMap;
+    private final ImmutableMap<ShardId, SessionFactory> ROSessionFactoryImmutableMap;
+    private final ImmutableMap<String, ShardId> shardKeyToShardIdMap;
     private final SessionFactory schedulerSessionFactory;
 
 
     private final ThreadLocal<Session> currentSessionFactoryContext = new ThreadLocal<>();
 
-    public SessionFactoryContextImpl(Map<String, SessionFactory> rwSessionFactoryMap, Map<String, SessionFactory> roSessionFactoryMap,
+    public SessionFactoryContextImpl(Map<ShardId, SessionFactory> rwSessionFactoryMap, Map<ShardId, SessionFactory> roSessionFactoryMap,
+                                     Map<String, ShardId> shardKeyToShardIdMap,
                                      SessionFactory schedulerSessionFactory) {
         this.RWSessionFactoryImmutableMap = ImmutableMap.copyOf(rwSessionFactoryMap);
         this.ROSessionFactoryImmutableMap = ImmutableMap.copyOf(roSessionFactoryMap);
+        this.shardKeyToShardIdMap = ImmutableMap.copyOf(shardKeyToShardIdMap);
         this.schedulerSessionFactory = schedulerSessionFactory;
     }
 
@@ -63,12 +66,12 @@ public class SessionFactoryContextImpl implements SessionFactoryContext {
 
     @Override
     public SessionFactory getRWSessionFactory(String shardKey) {
-        return RWSessionFactoryImmutableMap.get(shardKey);
+        return RWSessionFactoryImmutableMap.get(shardKeyToShardIdMap.get(shardKey));
     }
 
     @Override
-    public SessionFactory getROSessionFactory(String shardKey) {
-        return ROSessionFactoryImmutableMap.get(shardKey);
+    public SessionFactory getROSessionFactory(ShardId shardId) {
+        return ROSessionFactoryImmutableMap.get(shardId);
     }
 
     @Override

@@ -14,6 +14,7 @@
 package com.flipkart.flux.guice.interceptor;
 
 import com.flipkart.flux.persistence.*;
+import com.flipkart.flux.shard.ShardId;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.hibernate.HibernateException;
@@ -86,16 +87,16 @@ public class TransactionInterceptor implements MethodInterceptor {
                                 // whose sessionFactory will be used
                                 case READ_ONLY: {
                                     Object[] args = invocation.getArguments();
-                                    shardKey = (String) args[0];
-                                    sessionFactory = context.getROSessionFactory(shardKey);
+                                    ShardId shardId = (ShardId) args[0];
+                                    sessionFactory = context.getROSessionFactory(shardId);
                                     break;
                                 }
                                 // in this case invocation method will provide shardKey i.e stateMachineId, as the first argument,
                                 // which will determine to which master shard the query should go to.
                                 case READ_WRITE: {
                                     Object[] args = invocation.getArguments();
-                                    String instanceId = (String) args[0];
-                                    String shardKeyPrefix = CryptHashGenerator.getUniformCryptHash(instanceId);
+                                    shardKey = (String) args[0];
+                                    String shardKeyPrefix = CryptHashGenerator.getUniformCryptHash(shardKey);
                                     sessionFactory = context.getRWSessionFactory(shardKeyPrefix);
                                     break;
                                 }
@@ -120,7 +121,7 @@ public class TransactionInterceptor implements MethodInterceptor {
             // open a new session, and set it in the ThreadLocal Context
             session = sessionFactory.openSession();
             context.setSession(session);
-            logger.info("Open new session for the thread transaction started, using it: {}, {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
+            logger.debug("Open new session for the thread transaction started, using it: {}, {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
             ManagedSessionContext.bind(session);
             transaction = session.getTransaction();
             transaction.begin();
@@ -133,10 +134,10 @@ public class TransactionInterceptor implements MethodInterceptor {
                 throw e;
             } finally {
                 ManagedSessionContext.unbind(session.getSessionFactory());
-                logger.info("Transaction completed for method : {} {} {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
+                logger.debug("Transaction completed for method : {} {} {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
                 session.close();
                 context.clear();
-                logger.info("Clearing session from ThreadLocal Context {} {} {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
+                logger.debug("Clearing session from ThreadLocal Context {} {} {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
 
             }
 

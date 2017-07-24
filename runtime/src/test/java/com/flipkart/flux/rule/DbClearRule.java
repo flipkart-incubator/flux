@@ -31,7 +31,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * <code>DbClearRule</code> is a Junit Rule which clears db tables before running a test.
@@ -41,8 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Singleton
 public class DbClearRule extends ExternalResource {
 
-    private final SessionFactoryContext fluxSessionFactoryContext;
-    private final Map<String, ShardId> shardKeyToShardIdMap;
+    private final Map<ShardId, SessionFactory> fluxRWSessionFactoriesMap;
     private final SessionFactoryContext schedulerSessionFactoryContext;
 
     /**
@@ -57,12 +55,10 @@ public class DbClearRule extends ExternalResource {
 
 
     @Inject
-    public DbClearRule(@Named("fluxSessionFactoriesContext") SessionFactoryContext fluxSessionFactoryContext,
-                       @Named("schedulerSessionFactoriesContext") SessionFactoryContext schedulerSessionFactoryContext,
-                       @Named("fluxShardKeyToShardIdMap") Map<String, ShardId> shardKeyToShardIdMap) {
-        this.fluxSessionFactoryContext = fluxSessionFactoryContext;
+    public DbClearRule(@Named("fluxRWSessionFactoriesMap") Map<ShardId, SessionFactory> fluxRWSessionFactoriesMap,
+                       @Named("schedulerSessionFactoriesContext") SessionFactoryContext schedulerSessionFactoryContext) {
+        this.fluxRWSessionFactoriesMap = fluxRWSessionFactoriesMap;
         this.schedulerSessionFactoryContext = schedulerSessionFactoryContext;
-        this.shardKeyToShardIdMap = shardKeyToShardIdMap;
     }
 
 
@@ -72,13 +68,9 @@ public class DbClearRule extends ExternalResource {
     }
 
     public void explicitClearTables() {
-        AtomicInteger masterClearTasks = new AtomicInteger(0);
-        shardKeyToShardIdMap.entrySet().forEach(entry -> {
-            clearDb(fluxTables, fluxSessionFactoryContext.getRWSessionFactory(entry.getKey()));
-            fluxSessionFactoryContext.clear();
-            masterClearTasks.incrementAndGet();
+        fluxRWSessionFactoriesMap.entrySet().forEach(entry -> {
+            clearDb(fluxTables, entry.getValue());
         });
-        assert masterClearTasks.get() == (1 << 8);
         clearDb(fluxSchedulerTables, schedulerSessionFactoryContext.getSchedulerSessionFactory());
         schedulerSessionFactoryContext.clear();
     }

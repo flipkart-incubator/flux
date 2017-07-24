@@ -14,6 +14,7 @@
 package com.flipkart.flux.interceptor;
 
 import com.flipkart.flux.persistence.*;
+import com.flipkart.flux.shard.ShardId;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.hibernate.Session;
@@ -49,7 +50,7 @@ public class InterceptedClass {
 
     @Transactional
     @SelectDataSource(type=DataSourceType.READ_ONLY, storage=STORAGE.SHARDED)
-    public void verifySessionFactoryAndSessionAndTransactionForShardedSlave(String shardPrefix) {
+    public void verifySessionFactoryAndSessionAndTransactionForShardedSlave(ShardId shardId) {
         Assert.assertSame(context.getThreadLocalSession(), shardedReadOnlySession);
     }
 
