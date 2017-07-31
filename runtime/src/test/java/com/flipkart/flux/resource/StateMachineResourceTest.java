@@ -196,7 +196,7 @@ public class StateMachineResourceTest {
         final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/events?searchField=correlationId").header("Content-Type", "application/json").body(eventJson).asString();
         assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
         // give some time to execute
-        Thread.sleep(2000);
+        Thread.sleep(3000);
         event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event0");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.triggered);
         assertThat(event).isEqualToIgnoringGivenFields(TestUtils.getStandardTestEvent(), "stateMachineInstanceId", "id", "createdAt", "updatedAt");
@@ -204,7 +204,7 @@ public class StateMachineResourceTest {
         // event3 was waiting on event1, so event3 should also be triggered
         event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event3");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.triggered);
-        Thread.sleep(2000);
+        Thread.sleep(3000);
         boolean anyNotCompleted = stateMachinesDAO.findById(smCreationResponse.getBody()).getStates().stream().anyMatch(e -> !e.getStatus().equals(Status.completed));
         assertThat(anyNotCompleted).isFalse();
     }
