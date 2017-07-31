@@ -34,7 +34,7 @@ public interface StateMachinesDAO {
     /**
      * Retrieves state machine by it's unique identifier
      */
-    StateMachine findById(String id);
+    StateMachine findById(String stateMachineId);
 
 
     /**

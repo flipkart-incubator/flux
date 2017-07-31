@@ -174,7 +174,7 @@ public class WorkFlowExecutionController {
         // cancel the redriver if the Task's original retry count is > 0 and deleteFromRedriver flag is true
         // Redriver would not have been registered if the retry count is 0
         if (retryCount > 0 && deleteFromRedriver) {
-            this.redriverRegistry.deRegisterTask(taskId);
+            this.redriverRegistry.deRegisterTask(stateMachineId, taskId);
         }
     }
 
@@ -325,7 +325,7 @@ public class WorkFlowExecutionController {
             executeStates(stateMachine, Collections.singleton(state));
         } else {
             //cleanup the tasks which can't be redrived from redriver db
-            this.redriverRegistry.deRegisterTask(taskId);
+            this.redriverRegistry.deRegisterTask(machineId, taskId);
         }
     }
 

@@ -1,26 +1,46 @@
 flux.Shard.Pair.Config: "{
-                            \"shardPairModelList\" :
-                                                  [
-                                                      {
-                                                        \"shardId\": 1,
-                                                        \"masterIp\": \"localhost\",
-                                                        \"slaveIp\": \"localhost\",
-                                                        \"startKey\": \"00\",
-                                                        \"endKey\":   \"ff\"
-                                                     }
-                                                  ]
-                          }"
+                                                    \"shardPairModelList\" :
+                                                                          [
+                                                                              {
+                                                                                \"shardId\": 1,
+                                                                                \"masterIp\": \"10.33.85.96\",
+                                                                                \"slaveIp\": \"10.33.85.96\",
+                                                                                \"startKey\": \"00\",
+                                                                                \"endKey\":   \"3f\"
+                                                                             },
+                                                                             {
+                                                                                 \"shardId\": 2,
+                                                                                 \"masterIp\": \"10.33.217.241\",
+                                                                                 \"slaveIp\": \"10.33.217.241\",
+                                                                                 \"startKey\": \"40\",
+                                                                                 \"endKey\":   \"7f\"
+                                                                             },
+                                                                             {
+                                                                                  \"shardId\": 3,
+                                                                                  \"masterIp\": \"10.33.213.26\",
+                                                                                  \"slaveIp\": \"10.33.213.26\",
+                                                                                  \"startKey\": \"80\",
+                                                                                  \"endKey\":   \"bf\"
+                                                                             },
+                                                                             {
+                                                                                   \"shardId\": 4,
+                                                                                   \"masterIp\": \"10.32.105.84\",
+                                                                                   \"slaveIp\": \"10.32.105.84\",
+                                                                                   \"startKey\": \"c0\",
+                                                                                   \"endKey\":   \"ff\"
+                                                                             }
+                                                                          ]
+                                                  }"
 flux.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
   hibernate.connection.url: "jdbc:mysql://localhost:3306/flux"
   hibernate.connection.username: "root"
-  hibernate.connection.password: ""
+  hibernate.connection.password: "fk-flux"
   hibernate.current_session_context_class: "managed"
   connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
-  hibernate.c3p0.min_size: 1
-  hibernate.c3p0.max_size: 1
-  hibernate.c3p0.numHelperThreads: 1
+  hibernate.c3p0.min_size: 3
+  hibernate.c3p0.max_size: 10
 
 
 fluxReadOnly.Hibernate:
@@ -28,24 +48,22 @@ fluxReadOnly.Hibernate:
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
   hibernate.connection.url: "jdbc:mysql://localhost:3306/flux"
   hibernate.connection.username: "root"
-  hibernate.connection.password: ""
+  hibernate.connection.password: "fk-flux"
   hibernate.current_session_context_class: "managed"
   connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
-  hibernate.c3p0.min_size: 1
-  hibernate.c3p0.max_size: 1
-  hibernate.c3p0.numHelperThreads: 1
+  hibernate.c3p0.min_size: 3
+  hibernate.c3p0.max_size: 5
 
 flux_scheduler.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
-  hibernate.connection.url: "jdbc:mysql://localhost:3306/flux_scheduler"
+  hibernate.connection.url: "jdbc:mysql://10.33.85.96:3306/flux_scheduler"
   hibernate.connection.username: "root"
-  hibernate.connection.password: ""
+  hibernate.connection.password: "fk-flux"
   hibernate.current_session_context_class: "managed"
   connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
   hibernate.c3p0.min_size: 3
-  hibernate.c3p0.max_size: 3
-  hibernate.c3p0.numHelperThreads: 3
+  hibernate.c3p0.max_size: 5
 
 Dashboard:
   service.port: 9999
@@ -80,7 +98,7 @@ redriver:
   batchRead:
     batchSize: 100
     intervalms: 20000
-  noOfPersistenceWorkers: 5
+  noOfPersistenceWorkers: 10
 
 eventScheduler:
   batchRead:

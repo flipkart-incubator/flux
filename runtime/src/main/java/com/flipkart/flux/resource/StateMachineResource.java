@@ -151,8 +151,8 @@ public class StateMachineResource {
             //in case of Duplicate correlation key, return http code 409 conflict
             return Response.status(Response.Status.CONFLICT.getStatusCode()).entity(ex.getCause() != null ? ex.getCause().getMessage() : null).build();
         } catch (Exception ex) {
-            logger.error("Failed During Creating or Initiating StateMachine with id {}", stateMachineInstanceId);
-            ex.printStackTrace();
+            logger.error("Failed During Creating or Initiating StateMachine with id {} {}", stateMachineInstanceId, ex.getStackTrace());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).entity(ex.getCause() != null ? ex.getCause().getMessage() : null).build();
         }
 
         return Response.status(Response.Status.CREATED.getStatusCode()).entity(stateMachine.getId()).build();
@@ -228,9 +228,12 @@ public class StateMachineResource {
         MDC.put(STATE_MACHINE_ID, machineId);
         MDC.put(TASK_ID, executionUpdateData.getTaskId().toString());
         logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
-
-        updateTaskStatus(machineId, executionUpdateData.getTaskId(), executionUpdateData);
-
+        try {
+            updateTaskStatus(machineId, executionUpdateData.getTaskId(), executionUpdateData);
+        }
+        catch (Exception ex ){
+            logger.error("exception {} {}", ex.getMessage(),ex.getStackTrace());
+        }
         return postEvent(machineId, null, eventData);
     }
 
@@ -281,8 +284,6 @@ public class StateMachineResource {
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
-    @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
     private void updateTaskStatus(String machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
         com.flipkart.flux.domain.Status updateStatus = null;
         switch (executionUpdateData.getStatus()) {

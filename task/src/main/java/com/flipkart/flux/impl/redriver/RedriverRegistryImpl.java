@@ -94,20 +94,20 @@ public class RedriverRegistryImpl implements RedriverRegistry, Initializable {
      * @see RedriverRegistry#redriveTask(String, Long)
      */
     public void registerTask(Long taskId, String stateMachineId, long redriveDelay) {
-        logger.debug("Register task : {} for redriver with time : {}", taskId, redriveDelay);
+        logger.info("Register task : {} for redriver with time : {}", taskId, redriveDelay);
         redriverMessageService.saveMessage(new ScheduledMessage(taskId, stateMachineId, System.currentTimeMillis() + redriveDelay));
     }
 
     /**
      * RedriverRegistry method. Un-Registers the Task with the redriver
      *
-     * @see RedriverRegistry#deRegisterTask(java.lang.Long)
+     * @see RedriverRegistry#deRegisterTask(String, Long)
      */
-    public void deRegisterTask(Long taskId) {
+    public void deRegisterTask(String stateMachineId, Long taskId) {
         MDC.clear();
         MDC.put(TASK_ID, taskId.toString());
-        logger.debug("DeRegister task : {} with redriver", taskId);
-        redriverMessageService.scheduleForRemoval(taskId);
+        logger.info("DeRegister task : {} with smId : {} redriver", taskId, stateMachineId);
+        redriverMessageService.scheduleForRemoval(stateMachineId, taskId);
     }
 
     /**
@@ -118,7 +118,7 @@ public class RedriverRegistryImpl implements RedriverRegistry, Initializable {
     public void redriveTask(String stateMachineId, Long taskId) {
         MDC.clear();
         MDC.put(TASK_ID, taskId.toString());
-        logger.debug("Redrive task with stateMachineId: {} Id : {} ", stateMachineId, taskId);
+        logger.info("Redrive task with stateMachineId: {} Id : {} ", stateMachineId, taskId);
         fluxRuntimeConnector.redriveTask(stateMachineId, taskId);
     }
 }

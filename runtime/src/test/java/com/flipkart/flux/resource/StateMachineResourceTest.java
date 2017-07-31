@@ -88,6 +88,7 @@ public class StateMachineResourceTest {
     @Before
     public void setUp() throws Exception {
         objectMapper = new ObjectMapper();
+        dbClearRule.explicitClearTables();
     }
 
     @AfterClass
@@ -124,7 +125,7 @@ public class StateMachineResourceTest {
             final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events").header("Content-Type", "application/json").body(eventJson).asString();
             assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
             // give some time to execute
-            Thread.sleep(4000);
+            Thread.sleep(6000);
 
             //status of state should be sidelined
             String smId = smCreationResponse.getBody();
@@ -203,7 +204,7 @@ public class StateMachineResourceTest {
         // event3 was waiting on event1, so event3 should also be triggered
         event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event3");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.triggered);
-
+        Thread.sleep(2000);
         boolean anyNotCompleted = stateMachinesDAO.findById(smCreationResponse.getBody()).getStates().stream().anyMatch(e -> !e.getStatus().equals(Status.completed));
         assertThat(anyNotCompleted).isFalse();
     }

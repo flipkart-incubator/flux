@@ -47,6 +47,7 @@ public class TestWorkflow {
                 Thread.sleep(1000);
             } catch (Exception e){
                 System.out.println("interrupted");
+                e.printStackTrace();
             }
         }
         try {

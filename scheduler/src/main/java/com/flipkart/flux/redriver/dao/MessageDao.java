@@ -15,6 +15,7 @@ package com.flipkart.flux.redriver.dao;
 
 import com.flipkart.flux.persistence.*;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.flux.redriver.model.SmIdAndTaskIdPair;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
@@ -70,10 +71,13 @@ public class MessageDao {
      */
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SCHEDULER)
-    public void deleteInBatch(List<Long> messageIdsToDelete) {
-        final Query deleteQuery = currentSession().createQuery("delete ScheduledMessage s where s.taskId in :msgList ");
-        deleteQuery.setParameterList("msgList", messageIdsToDelete);
-        deleteQuery.executeUpdate();
+    public void deleteInBatch(List<SmIdAndTaskIdPair> messageIdsToDelete) {
+        messageIdsToDelete.stream().forEach( smIdAndTaskIdPair -> {
+            final Query deleteQuery = currentSession().createQuery("delete ScheduledMessage s where s.stateMachineId = :smId and s.taskId = :taskId");
+            deleteQuery.setString("smId", smIdAndTaskIdPair.getSmId());
+            deleteQuery.setLong("taskId", smIdAndTaskIdPair.getTaskId());
+            deleteQuery.executeUpdate();
+        });
     }
 
     /**

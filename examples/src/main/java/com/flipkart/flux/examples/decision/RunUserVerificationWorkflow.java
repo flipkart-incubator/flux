@@ -33,7 +33,8 @@ public class RunUserVerificationWorkflow {
         final UserVerificationWorkflow userVerificationWorkflow = injector.getInstance(UserVerificationWorkflow.class);
         /* Lets invoke our workflow */
         System.out.println("[Main] Starting workflow execution");
-        userVerificationWorkflow.verifyUser(new UserId(1l)); // doesn't matter what Id we give
+        for(int i = 0 ; i< 1000; i++)
+        userVerificationWorkflow.verifyUser(new UserId(new Long(i))); // doesn't matter what Id we give
         /* Since we've initialised flux, the process will continue to run till you explicitly kill it */
 
     }

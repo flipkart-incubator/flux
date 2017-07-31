@@ -32,9 +32,10 @@ public interface RedriverRegistry {
 	
 	/**
 	 * Cancels restarts for the specified Task from stalled state.
-	 * @param taskId the Task State identifier
+	 * @param stateMachineId StateMachineIdentifier
+	 * @param taskId task Identifier
 	 */
-	public void deRegisterTask(Long taskId);
+	public void deRegisterTask(String stateMachineId, Long taskId);
 	
 	/**
 	 * Re-drives i.e. re-runs the Task identified by the specified Task Id

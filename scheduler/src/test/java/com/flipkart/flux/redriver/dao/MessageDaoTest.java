@@ -13,10 +13,11 @@
 
 package com.flipkart.flux.redriver.dao;
 
+import com.flipkart.flux.boot.SchedulerTestModule;
 import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.flux.persistence.SessionFactoryContext;
-import com.flipkart.flux.boot.SchedulerTestModule;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.flux.redriver.model.SmIdAndTaskIdPair;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
 import com.google.inject.Inject;
@@ -65,7 +66,8 @@ public class MessageDaoTest {
         messageDao.save(new ScheduledMessage(1l, "sample-state-machine-uuid", 2l));
         messageDao.save(new ScheduledMessage(2l, "sample-state-machine-uuid", 3l));
         messageDao.save(new ScheduledMessage(3l, "sample-state-machine-uuid", 4l));
-        messageDao.deleteInBatch(Arrays.asList(1l, 2l));
+        messageDao.deleteInBatch(Arrays.asList(new SmIdAndTaskIdPair("sample-state-machine-uuid", 1l),
+                new SmIdAndTaskIdPair("sample-state-machine-uuid", 2l)));
 
         assertThat(messageDao.retrieveOldest(0, 10)).containsExactly(new ScheduledMessage(3l, "sample-state-machine-uuid", 4l));
     }

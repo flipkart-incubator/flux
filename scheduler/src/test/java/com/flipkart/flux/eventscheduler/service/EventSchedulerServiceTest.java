@@ -95,7 +95,7 @@ public class EventSchedulerServiceTest {
                 thenReturn(Arrays.asList(new ScheduledEvent("smCorId", "event_name2", now+2, "{\"name\":\"event_name2\",\"type\":\"some_type\",\"data\":\"data\",\"eventSource\":\"internal\"}")));
 
         eventSchedulerService.start();
-        Thread.sleep(100);
+        Thread.sleep(1000);
         Assert.assertTrue(eventSchedulerService.isRunning());
         verify(eventSchedulerRegistry).triggerEvent("event_name1", "data", "smCorId", "internal");
         verify(eventSchedulerRegistry).deregisterEvent("smCorId", "event_name1");
