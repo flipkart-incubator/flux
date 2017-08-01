@@ -78,13 +78,6 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
         return new HashSet<>(stateMachines);
     }
 
-    // In this case, correlationId will be same as stateMachineId
-    @Override
-    @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
-    public StateMachine findByCorrelationId(String correlationId) {
-        return (StateMachine) currentSession().createCriteria(StateMachine.class).add(Restrictions.eq("correlationId", correlationId)).uniqueResult();
-    }
 
     @Override
     @Transactional

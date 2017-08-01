@@ -49,10 +49,7 @@ public interface StateMachinesDAO {
     Set<StateMachine> findByNameAndVersion(ShardId shardId, String stateMachineName, Long Version);
 
     /**
-     * Retrieves state machine by it's unique correlationId
+     * Updates status of a state machine
      */
-    StateMachine findByCorrelationId(String correlationId);
-
-    /** Updates status of a state machine*/
     void updateStatus(String stateMachineId, StateMachineStatus status);
 }

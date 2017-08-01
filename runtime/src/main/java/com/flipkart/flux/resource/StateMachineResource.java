@@ -168,7 +168,7 @@ public class StateMachineResource {
         StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineInstanceId, stateMachineDefinition);
         MDC.clear();
         MDC.put(STATE_MACHINE_ID, stateMachine.getId().toString());
-        logger.info("Created state machine with Id: {} and correlation Id: {}", stateMachine.getId(), stateMachine.getCorrelationId());
+        logger.info("Created state machine with Id: {}", stateMachine.getId());
 
         // 2. initialize and start State Machine
         workFlowExecutionController.initAndStart(stateMachine);
@@ -244,7 +244,7 @@ public class StateMachineResource {
                 if (!searchField.equals(CORRELATION_ID)) {
                     return Response.status(Response.Status.BAD_REQUEST).build();
                 }
-                stateMachine = stateMachinesDAO.findByCorrelationId(machineId);
+                stateMachine = stateMachinesDAO.findById(machineId);
             } else {
                 stateMachine = stateMachinesDAO.findById(machineId);
             }
@@ -344,7 +344,7 @@ public class StateMachineResource {
      */
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/redrivetask/{machineId}/taskid/{taskId}")
+    @Path("/redrivetask/{machineId}/taskId/{taskId}")
     @Timed
     public Response redriveTask(@PathParam("machineId") String machineId, @PathParam("taskId") Long taskId) throws Exception {
 
@@ -456,7 +456,7 @@ public class StateMachineResource {
         String machineId = null;
         StateMachine stateMachine = null;
         if (searchField != null && searchField.equals(CORRELATION_ID)) {
-            stateMachine = stateMachinesDAO.findByCorrelationId(stateMachineId);
+            stateMachine = stateMachinesDAO.findById(stateMachineId);
         } else {
             machineId = stateMachineId;
             stateMachine = stateMachinesDAO.findById(machineId);
@@ -480,7 +480,7 @@ public class StateMachineResource {
         String machineId = null;
         StateMachine stateMachine = null;
         if (searchField != null && searchField.equals(CORRELATION_ID)) {
-            stateMachine = stateMachinesDAO.findByCorrelationId(stateMachineId);
+            stateMachine = stateMachinesDAO.findById(stateMachineId);
         } else {
             machineId = stateMachineId;
             stateMachine = stateMachinesDAO.findById(machineId);
@@ -510,7 +510,7 @@ public class StateMachineResource {
 
         if (stateMachine == null) {
             //if stateMachine is null, that means the passed id is correlation id
-            stateMachine = stateMachinesDAO.findByCorrelationId(machineId);
+            stateMachine = stateMachinesDAO.findById(machineId);
 
         }
 
@@ -530,7 +530,6 @@ public class StateMachineResource {
         Collections.sort(erroredStateIds);
         fsmGraph.setErroredStateIds(erroredStateIds);
         fsmGraph.setStateMachineId(stateMachine.getId());
-        fsmGraph.setCorrelationId(stateMachine.getCorrelationId());
         fsmGraph.setFsmVersion(stateMachine.getVersion());
         fsmGraph.setFsmName(stateMachine.getName());
 

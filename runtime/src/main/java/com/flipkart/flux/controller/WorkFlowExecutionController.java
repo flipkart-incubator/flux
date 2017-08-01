@@ -223,7 +223,7 @@ public class WorkFlowExecutionController {
     }
 
     private StateMachine retrieveStateMachineByCorrelationId(String correlationId) {
-        return stateMachinesDAO.findByCorrelationId(correlationId);
+        return stateMachinesDAO.findById(correlationId);
     }
 
     /**

@@ -44,8 +44,6 @@ public class FsmGraph {
     @JsonProperty
     private String stateMachineId;
 
-    @JsonProperty
-    private String correlationId;
 
     @JsonProperty
     private Long fsmVersion;
@@ -80,10 +78,6 @@ public class FsmGraph {
 
     public void setStateMachineId(String stateMachineId) {
         this.stateMachineId = stateMachineId;
-    }
-
-    public void setCorrelationId(String correlationId) {
-        this.correlationId = correlationId;
     }
 
     public void setFsmVersion(Long fsmVersion) {

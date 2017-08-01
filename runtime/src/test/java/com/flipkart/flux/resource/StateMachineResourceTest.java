@@ -336,11 +336,11 @@ public class StateMachineResourceTest {
     @Test
     public void testCancelWorkflow_withCorrelationId() throws Exception {
         final StateMachine sm = stateMachinePersistenceService.createStateMachine("magic_number_1", objectMapper.readValue(this.getClass().getClassLoader().getResource("state_machine_definition.json"), StateMachineDefinition.class));
-        String stateMachineId = sm.getCorrelationId();
+        String stateMachineId = sm.getId();
         Unirest.put(STATE_MACHINE_RESOURCE_URL+SLASH+stateMachineId+"/cancel?searchField=correlationId").asString();
 
         Thread.sleep(200);
-        StateMachine cancelledSM = stateMachinesDAO.findByCorrelationId(stateMachineId);
+        StateMachine cancelledSM = stateMachinesDAO.findById(stateMachineId);
         assertThat(cancelledSM.getStatus()).isEqualTo(StateMachineStatus.cancelled);
 
         cancelledSM.getStates().forEach(st -> {

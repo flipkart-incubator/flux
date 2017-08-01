@@ -79,7 +79,7 @@ Api:
 
 routers:
   default:
-    instancesPerNode: 5
+    instancesPerNode: 100
 
 task:
   maxTaskRetryCount: 10
