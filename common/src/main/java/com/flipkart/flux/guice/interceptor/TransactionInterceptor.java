@@ -28,6 +28,9 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Provider;
 
 /**
+ * @author shyam.akirala
+ * @author amitkumar.o
+ *
  * <code>TransactionInterceptor</code> is a {@link MethodInterceptor} implementation to provide
  * transactional boundaries to methods which are annotated with {@link javax.transaction.Transactional}.
  * It appropriately selects a dataSource based on present {@link com.flipkart.flux.persistence.SelectDataSource} annotation.
@@ -36,7 +39,6 @@ import javax.inject.Provider;
  * {
  * method1(); //call method1 which is annotated with transactional
  * }
- *
  * @Transactional void method1() {
  * method2(); //call method2 which is annotated with transactional
  * }
@@ -44,10 +46,7 @@ import javax.inject.Provider;
  * <p>
  * In the above case a transaction would be started before method1 invocation using this interceptor and ended once method1's execution is over.
  * Same session and transaction would be used throughout.
- *
- * @author shyam.akirala
- * @author amitkumar.o
- */
+ **/
 public class TransactionInterceptor implements MethodInterceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionInterceptor.class);
@@ -77,7 +76,7 @@ public class TransactionInterceptor implements MethodInterceptor {
             SessionFactory sessionFactory = null;
 
             try {
-                STORAGE storage = invocation.getMethod().getAnnotation(SelectDataSource.class).storage();
+                storage storage = invocation.getMethod().getAnnotation(SelectDataSource.class).storage();
                 switch (storage) {
                     case SHARDED: {
                         try {
@@ -114,7 +113,7 @@ public class TransactionInterceptor implements MethodInterceptor {
                     }
                 }
             } catch (Exception ex) {
-                logger.error("Current Transactional Method doesn't have annotation @DataStorage Method_name:{} {}"
+                logger.error("Current Transactional Method doesn't have annotation @SelectDataSourceType Method_name:{} {}"
                         , invocation.getMethod().getName(), ex.getStackTrace());
                 return new Error("Something wrong with Method's annotations " + ex.getMessage());
             }
@@ -127,17 +126,18 @@ public class TransactionInterceptor implements MethodInterceptor {
             transaction.begin();
             try {
                 Object result = invocation.proceed();
-                transaction.commit();
+                if (transaction != null)
+                    transaction.commit();
                 return result;
             } catch (Exception e) {
                 transaction.rollback();
                 throw e;
             } finally {
                 ManagedSessionContext.unbind(session.getSessionFactory());
-                logger.debug("Transaction completed for method : {} {} {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
+                logger.debug("Transaction completed for method : {} {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
                 session.close();
                 context.clear();
-                logger.debug("Clearing session from ThreadLocal Context {} {} {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
+                logger.debug("Clearing session from ThreadLocal Context : {} {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
 
             }
 

@@ -40,11 +40,12 @@ public interface EventsDAO {
     Event findBySMIdAndName(String stateMachineInstanceId, String eventName);
 
     /** Retrieves list of event names which are in triggered state and belongs to provided state machine */
-    public List<String> findTriggeredEventsNamesBySMId(String stateMachineInstanceId);
+    List<String> findTriggeredEventsNamesBySMId(String stateMachineInstanceId);
 
     /** Retrieves list of events which are in triggered state and belongs to provided state machine */
-    public List<Event> findTriggeredEventsBySMId(String stateMachineInstanceId);
+    List<Event> findTriggeredEventsBySMId(String stateMachineInstanceId);
 
     /** Retrieves list of events by their names and state machine id */
-    public List<EventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames );
+    List<EventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames );
+
 }

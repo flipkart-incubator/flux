@@ -1,7 +1,7 @@
 --liquibase formatted sql
 
---changeset shyam.akirala:5 runOnChange:false
+--changeset amitkumar.o:6 runOnChange:false
 
-ALTER TABLE `StateMachines` DROP COLUMN `correlationId` varchar(50) DEFAULT NULL;
+ALTER TABLE `StateMachines` DROP COLUMN `correlationId` ;
 
---rollback Alter Table `StateMachines` Drop Column `status`;
+--rollback Alter Table `StateMachines` Add Column `correlationId` VARCHAR(128) DEFAULT NULL;

@@ -17,19 +17,14 @@ import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.persistence.*;
-import com.flipkart.flux.resource.StateMachineResource;
 import com.flipkart.flux.shard.ShardId;
 import com.google.inject.name.Named;
 import org.hibernate.Query;
-import org.hibernate.annotations.common.util.impl.Log;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * <code>StatesDAOImpl</code> is an implementation of {@link StatesDAO} which uses Hibernate to perform operations.
@@ -46,21 +41,21 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
     public State create(State state) {
         return super.save(state);
     }
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
     public void updateState(String stateMachineInstanceId, State state) {
         super.update(state);
     }
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
     public void updateStatus(String stateMachineId, Long stateId, Status status) {
         Query query = currentSession().createQuery("update State set status = :status where id = :stateId and stateMachineId = :stateMachineId");
         query.setString("status", status != null ? status.toString() : null);
@@ -71,7 +66,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
     public void updateRollbackStatus(String stateMachineId, Long stateId, Status rollbackStatus) {
         Query query = currentSession().createQuery("update State set rollbackStatus = :rollbackStatus where id = :stateId and stateMachineId = :stateMachineId");
         query.setString("rollbackStatus", rollbackStatus != null ? rollbackStatus.toString() : null);
@@ -82,7 +77,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
     public void incrementRetryCount(String stateMachineId, Long stateId) {
         Query query = currentSession().createQuery("update State set attemptedNoOfRetries = attemptedNoOfRetries + 1 where id = :stateId and stateMachineId = :stateMachineId");
         query.setLong("stateId", stateId);
@@ -98,14 +93,14 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
      */
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
     public State findById(String stateMachineId, Long id) {
         return super.findById(State.class, id);
     }
 
 
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = storage.SHARDED)
     public List findErroredStates(ShardId shardId, String stateMachineName, String fromStateMachineId, String toStateMachineId) {
         Query query = currentSession().createQuery("select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
                 "where sm.id >= :fromStateMachineId and sm.id  <= :toStateMachineId and sm.name = :stateMachineName and state.status in ('errored', 'sidelined', 'cancelled')");
@@ -118,7 +113,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = storage.SHARDED)
     public List findStatesByStatus(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime, String stateName, List<Status> statuses) {
         Query query;
         String queryString = "select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +

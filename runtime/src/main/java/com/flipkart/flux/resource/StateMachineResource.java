@@ -29,7 +29,7 @@ import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.persistence.DataSourceType;
-import com.flipkart.flux.persistence.STORAGE;
+import com.flipkart.flux.persistence.storage;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
@@ -230,9 +230,8 @@ public class StateMachineResource {
         logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
         try {
             updateTaskStatus(machineId, executionUpdateData.getTaskId(), executionUpdateData);
-        }
-        catch (Exception ex ){
-            logger.error("exception {} {}", ex.getMessage(),ex.getStackTrace());
+        } catch (Exception ex) {
+            logger.error("exception {} {}", ex.getMessage(), ex.getStackTrace());
         }
         return postEvent(machineId, null, eventData);
     }
@@ -258,7 +257,7 @@ public class StateMachineResource {
                 return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + machineId + " is in 'cancelled' state. Discarding the event.").build();
             }
 
-            workFlowExecutionController.postEvent(eventData, machineId, null);
+            workFlowExecutionController.postEvent(eventData, machineId);
         } catch (IllegalEventException ex) {
             return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
         }
@@ -329,7 +328,7 @@ public class StateMachineResource {
     @POST
     @Path("/{machineId}/{stateId}/retries/inc")
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
     public Response incrementRetry(@PathParam("machineId") String machineId,
                                    @PathParam("stateId") Long stateId
     ) throws Exception {
@@ -438,7 +437,7 @@ public class StateMachineResource {
     @Path("/{stateMachineId}/{stateId}/unsideline")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
     public Response unsidelineState(@PathParam("stateMachineId") String stateMachineId, @PathParam("stateId") Long stateId) {
         this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
 
@@ -449,7 +448,7 @@ public class StateMachineResource {
     @Path("/{stateMachineId}/cancel")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
     public Response cancelWorkflow(@PathParam("stateMachineId") String stateMachineId,
                                    @QueryParam("searchField") String searchField) {
 
@@ -474,7 +473,7 @@ public class StateMachineResource {
     @Path("/{stateMachineId}/info")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
     public Response getStateMachine(@PathParam("stateMachineId") String stateMachineId,
                                     @QueryParam("searchField") String searchField) {
         String machineId = null;

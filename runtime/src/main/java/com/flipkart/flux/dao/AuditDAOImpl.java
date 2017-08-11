@@ -37,7 +37,7 @@ public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
     public List<AuditRecord> findBySMInstanceId(String stateMachineInstanceId) {
         Criteria criteria = currentSession().createCriteria(AuditRecord.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId));
         List<AuditRecord> records = criteria.list();
@@ -46,14 +46,14 @@ public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
     public AuditRecord create(String stateMachineId, AuditRecord auditRecord) {
         return super.save(auditRecord);
     }
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
     public AuditRecord findById(String stateMachineId, Long id) {
         return super.findById(AuditRecord.class, id);
     }

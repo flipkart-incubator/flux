@@ -15,7 +15,6 @@ package com.flipkart.flux.eventscheduler.dao;
 
 import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
 import com.flipkart.flux.persistence.*;
-import com.flipkart.flux.redriver.model.ScheduledMessage;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
@@ -42,13 +41,13 @@ public class EventSchedulerDao {
     }
 
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SCHEDULER)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SCHEDULER)
     public void save(ScheduledEvent scheduledEvent) {
         currentSession().saveOrUpdate(scheduledEvent);
     }
 
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SCHEDULER)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SCHEDULER)
     public void delete(String correlationId, String eventName) {
         final Query deleteQuery = currentSession().createQuery("delete ScheduledEvent s where s.correlationId=:correlationId " +
                 "and s.eventName=:eventName");
@@ -62,7 +61,7 @@ public class EventSchedulerDao {
      * @param rowCount
      */
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SCHEDULER)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SCHEDULER)
     public List<ScheduledEvent> retrieveOldest(int rowCount) {
         return currentSession()
                 .createCriteria(ScheduledEvent.class)

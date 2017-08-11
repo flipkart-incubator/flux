@@ -52,4 +52,5 @@ public interface StateMachinesDAO {
      * Updates status of a state machine
      */
     void updateStatus(String stateMachineId, StateMachineStatus status);
+
 }

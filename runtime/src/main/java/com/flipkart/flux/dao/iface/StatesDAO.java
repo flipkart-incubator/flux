@@ -70,4 +70,5 @@ public interface StatesDAO {
      * If status list is empty/null, returns all tasks.
      */
     List findStatesByStatus(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime, String taskName, List<Status> statuses);
+
 }

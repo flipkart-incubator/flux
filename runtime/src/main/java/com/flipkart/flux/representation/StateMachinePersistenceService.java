@@ -22,7 +22,7 @@ import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.*;
 import com.flipkart.flux.persistence.DataSourceType;
-import com.flipkart.flux.persistence.STORAGE;
+import com.flipkart.flux.persistence.storage;
 import com.flipkart.flux.persistence.SelectDataSource;
 
 import javax.inject.Inject;
@@ -64,7 +64,7 @@ public class StateMachinePersistenceService {
      * @return saved state machine object
      */
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
     public StateMachine createStateMachine(String stateMachineId, StateMachineDefinition stateMachineDefinition) {
 
         final Map<EventDefinition, EventData> eventDataMap = stateMachineDefinition.getEventDataMap();

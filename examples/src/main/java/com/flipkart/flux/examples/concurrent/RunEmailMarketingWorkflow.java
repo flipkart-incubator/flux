@@ -18,21 +18,17 @@ import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 /**
  * This class can be used to run and observe the email marketing workflow.
  * This or a similar class like this is _not_ required to be present in your actual production jar
- *
+ * <p>
  * To run this example, run the shell script run_example.sh with this class's fqn as below
  * > sh run_example.sh com.flipkart.flux.examples.concurrent.RunEmailMarketingWorkflow
- *
+ * <p>
  * you can debug the workflow execution in flux by starting it in debug mode as below and attaching it to your IDE
  * > sh run_example.sh com.flipkart.flux.examples.concurrent.RunEmailMarketingWorkflow debug <debug_port_number>
  */
-public class RunEmailMarketingWorkflow  {
+public class RunEmailMarketingWorkflow {
     public static void main(String... args) throws Exception {
 
         /* Initialise _your_ module*/
@@ -42,11 +38,7 @@ public class RunEmailMarketingWorkflow  {
         final EmailMarketingWorkflow emailMarketingWorkflow = injector.getInstance(EmailMarketingWorkflow.class);
         /* Lets invoke our workflow */
         System.out.println("[Main] Starting workflow execution");
-        ExecutorService ex = Executors.newFixedThreadPool(100);
-        for(int i = 0 ; i < 10000; i++)
-        ex.submit(() -> {
-            String u = UUID.randomUUID().toString();
-            emailMarketingWorkflow.sendEmails(new Email(u , u + "someone@flipkart.com")); });
+        emailMarketingWorkflow.sendEmails(new Email("someBody", "someone@flipkart.com"), new Email("someMore", "someoneElse@fk.com"));
         /* Observe the logs and see how different emails are sent from different threads! Its magic! */
     }
 }

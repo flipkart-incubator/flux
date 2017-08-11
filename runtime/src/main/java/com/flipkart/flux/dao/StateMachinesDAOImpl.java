@@ -43,14 +43,14 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
     public StateMachine create(String stateMachineInstanceId, StateMachine stateMachine) {
         return super.save(stateMachine);
     }
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
     public StateMachine findById(String stateMachineInstanceId) {
         return super.findById(StateMachine.class, stateMachineInstanceId);
     }
@@ -58,7 +58,7 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     // scatter gather query
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = storage.SHARDED)
     public Set<StateMachine> findByName(ShardId shardId, String stateMachineName) {
         Criteria criteria = currentSession().createCriteria(StateMachine.class)
                 .add(Restrictions.eq("name", stateMachineName));
@@ -69,7 +69,7 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     //Scatter gather query
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = storage.SHARDED)
     public Set<StateMachine> findByNameAndVersion(ShardId shardId, String stateMachineName, Long version) {
         Criteria criteria = currentSession().createCriteria(StateMachine.class)
                 .add(Restrictions.eq("name", stateMachineName))
@@ -81,11 +81,12 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
     public void updateStatus(String stateMachineId, StateMachineStatus status) {
         Query query = currentSession().createQuery("update StateMachine set status = :status where id = :stateMachineId");
         query.setString("status", status != null ? status.toString() : null);
         query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
+
 }

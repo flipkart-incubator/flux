@@ -47,6 +47,8 @@ public class RedriverService {
     private MessageManagerService messageService;
     private ScheduledFuture scheduledFuture;
     private final RedriverRegistry redriverRegistry;
+
+
     private final InstrumentedScheduledExecutorService scheduledExecutorService;
 
     @Inject

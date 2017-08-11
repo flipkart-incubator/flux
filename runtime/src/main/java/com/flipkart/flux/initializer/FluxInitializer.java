@@ -97,7 +97,7 @@ public class FluxInitializer {
                     throw new RuntimeException("<migrate> must be followed with db name");
                 }
                 if (!(args[1].equals("flux") || args[1].equals("flux_scheduler"))) {
-                    throw new RuntimeException("<migrate> works only for 'flux_sharding' or 'flux_redriver'");
+                    throw new RuntimeException("<migrate> works only for 'flux' or 'flux_scheduler'");
                 }
                 fluxInitializer.migrate(args[1]);
         }

@@ -42,7 +42,7 @@ public class MessageDao {
     }
 
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SCHEDULER)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SCHEDULER)
     public void save(ScheduledMessage scheduledMessage) {
         currentSession().saveOrUpdate(scheduledMessage);
     }
@@ -54,7 +54,7 @@ public class MessageDao {
      * @param rowCount
      */
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SCHEDULER)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SCHEDULER)
     public List<ScheduledMessage> retrieveOldest(int offset, int rowCount) {
         return currentSession()
                 .createCriteria(ScheduledMessage.class)
@@ -70,7 +70,7 @@ public class MessageDao {
      * @param messageIdsToDelete List of {@link ScheduledMessage} Ids
      */
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = STORAGE.SCHEDULER)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SCHEDULER)
     public void deleteInBatch(List<SmIdAndTaskIdPair> messageIdsToDelete) {
         messageIdsToDelete.stream().forEach( smIdAndTaskIdPair -> {
             final Query deleteQuery = currentSession().createQuery("delete ScheduledMessage s where s.stateMachineId = :smId and s.taskId = :taskId");

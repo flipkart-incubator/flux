@@ -121,19 +121,15 @@ public class WorkFlowExecutionController {
      *
      * @param eventData
      * @param stateMachineInstanceId
-     * @param correlationId
      */
-    public Set<State> postEvent(EventData eventData, String stateMachineInstanceId, String correlationId) {
+    public Set<State> postEvent(EventData eventData, String stateMachineInstanceId) {
         StateMachine stateMachine = null;
         if (stateMachineInstanceId != null) {
             stateMachine = retrieveStateMachine(stateMachineInstanceId);
-        } else if (correlationId != null) {
-            stateMachine = retrieveStateMachineByCorrelationId(correlationId);
-            stateMachineInstanceId = (stateMachine == null) ? null : stateMachine.getId();
         }
 
         if (stateMachine == null)
-            throw new UnknownStateMachine("State machine with id: " + stateMachineInstanceId + " or correlation id " + correlationId + " not found");
+            throw new UnknownStateMachine("State machine with id: " + stateMachineInstanceId + " not found");
         //update event's data and status
         Event event = eventsDAO.findBySMIdAndName(stateMachineInstanceId, eventData.getName());
         if (event == null)
@@ -344,7 +340,7 @@ public class WorkFlowExecutionController {
     public void cancelWorkflow(StateMachine stateMachine) {
         stateMachinesDAO.updateStatus(stateMachine.getId(), StateMachineStatus.cancelled);
         stateMachine.getStates().stream().filter(state -> state.getStatus() == Status.initialized).forEach(state -> {
-            this.statesDAO.updateStatus(stateMachine.getId(), state.getId(),  Status.cancelled);
+            this.statesDAO.updateStatus(stateMachine.getId(), state.getId(), Status.cancelled);
             this.auditDAO.create(stateMachine.getId(), new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNoOfRetries(), Status.cancelled, null, null));
         });
     }
