@@ -110,6 +110,8 @@ public class ShardModule extends AbstractModule {
             e.printStackTrace();
             throw new FluxError(FluxError.ErrorType.runtime, "Not able to read Master Slave Config from Config File", e.getCause());
         }
+        //Check to make sure Physical Shards is power of 2's i.e 2, 4, 8 , 16 ..
+        assert (1<<8)%masterSlavePairList.getShardPairModelList().size() == 0 ;
         return masterSlavePairList;
     }
 
@@ -137,6 +139,7 @@ public class ShardModule extends AbstractModule {
      *
      * @param masterSlavePairList
      * @return
+     * @throws RuntimeException
      */
     @Provides
     @Singleton
@@ -150,15 +153,39 @@ public class ShardModule extends AbstractModule {
                 for (int j = 0; j < 16; j++) {
                     String shardPrefix = Integer.toHexString(i) + Integer.toHexString(j);
                     if (shardPrefix.compareTo(startKey) >= 0 && shardPrefix.compareTo(endKey) <= 0) {
+                        // shardKey should not already be present in the map, this will thrown
+                        assert shardKeyToShardIdMap.containsKey(shardPrefix) == false;
                         shardKeyToShardIdMap.put(shardPrefix, masterSlavePair.getShardId());
                     }
                 }
         });
+        /*
+        * Check if each Physical Shard contains same number of Shard Keys, remove this check if number of shards
+        * are increased in future, with current setup, each physical shard should have 64 keys
+        * */
+        checkShardConfig(shardKeyToShardIdMap, masterSlavePairList.getShardPairModelList().size());
+
         if (shardKeyToShardIdMap.size() != (1 << 8)) {
             throw new RuntimeException("No. of shardKeys should be 16*16, currently it is " +
                     Integer.toString(shardKeyToShardIdMap.size()));
         }
         return shardKeyToShardIdMap;
+    }
+
+    public void checkShardConfig(Map<String, ShardId> shardKeyToShardIdMap, int noOfPhysicalShards) {
+        Map<ShardId, Integer> shardKeysPerPhysicalShardCounter = new HashMap<>();
+        shardKeyToShardIdMap.entrySet().forEach(entry -> {
+            if (shardKeysPerPhysicalShardCounter.containsKey(entry.getValue())) {
+                Integer currentCount = shardKeysPerPhysicalShardCounter.get(entry.getValue());
+                shardKeysPerPhysicalShardCounter.put(entry.getValue(), currentCount + 1);
+            } else {
+                shardKeysPerPhysicalShardCounter.put(entry.getValue(), 1);
+            }
+        });
+        assert shardKeysPerPhysicalShardCounter.size() == noOfPhysicalShards;
+        shardKeysPerPhysicalShardCounter.entrySet().forEach(entry -> {
+            assert entry.getValue() == (1 << 8) / noOfPhysicalShards;
+        });
     }
 
 
