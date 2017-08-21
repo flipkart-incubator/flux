@@ -131,7 +131,7 @@ public class State {
 
     public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, List<String> dependencies,
                  Long retryCount, Long timeout, String outputEvent, Status status, Status rollbackStatus,
-                 Long attemptedNoOfRetries, String stateMachineId) {
+                 Long attemptedNoOfRetries, String stateMachineId, Long id) {
         this();
         this.version = version;
         this.name = name;
@@ -147,6 +147,7 @@ public class State {
         this.rollbackStatus = rollbackStatus;
         this.attemptedNoOfRetries = attemptedNoOfRetries;
         this.stateMachineId = stateMachineId;
+        this.id = id;
     }
 
     /**

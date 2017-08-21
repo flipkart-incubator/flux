@@ -75,9 +75,9 @@ public class EventsDAOTest {
         StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
         StringEvent data = new StringEvent("event_dat");
         Event event = new Event("test_event_name", "Internal", Event.EventStatus.pending, stateMachine.getId(), objectMapper.writeValueAsString(data), "state1");
-        Long eventId = eventsDAO.create(event.getStateMachineInstanceId(), event).getId();
+        eventsDAO.create(event.getStateMachineInstanceId(), event);
 
-        Event event1 = eventsDAO.findById(event.getStateMachineInstanceId(), eventId);
+        Event event1 = eventsDAO.findBySMIdAndName(event.getStateMachineInstanceId(), event.getName());
         assertThat(event1).isEqualTo(event);
     }
 

@@ -33,8 +33,6 @@ public interface EventsDAO {
     /** Retrieves all the events which belongs to a particular state machine instance*/
     List<Event> findBySMInstanceId(String stateMachineInstanceId);
 
-    /** Retrieves Event by it's unique identifier*/
-    Event findById(String stateMachineInstanceId, Long id);
 
     /** Retrieves Event by state machine instance id and event name */
     Event findBySMIdAndName(String stateMachineInstanceId, String eventName);

@@ -30,6 +30,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * <code>StateMachinePersistenceService</code> class converts user provided state machine entity definition to domain type object and stores in DB.
@@ -72,16 +73,17 @@ public class StateMachinePersistenceService {
         Set<StateDefinition> stateDefinitions = stateMachineDefinition.getStates();
         Set<State> states = new HashSet<>();
 
-
+        AtomicInteger stateId = new AtomicInteger(1);
         for (StateDefinition stateDefinition : stateDefinitions) {
-            State state = convertStateDefinitionToState(stateDefinition, stateMachineId);
+            State state = convertStateDefinitionToState(stateDefinition, stateMachineId, stateId.longValue());
             states.add(state);
+            stateId.incrementAndGet();
         }
 
         StateMachine stateMachine = new StateMachine(stateMachineId, stateMachineDefinition.getVersion(),
                 stateMachineDefinition.getName(),
                 stateMachineDefinition.getDescription(),
-                states, stateMachineDefinition.getCorrelationId());
+                states);
 
         stateMachinesDAO.create(stateMachineId, stateMachine);
 
@@ -123,7 +125,7 @@ public class StateMachinePersistenceService {
      * @param stateDefinition
      * @return state
      */
-    private State convertStateDefinitionToState(StateDefinition stateDefinition, String stateMachineId) {
+    private State convertStateDefinitionToState(StateDefinition stateDefinition, String stateMachineId, Long id) {
         try {
             List<EventDefinition> eventDefinitions = stateDefinition.getDependencies();
             List<String> events = new LinkedList<>();
@@ -142,7 +144,7 @@ public class StateMachinePersistenceService {
                     Math.min(stateDefinition.getRetryCount(), maxRetryCount),
                     stateDefinition.getTimeout(),
                     stateDefinition.getOutputEvent() != null ? objectMapper.writeValueAsString(stateDefinition.getOutputEvent()) : null,
-                    Status.initialized, null, 0l, stateMachineId);
+                    Status.initialized, null, 0l, stateMachineId, id);
             return state;
         } catch (Exception e) {
             throw new IllegalRepresentationException("Unable to create state domain object", e);

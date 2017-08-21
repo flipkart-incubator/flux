@@ -55,8 +55,8 @@ public class StateMachinePersistenceServiceTest {
         StateDefinition stateDefinition = new StateDefinition(1L, "state1", "desc", null, "task1", null, 13L, 1000L, Collections.emptyList(), null);
         StateMachineDefinition stateMachineDefinition = new StateMachineDefinition("desc", "state_machine_1", 1L, Collections.singleton(stateDefinition), null, null);
         stateMachinePersistenceService.createStateMachine("sample-state-machine-id", stateMachineDefinition);
-        State state = new State(1L, "state1", "desc", null, "task1", null, Collections.emptyList(), 10L, 1000L, null, Status.initialized, null, 0L, "sample-state-machine-id" );
-        verify(stateMachinesDAO).create("sample-state-machine-id", new StateMachine("sample-state-machine-id", 1L, "state_machine_1", "desc", Collections.singleton(state), null));
+        State state = new State(1L, "state1", "desc", null, "task1", null, Collections.emptyList(), 10L, 1000L, null, Status.initialized, null, 0L, "sample-state-machine-id", 1L );
+        verify(stateMachinesDAO).create("sample-state-machine-id", new StateMachine("sample-state-machine-id", 1L, "state_machine_1", "desc", Collections.singleton(state)));
     }
 
     @Test
@@ -66,7 +66,7 @@ public class StateMachinePersistenceServiceTest {
         StateDefinition stateDefinition = new StateDefinition(1L, "state1", "desc", null, "task1", null, 3L, 1000L, Collections.emptyList(), null);
         StateMachineDefinition stateMachineDefinition = new StateMachineDefinition("desc", "state_machine_1", 1L, Collections.singleton(stateDefinition), null, null);
         stateMachinePersistenceService.createStateMachine("sample-state-machine-id", stateMachineDefinition);
-        State state = new State(1L, "state1", "desc", null, "task1", null, Collections.emptyList(), 3L, 1000L, null, Status.initialized, null, 0L, "sample-state-machine-id");
-        verify(stateMachinesDAO).create("sample-state-machine-id", new StateMachine("sample-state-machine-id", 1L, "state_machine_1", "desc", Collections.singleton(state), null));
+        State state = new State(1L, "state1", "desc", null, "task1", null, Collections.emptyList(), 3L, 1000L, null, Status.initialized, null, 0L, "sample-state-machine-id", 1L);
+        verify(stateMachinesDAO).create("sample-state-machine-id", new StateMachine("sample-state-machine-id", 1L, "state_machine_1", "desc", Collections.singleton(state)));
     }
 }

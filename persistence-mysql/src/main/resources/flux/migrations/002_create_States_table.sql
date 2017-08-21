@@ -3,12 +3,12 @@
 --changeset shyam.akirala:2 runOnChange:false
 
 CREATE TABLE IF NOT EXISTS `States` (
-  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `id` BIGINT NOT NULL ,
   `name` VARCHAR(255) NOT NULL,
   `version` SMALLINT UNSIGNED NOT NULL,
   `description` VARCHAR(10) DEFAULT NULL,
   `dependencies` VARCHAR(1000) DEFAULT NULL,
-  `stateMachineId` VARCHAR (64),
+  `stateMachineId` VARCHAR (64) NOT NULL ,
   `onEntryHook` varchar(500) DEFAULT NULL,
   `task` VARCHAR(1000) DEFAULT NULL,
   `onExitHook` varchar(500) DEFAULT NULL,

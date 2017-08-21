@@ -20,6 +20,7 @@ import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.impl.SessionFactoryContextImpl;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.flux.shard.ShardId;
 import com.flipkart.flux.type.BlobType;
 import com.flipkart.flux.type.ListJsonType;
 import com.flipkart.flux.type.StoreFQNType;
@@ -36,6 +37,7 @@ import org.hibernate.cfg.Configuration;
 
 import javax.inject.Provider;
 import javax.transaction.Transactional;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
@@ -104,9 +106,9 @@ public class SchedulerModule extends AbstractModule {
     @Singleton
     @Named("schedulerSessionFactoriesContext")
     public SessionFactoryContext getSessionFactoryProvider(@Named("schedulerSessionFactory") SessionFactory schedulerSessionFactory) {
-        Map fluxRWSessionFactoriesMap = null;
-        Map fluxROSessionFactoriesMap = null;
-        Map fluxShardKeyToShardIdMap = null;
+        Map fluxRWSessionFactoriesMap = new HashMap<ShardId, SessionFactory>();
+        Map fluxROSessionFactoriesMap = new HashMap<ShardId, SessionFactory>();
+        Map fluxShardKeyToShardIdMap = new HashMap<String, ShardId>();
         return new SessionFactoryContextImpl(fluxRWSessionFactoriesMap, fluxROSessionFactoriesMap, fluxShardKeyToShardIdMap, schedulerSessionFactory);
     }
 }

@@ -31,6 +31,7 @@ import java.util.List;
 
 /**
  * <code>EventsDAOImpl</code> is an implementation of {@link EventsDAO} which uses Hibernate to perform operations.
+ *
  * @author shyam.akirala
  */
 public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
@@ -64,13 +65,6 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public Event findById(String stateMachineInstanceId, Long id) {
-        return super.findById(Event.class, id);
-    }
-
-    @Override
-    @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Event findBySMIdAndName(String stateMachineInstanceId, String eventName) {
         Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("name", eventName));
@@ -99,14 +93,14 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public List<EventData> findByEventNamesAndSMId( String stateMachineInstanceId, List<String> eventNames) {
+    public List<EventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames) {
         if (eventNames.isEmpty()) {
             return new ArrayList<>();
         }
         StringBuilder eventNamesString = new StringBuilder();
-        for(int i=0; i<eventNames.size(); i++) {
-            eventNamesString.append("\'"+eventNames.get(i)+"\'");
-            if(i!=eventNames.size()-1)
+        for (int i = 0; i < eventNames.size(); i++) {
+            eventNamesString.append("\'" + eventNames.get(i) + "\'");
+            if (i != eventNames.size() - 1)
                 eventNamesString.append(", ");
         }
         //retrieves and returns the events in the order of eventNames
@@ -115,7 +109,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         List<Event> readEvents = hqlQuery.list();
         LinkedList<EventData> readEventsDTOs = new LinkedList<EventData>();
         for (Event event : readEvents) {
-        	readEventsDTOs.add(new EventData(event.getName(), event.getType(),event.getEventData(), event.getEventSource()));
+            readEventsDTOs.add(new EventData(event.getName(), event.getType(), event.getEventData(), event.getEventSource()));
         }
         return readEventsDTOs;
     }

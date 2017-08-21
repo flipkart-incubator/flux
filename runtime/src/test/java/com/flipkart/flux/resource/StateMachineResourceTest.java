@@ -49,6 +49,9 @@ import org.junit.runner.RunWith;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(GuiceJunit4Runner.class)
@@ -172,7 +175,7 @@ public class StateMachineResourceTest {
         Thread.sleep(2000);
         event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event0");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.triggered);
-        assertThat(event).isEqualToIgnoringGivenFields(TestUtils.getStandardTestEvent(), "stateMachineInstanceId", "id", "createdAt", "updatedAt");
+        assertThat(event).isEqualToIgnoringGivenFields(TestUtils.getStandardTestEvent(), "stateMachineInstanceId", "createdAt", "updatedAt");
 
         // event3 was waiting on event1, so event3 should also be triggered
         event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event3");
@@ -199,7 +202,7 @@ public class StateMachineResourceTest {
         Thread.sleep(3000);
         event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event0");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.triggered);
-        assertThat(event).isEqualToIgnoringGivenFields(TestUtils.getStandardTestEvent(), "stateMachineInstanceId", "id", "createdAt", "updatedAt");
+        assertThat(event).isEqualToIgnoringGivenFields(TestUtils.getStandardTestEvent(), "stateMachineInstanceId", "createdAt", "updatedAt");
 
         // event3 was waiting on event1, so event3 should also be triggered
         event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event3");
@@ -294,18 +297,30 @@ public class StateMachineResourceTest {
         /* mark 1 of the state as errored */
         sm.getStates().stream().findFirst().get().setStatus(Status.errored);
         String firstSmId = "state-machine-1";
+
+        sm.getStates().stream().forEach(state -> {
+            state.setStateMachineId(firstSmId);
+        });
+        Set<State> states = new HashSet<>();
+        states.addAll(sm.getStates());
         /* persist */
-        final StateMachine firstSM = stateMachinesDAO.create(firstSmId, new StateMachine(firstSmId, sm.getVersion(), sm.getName(), sm.getDescription(), sm.getStates()));
+        final StateMachine firstSM = stateMachinesDAO.create(firstSmId, new StateMachine(firstSmId, sm.getVersion(), sm.getName(), sm.getDescription(),  ans));
 
         /* change name and persist as 2nd statemachine */
         final String differentSMName = "state-machine-2";
-        final StateMachine secondSM = stateMachinesDAO.create(differentSMName, new StateMachine(differentSMName, sm.getVersion(), sm.getName(), sm.getDescription(), sm.getStates()));
+        sm.getStates().stream().forEach(state -> {
+            state.setStateMachineId(differentSMName);
+        });
+        states.clear();
+        states.addAll(sm.getStates());
+
+        final StateMachine secondSM = stateMachinesDAO.create(differentSMName, new StateMachine(differentSMName, sm.getVersion(), sm.getName(), sm.getDescription(), ans));
 
         /* fetch errored states with name "differentStateMachine" */
-        final HttpResponse<String> stringHttpResponse = Unirest.get(STATE_MACHINE_RESOURCE_URL + "/" + standardStateMachine + "/states/errored?fromSmId=" + firstSM.getId() + "&toSmId=" + secondSM.getId()).header("Content-Type", "application/json").asString();
+        final HttpResponse<String> stringHttpResponse = Unirest.get(STATE_MACHINE_RESOURCE_URL + "/" + "test_state_machine" + "/states/errored?fromSmId=" + secondSM.getId() + "&toSmId=" + secondSM.getId()).header("Content-Type", "application/json").asString();
 
         assertThat(stringHttpResponse.getStatus()).isEqualTo(200);
-        assertThat(stringHttpResponse.getBody()).isEqualTo("[[" + secondSM.getId() + "," +
+        assertThat(stringHttpResponse.getBody()).isEqualTo("[[\"" + secondSM.getId() + "\"," +
                 secondSM.getStates().stream().filter(e -> Status.errored.equals(e.getStatus())).findFirst().get().getId() + "," +
                 "\"errored\"]]");
     }
