@@ -28,48 +28,69 @@ import java.sql.Timestamp;
 
 @Entity
 @Table(name = "Events")
+@IdClass(Event.EventPK.class)
 public class Event implements Serializable {
 
-    /** Default serial version UID*/
+    /**
+     * Default serial version UID
+     */
     private static final long serialVersionUID = 1L;
 
-    /** Auto generated Id*/
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+    @Id
     /** The name for this Event*/
     private String name;
 
-    /** The type of this Event*/
+    /**
+     * The type of this Event
+     */
     private String type;
 
-    /** Status for this Event*/
+    /**
+     * Status for this Event
+     */
     @Enumerated(EnumType.STRING)
     private EventStatus status;
 
-    /** Instance Id of state machine with which this event is associated */
+    /**
+     * Instance Id of state machine with which this event is associated
+     */
+    @Id
     private String stateMachineInstanceId;
 
-    /** Data associated with this Event, stored as serialised json */
+    /**
+     * Data associated with this Event, stored as serialised json
+     */
     private String eventData;
 
-    /** The source who generated this Event */
+    /**
+     * The source who generated this Event
+     */
     private String eventSource;
 
-    /** Event creation time */
+    /**
+     * Event creation time
+     */
     private Timestamp createdAt;
 
-    /** Time at which this event is last updated */
+    /**
+     * Time at which this event is last updated
+     */
     @Column(updatable = false)
     private Timestamp updatedAt;
 
-    /** Enum of Event statuses*/
+    /**
+     * Enum of Event statuses
+     */
     public enum EventStatus {
-        pending,triggered;
+        pending, triggered;
     }
 
-    /** Constructors */
-    protected Event() {}
+    /**
+     * Constructors
+     */
+    protected Event() {
+    }
+
     public Event(String name, String type, EventStatus status, String stateMachineInstanceId, String eventData, String eventSource) {
         this.name = name;
         this.type = type;
@@ -79,46 +100,58 @@ public class Event implements Serializable {
         this.eventSource = eventSource;
     }
 
-    /** Accessor/Mutator methods*/
-    public Long getId() {
-        return id;
-    }
+    /**
+     * Accessor/Mutator methods
+     */
+
     public void setName(String name) {
         this.name = name;
     }
+
     public EventStatus getStatus() {
         return status;
     }
+
     public void setStatus(EventStatus status) {
         this.status = status;
     }
+
     public String getStateMachineInstanceId() {
         return stateMachineInstanceId;
     }
+
     public void setStateMachineInstanceId(String stateMachineInstanceId) {
         this.stateMachineInstanceId = stateMachineInstanceId;
     }
+
     public String getEventData() {
         return eventData;
     }
+
     public void setEventData(String eventData) {
         this.eventData = eventData;
     }
+
     public String getEventSource() {
         return eventSource;
     }
+
     public void setEventSource(String eventSource) {
         this.eventSource = eventSource;
     }
+
     public String getName() {
         return name;
     }
+
     public String getType() {
         return type;
     }
+
     public Timestamp getCreatedAt() {
         return createdAt;
     }
+
     public Timestamp getUpdatedAt() {
         return updatedAt;
     }
@@ -150,5 +183,60 @@ public class Event implements Serializable {
         result = 31 * result + (eventData != null ? eventData.hashCode() : 0);
         result = 31 * result + (eventSource != null ? eventSource.hashCode() : 0);
         return result;
+    }
+
+    /**
+     * <code>EventPK</code> is the composite primary key of "Event" table in DB.
+     */
+    static class EventPK implements Serializable {
+
+        private String stateMachineInstanceId;
+        private String name;
+
+        /**
+         * for Hibernate
+         */
+        public EventPK() {
+        }
+
+        public EventPK(String stateMachineInstanceId, String name) {
+            this.stateMachineInstanceId = stateMachineInstanceId;
+            this.name = name;
+        }
+
+        public String getStateMachineInstanceId() {
+            return stateMachineInstanceId;
+        }
+
+        public void setStateMachineInstanceId(String stateMachineInstanceId) {
+            this.stateMachineInstanceId = stateMachineInstanceId;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof EventPK)) return false;
+
+            EventPK eventPK = (EventPK) o;
+
+            if (!getStateMachineInstanceId().equals(eventPK.getStateMachineInstanceId())) return false;
+            return getName().equals(eventPK.getName());
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = getStateMachineInstanceId().hashCode();
+            result = 31 * result + getName().hashCode();
+            return result;
+        }
     }
 }

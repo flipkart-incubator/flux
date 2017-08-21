@@ -105,9 +105,9 @@ public class StateMachineResourceTest {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
         final HttpResponse<String> response = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
-        assertThat(parallelScatterGatherQueryHelper.findByName("test_state_machine")).hasSize(1);
+        assertThat(parallelScatterGatherQueryHelper.findStateMachinesByName("test_state_machine")).hasSize(1);
         Thread.sleep(1000);
-        TestUtils.assertStateMachineEquality(parallelScatterGatherQueryHelper.findByName("test_state_machine").iterator().next(), TestUtils.getStandardTestMachine());
+        TestUtils.assertStateMachineEquality(parallelScatterGatherQueryHelper.findStateMachinesByName("test_state_machine").iterator().next(), TestUtils.getStandardTestMachine());
     }
 
     @Test
@@ -153,7 +153,7 @@ public class StateMachineResourceTest {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
         final HttpResponse<String> response = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
         assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
-        assertThat(parallelScatterGatherQueryHelper.findByName("test_state_machine")).hasSize(1);
+        assertThat(parallelScatterGatherQueryHelper.findStateMachinesByName("test_state_machine")).hasSize(1);
         final HttpResponse<String> secondResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
         assertThat(secondResponse.getStatus()).isEqualTo(Response.Status.CONFLICT.getStatusCode());
     }
