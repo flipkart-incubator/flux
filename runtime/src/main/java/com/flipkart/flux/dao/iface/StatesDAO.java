@@ -28,11 +28,6 @@ import java.util.List;
 public interface StatesDAO {
 
     /**
-     * Creates a state in db and returns the saved object
-     */
-    State create(State state);
-
-    /**
      * Updates a state in db
      */
     void updateState(String stateMachineInstanceId, State state);

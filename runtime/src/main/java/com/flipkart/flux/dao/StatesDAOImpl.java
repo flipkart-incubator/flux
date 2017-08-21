@@ -41,21 +41,14 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
-    public State create(State state) {
-        return super.save(state);
-    }
-
-    @Override
-    @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public void updateState(String stateMachineInstanceId, State state) {
         super.update(state);
     }
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public void updateStatus(String stateMachineId, Long stateId, Status status) {
         Query query = currentSession().createQuery("update State set status = :status where id = :stateId and stateMachineId = :stateMachineId");
         query.setString("status", status != null ? status.toString() : null);
@@ -66,7 +59,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public void updateRollbackStatus(String stateMachineId, Long stateId, Status rollbackStatus) {
         Query query = currentSession().createQuery("update State set rollbackStatus = :rollbackStatus where id = :stateId and stateMachineId = :stateMachineId");
         query.setString("rollbackStatus", rollbackStatus != null ? rollbackStatus.toString() : null);
@@ -77,7 +70,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public void incrementRetryCount(String stateMachineId, Long stateId) {
         Query query = currentSession().createQuery("update State set attemptedNoOfRetries = attemptedNoOfRetries + 1 where id = :stateId and stateMachineId = :stateMachineId");
         query.setLong("stateId", stateId);
@@ -85,22 +78,16 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         query.executeUpdate();
     }
 
-    /**
-     * Query should go to Default Shard , As it is a redriver Task
-     *
-     * @param id
-     * @return
-     */
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public State findById(String stateMachineId, Long id) {
         return super.findById(State.class, id);
     }
 
 
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
     public List findErroredStates(ShardId shardId, String stateMachineName, String fromStateMachineId, String toStateMachineId) {
         Query query = currentSession().createQuery("select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
                 "where sm.id >= :fromStateMachineId and sm.id  <= :toStateMachineId and sm.name = :stateMachineName and state.status in ('errored', 'sidelined', 'cancelled')");
@@ -113,7 +100,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
     public List findStatesByStatus(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime, String stateName, List<Status> statuses) {
         Query query;
         String queryString = "select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +

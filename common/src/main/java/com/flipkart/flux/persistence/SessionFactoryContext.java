@@ -27,7 +27,7 @@ import org.hibernate.SessionFactory;
 public interface SessionFactoryContext {
 
     /**
-     * Get the Redriver sessionFactory for the current thread context to be used for the ongoing transaction.
+     * Get the Scheduler sessionFactory for the current thread context to be used for the ongoing transaction.
      *
      * @return {@link SessionFactory}
      */
@@ -47,7 +47,7 @@ public interface SessionFactoryContext {
      *
      * @param session
      */
-    void setSession(Session session);
+    void setThreadLocalSession(Session session);
 
     /**
      * Get Session Factory for the given shardId from RWSessionFactoryMap

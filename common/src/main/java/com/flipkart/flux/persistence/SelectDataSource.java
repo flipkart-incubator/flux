@@ -29,5 +29,5 @@ import java.lang.annotation.Target;
 public @interface SelectDataSource {
     DataSourceType type() default DataSourceType.READ_WRITE;
 
-    storage storage() default storage.SHARDED;
+    Storage storage() default Storage.SHARDED;
 }

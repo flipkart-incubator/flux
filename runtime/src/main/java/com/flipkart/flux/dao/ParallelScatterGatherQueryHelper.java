@@ -72,21 +72,21 @@ public class ParallelScatterGatherQueryHelper {
         return result;
     }
 
-    public Set<StateMachine> findByName(String stateMachineName) {
+    public Set<StateMachine> findStateMachinesByName(String stateMachineName) {
         Set result = Collections.synchronizedSet(new HashSet<StateMachine>());
         scatterGatherQueryHelper((shardId) ->
-                stateMachinesDAO.findByName(shardId, stateMachineName), result, "states by status");
+                stateMachinesDAO.findByName(shardId, stateMachineName), result, "stateMachines by name");
         return result;
     }
 
-    public Set<StateMachine> findByNameAndVersion(String stateMachineName, Long Version) {
+    public Set<StateMachine> findStateMachinesByNameAndVersion(String stateMachineName, Long Version) {
         Set result = Collections.synchronizedSet(new HashSet<StateMachine>());
         scatterGatherQueryHelper((shardId) ->
-                stateMachinesDAO.findByNameAndVersion(shardId, stateMachineName, Version), result, "states by status");
+                stateMachinesDAO.findByNameAndVersion(shardId, stateMachineName, Version), result, "stateMachines by name and version");
         return result;
     }
 
-    private void scatterGatherQueryHelper(Function<ShardId, Collection> reader, Collection result, String errorMessage) {
+    private void scatterGatherQueryHelper(Function<ShardId, Collection> reader, Collection result, String fetchOperation) {
         Future[] tasksCompleted = new Future[fluxShardIdToShardPairModelMap.size()];
         AtomicInteger tasks = new AtomicInteger(0);
         fluxShardIdToShardPairModelMap.entrySet().forEach(entry -> {
@@ -95,7 +95,7 @@ public class ParallelScatterGatherQueryHelper {
                     result.addAll(reader.apply(entry.getKey()));
                 } catch (Exception ex) {
                     logger.error("Error in fetching {} from Slave with key {} , id {} {}",
-                            errorMessage, entry.getKey(), entry.getValue(), ex.getStackTrace());
+                            fetchOperation, entry.getKey(), entry.getValue(), ex.getStackTrace());
                 }
             });
             tasks.getAndIncrement();
@@ -111,7 +111,7 @@ public class ParallelScatterGatherQueryHelper {
                     }
             }
         } catch (Exception e) {
-            logger.error("Exception occured while gathering {} from Slaves : {}", errorMessage, e.getStackTrace());
+            logger.error("Exception occured while getting {} from Slaves : {}", fetchOperation, e.getStackTrace());
         }
     }
 

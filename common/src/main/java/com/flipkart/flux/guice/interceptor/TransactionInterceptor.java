@@ -21,7 +21,6 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.context.internal.ManagedSessionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,15 +29,15 @@ import javax.inject.Provider;
 /**
  * @author shyam.akirala
  * @author amitkumar.o
- *
- * <code>TransactionInterceptor</code> is a {@link MethodInterceptor} implementation to provide
- * transactional boundaries to methods which are annotated with {@link javax.transaction.Transactional}.
- * It appropriately selects a dataSource based on present {@link com.flipkart.flux.persistence.SelectDataSource} annotation.
- * <p>
- * Example:
- * {
- * method1(); //call method1 which is annotated with transactional
- * }
+ *         <p>
+ *         <code>TransactionInterceptor</code> is a {@link MethodInterceptor} implementation to provide
+ *         transactional boundaries to methods which are annotated with {@link javax.transaction.Transactional}.
+ *         It appropriately selects a dataSource based on present {@link com.flipkart.flux.persistence.SelectDataSource} annotation.
+ *         <p>
+ *         Example:
+ *         {
+ *         method1(); //call method1 which is annotated with transactional
+ *         }
  * @Transactional void method1() {
  * method2(); //call method2 which is annotated with transactional
  * }
@@ -76,7 +75,7 @@ public class TransactionInterceptor implements MethodInterceptor {
             SessionFactory sessionFactory = null;
 
             try {
-                storage storage = invocation.getMethod().getAnnotation(SelectDataSource.class).storage();
+                Storage storage = invocation.getMethod().getAnnotation(SelectDataSource.class).storage();
                 switch (storage) {
                     case SHARDED: {
                         try {
@@ -91,7 +90,7 @@ public class TransactionInterceptor implements MethodInterceptor {
                                     break;
                                 }
                                 // in this case invocation method will provide shardKey i.e stateMachineId, as the first argument,
-                                // which will determine to which master shard the query should go to.
+                                // which will determine to which shard the query should go to.
                                 case READ_WRITE: {
                                     Object[] args = invocation.getArguments();
                                     shardKey = (String) args[0];
@@ -119,26 +118,24 @@ public class TransactionInterceptor implements MethodInterceptor {
             }
             // open a new session, and set it in the ThreadLocal Context
             session = sessionFactory.openSession();
-            context.setSession(session);
+            context.setThreadLocalSession(session);
             logger.debug("Open new session for the thread transaction started, using it: {}, {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
-            ManagedSessionContext.bind(session);
             transaction = session.getTransaction();
             transaction.begin();
             try {
                 Object result = invocation.proceed();
-                if (transaction != null)
-                    transaction.commit();
+                transaction.commit();
                 return result;
             } catch (Exception e) {
-                transaction.rollback();
+                if (transaction != null)
+                    transaction.rollback();
                 throw e;
             } finally {
-                ManagedSessionContext.unbind(session.getSessionFactory());
                 logger.debug("Transaction completed for method : {} {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
-                session.close();
+                if (session != null)
+                    session.close();
                 context.clear();
                 logger.debug("Clearing session from ThreadLocal Context : {} {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
-
             }
 
         } else {

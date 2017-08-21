@@ -19,7 +19,8 @@ import org.slf4j.LoggerFactory;
 import java.security.MessageDigest;
 
 /**
- * Created by amitkumar.o on 06/06/17.
+ * Generates a SHA-256 Hex Code of a given String and returns first two characters as shard String
+ * @author amitkumar.o
  */
 public class CryptHashGenerator {
 
@@ -32,10 +33,10 @@ public class CryptHashGenerator {
             MessageDigest md = MessageDigest.getInstance(cryptHashAlgorithmPrefix);
             md.update(stateMachineId.getBytes());
             String cryptHash = javax.xml.bind.DatatypeConverter.printHexBinary(md.digest()).toLowerCase();
-            return Character.toString(cryptHash.charAt(0)) + Character.toString(cryptHash.charAt(1));
+            return cryptHash.substring(0,2);
         } catch (Exception ex) {
             logger.error("Unable to generate Hash for the given stateMachine Id {} {}", stateMachineId, ex.getStackTrace());
-            throw new RuntimeException("Exception in generating cryptic has given a shard key");
+            throw new RuntimeException("Exception in generating SHA-256 for the given key : " + stateMachineId);
         }
     }
 }

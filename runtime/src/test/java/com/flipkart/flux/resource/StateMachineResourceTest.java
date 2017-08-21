@@ -225,16 +225,16 @@ public class StateMachineResourceTest {
     @Test
     public void testPostScheduledEvent_withoutCorrelationIdTag() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
-        Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+        Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
 
         String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
 
         //request with searchField param missing
-        final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+"magic_number_1"+"/context/events?triggerTime=123").header("Content-Type","application/json").body(eventJson).asString();
+        final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/events?triggerTime=123").header("Content-Type", "application/json").body(eventJson).asString();
         assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         //request with searchField param having value other than correlationId
-        final HttpResponse<String> eventPostResponseWithWrongTag = Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+"magic_number_1"+"/context/events?searchField=dummy&triggerTime=123").header("Content-Type","application/json").body(eventJson).asString();
+        final HttpResponse<String> eventPostResponseWithWrongTag = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/events?searchField=dummy&triggerTime=123").header("Content-Type", "application/json").body(eventJson).asString();
         assertThat(eventPostResponseWithWrongTag.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
     }
 
@@ -242,14 +242,14 @@ public class StateMachineResourceTest {
     public void testPostScheduledEvent_withCorrelationId() throws Exception {
         //create state machine
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
-        final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+        final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
         assertThat(smCreationResponse.getStatus()).isEqualTo(org.eclipse.jetty.http.HttpStatus.CREATED_201);
         Thread.sleep(100);
 
         //post an scheduled event
-        long triggerTime = (System.currentTimeMillis()/1000)+1;
+        long triggerTime = (System.currentTimeMillis() / 1000) + 1;
         String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
-        Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+"magic_number_1"+"/context/events?searchField=correlationId&triggerTime="+triggerTime)
+        Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/events?searchField=correlationId&triggerTime=" + triggerTime)
                 .header("Content-Type", "application/json").body(eventJson).asString();
         Thread.sleep(500);
 
@@ -264,18 +264,18 @@ public class StateMachineResourceTest {
         assertThat(eventSchedulerDao.retrieveOldest(1)).hasSize(0);
     }
 
-   @Test
+    @Test
     public void testPostScheduledEvent_withTriggerTimeInMilliSeconds() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
-        Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+        Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
 
         Thread.sleep(100);
         long triggerTime = System.currentTimeMillis();
         String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
-        final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+"magic_number_1"+"/context/events?searchField=correlationId&triggerTime="+triggerTime)
+        final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/events?searchField=correlationId&triggerTime=" + triggerTime)
                 .header("Content-Type", "application/json").body(eventJson).asString();
 
-        assertThat(eventSchedulerDao.retrieveOldest(1).get(0).getScheduledTime()).isEqualTo(triggerTime/1000);
+        assertThat(eventSchedulerDao.retrieveOldest(1).get(0).getScheduledTime()).isEqualTo(triggerTime / 1000);
 
     }
 
@@ -287,7 +287,7 @@ public class StateMachineResourceTest {
         //TODO - we need a better assert here, but since we're using database IDs in the implementation, we cannot simply validate it with a static json
     }
 
-    //@Test
+    @Test
     public void testGetErroredStates() throws Exception {
         final StateMachine sm = stateMachinePersistenceService.createStateMachine(standardStateMachine, objectMapper.readValue(this.getClass().getClassLoader().getResource("state_machine_definition.json"), StateMachineDefinition.class));
 
@@ -295,11 +295,11 @@ public class StateMachineResourceTest {
         sm.getStates().stream().findFirst().get().setStatus(Status.errored);
         String firstSmId = "state-machine-1";
         /* persist */
-        final StateMachine firstSM = stateMachinesDAO.create(firstSmId, new StateMachine(firstSmId, sm.getVersion(), sm.getName(), sm.getDescription(), sm.getStates(), "uniqueCorId1"));
+        final StateMachine firstSM = stateMachinesDAO.create(firstSmId, new StateMachine(firstSmId, sm.getVersion(), sm.getName(), sm.getDescription(), sm.getStates()));
 
         /* change name and persist as 2nd statemachine */
         final String differentSMName = "state-machine-2";
-        final StateMachine secondSM = stateMachinesDAO.create(differentSMName, new StateMachine(differentSMName, sm.getVersion(), sm.getName(), sm.getDescription(), sm.getStates(), "uniqueCorId2"));
+        final StateMachine secondSM = stateMachinesDAO.create(differentSMName, new StateMachine(differentSMName, sm.getVersion(), sm.getName(), sm.getDescription(), sm.getStates()));
 
         /* fetch errored states with name "differentStateMachine" */
         final HttpResponse<String> stringHttpResponse = Unirest.get(STATE_MACHINE_RESOURCE_URL + "/" + standardStateMachine + "/states/errored?fromSmId=" + firstSM.getId() + "&toSmId=" + secondSM.getId()).header("Content-Type", "application/json").asString();
@@ -317,15 +317,15 @@ public class StateMachineResourceTest {
         State state = sm.getStates().stream().findFirst().get();
         state.setStatus(Status.running);
         statesDAO.updateState(stateMachineId, state);
-        Unirest.put(STATE_MACHINE_RESOURCE_URL+SLASH+stateMachineId+"/cancel").asString();
+        Unirest.put(STATE_MACHINE_RESOURCE_URL + SLASH + stateMachineId + "/cancel").asString();
 
         Thread.sleep(200);
         StateMachine cancelledSM = stateMachinesDAO.findById(stateMachineId);
         assertThat(cancelledSM.getStatus()).isEqualTo(StateMachineStatus.cancelled);
 
         int cancelledStateCount = 0;
-        for(State st : cancelledSM.getStates()) {
-            if(st.getStatus() == Status.cancelled)
+        for (State st : cancelledSM.getStates()) {
+            if (st.getStatus() == Status.cancelled)
                 cancelledStateCount++;
         }
 
@@ -337,7 +337,7 @@ public class StateMachineResourceTest {
     public void testCancelWorkflow_withCorrelationId() throws Exception {
         final StateMachine sm = stateMachinePersistenceService.createStateMachine("magic_number_1", objectMapper.readValue(this.getClass().getClassLoader().getResource("state_machine_definition.json"), StateMachineDefinition.class));
         String stateMachineId = sm.getId();
-        Unirest.put(STATE_MACHINE_RESOURCE_URL+SLASH+stateMachineId+"/cancel?searchField=correlationId").asString();
+        Unirest.put(STATE_MACHINE_RESOURCE_URL + SLASH + stateMachineId + "/cancel?searchField=correlationId").asString();
 
         Thread.sleep(200);
         StateMachine cancelledSM = stateMachinesDAO.findById(stateMachineId);

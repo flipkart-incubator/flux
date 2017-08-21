@@ -41,13 +41,13 @@ public class EventSchedulerDao {
     }
 
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SCHEDULER)
+    @SelectDataSource(storage = Storage.SCHEDULER)
     public void save(ScheduledEvent scheduledEvent) {
         currentSession().saveOrUpdate(scheduledEvent);
     }
 
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SCHEDULER)
+    @SelectDataSource(storage = Storage.SCHEDULER)
     public void delete(String correlationId, String eventName) {
         final Query deleteQuery = currentSession().createQuery("delete ScheduledEvent s where s.correlationId=:correlationId " +
                 "and s.eventName=:eventName");
@@ -58,10 +58,11 @@ public class EventSchedulerDao {
 
     /**
      * Retrieves rowCount number of rows from ScheduledEvents table ordered by scheduledTime ascending.
+     *
      * @param rowCount
      */
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SCHEDULER)
+    @SelectDataSource(storage = Storage.SCHEDULER)
     public List<ScheduledEvent> retrieveOldest(int rowCount) {
         return currentSession()
                 .createCriteria(ScheduledEvent.class)
@@ -72,6 +73,7 @@ public class EventSchedulerDao {
 
     /**
      * Provides the session which is bound to current thread.
+     *
      * @return Session
      */
     private Session currentSession() {

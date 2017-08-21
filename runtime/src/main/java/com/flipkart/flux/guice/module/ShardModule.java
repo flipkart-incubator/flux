@@ -48,8 +48,6 @@ import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Provider;
 import javax.transaction.Transactional;
@@ -69,8 +67,6 @@ public class ShardModule extends AbstractModule {
     public static final String FLUX_HIBERNATE_SHARD_CONFIG_NAME_SPACE = "flux.Shard.Pair.Config";
     public static final String FLUX_HIBERNATE_CONFIG_NAME_SPACE = "flux.Hibernate";
     public static final String FLUX_READ_ONLY_HIBERNATE_CONFIG_NAME_SPACE = "fluxReadOnly.Hibernate";
-    public static final String DB_PREFIX = "fluxShard_";
-    private static final Logger logger = LoggerFactory.getLogger(ShardModule.class);
 
     /**
      * Performs concrete bindings for interfaces
@@ -110,8 +106,6 @@ public class ShardModule extends AbstractModule {
             e.printStackTrace();
             throw new FluxError(FluxError.ErrorType.runtime, "Not able to read Master Slave Config from Config File", e.getCause());
         }
-        //Check to make sure Physical Shards is power of 2's i.e 2, 4, 8 , 16 ..
-        assert (1<<8)%masterSlavePairList.getShardPairModelList().size() == 0 ;
         return masterSlavePairList;
     }
 
@@ -159,10 +153,7 @@ public class ShardModule extends AbstractModule {
                     }
                 }
         });
-        /*
-        * Check if each Physical Shard contains same number of Shard Keys, remove this check if number of shards
-        * are increased in future, with current setup, each physical shard should have 64 keys
-        * */
+
         checkShardConfig(shardKeyToShardIdMap, masterSlavePairList.getShardPairModelList().size());
 
         if (shardKeyToShardIdMap.size() != (1 << 8)) {
@@ -213,7 +204,8 @@ public class ShardModule extends AbstractModule {
             ShardId shardId = shardKeyToShardIdMapping.getKey();
             ShardPairModel shardPairModel = fluxShardIdToShardPairMap.get(shardId);
             Configuration conf = getROConfiguration(yamlConfiguration, shardPairModel.getSlaveIp());
-            fluxROSessionFactories.putIfAbsent(shardId, conf.buildSessionFactory());
+            if (!fluxROSessionFactories.containsKey(shardId))
+                fluxROSessionFactories.put(shardId, conf.buildSessionFactory());
         });
 
         if (fluxROSessionFactories.size() != (fluxShardIdToShardPairMap.size())) {
@@ -234,7 +226,8 @@ public class ShardModule extends AbstractModule {
             ShardId shardId = shardKeyToShardIdMapping.getKey();
             ShardPairModel shardPairModel = fluxShardIdToShardPairMap.get(shardId);
             Configuration conf = getRWConfiguration(yamlConfiguration, shardPairModel.getMasterIp());
-            fluxRWSessionFactories.putIfAbsent(shardId, conf.buildSessionFactory());
+            if (!fluxRWSessionFactories.containsKey(shardId))
+                fluxRWSessionFactories.putIfAbsent(shardId, conf.buildSessionFactory());
         });
 
 
@@ -288,7 +281,7 @@ public class ShardModule extends AbstractModule {
             Object propertyValue = hibernateConfig.getProperty(propertyKey);
             configProperties.put(propertyKey, propertyValue);
         }
-        configProperties.setProperty("hibernate.connection.url", "jdbc:mysql://" + host + ":3306/" + "flux");
+        configProperties.setProperty("hibernate.connection.url", "jdbc:mysql://" + host + "/flux");
         configuration.addProperties(configProperties);
         return configuration;
     }

@@ -29,7 +29,7 @@ import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.persistence.DataSourceType;
-import com.flipkart.flux.persistence.storage;
+import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
@@ -239,11 +239,8 @@ public class StateMachineResource {
     private Response postEvent(String machineId, String searchField, EventData eventData) {
         try {
             StateMachine stateMachine = null;
-            if (searchField != null) {
-                if (!searchField.equals(CORRELATION_ID)) {
-                    return Response.status(Response.Status.BAD_REQUEST).build();
-                }
-                stateMachine = stateMachinesDAO.findById(machineId);
+            if (searchField != null && !searchField.equals(CORRELATION_ID)) {
+                return Response.status(Response.Status.BAD_REQUEST).build();
             } else {
                 stateMachine = stateMachinesDAO.findById(machineId);
             }
@@ -283,6 +280,8 @@ public class StateMachineResource {
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     private void updateTaskStatus(String machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
         com.flipkart.flux.domain.Status updateStatus = null;
         switch (executionUpdateData.getStatus()) {
@@ -328,7 +327,7 @@ public class StateMachineResource {
     @POST
     @Path("/{machineId}/{stateId}/retries/inc")
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Response incrementRetry(@PathParam("machineId") String machineId,
                                    @PathParam("stateId") Long stateId
     ) throws Exception {
@@ -437,7 +436,7 @@ public class StateMachineResource {
     @Path("/{stateMachineId}/{stateId}/unsideline")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Response unsidelineState(@PathParam("stateMachineId") String stateMachineId, @PathParam("stateId") Long stateId) {
         this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
 
@@ -448,18 +447,13 @@ public class StateMachineResource {
     @Path("/{stateMachineId}/cancel")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Response cancelWorkflow(@PathParam("stateMachineId") String stateMachineId,
                                    @QueryParam("searchField") String searchField) {
 
-        String machineId = null;
         StateMachine stateMachine = null;
-        if (searchField != null && searchField.equals(CORRELATION_ID)) {
-            stateMachine = stateMachinesDAO.findById(stateMachineId);
-        } else {
-            machineId = stateMachineId;
-            stateMachine = stateMachinesDAO.findById(machineId);
-        }
+        stateMachine = stateMachinesDAO.findById(stateMachineId);
+
         if (stateMachine == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("State machine with id: " + stateMachineId + " not found").build();
         }
@@ -473,17 +467,12 @@ public class StateMachineResource {
     @Path("/{stateMachineId}/info")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Response getStateMachine(@PathParam("stateMachineId") String stateMachineId,
                                     @QueryParam("searchField") String searchField) {
-        String machineId = null;
         StateMachine stateMachine = null;
-        if (searchField != null && searchField.equals(CORRELATION_ID)) {
-            stateMachine = stateMachinesDAO.findById(stateMachineId);
-        } else {
-            machineId = stateMachineId;
-            stateMachine = stateMachinesDAO.findById(machineId);
-        }
+        stateMachine = stateMachinesDAO.findById(stateMachineId);
+
         if (stateMachine == null) {
             return Response.status(Response.Status.NOT_FOUND).entity("State machine with id: " + stateMachineId + " not found").build();
         }
@@ -506,12 +495,6 @@ public class StateMachineResource {
 
         StateMachine stateMachine;
         stateMachine = stateMachinesDAO.findById(fsmId);
-
-        if (stateMachine == null) {
-            //if stateMachine is null, that means the passed id is correlation id
-            stateMachine = stateMachinesDAO.findById(machineId);
-
-        }
 
         if (stateMachine == null) {
             throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).entity("State machine with Id: " + machineId + " not found").build());

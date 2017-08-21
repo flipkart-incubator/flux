@@ -15,6 +15,7 @@ package com.flipkart.flux.redriver.model;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.Table;
 import java.io.Serializable;
 
@@ -25,11 +26,14 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "ScheduledMessages")
+@IdClass(ScheduledMessage.ScheduledMessagePK.class)
 public class ScheduledMessage implements Serializable {
 
     @Id
     private Long taskId;
+    @Id
     private String stateMachineId;
+
     private long scheduledTime;
 
     /* For Hibernate */
@@ -84,5 +88,61 @@ public class ScheduledMessage implements Serializable {
 
     public Long getTaskId() {
         return taskId;
+    }
+
+    /**
+     * <code>ScheduledMessagePK</code> is the composite primary key of "ScheduledMessages" table in DB.
+     */
+    static class ScheduledMessagePK implements Serializable {
+
+        private Long taskId;
+        private String stateMachineId;
+
+
+        /**
+         * for Hibernate
+         */
+        public ScheduledMessagePK() {
+        }
+
+        public ScheduledMessagePK(Long taskId, String stateMachineId) {
+            this.taskId = taskId;
+            this.stateMachineId = stateMachineId;
+        }
+
+        public Long getTaskId() {
+            return taskId;
+        }
+
+        public void setTaskId(Long taskId) {
+            this.taskId = taskId;
+        }
+
+        public String getStateMachineId() {
+            return stateMachineId;
+        }
+
+        public void setStateMachineId(String stateMachineId) {
+            this.stateMachineId = stateMachineId;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof ScheduledMessagePK)) return false;
+
+            ScheduledMessagePK that = (ScheduledMessagePK) o;
+
+            if (!getTaskId().equals(that.getTaskId())) return false;
+            return getStateMachineId().equals(that.getStateMachineId());
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = getTaskId().hashCode();
+            result = 31 * result + getStateMachineId().hashCode();
+            return result;
+        }
     }
 }

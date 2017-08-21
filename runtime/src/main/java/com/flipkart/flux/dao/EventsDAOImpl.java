@@ -42,35 +42,35 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Event create(String stateMachineInstanceId, Event event) {
         return super.save(event);
     }
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public void updateEvent(String stateMachineInstanceId, Event event) {
         super.update(event);
     }
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public List<Event> findBySMInstanceId(String stateMachineInstanceId) {
         return currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId)).list();
     }
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Event findById(String stateMachineInstanceId, Long id) {
         return super.findById(Event.class, id);
     }
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Event findBySMIdAndName(String stateMachineInstanceId, String eventName) {
         Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("name", eventName));
@@ -79,7 +79,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public List<String> findTriggeredEventsNamesBySMId(String stateMachineInstanceId) {
         Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("status", Event.EventStatus.triggered))
@@ -89,7 +89,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public List<Event> findTriggeredEventsBySMId(String stateMachineInstanceId) {
         Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("status", Event.EventStatus.triggered));
@@ -98,7 +98,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public List<EventData> findByEventNamesAndSMId( String stateMachineInstanceId, List<String> eventNames) {
         if (eventNames.isEmpty()) {
             return new ArrayList<>();

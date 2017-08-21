@@ -45,7 +45,7 @@ public class MessageDaoTest {
 
     @Before
     public void setUp() throws Exception {
-        context.setSession(context.getSchedulerSessionFactory().openSession());
+        context.setThreadLocalSession(context.getSchedulerSessionFactory().openSession());
         Session session = context.getThreadLocalSession();
         ManagedSessionContext.bind(session);
         Transaction tx = session.beginTransaction();

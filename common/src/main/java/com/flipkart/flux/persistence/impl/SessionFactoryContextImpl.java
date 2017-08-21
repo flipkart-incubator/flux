@@ -23,8 +23,8 @@ import java.util.Map;
 
 /**
  * A {@link com.flipkart.flux.persistence.SessionFactoryContext} implementation that maintains a map of each  {@link ShardId} to {@link SessionFactory}
- * for Master(Read-Write) and Slave(Read-Only) Shards, {@link SessionFactory} redriverSessionFactory  as well as shardString to ShardId Mapping for both Slave,Master
- * and uses a thread local to save the SessionFactory that is being used in an ongoing transaction.
+ * for Master(Read-Write) and Slave(Read-Only) Shards, {@link SessionFactory} schedulerSessionFactory as well as shardString to ShardId Mapping for both Slave,Master
+ * and uses a thread local to save the Session that is being used in an ongoing transaction.
  * <p>
  * @author amitkumar.o
  * @author gourav.ashok
@@ -50,7 +50,7 @@ public class SessionFactoryContextImpl implements SessionFactoryContext {
 
 
     @Override
-    public void setSession(Session session) {
+    public void setThreadLocalSession(Session session) {
         currentSessionFactoryContext.set(session);
     }
 

@@ -19,12 +19,14 @@ import com.flipkart.polyguice.core.ConfigurationProvider;
 import com.google.inject.AbstractModule;
 import com.google.inject.binder.LinkedBindingBuilder;
 import com.google.inject.name.Names;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
 
 import static com.flipkart.flux.Constants.CONFIGURATION_YML;
+
 /**
  * <code>ConfigModule</code> is a Guice {@link AbstractModule} implementation used for wiring flux configuration.
  *
@@ -83,8 +85,5 @@ public class ConfigModule extends AbstractModule {
 
     public ConfigurationProvider getConfigProvider() {
         return configProvider;
-    }
-    public YamlConfiguration getYamlConfiguration(){
-        return yamlConfiguration;
     }
 }
