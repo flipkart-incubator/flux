@@ -48,7 +48,6 @@ import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -304,7 +303,7 @@ public class StateMachineResourceTest {
         Set<State> states = new HashSet<>();
         states.addAll(sm.getStates());
         /* persist */
-        final StateMachine firstSM = stateMachinesDAO.create(firstSmId, new StateMachine(firstSmId, sm.getVersion(), sm.getName(), sm.getDescription(),  ans));
+        final StateMachine firstSM = stateMachinesDAO.create(firstSmId, new StateMachine(firstSmId, sm.getVersion(), sm.getName(), sm.getDescription(), states));
 
         /* change name and persist as 2nd statemachine */
         final String differentSMName = "state-machine-2";
@@ -314,7 +313,7 @@ public class StateMachineResourceTest {
         states.clear();
         states.addAll(sm.getStates());
 
-        final StateMachine secondSM = stateMachinesDAO.create(differentSMName, new StateMachine(differentSMName, sm.getVersion(), sm.getName(), sm.getDescription(), ans));
+        final StateMachine secondSM = stateMachinesDAO.create(differentSMName, new StateMachine(differentSMName, sm.getVersion(), sm.getName(), sm.getDescription(), states));
 
         /* fetch errored states with name "differentStateMachine" */
         final HttpResponse<String> stringHttpResponse = Unirest.get(STATE_MACHINE_RESOURCE_URL + "/" + "test_state_machine" + "/states/errored?fromSmId=" + secondSM.getId() + "&toSmId=" + secondSM.getId()).header("Content-Type", "application/json").asString();
