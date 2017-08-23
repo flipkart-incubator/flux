@@ -1,15 +1,11 @@
-flux.Shard.Pair.Config: "{
-                                                    \"shardPairModelList\" :
-                                                                          [
-                                                                              {
-                                                                                \"shardId\": 1,
-                                                                                \"masterIp\": \"localhost:3306\",
-                                                                                \"slaveIp\": \"localhost:3306\",
-                                                                                \"startKey\": \"00\",
-                                                                                \"endKey\":   \"ff\"
-                                                                             }
-                                                                          ]
-                        }"
+shard.Pair.Model.List:
+            -  shardId: 1
+               masterIp: "localhost:3306"
+               slaveIp:  "localhost:3306"
+               startKey: "00"
+               endKey:   "ff"
+
+
 flux.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"

@@ -37,7 +37,7 @@ public class SessionFactoryContextImpl implements SessionFactoryContext {
     private final SessionFactory schedulerSessionFactory;
 
 
-    private final ThreadLocal<Session> currentSessionFactoryContext = new ThreadLocal<>();
+    private final ThreadLocal<Session> currentSessionContext = new ThreadLocal<>();
 
     public SessionFactoryContextImpl(Map<ShardId, SessionFactory> rwSessionFactoryMap, Map<ShardId, SessionFactory> roSessionFactoryMap,
                                      Map<String, ShardId> shardKeyToShardIdMap,
@@ -51,12 +51,12 @@ public class SessionFactoryContextImpl implements SessionFactoryContext {
 
     @Override
     public void setThreadLocalSession(Session session) {
-        currentSessionFactoryContext.set(session);
+        currentSessionContext.set(session);
     }
 
     @Override
     public Session getThreadLocalSession() {
-        return currentSessionFactoryContext.get();
+        return currentSessionContext.get();
     }
 
     @Override
@@ -76,6 +76,6 @@ public class SessionFactoryContextImpl implements SessionFactoryContext {
 
     @Override
     public void clear() {
-        currentSessionFactoryContext.remove();
+        currentSessionContext.remove();
     }
 }

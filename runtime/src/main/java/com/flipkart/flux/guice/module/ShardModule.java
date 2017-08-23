@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.guice.module;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.dao.AuditDAOImpl;
@@ -32,7 +33,6 @@ import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.impl.SessionFactoryContextImpl;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
-import com.flipkart.flux.shard.MasterSlavePairList;
 import com.flipkart.flux.shard.ShardId;
 import com.flipkart.flux.shard.ShardPairModel;
 import com.flipkart.flux.type.BlobType;
@@ -51,11 +51,7 @@ import org.hibernate.cfg.Configuration;
 
 import javax.inject.Provider;
 import javax.transaction.Transactional;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * <code>ShardModule</code> is a Guice {@link AbstractModule} implementation used for wiring SessionFactory, DAO and Interceptor classes for the shards.
@@ -64,7 +60,7 @@ import java.util.Properties;
  */
 public class ShardModule extends AbstractModule {
 
-    public static final String FLUX_HIBERNATE_SHARD_CONFIG_NAME_SPACE = "flux.Shard.Pair.Config";
+    public static final String FLUX_HIBERNATE_SHARD_CONFIG_NAME_SPACE = "shard.Pair.Model.List";
     public static final String FLUX_HIBERNATE_CONFIG_NAME_SPACE = "flux.Hibernate";
     public static final String FLUX_READ_ONLY_HIBERNATE_CONFIG_NAME_SPACE = "fluxReadOnly.Hibernate";
 
@@ -95,18 +91,19 @@ public class ShardModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("fluxMasterSlavePairList")
-    public MasterSlavePairList getFluxMasterSlavePairList(YamlConfiguration yamlConfiguration) {
-        String json = yamlConfiguration.getProperty(FLUX_HIBERNATE_SHARD_CONFIG_NAME_SPACE).toString();
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        MasterSlavePairList masterSlavePairList;
+    public List<ShardPairModel> getFluxMasterSlavePairList(YamlConfiguration yamlConfiguration) {
         try {
-            masterSlavePairList = objectMapper.readValue(json, MasterSlavePairList.class);
-        } catch (IOException e) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            TypeReference<List<ShardPairModel>> typeRef = new TypeReference<List<ShardPairModel>>() {
+            };
+            List<ShardPairModel> masterSlavePairList = objectMapper.convertValue(
+                  yamlConfiguration.getList(FLUX_HIBERNATE_SHARD_CONFIG_NAME_SPACE),
+                    typeRef);
+            return masterSlavePairList;
+        } catch (Exception e) {
             e.printStackTrace();
             throw new FluxError(FluxError.ErrorType.runtime, "Not able to read Master Slave Config from Config File", e.getCause());
         }
-        return masterSlavePairList;
     }
 
     /**
@@ -119,12 +116,12 @@ public class ShardModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("fluxShardIdToShardPairMap")
-    public Map<ShardId, ShardPairModel> getFluxRWShardIdToShardMapping(@Named("fluxMasterSlavePairList") MasterSlavePairList masterSlavePairList) {
+    public Map<ShardId, ShardPairModel> getFluxRWShardIdToShardMapping(@Named("fluxMasterSlavePairList") List<ShardPairModel> masterSlavePairList) {
         Map shardIdToShardHostModelMap = new HashMap<ShardId, ShardPairModel>();
-        masterSlavePairList.getShardPairModelList().forEach(masterSlavePair -> {
+        masterSlavePairList.forEach(masterSlavePair -> {
             shardIdToShardHostModelMap.put(masterSlavePair.getShardId(), masterSlavePair);
         });
-        assert masterSlavePairList.getShardPairModelList().size() == shardIdToShardHostModelMap.size();
+        assert masterSlavePairList.size() == shardIdToShardHostModelMap.size();
         return shardIdToShardHostModelMap;
     }
 
@@ -138,9 +135,9 @@ public class ShardModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("fluxShardKeyToShardIdMap")
-    public Map<String, ShardId> getFluxRWShardKeyToShardIdMapping(@Named("fluxMasterSlavePairList") MasterSlavePairList masterSlavePairList) {
+    public Map<String, ShardId> getFluxRWShardKeyToShardIdMapping(@Named("fluxMasterSlavePairList") List<ShardPairModel> masterSlavePairList) {
         Map shardKeyToShardIdMap = new HashMap<String, ShardId>();
-        masterSlavePairList.getShardPairModelList().forEach(masterSlavePair -> {
+        masterSlavePairList.forEach(masterSlavePair -> {
             String startKey = masterSlavePair.getStartKey();
             String endKey = masterSlavePair.getEndKey();
             for (int i = 0; i < 16; i++)
@@ -154,7 +151,7 @@ public class ShardModule extends AbstractModule {
                 }
         });
 
-        checkShardConfig(shardKeyToShardIdMap, masterSlavePairList.getShardPairModelList().size());
+        checkShardConfig(shardKeyToShardIdMap, masterSlavePairList.size());
 
         if (shardKeyToShardIdMap.size() != (1 << 8)) {
             throw new RuntimeException("No. of shardKeys should be 16*16, currently it is " +
