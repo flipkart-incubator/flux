@@ -65,7 +65,7 @@ public class Event implements Serializable {
 
     /** Enum of Event statuses*/
     public enum EventStatus {
-        pending,triggered;
+        pending, triggered, cancelled;
     }
 
     /** Constructors */

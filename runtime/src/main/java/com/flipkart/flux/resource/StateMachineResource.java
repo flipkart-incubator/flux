@@ -173,13 +173,40 @@ public class StateMachineResource {
     ) throws Exception {
         MDC.clear(); MDC.put(STATE_MACHINE_ID, machineId);
 
+        StateMachine stateMachine = null;
+        if (searchField != null) {
+            if (!searchField.equals(CORRELATION_ID)) {
+                return Response.status(Response.Status.BAD_REQUEST).build();
+            }
+            stateMachine = stateMachinesDAO.findByCorrelationId(machineId);
+        } else {
+            Long stateMachineId = Long.valueOf(machineId);
+            stateMachine = stateMachinesDAO.findById(stateMachineId);
+        }
+
+        if(stateMachine == null) {
+            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity("State machine with Id: " + machineId + " not found").build();
+        }
+
+        if(stateMachine.getStatus() == StateMachineStatus.cancelled) {
+            logger.info("Discarding event: {} as State machine: {} is in cancelled state", eventData.getName(), stateMachine.getId());
+            return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + stateMachine.getId() + " is in 'cancelled' state. Discarding the event.").build();
+        }
+
         if(triggerTime == null) {
             logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
-            return postEvent(machineId, searchField, eventData);
+            try {
+                if(eventData.getCancelled() != null && eventData.getCancelled()) {
+                    workFlowExecutionController.handlePathCancellation(stateMachine, eventData);
+                } else {
+                    workFlowExecutionController.postEvent(eventData, stateMachine);
+                }
+                return Response.status(Response.Status.ACCEPTED).build();
+            } catch (IllegalEventException ex) {
+                return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
+            }
         } else {
             logger.info("Received event: {} for state machine: {} with triggerTime: {}", eventData.getName(), machineId, triggerTime);
-            if(searchField == null || !searchField.equals(CORRELATION_ID))
-                return Response.status(Response.Status.BAD_REQUEST).entity("searchField=correlationId is missing in the request").build();
             //if trigger time is more than below value, it means the value has been passed in milliseconds, convert it to seconds and register
             if(triggerTime > 9999999999L)
                 triggerTime = triggerTime/1000;
@@ -206,37 +233,30 @@ public class StateMachineResource {
         MDC.put(TASK_ID, executionUpdateData.getTaskId().toString());
         logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
 
-        updateTaskStatus(Long.valueOf(machineId), executionUpdateData.getTaskId(), executionUpdateData);
+        Long stateMachineId = Long.valueOf(machineId);
+        StateMachine stateMachine = stateMachinesDAO.findById(stateMachineId);
 
-        return postEvent(machineId, null, eventData);
-    }
-
-    private Response postEvent(String machineId, String searchField, EventData eventData) {
-        try {
-            StateMachine stateMachine = null;
-            if (searchField != null) {
-                if (!searchField.equals(CORRELATION_ID)) {
-                    return Response.status(Response.Status.BAD_REQUEST).build();
-                }
-                stateMachine = stateMachinesDAO.findByCorrelationId(machineId);
-            } else {
-                Long stateMachineId = Long.valueOf(machineId);
-                stateMachine = stateMachinesDAO.findById(stateMachineId);
-            }
-
-            if(stateMachine == null) {
-                return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity("State machine with Id: " + machineId + " not found").build();
-            }
-
-            if(stateMachine.getStatus() == StateMachineStatus.cancelled) {
-                logger.info("Discarding event: {} as State machine: {} is in cancelled state", eventData.getName(), stateMachine.getId());
-                return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + machineId + " is in 'cancelled' state. Discarding the event.").build();
-            }
-
-            workFlowExecutionController.postEvent(eventData, stateMachine);
-        } catch (IllegalEventException ex) {
-            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
+        if(stateMachine == null) {
+            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity("State machine with Id: " + machineId + " not found").build();
         }
+
+        // check if the state machine is cancelled, if it is discard the event
+        if(stateMachine.getStatus() == StateMachineStatus.cancelled) {
+            logger.info("Discarding event: {} as State machine: {} is in cancelled state", eventData.getName(), stateMachine.getId());
+            return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + stateMachine.getId() + " is in 'cancelled' state. Discarding the event.").build();
+        }
+
+        // check if the event is cancelled or not, if it is a cancelled event, cancel the entire path in state machine DAG
+        if(eventData.getCancelled() != null && eventData.getCancelled()) {
+            workFlowExecutionController.updateTaskStatusAndHandlePathCancellation(stateMachine, eventAndExecutionData);
+        } else {
+            try {
+                workFlowExecutionController.updateTaskStatusAndPostEvent(stateMachine, eventAndExecutionData);
+            } catch (IllegalEventException ex) {
+                return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
+            }
+        }
+
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
@@ -256,42 +276,8 @@ public class StateMachineResource {
                                  @PathParam("stateId") Long stateId,
                                  ExecutionUpdateData executionUpdateData
     ) throws Exception {
-        updateTaskStatus(machineId, stateId, executionUpdateData);
+        this.workFlowExecutionController.updateTaskStatus(machineId, stateId, executionUpdateData);
         return Response.status(Response.Status.ACCEPTED).build();
-    }
-
-    private void updateTaskStatus(Long machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
-        com.flipkart.flux.domain.Status updateStatus = null;
-        switch (executionUpdateData.getStatus()) {
-            case initialized:
-                updateStatus = com.flipkart.flux.domain.Status.initialized;
-                break;
-            case running:
-                updateStatus = com.flipkart.flux.domain.Status.running;
-                break;
-            case completed:
-                updateStatus = com.flipkart.flux.domain.Status.completed;
-                break;
-            case cancelled:
-                updateStatus = com.flipkart.flux.domain.Status.cancelled;
-                break;
-            case errored:
-                updateStatus = com.flipkart.flux.domain.Status.errored;
-                break;
-            case sidelined:
-                updateStatus = com.flipkart.flux.domain.Status.sidelined;
-                break;
-        }
-        metricsClient.markMeter(new StringBuilder().
-                append("stateMachine.").
-                append(executionUpdateData.getStateMachineName()).
-                append(".task.").
-                append(executionUpdateData.getTaskName()).
-                append(".status.").
-                append(updateStatus.name()).
-                toString());
-        this.workFlowExecutionController.updateExecutionStatus(machineId, stateId, updateStatus, executionUpdateData.getRetrycount(),
-                executionUpdateData.getCurrentRetryCount(), executionUpdateData.getErrorMessage(), executionUpdateData.isDeleteFromRedriver());
     }
 
     /**

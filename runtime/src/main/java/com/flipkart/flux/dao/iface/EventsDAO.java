@@ -17,6 +17,7 @@ import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.domain.Event;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <code>EventsDAO</code> interface provides methods to perform CR operations on {@link Event}
@@ -39,12 +40,18 @@ public interface EventsDAO {
     /** Retrieves Event by state machine instance id and event name */
     Event findBySMIdAndName(Long stateMachineInstanceId, String eventName);
 
-    /** Retrieves list of event names which are in triggered state and belongs to provided state machine */
-    public List<String> findTriggeredEventsNamesBySMId(Long stateMachineInstanceId);
+    /** Retrieves list of event names which are in triggered state or cancelled state and belongs to provided state machine */
+    List<String> findTriggeredOrCancelledEventsNamesBySMId(Long stateMachineInstanceId);
 
     /** Retrieves list of events which are in triggered state and belongs to provided state machine */
-    public List<Event> findTriggeredEventsBySMId(Long stateMachineInstanceId);
+    List<Event> findTriggeredEventsBySMId(Long stateMachineInstanceId);
 
     /** Retrieves list of events by their names and state machine id */
-    public List<EventData> findByEventNamesAndSMId(List<String> eventNames, Long stateMachineInstanceId);
+    List<EventData> findByEventNamesAndSMId(List<String> eventNames, Long stateMachineInstanceId);
+
+    /** Retrieves all the events names and statuses. Selects for update if forUpdate is true */
+    Map<String, Event.EventStatus> getAllEventsNameAndStatus(Long stateMachineInstanceId, boolean forUpdate);
+
+    /** Marks an event as cancelled */
+    void markEventAsCancelled(Long stateMachineInstanceId, String eventName);
 }

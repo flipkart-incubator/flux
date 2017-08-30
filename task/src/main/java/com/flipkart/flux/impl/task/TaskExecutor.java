@@ -16,6 +16,7 @@ package com.flipkart.flux.impl.task;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.api.core.Task;
+import com.flipkart.flux.client.exception.FluxCancelPathException;
 import com.flipkart.flux.domain.Event;
 import com.netflix.hystrix.*;
 import com.netflix.hystrix.HystrixCommandProperties.ExecutionIsolationStrategy;
@@ -73,13 +74,30 @@ public class TaskExecutor extends HystrixCommand<Event> {
      * @see com.netflix.hystrix.HystrixCommand#run()
      */
     protected Event run() throws Exception {
-        Pair<Object, FluxError> result = this.task.execute(events);
-        if (result.getValue() != null) {
-            throw result.getValue();
-        }
-        final SerializedEvent returnObject = (SerializedEvent) result.getKey();
-        if (returnObject != null) {
-            return new Event(outputEventName, returnObject.getEventType(), Event.EventStatus.triggered, stateMachineId, returnObject.getSerializedEventData(), MANAGED_RUNTIME);
+        try {
+            Pair<Object, FluxError> result = this.task.execute(events);
+            if (result.getValue() != null) {
+                throw result.getValue();
+            }
+            final SerializedEvent returnObject = (SerializedEvent) result.getKey();
+            if (returnObject != null) {
+                return new Event(outputEventName, returnObject.getEventType(), Event.EventStatus.triggered, stateMachineId, returnObject.getSerializedEventData(), MANAGED_RUNTIME);
+            }
+        } catch (Exception ex) {
+            boolean isFluxCancelPathException = false;
+            Throwable cause = ex;
+            while (cause.getCause() != null || cause.getClass().getName().equals(FluxCancelPathException.class.getName())) {
+                if (cause.getClass().getName().equals(FluxCancelPathException.class.getName())) {
+                    isFluxCancelPathException = true;
+                    break;
+                }
+                cause = cause.getCause();
+            }
+            if (isFluxCancelPathException) {
+                return new Event(outputEventName, null, Event.EventStatus.cancelled, stateMachineId, null, MANAGED_RUNTIME);
+            } else {
+                throw ex;
+            }
         }
         return null;
     }
