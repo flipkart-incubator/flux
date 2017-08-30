@@ -137,6 +137,8 @@ public class WorkFlowExecutionController {
      */
     public void updateTaskStatusAndHandlePathCancellation(StateMachine stateMachine, EventAndExecutionData eventAndExecutionData) {
         Set<State> executableStates = updateTaskStatusAndCancelPath(stateMachine, eventAndExecutionData);
+        logger.info("Path cancellation is done for state machine: {} event: {} which has come from task: {}",
+                stateMachine.getId(), eventAndExecutionData.getEventData().getName(), eventAndExecutionData.getExecutionUpdateData().getTaskId());
         executeStates(stateMachine, executableStates);
     }
 
@@ -233,6 +235,8 @@ public class WorkFlowExecutionController {
      */
     public void handlePathCancellation(StateMachine stateMachine, EventData eventData) {
         Set<State> executableStates = cancelPath(stateMachine, eventData);
+        logger.info("Path cancellation is done for state machine: {} event: {}",
+                stateMachine.getId(), eventData.getName());
         executeStates(stateMachine, executableStates);
     }
 

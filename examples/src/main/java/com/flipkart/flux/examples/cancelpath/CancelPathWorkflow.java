@@ -39,21 +39,31 @@ public class CancelPathWorkflow {
 
     @Task(version = 1, retries = 0, timeout = 1000L)
     public ParamEvent task1() {
-        return new ParamEvent("task2");
+        return new ParamEvent("task1");
     }
 
     @Task(version = 1, retries = 0, timeout = 1000L)
     public ParamEvent task2(ParamEvent event) {
-        throw new FluxCancelPathException();
+        // logic which decides whether to cancel the path
+        if(event.data.length() == 5) {
+            throw new FluxCancelPathException();
+        }
+        return new ParamEvent(event.data + "_task2");
     }
 
     @Task(version = 1, retries = 0, timeout = 1000L)
     public ParamEvent task3(ParamEvent event) {
+        // logic which decides whether to cancel the path
+        if(event.data.length() < 5) {
+            throw new FluxCancelPathException();
+        }
         return new ParamEvent(event.data + "_task3");
     }
 
     @Task(version = 1, retries = 0, timeout = 1000L)
     public ParamEvent task4(ParamEvent event, ParamEvent event1) {
+        // This task is dependant on output of task2 and task3. But only one of the paths is executed, and other gets cancelled due to the above if conditions
+        // The event from cancelled path would be null, so do a null check
         return new ParamEvent((event != null ? event.data : "") + (event1 != null ? event1.data : "") + "_task4");
     }
 
