@@ -78,11 +78,17 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         query.executeUpdate();
     }
 
+    /**
+     * Query should go to Default Shard , As it is a redriver Task
+     *
+     * @param id
+     * @return
+     */
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public State findById(String stateMachineId, Long id) {
-        return super.findById(State.class, id);
+        return super.findByCompositeIdFromStateTable(State.class, stateMachineId ,id);
     }
 
 
@@ -127,8 +133,9 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         query.setString("stateMachineName", stateMachineName);
         query.setTimestamp("fromTime", fromTime);
         query.setTimestamp("toTime", toTime);
-
         return query.list();
     }
+
+
 
 }

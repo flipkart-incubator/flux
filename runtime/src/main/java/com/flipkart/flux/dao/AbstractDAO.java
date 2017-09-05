@@ -69,6 +69,25 @@ public abstract class AbstractDAO<T> {
     }
 
     /**
+     * Retrieves object by it's unique identifier.
+     * @param cls - Class type of the object
+     * @param id - stateId
+     * @param smId - stateMachineId
+     * @return (T) Object
+     */
+    public T findByCompositeIdFromStateTable(Class cls, String smId, Long id) {
+        Criteria criteria = currentSession().createCriteria(cls)
+                .add(Restrictions.eq("stateMachineId", smId))
+                .add(Restrictions.eq("id", id));
+        Object object = criteria.uniqueResult();
+        T castedObject = null;
+        if(object != null)
+            castedObject = (T) object;
+        return castedObject;
+    }
+
+
+    /**
      * Saves the object in DB and returns the saved object.
      * @param object
      * @return saved object
