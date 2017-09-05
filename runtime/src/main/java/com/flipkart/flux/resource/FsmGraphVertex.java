@@ -28,15 +28,19 @@ public class FsmGraphVertex {
     /* Label to show on the vertex */
     @JsonProperty
     private String label;
+    /* Task status*/
+    @JsonProperty
+    private String status;
 
     /* For Jackson */
     FsmGraphVertex() {
-        this(null,null);
+        this(null,null,null);
     }
 
-    public FsmGraphVertex(Long id, String label) {
+    public FsmGraphVertex(Long id, String label, String status) {
         this.id = id;
         this.label = (label == null ? "" : label.trim());
+        this.status = status;
     }
 
     public Long getId() {
@@ -51,19 +55,19 @@ public class FsmGraphVertex {
         FsmGraphVertex that = (FsmGraphVertex) o;
 
         if (!id.equals(that.id)) return false;
-        return label.equals(that.label);
-
+        return label.equals(that.label) && status.equals(that.status);
     }
 
     @Override
     public int hashCode() {
         int result = id.hashCode();
         result = 31 * result + label.hashCode();
+        result = 31 * result + status.hashCode();
         return result;
     }
 
     @Override
     public String toString() {
-        return id + ":" + label;
+        return id + ":" + label+ ":" + status;
     }
 }
