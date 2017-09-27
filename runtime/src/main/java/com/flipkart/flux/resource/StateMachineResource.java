@@ -282,7 +282,7 @@ public class StateMachineResource {
 
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    private void updateTaskStatus(String machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
+    public void updateTaskStatus(String machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
         com.flipkart.flux.domain.Status updateStatus = null;
         switch (executionUpdateData.getStatus()) {
             case initialized:
