@@ -8,4 +8,5 @@ workflowClasses: ["com.flipkart.flux.examples.decision.NotificationService",
                   "com.flipkart.flux.examples.externalevents.ManualSellerVerificationFlow",
                   "com.flipkart.flux.examples.externalevents.ManualSellerVerificationService",
                   "com.flipkart.flux.examples.externalevents.NotificationService",
-                  "com.flipkart.flux.examples.externalevents.SellerDataService"]
+                  "com.flipkart.flux.examples.externalevents.SellerDataService",
+                  "com.flipkart.flux.examples.cancelpath.CancelPathWorkflow"]

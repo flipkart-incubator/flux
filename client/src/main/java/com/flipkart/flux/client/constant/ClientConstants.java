@@ -21,4 +21,6 @@ public class ClientConstants {
 
     /** String used in forming task and workflow identifiers */
     public static final String _VERSION = "_version";
+
+    public static final String CLIENT = "client";
 }

@@ -14,6 +14,7 @@
 package com.flipkart.flux.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.io.Serializable;
 
@@ -22,6 +23,7 @@ import java.io.Serializable;
  * This is useful for data transfer purpose only.
  * @author shyam.akirala
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EventData implements Serializable {
 
     /** Name of the event */
@@ -36,6 +38,9 @@ public class EventData implements Serializable {
     /** Source who generated this event, might be state name or external */
     private String eventSource;
 
+    /** Indicates whether this event is cancelled, based on this value runtime decides to cancel the entire path in DAG */
+    private Boolean isCancelled;
+
     /** Used by jackson */
     EventData() {}
 
@@ -45,6 +50,11 @@ public class EventData implements Serializable {
         this.type = type;
         this.data = data;
         this.eventSource = eventSource;
+    }
+
+    public EventData(String name, String type, String data, String eventSource, Boolean isCancelled) {
+        this(name, type, data, eventSource);
+        this.isCancelled = isCancelled;
     }
 
     /** Accessor/Mutator methods*/
@@ -72,6 +82,12 @@ public class EventData implements Serializable {
     public void setEventSource(String eventSource) {
         this.eventSource = eventSource;
     }
+    public Boolean getCancelled() {
+        return isCancelled;
+    }
+    public void setCancelled(Boolean cancelled) {
+        isCancelled = cancelled;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -81,29 +97,32 @@ public class EventData implements Serializable {
         EventData eventData = (EventData) o;
 
         if (!name.equals(eventData.name)) return false;
-        if (!type.equals(eventData.type)) return false;
+        if (type != null ? !type.equals(eventData.type) : eventData.type != null) return false;
         if (data != null ? !data.equals(eventData.data) : eventData.data != null) return false;
-        if (eventSource != null ? !eventSource.equals(eventData.eventSource) : eventData.eventSource != null) return false;
-        return true;
+        if (eventSource != null ? !eventSource.equals(eventData.eventSource) : eventData.eventSource != null)
+            return false;
+        return isCancelled != null ? isCancelled.equals(eventData.isCancelled) : eventData.isCancelled == null;
     }
 
     @Override
     public int hashCode() {
         int result = name.hashCode();
-        result = 31 * result + type.hashCode();
+        result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (data != null ? data.hashCode() : 0);
         result = 31 * result + (eventSource != null ? eventSource.hashCode() : 0);
+        result = 31 * result + (isCancelled != null ? isCancelled.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
         return "EventData{" +
-            "data=" + data +
-            ", name='" + name + '\'' +
-            ", type='" + type + '\'' +
-            ", eventSource='" + eventSource + '\'' +
-            '}';
+                "name='" + name + '\'' +
+                ", type='" + type + '\'' +
+                ", data='" + data + '\'' +
+                ", eventSource='" + eventSource + '\'' +
+                ", isCancelled=" + isCancelled +
+                '}';
     }
 
     /**

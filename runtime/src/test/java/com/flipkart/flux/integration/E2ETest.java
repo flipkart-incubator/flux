@@ -85,7 +85,7 @@ public class E2ETest {
         assertThat(eventsDAO.findBySMInstanceId(smId)).hasSize(3);
 
         /** All the events should be in triggered state after execution*/
-        assertThat(eventsDAO.findTriggeredEventsNamesBySMId(smId)).hasSize(3);
+        assertThat(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId(smId)).hasSize(3);
     }
 
     @Test

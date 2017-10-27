@@ -14,7 +14,11 @@
 package com.flipkart.flux.controller;
 
 import akka.actor.ActorRef;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventAndExecutionData;
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
@@ -34,6 +38,8 @@ import org.slf4j.MDC;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.transaction.Transactional;
+import java.io.IOException;
 import java.util.*;
 
 import static com.flipkart.flux.Constants.STATE_MACHINE_ID;
@@ -68,10 +74,14 @@ public class WorkFlowExecutionController {
     /** Metrics client for keeping track of task metrics*/
     private MetricsClient metricsClient;
 
+    /** ObjectMapper instance to be used for all purposes in this class */
+    private ObjectMapper objectMapper;
+
     /** Constructor for this class */
     @Inject
     public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO,
-                                       StatesDAO statesDAO, AuditDAO auditDAO, RouterRegistry routerRegistry, RedriverRegistry redriverRegistry, MetricsClient metricsClient) {
+                                       StatesDAO statesDAO, AuditDAO auditDAO, RouterRegistry routerRegistry,
+                                       RedriverRegistry redriverRegistry, MetricsClient metricsClient) {
         this.eventsDAO = eventsDAO;
         this.stateMachinesDAO = stateMachinesDAO;
         this.statesDAO = statesDAO;
@@ -79,6 +89,7 @@ public class WorkFlowExecutionController {
         this.routerRegistry = routerRegistry;
         this.redriverRegistry = redriverRegistry;
         this.metricsClient = metricsClient;
+        this.objectMapper = new ObjectMapper();
     }
 
     /**
@@ -91,11 +102,142 @@ public class WorkFlowExecutionController {
         //create context and dependency graph
         Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine); //TODO: set context id, should we need it ?
 
-        final List<String> triggeredEvents = eventsDAO.findTriggeredEventsNamesBySMId(stateMachine.getId());
+        final List<String> triggeredEvents = eventsDAO.findTriggeredOrCancelledEventsNamesBySMId(stateMachine.getId());
         Set<State> initialStates = context.getInitialStates(new HashSet<>(triggeredEvents));
         executeStates(stateMachine, initialStates);
 
         return initialStates;
+    }
+
+    /**
+     * Updates task status and retrieves the states which are dependant on this event and starts the execution of eligible states (whose all dependencies are met).
+     * @param stateMachine
+     * @param eventAndExecutionData
+     */
+    public void updateTaskStatusAndPostEvent(StateMachine stateMachine, EventAndExecutionData eventAndExecutionData) {
+        Event event = updateTaskStatusAndPersistEvent(stateMachine, eventAndExecutionData);
+        processEvent(event, stateMachine);
+    }
+
+    /**
+     * Updates task status and persists the event in a single transaction. Keeping this method as protected so that guice can intercept it.
+     * @param stateMachine
+     * @param eventAndExecutionData
+     */
+    @Transactional
+    protected Event updateTaskStatusAndPersistEvent(StateMachine stateMachine, EventAndExecutionData eventAndExecutionData) {
+        updateTaskStatus(stateMachine.getId(), eventAndExecutionData.getExecutionUpdateData().getTaskId(), eventAndExecutionData.getExecutionUpdateData());
+        return persistEvent(stateMachine, eventAndExecutionData.getEventData());
+    }
+
+    /**
+     * Updates task status and cancels paths which are dependant on the current event. After the cancellation of path, executes the states which can be executed.
+     * @param stateMachine
+     * @param eventAndExecutionData
+     */
+    public void updateTaskStatusAndHandlePathCancellation(StateMachine stateMachine, EventAndExecutionData eventAndExecutionData) {
+        Set<State> executableStates = updateTaskStatusAndCancelPath(stateMachine, eventAndExecutionData);
+        logger.info("Path cancellation is done for state machine: {} event: {} which has come from task: {}",
+                stateMachine.getId(), eventAndExecutionData.getEventData().getName(), eventAndExecutionData.getExecutionUpdateData().getTaskId());
+        executeStates(stateMachine, executableStates);
+    }
+
+    /**
+     * Updates task status and cancels paths which are dependant on the current event
+     * @param stateMachine
+     * @param eventAndExecutionData
+     * @return executable states after cancellation
+     */
+    @Transactional
+    protected Set<State> updateTaskStatusAndCancelPath(StateMachine stateMachine, EventAndExecutionData eventAndExecutionData) {
+        updateTaskStatus(stateMachine.getId(), eventAndExecutionData.getExecutionUpdateData().getTaskId(), eventAndExecutionData.getExecutionUpdateData());
+        return cancelPath(stateMachine, eventAndExecutionData.getEventData());
+    }
+
+    /**
+     * Cancels paths which are dependant on the current event, and returns set of states which can be executed after the cancellation.
+     * @param stateMachine
+     * @param eventData
+     * @return executable states after cancellation
+     */
+    @Transactional
+    protected Set<State> cancelPath(StateMachine stateMachine, EventData eventData) {
+        Set<State> executableStates = new HashSet<>();
+
+        //create context and dependency graph
+        Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
+
+        // get all events of this state machine in map<eventName, eventStatus> with lock
+        Map<String, Event.EventStatus> eventStatusMap = eventsDAO.getAllEventsNameAndStatus(stateMachine.getId(), true);
+
+        // the events which need to marked as cancelled
+        Queue<String> cancelledEvents = new LinkedList<>();
+
+        // add the current event
+        cancelledEvents.add(eventData.getName());
+
+        // until the cancelled events is empty
+        while(!cancelledEvents.isEmpty()) {
+
+            // get event from queue
+            String eventName = cancelledEvents.poll();
+
+            // mark the event as cancelled in DB in local map
+            eventsDAO.markEventAsCancelled(stateMachine.getId(), eventName);
+            eventStatusMap.put(eventName, Event.EventStatus.cancelled);
+
+            // fetch all states which are dependant on the current event
+            final Set<State> dependantStates = context.getDependantStates(eventName);
+
+            // for each state
+            for(State state : dependantStates) {
+
+                // fetch all event names this state is dependant on
+                List<String> dependencies = state.getDependencies();
+
+                boolean allCancelled = true;
+                boolean allMet = true;
+                for(String dependency : dependencies) {
+                    if(eventStatusMap.get(dependency) != Event.EventStatus.cancelled) {
+                        allCancelled = false;
+                    }
+                    if(!(eventStatusMap.get(dependency) == Event.EventStatus.cancelled || eventStatusMap.get(dependency) == Event.EventStatus.triggered)) {
+                        allMet = false;
+                    }
+                }
+
+                // if all dependencies are in cancelled state, then add the output event of the state to cancelled events and mark state as cancelled
+                if(allCancelled) {
+                    statesDAO.updateStatus(state.getId(), stateMachine.getId(), Status.cancelled);
+                    auditDAO.create(new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNoOfRetries(), Status.cancelled, null, null));
+                    EventDefinition eventDefinition = null;
+                    if(state.getOutputEvent() != null) {
+                        try {
+                            eventDefinition = objectMapper.readValue(state.getOutputEvent(), EventDefinition.class);
+                        } catch (IOException ex) {
+                            throw new RuntimeException("Error occurred while deserializing task outputEvent for stateMachineInstanceId: " + stateMachine.getId() + " taskId: " + state.getId());
+                        }
+                        cancelledEvents.add(eventDefinition.getName());
+                    }
+                } else if(allMet) {
+                    // if all dependencies are in cancelled or triggered state, then execute the state
+                    executableStates.add(state);
+                }
+            }
+        }
+        return executableStates;
+    }
+
+    /**
+     * This is called when an event is received with cancelled status. This cancels the particular path in state machine DAG.
+     * @param stateMachine
+     * @param eventData
+     */
+    public void handlePathCancellation(StateMachine stateMachine, EventData eventData) {
+        Set<State> executableStates = cancelPath(stateMachine, eventData);
+        logger.info("Path cancellation is done for state machine: {} event: {}",
+                stateMachine.getId(), eventData.getName());
+        executeStates(stateMachine, executableStates);
     }
 
     /**
@@ -104,27 +246,83 @@ public class WorkFlowExecutionController {
      * @param stateMachine
      */
     public Set<State> postEvent(EventData eventData, StateMachine stateMachine) {
+        Event event = persistEvent(stateMachine, eventData);
+        return processEvent(event, stateMachine);
+    }
+
+    /**
+     * Persists Event data and changes event status
+     * @param stateMachine
+     * @param eventData
+     * @return
+     */
+    @Transactional
+    public Event persistEvent(StateMachine stateMachine, EventData eventData) {
         //update event's data and status
         Event event = eventsDAO.findBySMIdAndName(stateMachine.getId(), eventData.getName());
         if(event == null)
             throw new IllegalEventException("Event with stateMachineId: "+stateMachine.getId()+", event name: "+ eventData.getName()+" not found");
-        event.setStatus(Event.EventStatus.triggered);
+        event.setStatus(eventData.getCancelled() != null && eventData.getCancelled() ? Event.EventStatus.cancelled : Event.EventStatus.triggered);
         event.setEventData(eventData.getData());
         event.setEventSource(eventData.getEventSource());
         eventsDAO.updateEvent(event);
+        return event;
+    }
 
+    /**
+     * Checks and triggers the states which are dependant on the current event
+     * @param event
+     * @param stateMachine
+     * @return
+     */
+    public Set<State> processEvent(Event event, StateMachine stateMachine) {
         //create context and dependency graph
         Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine); //TODO: set context id, should we need it ?
 
         //get the states whose dependencies are met
-        final Set<State> dependantStates = context.getDependantStates(eventData.getName());
-        logger.debug("These states {} depend on event {}", dependantStates, eventData.getName());
+        final Set<State> dependantStates = context.getDependantStates(event.getName());
+        logger.debug("These states {} depend on event {}", dependantStates, event.getName());
         Set<State> executableStates = getExecutableStates(dependantStates, stateMachine.getId());
-        logger.debug("These states {} are now unblocked after event {}", executableStates, eventData.getName());
+        logger.debug("These states {} are now unblocked after event {}", executableStates, event.getName());
         //start execution of the above states
         executeStates(stateMachine, executableStates, event);
 
         return executableStates;
+    }
+
+
+    public void updateTaskStatus(Long machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
+        com.flipkart.flux.domain.Status updateStatus = null;
+        switch (executionUpdateData.getStatus()) {
+            case initialized:
+                updateStatus = com.flipkart.flux.domain.Status.initialized;
+                break;
+            case running:
+                updateStatus = com.flipkart.flux.domain.Status.running;
+                break;
+            case completed:
+                updateStatus = com.flipkart.flux.domain.Status.completed;
+                break;
+            case cancelled:
+                updateStatus = com.flipkart.flux.domain.Status.cancelled;
+                break;
+            case errored:
+                updateStatus = com.flipkart.flux.domain.Status.errored;
+                break;
+            case sidelined:
+                updateStatus = com.flipkart.flux.domain.Status.sidelined;
+                break;
+        }
+        metricsClient.markMeter(new StringBuilder().
+                append("stateMachine.").
+                append(executionUpdateData.getStateMachineName()).
+                append(".task.").
+                append(executionUpdateData.getTaskName()).
+                append(".status.").
+                append(updateStatus.name()).
+                toString());
+        updateExecutionStatus(machineId, stateId, updateStatus, executionUpdateData.getRetrycount(),
+                executionUpdateData.getCurrentRetryCount(), executionUpdateData.getErrorMessage(), executionUpdateData.isDeleteFromRedriver());
     }
 
     /**
@@ -264,7 +462,7 @@ public class WorkFlowExecutionController {
     private Set<State> getExecutableStates(Set<State> dependantStates, Long stateMachineInstanceId) {
         // TODO : states can get triggered twice if we receive all their dependent events at roughly the same time.
         Set<State> executableStates = new HashSet<>();
-        Set<String> receivedEvents = new HashSet<>(eventsDAO.findTriggeredEventsNamesBySMId(stateMachineInstanceId));
+        Set<String> receivedEvents = new HashSet<>(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId(stateMachineInstanceId));
 
         // for each state
         // 1. get the dependencies (events)

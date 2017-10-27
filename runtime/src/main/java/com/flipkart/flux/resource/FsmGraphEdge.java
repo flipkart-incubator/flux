@@ -16,6 +16,7 @@ package com.flipkart.flux.resource;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,22 +40,26 @@ public class FsmGraphEdge {
     /*Gives event data details*/
     @JsonProperty
     private String eventData;
+    /* Event last updated at timestamp*/
+    @JsonProperty
+    private Timestamp updatedAt;
 
     /* For Jackson */
     FsmGraphEdge() {
-        this(null,null,null,null);
+        this(null,null,null,null,null);
     }
 
-    public FsmGraphEdge(String label, String status,String source,String eventData) {
-        this(new HashSet<>(),label,status,source,eventData);
+    public FsmGraphEdge(String label, String status, String source, String eventData, Timestamp updatedAt) {
+        this(new HashSet<>(),label,status,source,eventData,updatedAt);
     }
 
-    public FsmGraphEdge(Set<Long> incidentOn, String label, String status,String source,String eventData) {
+    public FsmGraphEdge(Set<Long> incidentOn, String label, String status,String source,String eventData, Timestamp updatedAt) {
         this.incidentOn = incidentOn;
         this.label = (label == null ? "" : label.trim());
         this.status = status;
         this.source = (source == null ? "" : source.trim());
         this.eventData = eventData;
+        this.updatedAt = updatedAt;
     }
 
     @JsonIgnore

@@ -52,6 +52,13 @@ public interface FluxRuntimeConnector {
     void submitScheduledEvent(String name, Object data, String correlationId, String eventSource, Long scheduledTime);
 
     /**
+     * Cancels the event, which results cancellation of subsequent path in state machine DAG
+     * @param eventName name of the event which needs to be cancelled
+     * @param correlationId state machine identifier
+     */
+    void cancelEvent(String eventName, String correlationId);
+
+    /**
      * Updates the status of the Task identified by the specified Task ID 
      * @param executionUpdateData the execution update data
      */

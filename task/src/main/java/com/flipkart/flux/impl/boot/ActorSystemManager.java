@@ -30,6 +30,7 @@ import scala.concurrent.duration.Duration;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import java.io.File;
 
 /**
  * Responsible for bringing up the entire akka runtime
@@ -82,7 +83,16 @@ public class ActorSystemManager implements Initializable {
         if(withMetrics) {
             Kamon.start();
         }
-        Config config = ConfigFactory.load(configName);
+
+        Config config;
+        // check if actor system config file has been passed as part of system parameters
+        String fluxActorsystemConfigurationFile = System.getProperty("flux.actorsystemConfigurationFile");
+        if(fluxActorsystemConfigurationFile != null) {
+            config = ConfigFactory.parseFile(new File(fluxActorsystemConfigurationFile));
+        } else {
+            config = ConfigFactory.load(configName);
+        }
+
         system = ActorSystem.create(actorSystemName, config);
         // register the Dead Letter Actor
         final ActorRef deadLetterActor = system.actorOf(Props.create(DeadLetterActor.class));
