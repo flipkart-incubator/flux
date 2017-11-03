@@ -50,7 +50,8 @@ public class FSMVisualizationController {
     @RequestMapping(value = {"/fsmview"}, method = RequestMethod.GET)
     public String fsmview(@RequestParam(value = "fsmid", required = false) String fsmId, ModelMap modelMap, HttpServletRequest request) throws UnknownHostException {
         int fluxApiPort = configInjector.getInstance(Key.get(Integer.class, Names.named("Api.service.port")));
-        String fluxApiUrl = "http://" + InetAddress.getLocalHost().getHostAddress() + ":" + fluxApiPort;
+        String fluxApiHost = InetAddress.getLocalHost().getHostAddress();
+        String fluxApiUrl = System.getProperty("flux.runtimeUrl")== null ? "http://" + fluxApiHost   + ":" + fluxApiPort : System.getProperty("flux.runtimeUrl");
         modelMap.addAttribute("flux_api_url", fluxApiUrl);
         modelMap.addAttribute("fsm_id", (fsmId != null ? fsmId : "null"));
         return FSM_VIEW;

@@ -25,6 +25,7 @@ import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.eventscheduler.dao.EventSchedulerDao;
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
 import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SessionFactoryContext;
@@ -76,10 +77,9 @@ public class HibernateModule extends AbstractModule {
         //bind Transactional Interceptor to intercept methods which are annotated with javax.transaction.Transactional
         Provider<SessionFactoryContext> provider = getProvider(Key.get(SessionFactoryContext.class, Names.named("fluxSessionFactoryContext")));
         final TransactionInterceptor transactionInterceptor = new TransactionInterceptor(provider);
-        // Weird way of getting a package but java.lang.Package.getName(<String>) was no working for some reason.
-        // todo [yogesh] dig deeper and fix this ^
-        bindInterceptor(Matchers.not(Matchers.inPackage(MessageDao.class.getPackage())),
-            Matchers.annotatedWith(Transactional.class), transactionInterceptor);
+
+        bindInterceptor(Matchers.not(Matchers.inPackage(MessageDao.class.getPackage())), Matchers.annotatedWith(Transactional.class), transactionInterceptor);
+        bindInterceptor(Matchers.not(Matchers.inPackage(EventSchedulerDao.class.getPackage())), Matchers.annotatedWith(Transactional.class), transactionInterceptor);
     }
 
     /**

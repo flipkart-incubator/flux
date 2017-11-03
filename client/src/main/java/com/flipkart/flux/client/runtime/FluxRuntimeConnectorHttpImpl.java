@@ -109,7 +109,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     }
 
     @Override
-    public void submitEvent(String name,Object data, String correlationId,String eventSource) {
+    public void submitEvent(String name, Object data, String correlationId, String eventSource) {
         final String eventType = data.getClass().getName();
         if (eventSource == null) {
             eventSource = EXTERNAL;
@@ -125,7 +125,44 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         }
     }
 
-	/**
+    @Override
+    public void submitScheduledEvent(String name, Object data, String correlationId,String eventSource, Long triggerTime) {
+        final String eventType = data.getClass().getName();
+        if (eventSource == null) {
+            eventSource = EXTERNAL;
+        }
+        CloseableHttpResponse httpResponse = null;
+        try {
+            if(triggerTime != null) {
+                final EventData eventData = new EventData(name, eventType, objectMapper.writeValueAsString(data), eventSource);
+                httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/events?searchField=correlationId&triggerTime=" + triggerTime);
+            } else {
+                //this block is used by flux to trigger the event when the time has arrived, send the data as plain string without serializing,
+                // as the data is already in serialized form (in ScheduledEvents table the data stored in serialized form)
+                final EventData eventData = new EventData(name, eventType, (String) data, eventSource);
+                httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/events?searchField=correlationId");
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        } finally {
+            HttpClientUtils.closeQuietly(httpResponse);
+        }
+    }
+
+    @Override
+    public void cancelEvent(String eventName, String correlationId) {
+        CloseableHttpResponse httpResponse = null;
+        try {
+            final EventData eventData = new EventData(eventName, null, null, null, true);
+            httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/events?searchField=correlationId");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            HttpClientUtils.closeQuietly(httpResponse);
+        }
+    }
+
+    /**
 	 * Interface method implementation. Updates the status in persistence store by invoking suitable Flux runtime API
 	 * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#updateExecutionStatus(ExecutionUpdateData)
 	 */

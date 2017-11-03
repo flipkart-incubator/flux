@@ -6,6 +6,5 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd"
         >
-
     <includeAll path="persistence-mysql/src/main/resources/flux/migrations" />
 </databaseChangeLog>

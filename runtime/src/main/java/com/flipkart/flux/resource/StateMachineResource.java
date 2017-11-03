@@ -22,16 +22,14 @@ import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.State;
-import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.*;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
-import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
+import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
 import com.google.inject.Inject;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
@@ -84,20 +82,25 @@ public class StateMachineResource {
 
     private AuditDAO auditDAO;
 
+    private EventSchedulerRegistry eventSchedulerRegistry;
+
     private ObjectMapper objectMapper;
 
     private MetricsClient metricsClient;
 
     @Inject
     public StateMachineResource(EventsDAO eventsDAO, StateMachinePersistenceService stateMachinePersistenceService,
-                                AuditDAO auditDAO, StateMachinesDAO stateMachinesDAO, StatesDAO statesDAO, WorkFlowExecutionController workFlowExecutionController, MetricsClient metricsClient) {
+                                AuditDAO auditDAO, StateMachinesDAO stateMachinesDAO, StatesDAO statesDAO,
+                                WorkFlowExecutionController workFlowExecutionController, MetricsClient metricsClient,
+                                EventSchedulerRegistry eventSchedulerRegistry) {
         this.eventsDAO = eventsDAO;
         this.stateMachinePersistenceService = stateMachinePersistenceService;
         this.stateMachinesDAO = stateMachinesDAO;
         this.statesDAO = statesDAO;
         this.auditDAO = auditDAO;
+        this.eventSchedulerRegistry = eventSchedulerRegistry;
         this.workFlowExecutionController = workFlowExecutionController;
-        objectMapper = new ObjectMapper();
+        this.objectMapper = new ObjectMapper();
         this.metricsClient = metricsClient;
     }
 
@@ -165,12 +168,51 @@ public class StateMachineResource {
     @Timed
     public Response submitEvent(@PathParam("machineId") String machineId,
                                 @QueryParam("searchField") String searchField,
+                                @QueryParam("triggerTime") Long triggerTime,
                                 EventData eventData
     ) throws Exception {
         MDC.clear(); MDC.put(STATE_MACHINE_ID, machineId);
-        logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
 
-        return postEvent(machineId, searchField, eventData);
+        StateMachine stateMachine = null;
+        if (searchField != null) {
+            if (!searchField.equals(CORRELATION_ID)) {
+                return Response.status(Response.Status.BAD_REQUEST).build();
+            }
+            stateMachine = stateMachinesDAO.findByCorrelationId(machineId);
+        } else {
+            Long stateMachineId = Long.valueOf(machineId);
+            stateMachine = stateMachinesDAO.findById(stateMachineId);
+        }
+
+        if(stateMachine == null) {
+            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity("State machine with Id: " + machineId + " not found").build();
+        }
+
+        if(stateMachine.getStatus() == StateMachineStatus.cancelled) {
+            logger.info("Discarding event: {} as State machine: {} is in cancelled state", eventData.getName(), stateMachine.getId());
+            return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + stateMachine.getId() + " is in 'cancelled' state. Discarding the event.").build();
+        }
+
+        if(triggerTime == null) {
+            logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
+            try {
+                if(eventData.getCancelled() != null && eventData.getCancelled()) {
+                    workFlowExecutionController.handlePathCancellation(stateMachine, eventData);
+                } else {
+                    workFlowExecutionController.postEvent(eventData, stateMachine);
+                }
+                return Response.status(Response.Status.ACCEPTED).build();
+            } catch (IllegalEventException ex) {
+                return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
+            }
+        } else {
+            logger.info("Received event: {} for state machine: {} with triggerTime: {}", eventData.getName(), machineId, triggerTime);
+            //if trigger time is more than below value, it means the value has been passed in milliseconds, convert it to seconds and register
+            if(triggerTime > 9999999999L)
+                triggerTime = triggerTime/1000;
+            eventSchedulerRegistry.registerEvent(machineId, eventData.getName(), objectMapper.writeValueAsString(eventData), triggerTime);
+            return Response.status(Response.Status.ACCEPTED).build();
+        }
     }
 
     /**
@@ -191,24 +233,30 @@ public class StateMachineResource {
         MDC.put(TASK_ID, executionUpdateData.getTaskId().toString());
         logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
 
-        updateTaskStatus(Long.valueOf(machineId), executionUpdateData.getTaskId(), executionUpdateData);
+        Long stateMachineId = Long.valueOf(machineId);
+        StateMachine stateMachine = stateMachinesDAO.findById(stateMachineId);
 
-        return postEvent(machineId, null, eventData);
-    }
-
-    private Response postEvent(String machineId, String searchField, EventData eventData) {
-        try {
-            if (searchField != null) {
-                if (!searchField.equals(CORRELATION_ID)) {
-                    return Response.status(Response.Status.BAD_REQUEST).build();
-                }
-                workFlowExecutionController.postEvent(eventData, null, machineId);
-            } else {
-                workFlowExecutionController.postEvent(eventData, Long.valueOf(machineId), null);
-            }
-        } catch (UnknownStateMachine | IllegalEventException ex) {
-            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
+        if(stateMachine == null) {
+            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity("State machine with Id: " + machineId + " not found").build();
         }
+
+        // check if the state machine is cancelled, if it is discard the event
+        if(stateMachine.getStatus() == StateMachineStatus.cancelled) {
+            logger.info("Discarding event: {} as State machine: {} is in cancelled state", eventData.getName(), stateMachine.getId());
+            return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + stateMachine.getId() + " is in 'cancelled' state. Discarding the event.").build();
+        }
+
+        // check if the event is cancelled or not, if it is a cancelled event, cancel the entire path in state machine DAG
+        if(eventData.getCancelled() != null && eventData.getCancelled()) {
+            workFlowExecutionController.updateTaskStatusAndHandlePathCancellation(stateMachine, eventAndExecutionData);
+        } else {
+            try {
+                workFlowExecutionController.updateTaskStatusAndPostEvent(stateMachine, eventAndExecutionData);
+            } catch (IllegalEventException ex) {
+                return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
+            }
+        }
+
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
@@ -228,42 +276,8 @@ public class StateMachineResource {
                                  @PathParam("stateId") Long stateId,
                                  ExecutionUpdateData executionUpdateData
     ) throws Exception {
-        updateTaskStatus(machineId, stateId, executionUpdateData);
+        this.workFlowExecutionController.updateTaskStatus(machineId, stateId, executionUpdateData);
         return Response.status(Response.Status.ACCEPTED).build();
-    }
-
-    private void updateTaskStatus(Long machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
-        com.flipkart.flux.domain.Status updateStatus = null;
-        switch (executionUpdateData.getStatus()) {
-            case initialized:
-                updateStatus = com.flipkart.flux.domain.Status.initialized;
-                break;
-            case running:
-                updateStatus = com.flipkart.flux.domain.Status.running;
-                break;
-            case completed:
-                updateStatus = com.flipkart.flux.domain.Status.completed;
-                break;
-            case cancelled:
-                updateStatus = com.flipkart.flux.domain.Status.cancelled;
-                break;
-            case errored:
-                updateStatus = com.flipkart.flux.domain.Status.errored;
-                break;
-            case sidelined:
-                updateStatus = com.flipkart.flux.domain.Status.sidelined;
-                break;
-        }
-        metricsClient.markMeter(new StringBuilder().
-                append("stateMachine.").
-                append(executionUpdateData.getStateMachineName()).
-                append(".task.").
-                append(executionUpdateData.getTaskName()).
-                append(".status.").
-                append(updateStatus.name()).
-                toString());
-        this.workFlowExecutionController.updateExecutionStatus(machineId, stateId, updateStatus, executionUpdateData.getRetrycount(),
-                executionUpdateData.getCurrentRetryCount(), executionUpdateData.getErrorMessage(), executionUpdateData.isDeleteFromRedriver());
     }
 
     /**
@@ -298,17 +312,6 @@ public class StateMachineResource {
         this.workFlowExecutionController.redriveTask(taskId);
 
         return Response.status(Response.Status.ACCEPTED).build();
-    }
-
-    /**
-     * Cancel a machine being executed.*
-     *
-     * @param machineId The machineId to be cancelled
-     */
-    @PUT
-    @Path("/{machineId}/cancel")
-    public void cancelExecution(@PathParam("machineId") Long machineId) {
-        // Trigger cancellation on all currently executing states
     }
 
     /**
@@ -402,6 +405,58 @@ public class StateMachineResource {
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
+    @PUT
+    @Path("/{stateMachineId}/cancel")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response cancelWorkflow(@PathParam("stateMachineId") String stateMachineId,
+                                       @QueryParam("searchField") String searchField) {
+
+        Long machineId = null;
+        StateMachine stateMachine = null;
+        if(searchField != null && searchField.equals(CORRELATION_ID)) {
+            stateMachine = stateMachinesDAO.findByCorrelationId(stateMachineId);
+        } else {
+            machineId = Long.parseLong(stateMachineId);
+            stateMachine = stateMachinesDAO.findById(machineId);
+        }
+        if(stateMachine == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("State machine with id: " + stateMachineId + " not found").build();
+        }
+
+        workFlowExecutionController.cancelWorkflow(stateMachine);
+
+        return Response.status(Response.Status.ACCEPTED).build();
+    }
+
+    @GET
+    @Path("/{stateMachineId}/info")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response getStateMachine(@PathParam("stateMachineId") String stateMachineId,
+                                    @QueryParam("searchField") String searchField) {
+        Long machineId = null;
+        StateMachine stateMachine = null;
+        if(searchField != null && searchField.equals(CORRELATION_ID)) {
+            stateMachine = stateMachinesDAO.findByCorrelationId(stateMachineId);
+        } else {
+            machineId = Long.parseLong(stateMachineId);
+            stateMachine = stateMachinesDAO.findById(machineId);
+        }
+        if(stateMachine == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("State machine with id: " + stateMachineId + " not found").build();
+        }
+
+        List<Event> events = eventsDAO.findBySMInstanceId(stateMachine.getId());
+        List<AuditRecord> auditRecords = auditDAO.findBySMInstanceId(stateMachine.getId());
+
+        Map<String, Object> stateMachineInfo = objectMapper.convertValue(stateMachine, Map.class);
+        stateMachineInfo.put("events", events);
+        stateMachineInfo.put("auditrecords", auditRecords);
+
+        return Response.status(Response.Status.OK).entity(stateMachineInfo).build();
+    }
+
     /**
      * Retrieves fsm graph data based on FSM Id or correlation id
      */
@@ -447,25 +502,25 @@ public class StateMachineResource {
         final RAMContext ramContext = new RAMContext(System.currentTimeMillis(), null, stateMachine);
         /* After this operation, we'll have nodes for each state and its corresponding output event along with the output event's dependencies mapped out*/
         for (State state : stateMachine.getStates()) {
-            final FsmGraphVertex vertex = new FsmGraphVertex(state.getId(), this.getStateDisplayName(state.getName()));
+            final FsmGraphVertex vertex = new FsmGraphVertex(state.getId(), this.getStateDisplayName(state.getName()), state.getStatus().name());
             if (state.getOutputEvent() != null) {
                 EventDefinition eventDefinition = objectMapper.readValue(state.getOutputEvent(), EventDefinition.class);
                 final Event outputEvent = stateMachineEvents.get(eventDefinition.getName());
                 fsmGraph.addVertex(vertex,
-                        new FsmGraphEdge(getEventDisplayName(outputEvent.getName()), state.getStatus().name(), outputEvent.getEventSource(),outputEvent.getEventData()));
+                        new FsmGraphEdge(getEventDisplayName(outputEvent.getName()), outputEvent.getStatus().name(), outputEvent.getEventSource(),outputEvent.getEventData(), outputEvent.getUpdatedAt()));
                 final Set<State> dependantStates = ramContext.getDependantStates(outputEvent.getName());
                 dependantStates.forEach((aState) -> fsmGraph.addOutgoingEdge(vertex, aState.getId()));
                 allOutputEventNames.add(outputEvent.getName()); // we collect all output event names and use them below.
             } else {
                 fsmGraph.addVertex(vertex,
-                        new FsmGraphEdge(null, state.getStatus().name(), null, null));
+                        new FsmGraphEdge(null, null, null, null, null));
             }
         }
 
         /* Handle states with no dependencies, i.e the states that can be triggered as soon as we execute the state machine */
         final Set<State> initialStates = ramContext.getInitialStates(Collections.emptySet());// hackety hack.  We're fooling the context to give us only events that depend on nothing
         if (!initialStates.isEmpty()) {
-            final FsmGraphEdge initEdge = new FsmGraphEdge(TRIGGER, Event.EventStatus.triggered.name(), TRIGGER, null);
+            final FsmGraphEdge initEdge = new FsmGraphEdge(TRIGGER, Event.EventStatus.triggered.name(), TRIGGER, null, null);
             initialStates.forEach((state) -> {
                 initEdge.addOutgoingVertex(state.getId());
             });
@@ -476,7 +531,7 @@ public class StateMachineResource {
         eventsGivenOnWorkflowTrigger.removeAll(allOutputEventNames);
         eventsGivenOnWorkflowTrigger.forEach((workflowTriggeredEventName) -> {
             final Event correspondingEvent = stateMachineEvents.get(workflowTriggeredEventName);
-            final FsmGraphEdge initEdge = new FsmGraphEdge(this.getEventDisplayName(workflowTriggeredEventName), correspondingEvent.getStatus().name(), correspondingEvent.getEventSource(), correspondingEvent.getEventData());
+            final FsmGraphEdge initEdge = new FsmGraphEdge(this.getEventDisplayName(workflowTriggeredEventName), correspondingEvent.getStatus().name(), correspondingEvent.getEventSource(), correspondingEvent.getEventData(), correspondingEvent.getUpdatedAt());
             final Set<State> dependantStates = ramContext.getDependantStates(workflowTriggeredEventName);
             dependantStates.forEach((state) -> initEdge.addOutgoingVertex(state.getId()));
             fsmGraph.addInitStateEdge(initEdge);

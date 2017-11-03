@@ -70,13 +70,15 @@ public class LocalJvmTask extends AbstractTask {
             Class objectMapper = objectMapperInstance.getClass();
 
 			for (int i = 0; i < parameterTypes.length; i++) {
-				if (parameterTypes[i].isAssignableFrom(Class.forName(events[i].getType(), true, classLoader))) {
-					parameters[i] = objectMapper.getMethod("readValue", String.class, Class.class).invoke(objectMapperInstance, events[i].getData(),Class.forName(events[i].getType(), true, classLoader));
-				} else {
-					logger.warn("Parameter type {} did not match with event: {}", parameterTypes[i], events[i]);
-					throw new RuntimeException(
-							"Parameter type " + parameterTypes[i] + " did not match with event: " + events[i]);
-				}
+			    if(events[i].getData() != null) {
+                    if (parameterTypes[i].isAssignableFrom(Class.forName(events[i].getType(), true, classLoader))) {
+                        parameters[i] = objectMapper.getMethod("readValue", String.class, Class.class).invoke(objectMapperInstance, events[i].getData(), Class.forName(events[i].getType(), true, classLoader));
+                    } else {
+                        logger.warn("Parameter type {} did not match with event: {}", parameterTypes[i], events[i]);
+                        throw new RuntimeException(
+                                "Parameter type " + parameterTypes[i] + " did not match with event: " + events[i]);
+                    }
+                }
 			}
 
             Method writeValueAsString = objectMapper.getMethod("writeValueAsString", Object.class);

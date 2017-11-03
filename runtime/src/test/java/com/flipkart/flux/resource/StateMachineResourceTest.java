@@ -20,10 +20,10 @@ import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.dao.TestWorkflow;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.State;
-import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.dao.iface.StatesDAO;
+import com.flipkart.flux.domain.*;
+import com.flipkart.flux.eventscheduler.dao.EventSchedulerDao;
+import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
 import com.flipkart.flux.guice.module.AkkaModule;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.HibernateModule;
@@ -62,7 +62,13 @@ public class StateMachineResourceTest {
     private StateMachinesDAO stateMachinesDAO;
 
     @Inject
+    private StatesDAO statesDAO;
+
+    @Inject
     private EventsDAO eventsDAO;
+
+    @Inject
+    private EventSchedulerDao eventSchedulerDao;
 
     @Inject
     OrderedComponentBooter orderedComponentBooter;
@@ -208,6 +214,58 @@ public class StateMachineResourceTest {
     }
 
     @Test
+    public void testPostScheduledEvent_withoutCorrelationIdTag() throws Exception {
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+
+        String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+
+        //request with searchField param having value other than correlationId
+        final HttpResponse<String> eventPostResponseWithWrongTag = Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+"magic_number_1"+"/context/events?searchField=dummy&triggerTime=123").header("Content-Type","application/json").body(eventJson).asString();
+        assertThat(eventPostResponseWithWrongTag.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void testPostScheduledEvent_withCorrelationId() throws Exception {
+        //create state machine
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+
+        Thread.sleep(100);
+
+        //post an scheduled event
+        long triggerTime = (System.currentTimeMillis()/1000)+1;
+        String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+"magic_number_1"+"/context/events?searchField=correlationId&triggerTime="+triggerTime)
+                .header("Content-Type", "application/json").body(eventJson).asString();
+
+        //verify event has been saved in DB
+        assertThat(eventSchedulerDao.retrieveOldest(1).get(0)).isEqualTo(new ScheduledEvent("magic_number_1", "event0", triggerTime, "{\"name\":\"event0\",\"type\":\"java.lang.String\",\"data\":\"42\",\"eventSource\":null,\"cancelled\":null}"));
+
+        //waiting for 7 seconds here, to match Event scheduler thread's initial delay of 10 sec (some boot up time + 7 seconds will surpass 10 sec)
+        Thread.sleep(7000);
+
+        //verify that the event has been triggered and scheduled event has been removed from DB
+        assertThat(eventsDAO.findBySMIdAndName(Long.parseLong(smCreationResponse.getBody()), "event0").getStatus()).isEqualTo(Event.EventStatus.triggered);
+        assertThat(eventSchedulerDao.retrieveOldest(1)).hasSize(0);
+    }
+
+    @Test
+    public void testPostScheduledEvent_withTriggerTimeInMilliSeconds() throws Exception {
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type","application/json").body(stateMachineDefinitionJson).asString();
+
+        Thread.sleep(100);
+        long triggerTime = System.currentTimeMillis();
+        String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL+SLASH+"magic_number_1"+"/context/events?searchField=correlationId&triggerTime="+triggerTime)
+                .header("Content-Type", "application/json").body(eventJson).asString();
+
+        assertThat(eventSchedulerDao.retrieveOldest(1).get(0).getScheduledTime()).isEqualTo(triggerTime/1000);
+
+    }
+
+    @Test
     public void testFsmGraphCreation() throws Exception {
         final StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(objectMapper.readValue(this.getClass().getClassLoader().getResource("state_machine_definition_fork_join.json"), StateMachineDefinition.class));
         final HttpResponse<String> stringHttpResponse = Unirest.get(STATE_MACHINE_RESOURCE_URL + "/" + stateMachine.getId() + "/fsmdata").header("Content-Type", "application/json").asString();
@@ -235,5 +293,43 @@ public class StateMachineResourceTest {
         assertThat(stringHttpResponse.getBody()).isEqualTo("[[" + secondSM.getId() + "," +
                 secondSM.getStates().stream().filter(e -> Status.errored.equals(e.getStatus())).findFirst().get().getId() + "," +
                 "\"errored\"]]");
+    }
+
+    @Test
+    public void testCancelWorkflow() throws Exception {
+        final StateMachine sm = stateMachinePersistenceService.createStateMachine(objectMapper.readValue(this.getClass().getClassLoader().getResource("state_machine_definition.json"), StateMachineDefinition.class));
+        Long stateMachineId = sm.getId();
+        State state = sm.getStates().stream().findFirst().get();
+        state.setStatus(Status.running);
+        statesDAO.updateState(state);
+        Unirest.put(STATE_MACHINE_RESOURCE_URL+SLASH+stateMachineId+"/cancel").asString();
+
+        Thread.sleep(200);
+        StateMachine cancelledSM = stateMachinesDAO.findById(stateMachineId);
+        assertThat(cancelledSM.getStatus()).isEqualTo(StateMachineStatus.cancelled);
+
+        int cancelledStateCount = 0;
+        for(State st : cancelledSM.getStates()) {
+            if(st.getStatus() == Status.cancelled)
+                cancelledStateCount++;
+        }
+
+        // 3 were in initialized state and one in running state before cancel call, after call, all 3 initialized states should be marked as cancelled
+        assertThat(cancelledStateCount).isEqualTo(3);
+    }
+
+    @Test
+    public void testCancelWorkflow_withCorrelationId() throws Exception {
+        final StateMachine sm = stateMachinePersistenceService.createStateMachine(objectMapper.readValue(this.getClass().getClassLoader().getResource("state_machine_definition.json"), StateMachineDefinition.class));
+        String stateMachineId = sm.getCorrelationId();
+        Unirest.put(STATE_MACHINE_RESOURCE_URL+SLASH+stateMachineId+"/cancel?searchField=correlationId").asString();
+
+        Thread.sleep(200);
+        StateMachine cancelledSM = stateMachinesDAO.findByCorrelationId(stateMachineId);
+        assertThat(cancelledSM.getStatus()).isEqualTo(StateMachineStatus.cancelled);
+
+        cancelledSM.getStates().forEach(st -> {
+            assertThat(st.getStatus()).isEqualTo(Status.cancelled);
+        });
     }
 }

@@ -34,13 +34,30 @@ public interface FluxRuntimeConnector {
 
     /**
      * Post an arbitrary event against a previously registered correlationId
-     * @param name name of the event. Should be the same as the name given using <code>ExternalEvent</code> annotation
+     * @param name name of the event. Should be same as the name given using <code>ExternalEvent</code> annotation
      * @param data data to post against the given event name
      * @param correlationId the string used to identify a workflow instance (as passed using <code>CorrelationId</code> annotation
      * @param eventSource optional string to denote an event source
      */
     void submitEvent(String name, Object data,String correlationId,String eventSource);
-    
+
+    /**
+     * Post an arbitrary event against a previously registered correlationId with future time, and the event would be triggered at that particular time
+     * @param name name of the event. Should be same as the name given using <code>ExternalEvent</code> annotation
+     * @param data data to post against the given event name
+     * @param correlationId the string used to identify a workflow instance (as passed using <code>CorrelationId</code> annotation
+     * @param eventSource optional string to denote an event source
+     * @param scheduledTime future time (epoch format Ex: 1490789434, till seconds) at which this event needs to be triggered.
+     */
+    void submitScheduledEvent(String name, Object data, String correlationId, String eventSource, Long scheduledTime);
+
+    /**
+     * Cancels the event, which results cancellation of subsequent path in state machine DAG
+     * @param eventName name of the event which needs to be cancelled
+     * @param correlationId state machine identifier
+     */
+    void cancelEvent(String eventName, String correlationId);
+
     /**
      * Updates the status of the Task identified by the specified Task ID 
      * @param executionUpdateData the execution update data

@@ -18,16 +18,13 @@ import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.google.inject.name.Named;
-import org.hibernate.Criteria;
-import org.hibernate.Query;
+import org.hibernate.*;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * <code>EventsDAOImpl</code> is an implementation of {@link EventsDAO} which uses Hibernate to perform operations.
@@ -74,9 +71,11 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    public List<String> findTriggeredEventsNamesBySMId(Long stateMachineInstanceId) {
+    public List<String> findTriggeredOrCancelledEventsNamesBySMId(Long stateMachineInstanceId) {
         Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
-                .add(Restrictions.eq("status", Event.EventStatus.triggered))
+                .add(Restrictions.or(
+                        Restrictions.eq("status", Event.EventStatus.triggered),
+                        Restrictions.eq("status", Event.EventStatus.cancelled)))
                 .setProjection(Projections.property("name"));
         return criteria.list();
     }
@@ -110,6 +109,30 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         	readEventsDTOs.add(new EventData(event.getName(), event.getType(),event.getEventData(), event.getEventSource()));
         }
         return readEventsDTOs;
+    }
+
+    @Override
+    @Transactional
+    public Map<String, Event.EventStatus> getAllEventsNameAndStatus(Long stateMachineInstanceId, boolean forUpdate) {
+        SQLQuery sqlQuery = currentSession().createSQLQuery("Select name, status from Events where stateMachineInstanceId = " + stateMachineInstanceId + (forUpdate ? " for update" : ""));
+        List<Object[]> eventRows = sqlQuery.list();
+        Map<String, Event.EventStatus> eventStatusMap = new HashMap<>();
+
+        for(Object[] eventRow : eventRows) {
+            eventStatusMap.put((String)eventRow[0], Event.EventStatus.valueOf((String)eventRow[1]));
+        }
+
+        return eventStatusMap;
+    }
+
+    @Override
+    @Transactional
+    public void markEventAsCancelled(Long stateMachineInstanceId, String eventName) {
+        Query query = currentSession().createQuery("update Event set status = :status where stateMachineInstanceId = :stateMachineInstanceId and name = :eventName");
+        query.setString("status", Event.EventStatus.cancelled.toString());
+        query.setLong("stateMachineInstanceId", stateMachineInstanceId);
+        query.setString("eventName", eventName);
+        query.executeUpdate();
     }
 
 }
