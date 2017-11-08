@@ -18,7 +18,7 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 
 /**
- * <code>Event</code> is the result of a {@link Task} execution.
+ * <code>Event</code> is the result of a Task execution.
  * It is to be posted back to the Flux execution engine once a worker has executed the task
  *
  * @author Yogesh
@@ -82,13 +82,7 @@ public class Event implements Serializable {
      * Enum of Event statuses
      */
     public enum EventStatus {
-        pending, triggered;
-    }
-
-    /**
-     * Constructors
-     */
-    protected Event() {
+        pending, triggered, cancelled;
     }
 
     public Event(String name, String type, EventStatus status, String stateMachineInstanceId, String eventData, String eventSource) {

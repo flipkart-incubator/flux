@@ -235,6 +235,7 @@ public class StateMachineResourceTest {
         final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/events?triggerTime=123").header("Content-Type", "application/json").body(eventJson).asString();
         assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
+
         //request with searchField param having value other than correlationId
         final HttpResponse<String> eventPostResponseWithWrongTag = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/events?searchField=dummy&triggerTime=123").header("Content-Type", "application/json").body(eventJson).asString();
         assertThat(eventPostResponseWithWrongTag.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
@@ -253,10 +254,9 @@ public class StateMachineResourceTest {
         String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
         Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/events?searchField=correlationId&triggerTime=" + triggerTime)
                 .header("Content-Type", "application/json").body(eventJson).asString();
-        Thread.sleep(500);
 
         //verify event has been saved in DB
-        assertThat(eventSchedulerDao.retrieveOldest(1).get(0)).isEqualTo(new ScheduledEvent("magic_number_1", "event0", triggerTime, "{\"name\":\"event0\",\"type\":\"java.lang.String\",\"data\":\"42\",\"eventSource\":null}"));
+        assertThat(eventSchedulerDao.retrieveOldest(1).get(0)).isEqualTo(new ScheduledEvent("magic_number_1", "event0", triggerTime, "{\"name\":\"event0\",\"type\":\"java.lang.String\",\"data\":\"42\",\"eventSource\":null,\"cancelled\":null}"));
 
         //waiting for 7 seconds here, to match Event scheduler thread's initial delay of 10 sec (some boot up time + 7 seconds will surpass 10 sec)
         Thread.sleep(7000);

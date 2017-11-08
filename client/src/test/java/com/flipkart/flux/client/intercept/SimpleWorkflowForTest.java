@@ -27,6 +27,7 @@ import javax.inject.Singleton;
 import java.lang.reflect.Method;
 import java.util.*;
 
+import static com.flipkart.flux.client.constant.ClientConstants.CLIENT;
 import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
 
 /**
@@ -153,8 +154,8 @@ public class SimpleWorkflowForTest {
 
         final ObjectMapper objectMapper = new ObjectMapper();
         Set<EventData> expectedEventData = new HashSet<EventData>() {{
-            add(new EventData(STRING_EVENT_NAME+"0","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent",objectMapper.writeValueAsString(stringEvent),WorkflowInterceptor.CLIENT));
-            add(new EventData(INTEGER_EVENT_NAME+"1","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent",objectMapper.writeValueAsString(integerEvent),WorkflowInterceptor.CLIENT));
+            add(new EventData(STRING_EVENT_NAME+"0","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent",objectMapper.writeValueAsString(stringEvent),CLIENT));
+            add(new EventData(INTEGER_EVENT_NAME+"1","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent",objectMapper.writeValueAsString(integerEvent),CLIENT));
         }};
         return new StateMachineDefinition("",new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleDummyWorkflow", StringEvent.class, IntegerEvent.class)).toString()+"_version1",1l,expectedStateDefs, expectedEventData, null);
 

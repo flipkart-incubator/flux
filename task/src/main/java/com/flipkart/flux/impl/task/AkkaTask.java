@@ -144,7 +144,7 @@ public class AkkaTask extends UntypedActor {
                         if (outputEvent != null) {
                             // after successful task execution, post the generated output event for further processing, also update status as part of same call
                             fluxRuntimeConnector.submitEventAndUpdateStatus(
-                                    new EventData(outputEvent.getName(), outputEvent.getType(), outputEvent.getEventData(), outputEvent.getEventSource()),
+                                    new EventData(outputEvent.getName(), outputEvent.getType(), outputEvent.getEventData(), outputEvent.getEventSource(), outputEvent.getStatus() == Event.EventStatus.cancelled),
                                     outputEvent.getStateMachineInstanceId(),
                                     new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(), Status.completed, taskAndEvent.getRetryCount(),
                                             taskAndEvent.getCurrentRetryCount(), null, true));

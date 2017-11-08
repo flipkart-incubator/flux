@@ -149,7 +149,20 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         }
     }
 
-	/**
+    @Override
+    public void cancelEvent(String eventName, String correlationId) {
+        CloseableHttpResponse httpResponse = null;
+        try {
+            final EventData eventData = new EventData(eventName, null, null, null, true);
+            httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/events?searchField=correlationId");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            HttpClientUtils.closeQuietly(httpResponse);
+        }
+    }
+
+    /**
 	 * Interface method implementation. Updates the status in persistence store by invoking suitable Flux runtime API
 	 * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#updateExecutionStatus(ExecutionUpdateData)
 	 */

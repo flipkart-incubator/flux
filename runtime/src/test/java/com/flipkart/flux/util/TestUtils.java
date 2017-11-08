@@ -92,7 +92,7 @@ public class TestUtils {
     }
 
     /** Sets an object property using reflection*/
-    private static boolean setProperty(Object object, String fieldName, Object fieldValue) {
+    public static boolean setProperty(Object object, String fieldName, Object fieldValue) {
         Class<?> clazz = object.getClass();
         while (clazz != null) {
             Field field = null;

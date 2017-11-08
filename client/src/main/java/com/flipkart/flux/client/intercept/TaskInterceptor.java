@@ -14,6 +14,9 @@
 
 package com.flipkart.flux.client.intercept;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.client.guice.annotation.IsolatedEnv;
 import com.flipkart.flux.client.model.Event;
@@ -27,11 +30,13 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.flipkart.flux.client.constant.ClientConstants.CLIENT;
 import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
 
 /**
@@ -46,6 +51,8 @@ public class TaskInterceptor implements MethodInterceptor {
     private LocalContext localContext;
     @Inject @IsolatedEnv
     private ExecutableRegistry executableRegistry;
+    @Inject
+    private Provider<ObjectMapper> objectMapperProvider;
 
     /* Used to create an empty interceptor in the Guice module. The private members are injected later.
       Guice takes care of creating a complete object
@@ -53,9 +60,10 @@ public class TaskInterceptor implements MethodInterceptor {
     public TaskInterceptor() {
     }
     /* Protected - since it makes sense to use this constructor only in tests */
-    TaskInterceptor(LocalContext localContext,ExecutableRegistry executableRegistry) {
+    TaskInterceptor(LocalContext localContext,ExecutableRegistry executableRegistry, Provider<ObjectMapper> objectMapperProvider) {
         this.localContext = localContext;
         this.executableRegistry = executableRegistry;
+        this.objectMapperProvider = objectMapperProvider;
     }
 
     @Override
@@ -130,7 +138,7 @@ public class TaskInterceptor implements MethodInterceptor {
         }
     }
 
-    private List<EventDefinition> generateDependencySet(Object[] arguments, Annotation[][] parameterAnnotations, Class<?>[] parameterTypes) {
+    private List<EventDefinition> generateDependencySet(Object[] arguments, Annotation[][] parameterAnnotations, Class<?>[] parameterTypes) throws JsonProcessingException {
         List<EventDefinition> eventDefinitions = new LinkedList<>();
         for (int i = 0; i < arguments.length ; i++) {
             Object argument = arguments[i];
@@ -151,7 +159,9 @@ public class TaskInterceptor implements MethodInterceptor {
             if (argument instanceof Intercepted) {
                 eventDefinitions.add(new EventDefinition(((Event) argument).name(), ((Intercepted)argument).getRealClassName() ));
             } else {
-                eventDefinitions.add(new EventDefinition(localContext.generateEventName((Event)argument), argument.getClass().getName()));
+                String eventName = localContext.generateEventName((Event)argument);
+                eventDefinitions.add(new EventDefinition(eventName, argument.getClass().getName()));
+                localContext.addEvents(new EventData(eventName, argument.getClass().getName(), objectMapperProvider.get().writeValueAsString(argument), CLIENT));
             }
         }
         return eventDefinitions;

@@ -271,6 +271,12 @@ public class State {
         this.attemptedNoOfRetries = attemptedNoOfRetries;
     }
 
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
     public String getOutputEvent() {
         return outputEvent;
     }

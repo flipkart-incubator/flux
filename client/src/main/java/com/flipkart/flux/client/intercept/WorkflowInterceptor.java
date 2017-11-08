@@ -34,6 +34,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static com.flipkart.flux.client.constant.ClientConstants.CLIENT;
 import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
 
 /**
@@ -45,7 +46,6 @@ import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
 @Singleton
 public class WorkflowInterceptor implements MethodInterceptor {
 
-    public static final String CLIENT = "client";
     @Inject
     private LocalContext localContext;
     @Inject

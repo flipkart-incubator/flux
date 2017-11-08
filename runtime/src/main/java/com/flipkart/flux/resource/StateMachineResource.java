@@ -195,13 +195,34 @@ public class StateMachineResource {
         MDC.put(STATE_MACHINE_ID, machineId);
         logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
 
-        if (triggerTime == null) {
+        StateMachine stateMachine = null;
+        stateMachine = stateMachinesDAO.findById(machineId);
+        if(stateMachine == null) {
+            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity("State machine with Id: " + machineId + " not found").build();
+        }
+
+        if(stateMachine.getStatus() == StateMachineStatus.cancelled) {
+            logger.info("Discarding event: {} as State machine: {} is in cancelled state", eventData.getName(), stateMachine.getId());
+            return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + stateMachine.getId() + " is in 'cancelled' state. Discarding the event.").build();
+        }
+
+        if(triggerTime == null) {
             logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
-            return postEvent(machineId, searchField, eventData);
+            try {
+                if(eventData.getCancelled() != null && eventData.getCancelled()) {
+                    workFlowExecutionController.handlePathCancellation(stateMachine, eventData);
+                } else {
+                    workFlowExecutionController.postEvent(eventData, stateMachine.getId());
+                }
+                return Response.status(Response.Status.ACCEPTED).build();
+            } catch (IllegalEventException ex) {
+                return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
+            }
         } else {
             logger.info("Received event: {} for state machine: {} with triggerTime: {}", eventData.getName(), machineId, triggerTime);
             if (searchField == null || !searchField.equals(CORRELATION_ID))
                 return Response.status(Response.Status.BAD_REQUEST).entity("searchField=correlationId is missing in the request").build();
+
             //if trigger time is more than below value, it means the value has been passed in milliseconds, convert it to seconds and register
             if (triggerTime > 9999999999L)
                 triggerTime = triggerTime / 1000;
@@ -229,7 +250,7 @@ public class StateMachineResource {
         MDC.put(TASK_ID, executionUpdateData.getTaskId().toString());
         logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
         try {
-            updateTaskStatus(machineId, executionUpdateData.getTaskId(), executionUpdateData);
+            this.workFlowExecutionController.updateTaskStatus(machineId, executionUpdateData.getTaskId(), executionUpdateData );
         } catch (Exception ex) {
             logger.error("exception {} {}", ex.getMessage(), ex.getStackTrace());
         }
@@ -257,7 +278,9 @@ public class StateMachineResource {
             workFlowExecutionController.postEvent(eventData, machineId);
         } catch (IllegalEventException ex) {
             return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
+
         }
+
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
@@ -276,45 +299,11 @@ public class StateMachineResource {
                                  @PathParam("stateId") Long stateId,
                                  ExecutionUpdateData executionUpdateData
     ) throws Exception {
-        updateTaskStatus(machineId, stateId, executionUpdateData);
+        this.workFlowExecutionController.updateTaskStatus(machineId, stateId, executionUpdateData);
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
-    @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public void updateTaskStatus(String machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
-        com.flipkart.flux.domain.Status updateStatus = null;
-        switch (executionUpdateData.getStatus()) {
-            case initialized:
-                updateStatus = com.flipkart.flux.domain.Status.initialized;
-                break;
-            case running:
-                updateStatus = com.flipkart.flux.domain.Status.running;
-                break;
-            case completed:
-                updateStatus = com.flipkart.flux.domain.Status.completed;
-                break;
-            case cancelled:
-                updateStatus = com.flipkart.flux.domain.Status.cancelled;
-                break;
-            case errored:
-                updateStatus = com.flipkart.flux.domain.Status.errored;
-                break;
-            case sidelined:
-                updateStatus = com.flipkart.flux.domain.Status.sidelined;
-                break;
-        }
-        metricsClient.markMeter(new StringBuilder().
-                append("stateMachine.").
-                append(executionUpdateData.getStateMachineName()).
-                append(".task.").
-                append(executionUpdateData.getTaskName()).
-                append(".status.").
-                append(updateStatus.name()).
-                toString());
-        this.workFlowExecutionController.updateExecutionStatus(machineId, stateId, updateStatus, executionUpdateData.getRetrycount(),
-                executionUpdateData.getCurrentRetryCount(), executionUpdateData.getErrorMessage(), executionUpdateData.isDeleteFromRedriver());
-    }
+
 
     /**
      * Increments the retry count for the specified Task under the specified State machine
@@ -522,25 +511,25 @@ public class StateMachineResource {
         final RAMContext ramContext = new RAMContext(System.currentTimeMillis(), null, stateMachine);
         /* After this operation, we'll have nodes for each state and its corresponding output event along with the output event's dependencies mapped out*/
         for (State state : stateMachine.getStates()) {
-            final FsmGraphVertex vertex = new FsmGraphVertex(state.getId(), this.getStateDisplayName(state.getName()));
+            final FsmGraphVertex vertex = new FsmGraphVertex(state.getId(), this.getStateDisplayName(state.getName()), state.getStatus().name());
             if (state.getOutputEvent() != null) {
                 EventDefinition eventDefinition = objectMapper.readValue(state.getOutputEvent(), EventDefinition.class);
                 final Event outputEvent = stateMachineEvents.get(eventDefinition.getName());
                 fsmGraph.addVertex(vertex,
-                        new FsmGraphEdge(getEventDisplayName(outputEvent.getName()), state.getStatus().name(), outputEvent.getEventSource(), outputEvent.getEventData()));
+                        new FsmGraphEdge(getEventDisplayName(outputEvent.getName()), outputEvent.getStatus().name(), outputEvent.getEventSource(),outputEvent.getEventData(), outputEvent.getUpdatedAt()));
                 final Set<State> dependantStates = ramContext.getDependantStates(outputEvent.getName());
                 dependantStates.forEach((aState) -> fsmGraph.addOutgoingEdge(vertex, aState.getId()));
                 allOutputEventNames.add(outputEvent.getName()); // we collect all output event names and use them below.
             } else {
                 fsmGraph.addVertex(vertex,
-                        new FsmGraphEdge(null, state.getStatus().name(), null, null));
+                        new FsmGraphEdge(null, null, null, null, null));
             }
         }
 
         /* Handle states with no dependencies, i.e the states that can be triggered as soon as we execute the state machine */
         final Set<State> initialStates = ramContext.getInitialStates(Collections.emptySet());// hackety hack.  We're fooling the context to give us only events that depend on nothing
         if (!initialStates.isEmpty()) {
-            final FsmGraphEdge initEdge = new FsmGraphEdge(TRIGGER, Event.EventStatus.triggered.name(), TRIGGER, null);
+            final FsmGraphEdge initEdge = new FsmGraphEdge(TRIGGER, Event.EventStatus.triggered.name(), TRIGGER, null, null);
             initialStates.forEach((state) -> {
                 initEdge.addOutgoingVertex(state.getId());
             });
@@ -551,7 +540,7 @@ public class StateMachineResource {
         eventsGivenOnWorkflowTrigger.removeAll(allOutputEventNames);
         eventsGivenOnWorkflowTrigger.forEach((workflowTriggeredEventName) -> {
             final Event correspondingEvent = stateMachineEvents.get(workflowTriggeredEventName);
-            final FsmGraphEdge initEdge = new FsmGraphEdge(this.getEventDisplayName(workflowTriggeredEventName), correspondingEvent.getStatus().name(), correspondingEvent.getEventSource(), correspondingEvent.getEventData());
+            final FsmGraphEdge initEdge = new FsmGraphEdge(this.getEventDisplayName(workflowTriggeredEventName), correspondingEvent.getStatus().name(), correspondingEvent.getEventSource(), correspondingEvent.getEventData(), correspondingEvent.getUpdatedAt());
             final Set<State> dependantStates = ramContext.getDependantStates(workflowTriggeredEventName);
             dependantStates.forEach((state) -> initEdge.addOutgoingVertex(state.getId()));
             fsmGraph.addInitStateEdge(initEdge);

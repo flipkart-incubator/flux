@@ -14,6 +14,7 @@
 
 package com.flipkart.flux.client.intercept;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.IntegerEvent;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEvent;
@@ -31,6 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.omg.CORBA.OBJ_ADAPTER;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Method;
@@ -56,10 +58,13 @@ public class TaskInterceptorTest {
     private SimpleWorkflowForTest simpleWorkflowForTest;
     private TaskInterceptor taskInterceptor;
 
+    private ObjectMapper objectMapper;
+
     @Before
     public void setUp() throws Exception {
 //        localContext = Mockito.spy(new LocalContext());
-        taskInterceptor = new TaskInterceptor(localContext,executableRegistry);
+        objectMapper = new ObjectMapper();
+        taskInterceptor = new TaskInterceptor(localContext,executableRegistry, () -> objectMapper);
         simpleWorkflowForTest = new SimpleWorkflowForTest();
         when(localContext.isWorkflowInterception()).thenReturn(true);
     }

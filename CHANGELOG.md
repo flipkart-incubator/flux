@@ -1,3 +1,10 @@
+## 1.2.0 (Oct 27, 2017) - Beta
+- **Changes:**
+  - Few DB Schema Changes to accomodate new feature set like ScheduledEvents, Dynamic conditioning, stateMachine cancellation.
+  - Added ScheduledEvents feature which enables scheduled trigger of events.
+  - Added Dynamic conditioning feature, detailed info in wiki. 
+  - Api to trigger explicit cancellation of a stateMachine. 
+  
 ## 1.0.1 (Feb 10, 2017) - Stable release
 - **Changes:**
   - Bug fixes
