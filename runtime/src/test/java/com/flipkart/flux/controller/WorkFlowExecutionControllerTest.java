@@ -276,7 +276,6 @@ public class WorkFlowExecutionControllerTest {
             add(state7);
         }};
         StateMachine stateMachine = new StateMachine("state-machine-cancel-path", 1L, "state_machine_1", null, states);
-        TestUtils.setProperty(stateMachine, "id", 1L);
         EventData testEventData = new EventData("event3", null, null, "runtime", true);
         when(eventsDAO.getAllEventsNameAndStatus("state-machine-cancel-path", true)).thenReturn(eventStatusHashMap);
 

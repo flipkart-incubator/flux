@@ -275,7 +275,7 @@ public class StateMachineResource {
                 return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + machineId + " is in 'cancelled' state. Discarding the event.").build();
             }
 
-            workFlowExecutionController.postEvent(eventData, machineId);
+            workFlowExecutionController.postEvent(eventData, stateMachine.getId());
         } catch (IllegalEventException ex) {
             return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
 

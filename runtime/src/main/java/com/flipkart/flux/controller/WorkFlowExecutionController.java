@@ -135,7 +135,7 @@ public class WorkFlowExecutionController {
      */
     public void updateTaskStatusAndPostEvent(StateMachine stateMachine, EventAndExecutionData eventAndExecutionData) {
         Event event = updateTaskStatusAndPersistEvent(stateMachine, eventAndExecutionData);
-        processEvent(event, stateMachine);
+        processEvent(event, stateMachine.getId());
     }
 
     /**
@@ -267,7 +267,7 @@ public class WorkFlowExecutionController {
      */
     public Set<State> postEvent(EventData eventData, String stateMachineInstanceId) {
        Event event = persistEvent(stateMachineInstanceId, eventData);
-       return postEvent(eventData, stateMachineInstanceId);
+       return processEvent(event, stateMachineInstanceId);
     }
 
     /**
@@ -277,6 +277,7 @@ public class WorkFlowExecutionController {
      * @return
      */
     @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Event persistEvent(String stateMachineInstanceId, EventData eventData) {
         //update event's data and status
         Event event = eventsDAO.findBySMIdAndName(stateMachineInstanceId, eventData.getName());
@@ -292,11 +293,17 @@ public class WorkFlowExecutionController {
     /**
      * Checks and triggers the states which are dependant on the current event
      * @param event
-     * @param stateMachine
+     * @param stateMachineInstanceId
      * @return
      */
-    public Set<State> processEvent(Event event, StateMachine stateMachine) {
+    public Set<State> processEvent(Event event, String stateMachineInstanceId) {
         //create context and dependency graph
+        StateMachine stateMachine = null ;
+        stateMachine = stateMachinesDAO.findById(stateMachineInstanceId);
+        if(stateMachine == null){
+            logger.error("stateMachine with id not found while processing event {} ", stateMachineInstanceId, event.getName());
+            throw new RuntimeException("StateMachine with id " + stateMachineInstanceId + " not found while processing event " + event.getName());
+        }
         Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine); //TODO: set context id, should we need it ?
 
         //get the states whose dependencies are met

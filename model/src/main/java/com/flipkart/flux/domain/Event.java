@@ -85,6 +85,13 @@ public class Event implements Serializable {
         pending, triggered, cancelled;
     }
 
+    /**
+     * Default constructor needed for hibernate entity
+     */
+    public Event(){
+
+    }
+
     public Event(String name, String type, EventStatus status, String stateMachineInstanceId, String eventData, String eventSource) {
         this.name = name;
         this.type = type;
