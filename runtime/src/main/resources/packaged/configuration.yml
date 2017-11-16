@@ -67,11 +67,11 @@ runtime:
 
 redriver:
   batchDelete:
-    batchSize: 50
-    intervalms: 10000
+    batchSize: 1000
+    intervalms: 5000
   batchRead:
-    batchSize: 100
-    intervalms: 20000
+    batchSize: 1000
+    intervalms: 5000
   noOfPersistenceWorkers: 3
 
 eventScheduler:

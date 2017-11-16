@@ -11,4 +11,6 @@ workflowClasses: ["com.flipkart.flux.examples.decision.NotificationService",
                   "com.flipkart.flux.examples.externalevents.SellerDataService",
                   "com.flipkart.flux.examples.cancelpath.CancelPathWorkflow",
                   "com.flipkart.flux.examples.benchmark.ArithmeticOperations",
-                  "com.flipkart.flux.examples.benchmark.BenchmarkWorkFlowA"]
+                  "com.flipkart.flux.examples.benchmark.BenchmarkWorkFlowA",
+                  "com.flipkart.flux.examples.benchmark.BenchmarkWorkflowLatentSimulation",
+                  "com.flipkart.flux.examples.benchmark.LatentArithmeticOperations"]
