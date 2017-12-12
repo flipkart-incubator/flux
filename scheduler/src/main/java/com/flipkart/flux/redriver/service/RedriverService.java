@@ -23,11 +23,9 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
 
@@ -50,6 +48,8 @@ public class RedriverService {
     private ScheduledFuture scheduledFuture;
     private final RedriverRegistry redriverRegistry;
     private final InstrumentedScheduledExecutorService scheduledExecutorService;
+    private ExecutorService asyncRedriveService;
+
 
     @Inject
     public RedriverService(MessageManagerService messageService,
@@ -60,6 +60,7 @@ public class RedriverService {
         this.batchReadInterval = batchReadInterval;
         this.batchSize = batchSize;
         this.messageService = messageService;
+        asyncRedriveService = Executors.newFixedThreadPool(10);
 
         ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
         // remove the task from scheduler on cancel
@@ -76,8 +77,7 @@ public class RedriverService {
                 scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
                     try {
                         redrive();
-                    }
-                    catch(Exception e) {
+                    } catch (Exception e) {
                         logger.error("Error while running redrive", e);
                     }
                 }, initialDelay, batchReadInterval, TimeUnit.MILLISECONDS);
@@ -103,11 +103,26 @@ public class RedriverService {
         long now = System.currentTimeMillis();
         do {
             messages = messageService.retrieveOldest(offset, batchSize);
+            ArrayList<Future<?>> messageRedrived = new ArrayList<>();
             messages.stream().filter(e -> e.getScheduledTime() < now).forEach(e -> {
                 try {
-                    redriverRegistry.redriveTask(e.getTaskId());
-                } catch (Exception ex) {}
+                    messageRedrived.add(asyncRedriveService.submit(() -> {
+                        redriverRegistry.redriveTask(e.getTaskId());
+                    }));
+                } catch (Exception ex) {
+                }
             });
+            boolean allCompleted = false;
+            while (!allCompleted) {
+                allCompleted = true;
+                for (int i = 0; i < messageRedrived.size(); i++)
+                    if (messageRedrived.get(i).isDone() || messageRedrived.get(i).isCancelled())
+                            continue;
+                    else {
+                        allCompleted = false;
+                        break;
+                    }
+            }
             offset += batchSize;
             // get next batch if we found batchSize tasks and all were redriven
         } while (messages.size() == batchSize && messages.get(messages.size() - 1).getScheduledTime() < now);
