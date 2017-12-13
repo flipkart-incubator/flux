@@ -15,13 +15,15 @@ public class RunBenchMarkWorkFlowA {
         BenchmarkWorkFlowA benchmarkWorkFlowA = injector.getInstance(BenchmarkWorkFlowA.class);
         BenchmarkWorkflowLatentSimulation benchmarkWorkFlowLatent = injector.getInstance(BenchmarkWorkflowLatentSimulation.class);
         BenchmarkWorkFlowAExtended benchmarkWorkFlowAExtended = injector.getInstance(BenchmarkWorkFlowAExtended.class);
+        PaymentGatewayWF paymentGatewayWF = injector.getInstance(PaymentGatewayWF.class);
 
         /* Lets invoke our workflow */
         System.out.println("[Main] Starting BenchMarkWorkFlowA  execution");
         for (int i = 1; i <= 10000 ; i++) {
             benchmarkWorkFlowA.initA(new EventTypeInteger((int) Math.random() * i));
             benchmarkWorkFlowLatent.initLatent(new EventTypeInteger(i));
-            benchmarkWorkFlowAExtended.initAExtended(new EventTypeInteger(i*10));
+            benchmarkWorkFlowAExtended.initAExtended(new EventTypeInteger(i * 10));
+            paymentGatewayWF.initPayment(new EventTypeInteger(i));
         }
     }
 }
