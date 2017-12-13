@@ -19,7 +19,7 @@ public class BenchmarkWorkFlowAExtended {
         EventTypeInteger sixth = arithmeticOperationsExtended.decrementE(four);
         EventTypeInteger seventh = arithmeticOperationsExtended.modulusE(fifth,sixth);
         EventTypeInteger eighth = arithmeticOperationsExtended.multiplyE(seventh,sixth);
-        EventTypeInteger ninth = arithmeticOperationsExtended.divideE(seventh,eighth);
+        EventTypeInteger ninth = arithmeticOperationsExtended.rightShiftE(eighth);
         EventTypeInteger tenth = arithmeticOperationsExtended.leftShiftE(ninth);
         EventTypeInteger eleventh = arithmeticOperationsExtended.rightShiftE(tenth);
 
@@ -31,7 +31,7 @@ public class BenchmarkWorkFlowAExtended {
         EventTypeInteger sixth_1 = arithmeticOperationsExtended.decrementE(four_1);
         EventTypeInteger seventh_1 = arithmeticOperationsExtended.modulusE(fifth_1,sixth_1);
         EventTypeInteger eighth_1 = arithmeticOperationsExtended.multiplyE(seventh_1,sixth_1);
-        EventTypeInteger ninth_1 = arithmeticOperationsExtended.divideE(seventh_1,eighth_1);
+        EventTypeInteger ninth_1 = arithmeticOperationsExtended.rightShiftE(eighth_1);
         EventTypeInteger tenth_1 = arithmeticOperationsExtended.leftShiftE(ninth_1);
         EventTypeInteger eleventh_1 = arithmeticOperationsExtended.rightShiftE(tenth_1);
 
