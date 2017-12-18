@@ -117,7 +117,7 @@ public class RedriverService {
                 try {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    logger.warn("Error while sleeping before checking async redrive callbacks {}", e.getStackTrace());
                 }
                 allCompleted = true;
                 for (int i = 0; i < messageRedrived.size(); i++)
