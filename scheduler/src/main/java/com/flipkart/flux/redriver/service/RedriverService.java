@@ -114,6 +114,11 @@ public class RedriverService {
             });
             boolean allCompleted = false;
             while (!allCompleted) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 allCompleted = true;
                 for (int i = 0; i < messageRedrived.size(); i++)
                     if (messageRedrived.get(i).isDone() || messageRedrived.get(i).isCancelled())
