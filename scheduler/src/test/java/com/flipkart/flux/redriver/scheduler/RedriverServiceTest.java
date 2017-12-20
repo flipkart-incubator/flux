@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.mockito.Mockito.*;
@@ -38,7 +39,7 @@ public class RedriverServiceTest {
 
     private RedriverService redriverService;
 
-    private final int batchSize = 2;
+    private  int batchSize = 2;
 
     @Before
     public void setUp() throws Exception {
@@ -67,6 +68,26 @@ public class RedriverServiceTest {
         verify(redriverRegistry).redriveTask(1l);
         Thread.sleep(500);
         verifyNoMoreInteractions(redriverRegistry);
+    }
+
+    @Test
+    public void testLargeNoOfRedriveMessages_allShouldBeRedrived() throws Exception {
+        ArrayList<ScheduledMessage> scheduledMessages  = new ArrayList<>();
+        int batchSize  = 100;
+        long now = System.currentTimeMillis();
+        for(long i = 0 ; i < 1000; i++)
+            scheduledMessages.add(new ScheduledMessage(i,now-100));
+        redriverService = new RedriverService(messageManagerService, redriverRegistry, 100, batchSize);
+        redriverService.setInitialDelay(0L);
+        for(int i = 0 ; i < 10 ; i++)
+            when(messageManagerService.retrieveOldest(i*100, batchSize)).thenReturn(scheduledMessages.subList(i*100, (i+1)*100)).thenReturn(null);
+        redriverService.start();
+        Thread.sleep(1000);
+        redriverService.stop();
+        for(long i = 0 ; i < 100; i++) {
+            long x = (long)(Math.random()*1000.0);
+            verify(redriverRegistry).redriveTask(x);
+        }
     }
 
     @Test
