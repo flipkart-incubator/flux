@@ -19,11 +19,11 @@ public class RunBenchMarkWorkFlowA {
 
         /* Lets invoke our workflow */
         System.out.println("[Main] Starting BenchMarkWorkFlowA  execution");
-        for (int i = 1; i <= 10000 ; i++) {
-            benchmarkWorkFlowA.initA(new EventTypeInteger((int) Math.random() * i));
-            benchmarkWorkFlowLatent.initLatent(new EventTypeInteger(i));
+        for (int i = 1; i <= 100 ; i++) {
+            //benchmarkWorkFlowA.initA(new EventTypeInteger((int) Math.random() * i));
+            //benchmarkWorkFlowLatent.initLatent(new EventTypeInteger(i));
             benchmarkWorkFlowAExtended.initAExtended(new EventTypeInteger(i * 10));
-            paymentGatewayWF.initPayment(new EventTypeInteger(i));
+           // paymentGatewayWF.initPayment(new EventTypeInteger(i));
         }
     }
 }

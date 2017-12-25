@@ -201,6 +201,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         try {
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             objectMapper.writeValue(byteArrayOutputStream, dataToPost);
+
             httpPostRequest.setEntity(new ByteArrayEntity(byteArrayOutputStream.toByteArray(), ContentType.APPLICATION_JSON));
             httpResponse = closeableHttpClient.execute(httpPostRequest);
             final int statusCode = httpResponse.getStatusLine().getStatusCode();

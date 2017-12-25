@@ -144,6 +144,7 @@ public class WorkFlowExecutionController {
      * @param eventAndExecutionData
      */
     @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     protected Event updateTaskStatusAndPersistEvent(StateMachine stateMachine, EventAndExecutionData eventAndExecutionData) {
         updateTaskStatus(stateMachine.getId(), eventAndExecutionData.getExecutionUpdateData().getTaskId(), eventAndExecutionData.getExecutionUpdateData());
         return persistEvent(stateMachine.getId(), eventAndExecutionData.getEventData());
@@ -168,6 +169,7 @@ public class WorkFlowExecutionController {
      * @return executable states after cancellation
      */
     @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     protected Set<State> updateTaskStatusAndCancelPath(StateMachine stateMachine, EventAndExecutionData eventAndExecutionData) {
         updateTaskStatus(stateMachine.getId(), eventAndExecutionData.getExecutionUpdateData().getTaskId(), eventAndExecutionData.getExecutionUpdateData());
         return cancelPath(stateMachine, eventAndExecutionData.getEventData());
@@ -180,6 +182,7 @@ public class WorkFlowExecutionController {
      * @return executable states after cancellation
      */
     @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     protected Set<State> cancelPath(StateMachine stateMachine, EventData eventData) {
         Set<State> executableStates = new HashSet<>();
 
