@@ -118,7 +118,8 @@ public class FluxInitializer {
                 new DeploymentUnitModule(),
                 new AkkaModule(),
                 new TaskModule(),
-                new FluxClientInterceptorModule()
+                new FluxClientInterceptorModule(),
+                new EventProxyModule()
         );
         //scans package com.flipkart.flux for polyguice specific annotations like @Bindable, @Component etc.
         fluxRuntimeContainer.scanPackage("com.flipkart.flux");

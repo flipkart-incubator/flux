@@ -79,5 +79,9 @@ eventScheduler:
     batchSize: 50
     intervalms: 10000
 
+eventProxyForMigration:
+  enabled: "on"
+  endpoint: "localhost:9998"
+
 deploymentType: directory
 deploymentUnitsPath: "/tmp/workflows/"
