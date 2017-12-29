@@ -16,6 +16,7 @@ package com.flipkart.flux.resource;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flipkart.flux.domain.AuditRecord;
+import com.flipkart.flux.domain.StateMachineStatus;
 
 import java.util.*;
 
@@ -52,6 +53,9 @@ public class FsmGraph {
 
     @JsonProperty
     private String fsmName;
+
+    @JsonProperty
+    private StateMachineStatus fsmStatus;
 
     public FsmGraph(){
         this.fsmGraphData = new HashMap<>();
@@ -94,6 +98,10 @@ public class FsmGraph {
         this.fsmName = fsmName;
     }
 
+    public void setFsmStatus(StateMachineStatus fsmStatus) {
+        this.fsmStatus = fsmStatus;
+    }
+
     public void setErroredStateIds(List<Long> erroredStateIds) {
         this.erroredStateIds = erroredStateIds;
     }
@@ -125,6 +133,5 @@ public class FsmGraph {
             "fsmGraphData=" + fsmGraphData +
             '}';
     }
-
 
 }
