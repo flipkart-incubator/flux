@@ -17,7 +17,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.*;
-import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
+import com.flipkart.flux.client.runtime.EventProxyConnector;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
 import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
 import com.flipkart.flux.dao.iface.AuditDAO;
@@ -30,8 +30,8 @@ import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.persistence.DataSourceType;
-import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.persistence.SelectDataSource;
+import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
@@ -95,7 +95,9 @@ public class StateMachineResource {
 
     private ParallelScatterGatherQueryHelper parallelScatterGatherQueryHelper;
 
-    private FluxRuntimeConnector eventProxyConnector;
+    private EventProxyConnector eventProxyConnector;
+
+    private String eventProxyEnabled;
 
     @Inject
     public StateMachineResource(EventsDAO eventsDAO, StateMachinePersistenceService stateMachinePersistenceService,
@@ -103,7 +105,8 @@ public class StateMachineResource {
                                 WorkFlowExecutionController workFlowExecutionController, MetricsClient metricsClient,
                                 ParallelScatterGatherQueryHelper parallelScatterGatherQueryHelper,
                                 EventSchedulerRegistry eventSchedulerRegistry,
-                                @Named("EventProxyClient") FluxRuntimeConnector eventProxyConnector) {
+                                EventProxyConnector eventProxyConnector,
+                                @Named("eventProxyForMigration.enabled") String eventProxyEnabled) {
         this.eventsDAO = eventsDAO;
         this.stateMachinePersistenceService = stateMachinePersistenceService;
         this.stateMachinesDAO = stateMachinesDAO;
@@ -115,6 +118,7 @@ public class StateMachineResource {
         this.metricsClient = metricsClient;
         this.parallelScatterGatherQueryHelper = parallelScatterGatherQueryHelper;
         this.eventProxyConnector = eventProxyConnector;
+        this.eventProxyEnabled = eventProxyEnabled;
     }
 
     /**
@@ -203,12 +207,27 @@ public class StateMachineResource {
         StateMachine stateMachine = null;
         stateMachine = stateMachinesDAO.findById(machineId);
         if (stateMachine == null) {
-            logger.warn("StateMachine {} not found in this cluster. Forwarding this event to the old cluster.");
-            if(triggerTime == null)
-                eventProxyConnector.submitEvent(eventData.getName(), eventData.getData(), machineId, eventData.getEventSource());
-            else
-                eventProxyConnector.submitScheduledEvent(eventData.getName(),eventData.getData(), machineId, eventData.getEventSource(),triggerTime);
-            return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State Machine with Id: " + machineId + " not found on this cluster. Forwarding the event to the old cluster").build();
+            if (eventProxyEnabled.equalsIgnoreCase("yes")) {
+                logger.warn("StateMachine {} not found in this cluster. Forwarding this event to the old cluster.");
+                if (triggerTime == null) {
+                    try {
+                        eventProxyConnector.submitEvent(eventData.getName(), eventData.getData(), machineId, eventData.getEventSource());
+                    } catch (Exception ex) {
+                        logger.error("Unable to forward to old endpoint, error {}", ex.getCause());
+                    }
+
+                } else {
+                    try {
+                        eventProxyConnector.submitScheduledEvent(eventData.getName(), eventData.getData(), machineId, eventData.getEventSource(), triggerTime);
+                    } catch (Exception ex) {
+                        logger.error("Unable to forward to old endpoint, error {}", ex.getCause());
+                    }
+                }
+                return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State Machine with Id: " + machineId + " not found on this cluster. Forwarding the event to the old cluster").build();
+            } else {
+                logger.error("StateMachine not found with id: {}, rejecting the event", machineId);
+                return Response.status(Response.Status.NOT_FOUND).entity("StateMachine not found with id: " + machineId + ", rejecting the event").build();
+            }
         }
 
         if (stateMachine.getStatus() == StateMachineStatus.cancelled) {

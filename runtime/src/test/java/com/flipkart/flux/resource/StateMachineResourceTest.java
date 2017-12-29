@@ -40,10 +40,8 @@ import com.flipkart.flux.util.TestUtils;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.apache.http.HttpStatus;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
@@ -82,15 +80,18 @@ public class StateMachineResourceTest {
     @Inject
     StateMachinePersistenceService stateMachinePersistenceService;
 
+
     public static final String STATE_MACHINE_RESOURCE_URL = "http://localhost:9998" + RuntimeConstants.API_CONTEXT_PATH + RuntimeConstants.STATE_MACHINE_RESOURCE_RELATIVE_PATH;
     private static final String SLASH = "/";
     private static final String standardStateMachine = "standard-state-machine";
     private ObjectMapper objectMapper;
 
+
     @Before
     public void setUp() throws Exception {
         objectMapper = new ObjectMapper();
         dbClearRule.explicitClearTables();
+
     }
 
     @AfterClass
@@ -212,6 +213,7 @@ public class StateMachineResourceTest {
     }
 
     @Test
+    @Ignore("ignore as if smid is missing it will try to forward to older ip, this feature will be removed in few weeks")
     public void testPostEvent_againstNonExistingCorrelationId() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
         final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
@@ -361,4 +363,22 @@ public class StateMachineResourceTest {
             assertThat(st.getStatus()).isEqualTo(Status.cancelled);
         });
     }
+
+    @Test
+    public void shouldProxyEventToOldCluster() throws Exception{
+        final String stateMachineId = "some_random_machine_do_not_exist";
+        final String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        final HttpResponse<String> httpResponse =  Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH +  stateMachineId + "/context/events").header("Content-Type", "application/json").body(eventJson).asString();
+        assertThat(httpResponse.getStatus()).isEqualTo(HttpStatus.SC_ACCEPTED);
+    }
+
+    @Test
+    public void shouldProxyScheduledEventToOldCluster() throws Exception{
+        final String stateMachineId = "some_random_machine_do_not_exist";
+        final String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        final HttpResponse<String> httpResponse =  Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH +  stateMachineId + "/context/events?triggerTime=0").header("Content-Type", "application/json").body(eventJson).asString();
+        assertThat(httpResponse.getStatus()).isEqualTo(HttpStatus.SC_ACCEPTED);
+    }
+
+
 }

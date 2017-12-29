@@ -29,7 +29,7 @@ import javax.inject.Singleton;
 /**
  * <code>FluxClientComponentModule</code> is a Guice {@link AbstractModule} implementation which
  * wires and provides classes to support task execution.
- *
+ * <p>
  * <p> Ensure that you have a provider for the FluxClientConfiguration in one of your application's
  * guice Module. Example:
  * <pre><code>
@@ -53,17 +53,16 @@ public class FluxClientComponentModule extends AbstractModule {
     }
 
     @Provides
-    @Singleton
     public FluxRuntimeConnector provideFluxRuntimeConnector(FluxClientConfiguration configuration,
                                                             ObjectMapper objectMapper) {
         String fluxRuntimeUrl = System.getProperty("flux.runtimeUrl");
-        if(fluxRuntimeUrl == null) {
+        if (fluxRuntimeUrl == null) {
             fluxRuntimeUrl = configuration.getFluxRuntimeUrl();
         }
         return new FluxRuntimeConnectorHttpImpl(configuration.getConnectionTimeout(),
-                                                configuration.getSocketTimeout(),
-                                                fluxRuntimeUrl + "/api/machines",
-                                                objectMapper);
+                configuration.getSocketTimeout(),
+                fluxRuntimeUrl + "/api/machines",
+                objectMapper);
     }
 
     @Provides
