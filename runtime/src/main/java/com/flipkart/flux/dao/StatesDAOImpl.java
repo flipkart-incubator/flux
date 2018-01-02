@@ -109,9 +109,8 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
     public List findStatesByStatus(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime, String stateName, List<Status> statuses) {
         Query query;
-        String queryString = "select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
-                "where sm.id between (select min(id) from StateMachine where createdAt >= :fromTime) and (select max(id) from StateMachine where createdAt <= :toTime) " +
-                "and sm.name = :stateMachineName";
+        String queryString = "select state.stateMachineId, state.id, state.status from State state join StateMachine sm " +
+                "on sm.id = state.stateMachineId and sm.createdAt between :fromTime and :toTime and sm.name = :stateMachineName";
 
         if (statuses != null && !statuses.isEmpty()) {
             StringBuilder sb = new StringBuilder(" and state.status in (");
