@@ -383,26 +383,30 @@ public class StateMachineResource {
     }
 
     /**
-     * Retrieves all errored states for the given range of state machine ids. Max range is 1,000,000.
+     * Retrieves all errored states for the given range of time for a particular state machine name.
      *
-     * @param fromStateMachineId starting id for the range
-     * @param toStateMachineId   ending id (inclusive)
+     * @param fromTime starting time for the range
+     * @param toTime   ending time (inclusive)
      * @return json containing list of [state machine id,  state id, status]
      */
     @GET
     @Path("/{stateMachineName}/states/errored")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getErroredStates(@PathParam("stateMachineName") String stateMachineName,
-                                     @QueryParam("fromSmId") String fromStateMachineId,
-                                     @QueryParam("toSmId") String toStateMachineId) {
-        if (fromStateMachineId == null || fromStateMachineId.length() <= 0) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Not a valid starting stateMachineId, either null or empty!!").build();
-        }
-        if (toStateMachineId == null || toStateMachineId.length() <= 0) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Not a valid ending stateMachineId, either null or empty!!").build();
+                                     @QueryParam("fromTime") String fromTime,
+                                     @QueryParam("toTime") String toTime) {
+        if (fromTime == null || toTime == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Required params fromTime/toTime are not provided").build();
         }
 
-        return Response.status(200).entity(parallelScatterGatherQueryHelper.findErroredStates(stateMachineName, fromStateMachineId, toStateMachineId)).build();
+        Timestamp fromTimestamp = Timestamp.valueOf(fromTime);
+        Timestamp toTimestamp = Timestamp.valueOf(toTime);
+
+        if (fromTimestamp.after(toTimestamp)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("fromTime: " + fromTime + " should be before toTime: " + toTime).build();
+        }
+
+        return Response.status(200).entity(parallelScatterGatherQueryHelper.findErroredStates(stateMachineName, fromTimestamp, toTimestamp)).build();
     }
 
     /**

@@ -57,10 +57,10 @@ public class ParallelScatterGatherQueryHelper {
     }
 
 
-    public List findErroredStates(String stateMachineName, String fromStateMachineId, String toStateMachineId) {
+    public List findErroredStates(String stateMachineName, Timestamp fromTime, Timestamp toTime) {
         List result = Collections.synchronizedList(new ArrayList<>());
         scatterGatherQueryHelper((shardId) ->
-                statesDAO.findErroredStates(shardId, stateMachineName, fromStateMachineId, toStateMachineId), result, "errored states");
+                statesDAO.findErroredStates(shardId, stateMachineName, fromTime, toTime), result, "errored states");
         return result;
     }
 
