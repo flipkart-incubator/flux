@@ -33,8 +33,8 @@ flux_scheduler.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
   hibernate.connection.url: "jdbc:mysql://localhost:3306/flux_scheduler"
-  hibernate.connection.username: "root"
-  hibernate.connection.password: ""
+  hibernate.connection.username: "temp_user"
+  hibernate.connection.password: "fk-flux"
   hibernate.current_session_context_class: "managed"
   connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
   hibernate.c3p0.min_size: 3
