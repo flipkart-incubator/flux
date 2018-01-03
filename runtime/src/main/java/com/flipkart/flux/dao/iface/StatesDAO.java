@@ -54,9 +54,10 @@ public interface StatesDAO {
 
     /**
      * Scatter gather query for slaves
-     * Retrieves all errored states for the given range of stateMachine ids
+     * Retrieves all errored states for a particular state machine name and the state machine creation time in
+     * the given range fromTime and toTime.
      */
-    List findErroredStates(ShardId shardId, String stateMachineName, String fromStateMachineId, String toStateMachineId);
+    List findErroredStates(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime);
 
     /**
      * Scatter gather query for slave shards
