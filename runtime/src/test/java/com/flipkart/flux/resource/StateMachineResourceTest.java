@@ -306,6 +306,7 @@ public class StateMachineResourceTest {
         Set<State> states = new HashSet<>();
         states.addAll(sm.getStates());
         /* persist */
+        Timestamp now = new Timestamp(System.currentTimeMillis() - 10*1000);
         final StateMachine firstSM = stateMachinesDAO.create(firstSmId, new StateMachine(firstSmId, sm.getVersion(), sm.getName(), sm.getDescription(), states));
 
         /* change name and persist as 2nd statemachine */
@@ -317,15 +318,17 @@ public class StateMachineResourceTest {
         states.addAll(sm.getStates());
 
         final StateMachine secondSM = stateMachinesDAO.create(differentSMName, new StateMachine(differentSMName, sm.getVersion(), sm.getName(), sm.getDescription(), states));
-
+        Timestamp future = new Timestamp(System.currentTimeMillis() + 3*1000);
         /* fetch errored states with name "differentStateMachine" */
         final HttpResponse<String> stringHttpResponse = Unirest.get(
-                STATE_MACHINE_RESOURCE_URL + "/" + "test_state_machine" + "/states/errored?fromTime=" + secondSM.getCreatedAt().toString() + " &toTime=" + secondSM.getCreatedAt().toString()).header("Content-Type", "application/json").asString();
+                STATE_MACHINE_RESOURCE_URL + "/" + "test_state_machine" + "/states/errored?fromTime=" + now.toString().replace(' ','+') + "&toTime=" + future.toString().replace(' ','+')).header("Content-Type", "application/json").asString();
 
         assertThat(stringHttpResponse.getStatus()).isEqualTo(200);
-        assertThat(stringHttpResponse.getBody()).isEqualTo("[[\"" + secondSM.getId() + "\"," +
+        assertThat(stringHttpResponse.getBody()).isEqualTo("[[\"" + firstSM.getId() + "\"," +
+                firstSM.getStates().stream().filter(e -> Status.errored.equals(e.getStatus())).findFirst().get().getId() + "," +
+                "\"errored\"]," +  "[\"" + secondSM.getId() + "\"," +
                 secondSM.getStates().stream().filter(e -> Status.errored.equals(e.getStatus())).findFirst().get().getId() + "," +
-                "\"errored\"]]");
+                "\"errored\"]" + "]");
     }
 
     @Test
