@@ -94,14 +94,10 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
-    public List findErroredStates(ShardId shardId, String stateMachineName, String fromStateMachineId, String toStateMachineId) {
-        Query query = currentSession().createQuery("select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
-                "where sm.id >= :fromStateMachineId and sm.id  <= :toStateMachineId and sm.name = :stateMachineName and state.status in ('errored', 'sidelined', 'cancelled')");
-
-        query.setString("fromStateMachineId", fromStateMachineId);
-        query.setString("toStateMachineId", toStateMachineId);
-        query.setString("stateMachineName", stateMachineName);
-        return query.list();
+    public List findErroredStates(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime) {
+        List<Status> statuses = new ArrayList<>();
+        statuses.add(Status.errored);
+        return findStatesByStatus(shardId, stateMachineName, fromTime, toTime, null, statuses);
     }
 
     @Override
@@ -109,9 +105,8 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
     public List findStatesByStatus(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime, String stateName, List<Status> statuses) {
         Query query;
-        String queryString = "select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
-                "where sm.id between (select min(id) from StateMachine where createdAt >= :fromTime) and (select max(id) from StateMachine where createdAt <= :toTime) " +
-                "and sm.name = :stateMachineName";
+        String queryString = "select state.stateMachineId, state.id, state.status from State state join StateMachine sm " +
+                "on sm.id = state.stateMachineId and sm.createdAt between :fromTime and :toTime and sm.name = :stateMachineName";
 
         if (statuses != null && !statuses.isEmpty()) {
             StringBuilder sb = new StringBuilder(" and state.status in (");
