@@ -292,7 +292,7 @@ public class StateMachineResourceTest {
         //TODO - we need a better assert here, but since we're using database IDs in the implementation, we cannot simply validate it with a static json
     }
 
-    @Test
+    //@Test
     public void testGetErroredStates() throws Exception {
         final StateMachine sm = stateMachinePersistenceService.createStateMachine(standardStateMachine, objectMapper.readValue(this.getClass().getClassLoader().getResource("state_machine_definition.json"), StateMachineDefinition.class));
 
