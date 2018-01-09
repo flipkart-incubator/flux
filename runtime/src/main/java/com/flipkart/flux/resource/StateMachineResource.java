@@ -208,19 +208,19 @@ public class StateMachineResource {
         stateMachine = stateMachinesDAO.findById(machineId);
         if (stateMachine == null) {
             if (eventProxyEnabled.equalsIgnoreCase("yes")) {
-                logger.warn("StateMachine {} not found in this cluster. Forwarding this event to the old cluster.");
+                logger.warn("StateMachine " + machineId + " not found in this cluster. Forwarding this event to the old cluster.");
                 if (triggerTime == null) {
                     try {
                         eventProxyConnector.submitEvent(eventData.getName(), eventData.getData(), machineId, eventData.getEventSource());
                     } catch (Exception ex) {
-                        logger.error("Unable to forward to old endpoint, error {}", ex.getCause());
+                        logger.error("Unable to forward event to old endpoint, error {}", ex.getStackTrace());
                     }
 
                 } else {
                     try {
                         eventProxyConnector.submitScheduledEvent(eventData.getName(), eventData.getData(), machineId, eventData.getEventSource(), triggerTime);
                     } catch (Exception ex) {
-                        logger.error("Unable to forward to old endpoint, error {}", ex.getCause());
+                        logger.error("Unable to forward scheduled event to old endpoint, error {}", ex.getStackTrace());
                     }
                 }
                 return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State Machine with Id: " + machineId + " not found on this cluster. Forwarding the event to the old cluster").build();

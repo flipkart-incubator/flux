@@ -194,7 +194,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     }
 	
 	/** Helper method to post data over Http */
-    private CloseableHttpResponse postOverHttp(Object dataToPost, String pathSuffix)  {
+    protected CloseableHttpResponse postOverHttp(Object dataToPost, String pathSuffix)  {
         CloseableHttpResponse httpResponse = null;
         HttpPost httpPostRequest;
         httpPostRequest = new HttpPost(fluxEndpoint + pathSuffix);

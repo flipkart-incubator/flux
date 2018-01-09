@@ -81,8 +81,8 @@ eventScheduler:
     intervalms: 1000
 
 eventProxyForMigration:
-  enabled: "no"
-  endpoint: "http://localhost:9998"
+  enabled: "yes"
+  endpoint: "http://localhost:9998/api/machines"
 
 deploymentType: directory
 deploymentUnitsPath: "/tmp/workflows/"

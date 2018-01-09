@@ -19,8 +19,6 @@ import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import java.util.UUID;
-
 public class RunManualSellerVerificationWorkflow {
     public static void main(String... args) throws Exception {
 
@@ -31,7 +29,7 @@ public class RunManualSellerVerificationWorkflow {
         final ManualSellerVerificationFlow manualSellerVerificationFlow = injector.getInstance(ManualSellerVerificationFlow.class);
         /* Lets invoke our workflow */
 
-        String randomCorrelationId = UUID.randomUUID().toString().substring(0,16);
+        String randomCorrelationId = "my-correlation-id-2";
         manualSellerVerificationFlow.verifySeller(new SellerId(1l, randomCorrelationId));
 
         /* Since we've initialised flux, the process will continue to run till you explicitly kill it */
@@ -40,11 +38,11 @@ public class RunManualSellerVerificationWorkflow {
 
         /**
          * The workflow will not terminate till you have posted a manual event. A sample json for a manual event is :
-          {
-           "name":"sellerVerification",
-           "type":"com.flipkart.flux.examples.externalevents.SellerVerificationStatus",
-           "data": "{\"sellerId\": {\"id\" : 1},\"verified\":true}",
-           "eventSource" : "yogesh_nachnani"
+         {
+         "name":"sellerVerification",
+         "type":"com.flipkart.flux.examples.externalevents.SellerVerificationStatus",
+         "data": "{\"sellerId\": {\"id\" : 1},\"verified\":true}",
+         "eventSource" : "yogesh_nachnani"
          }
          */
 
@@ -52,7 +50,7 @@ public class RunManualSellerVerificationWorkflow {
 
         System.out.println("[Main] Sleeping for 2 seconds before posting data to flux runtime");
         Thread.sleep(2000l); // Just a 2 second wait to ensure that the state machine has been created in flux
-        new FluxRuntimeConnectorHttpImpl(1000l,1000l,"http://localhost:9998/api/machines").
+        new FluxRuntimeConnectorHttpImpl(10000l, 10000l, "http://localhost:9998/api/machines").
                 submitEvent("sellerVerification", new SellerVerificationStatus(new SellerId(1l), true), randomCorrelationId, "Manual Trigger From Customer Support");
         System.out.println("[Main] Posted data to flux runtime, the workflow should have continued");
 
