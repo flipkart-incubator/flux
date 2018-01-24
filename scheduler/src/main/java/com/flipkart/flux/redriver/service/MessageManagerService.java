@@ -48,12 +48,14 @@ public class MessageManagerService implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(MessageManagerService.class);
     private static final String scheduledDeletionSvcName = "redriver-batch-delete-executor-svc";
     private static final String taskRegisterSvcName = "redriver-task-register-executor-svc";
+    private static final String scheduledDeletionSvcFailureCounter = "scheduled.deletion.failure.counter";
     private final MessageDao messageDao;
     private final Integer batchDeleteInterval;
     private final Integer batchSize;
     private final ConcurrentLinkedQueue<SmIdAndTaskIdPair> messagesToDelete;
     private final InstrumentedScheduledExecutorService scheduledDeletionService;
     private final InstrumentedExecutorService persistenceExecutorService;
+
 
     @Inject
     public MessageManagerService(MessageDao messageDao,
@@ -71,6 +73,7 @@ public class MessageManagerService implements Initializable {
     }
 
     public List<ScheduledMessage> retrieveOldest(int offset, int count) {
+        logger.info("Retrieving messages from ScheduledMessages offset:{} count:{}", offset, count);
         return messageDao.retrieveOldest(offset, count);
     }
 
@@ -85,15 +88,18 @@ public class MessageManagerService implements Initializable {
     @Override
     public void initialize() {
         scheduledDeletionService.scheduleAtFixedRate(() -> {
-            SmIdAndTaskIdPair currentMessageIdToDelete = null;
-            List messageIdsToDelete = new ArrayList<SmIdAndTaskIdPair>(batchSize);
-
-            while (messageIdsToDelete.size() < batchSize && (currentMessageIdToDelete = messagesToDelete.poll()) != null) {
-                messageIdsToDelete.add(currentMessageIdToDelete);
-            }
-
-            if (!messageIdsToDelete.isEmpty()) {
-                messageDao.deleteInBatch(messageIdsToDelete);
+            try {
+                logger.info("Running Deletion job, deleting {} messages", Math.min(batchSize, messagesToDelete.size()));
+                SmIdAndTaskIdPair currentMessageIdToDelete = null;
+                List messageIdsToDelete = new ArrayList<SmIdAndTaskIdPair>(batchSize);
+                while (messageIdsToDelete.size() < batchSize && (currentMessageIdToDelete = messagesToDelete.poll()) != null) {
+                    messageIdsToDelete.add(currentMessageIdToDelete);
+                }
+                if (!messageIdsToDelete.isEmpty()) {
+                    messageDao.deleteInBatch(messageIdsToDelete);
+                }
+            } catch (Throwable throwable) {
+                logger.error("ScheduledDeletion Job failed for Redriver Messages.", throwable);
             }
         }, 0l, batchDeleteInterval, TimeUnit.MILLISECONDS);
 

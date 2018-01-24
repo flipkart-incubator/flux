@@ -79,8 +79,8 @@ public class RedriverService {
                 scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
                     try {
                         redrive();
-                    } catch (Exception e) {
-                        logger.error("Error while running redrive", e);
+                    } catch (Throwable e) {
+                        logger.error("Error while running redrive {}", e);
                     }
                 }, initialDelay, batchReadInterval, TimeUnit.MILLISECONDS);
                 logger.info("RedriverService started");
