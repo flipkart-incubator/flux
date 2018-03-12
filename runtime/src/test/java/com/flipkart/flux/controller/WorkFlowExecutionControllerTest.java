@@ -34,6 +34,7 @@ import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.util.TestUtils;
+import com.typesafe.config.ConfigFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,7 +72,6 @@ public class WorkFlowExecutionControllerTest {
 
     @Mock
     private MetricsClient metricsClient;
-
     TestActorRef<MockActorRef> mockActor;
 
     private WorkFlowExecutionController workFlowExecutionController;
@@ -84,7 +84,7 @@ public class WorkFlowExecutionControllerTest {
         Thread.sleep(1000);
         workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, auditDAO, routerRegistry, redriverRegistry, metricsClient);
         when(stateMachinesDAO.findById(anyLong())).thenReturn(TestUtils.getStandardTestMachineWithId());
-        actorSystem = ActorSystem.create();
+        actorSystem = ActorSystem.create("default", ConfigFactory.load("application2.conf"));
         mockActor = TestActorRef.create(actorSystem, Props.create(MockActorRef.class));
         when(routerRegistry.getRouter(anyString())).thenReturn(mockActor);
         objectMapper = new ObjectMapper();
