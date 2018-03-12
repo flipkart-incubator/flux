@@ -1,7 +1,7 @@
 flux.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
-  hibernate.connection.url: "jdbc:mysql://localhost:3306/flux"
+  hibernate.connection.url: "jdbc:mysql://localhost:3306/old_flux"
   hibernate.connection.username: "root"
   hibernate.connection.password: ""
   hibernate.current_session_context_class: "managed"
@@ -12,7 +12,7 @@ flux.Hibernate:
 fluxReadOnly.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
-  hibernate.connection.url: "jdbc:mysql://localhost:3306/flux"
+  hibernate.connection.url: "jdbc:mysql://localhost:3306/old_flux"
   hibernate.connection.username: "root"
   hibernate.connection.password: ""
   hibernate.current_session_context_class: "managed"
@@ -23,7 +23,7 @@ fluxReadOnly.Hibernate:
 flux_scheduler.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
-  hibernate.connection.url: "jdbc:mysql://localhost:3306/flux_scheduler"
+  hibernate.connection.url: "jdbc:mysql://localhost:3306/old_flux_scheduler"
   hibernate.connection.username: "root"
   hibernate.connection.password: ""
   hibernate.current_session_context_class: "managed"
