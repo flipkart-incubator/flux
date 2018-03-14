@@ -17,6 +17,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.*;
+import com.flipkart.flux.utils.LoggingUtils;
 import com.flipkart.flux.client.runtime.EventProxyConnector;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
 import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
@@ -39,7 +40,6 @@ import com.google.inject.Inject;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -51,10 +51,6 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static com.flipkart.flux.Constants.STATE_MACHINE_ID;
-import static com.flipkart.flux.Constants.TASK_ID;
-
 
 /**
  * <code>StateMachineResource</code> exposes APIs to perform state machine related operations. Ex: Creating SM, receiving event for a SM
@@ -172,17 +168,17 @@ public class StateMachineResource {
      */
 
     protected StateMachine createAndInitStateMachine(String stateMachineInstanceId, StateMachineDefinition stateMachineDefinition) throws Exception {
-
-        // 1. Convert to StateMachine (domain object) and save in DB
-        StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineInstanceId, stateMachineDefinition);
-        MDC.clear();
-        MDC.put(STATE_MACHINE_ID, stateMachine.getId().toString());
-        logger.info("Created state machine with Id: {}", stateMachine.getId());
-
-        // 2. initialize and start State Machine
-        workFlowExecutionController.initAndStart(stateMachine);
-
-        return stateMachine;
+        try {
+            // 1. Convert to StateMachine (domain object) and save in DB
+            StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineInstanceId, stateMachineDefinition);
+            LoggingUtils.registerStateMachineIdForLogging(stateMachine.getId().toString());
+            logger.info("Created state machine with Id: {}", stateMachine.getId());
+            // 2. initialize and start State Machine
+            workFlowExecutionController.initAndStart(stateMachine);
+            return stateMachine;
+        } finally {
+            LoggingUtils.deRegisterStateMachineIdForLogging();
+        }
     }
 
     /**
@@ -200,63 +196,66 @@ public class StateMachineResource {
                                 @QueryParam("triggerTime") Long triggerTime,
                                 EventData eventData
     ) throws Exception {
-        MDC.clear();
-        MDC.put(STATE_MACHINE_ID, machineId);
-        logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
 
-        StateMachine stateMachine = null;
-        stateMachine = stateMachinesDAO.findById(machineId);
-        if (stateMachine == null) {
-            if (eventProxyEnabled.equalsIgnoreCase("yes")) {
-                logger.warn("StateMachine " + machineId + " not found in this cluster. Forwarding this event to the old cluster.");
-                if (triggerTime == null) {
-                    try {
-                        eventProxyConnector.submitEvent(eventData.getName(), eventData.getData(), machineId, eventData.getEventSource());
-                    } catch (Exception ex) {
-                        logger.error("Unable to forward event to old endpoint, error {}", ex.getStackTrace());
-                    }
-
-                } else {
-                    try {
-                        eventProxyConnector.submitScheduledEvent(eventData.getName(), eventData.getData(), machineId, eventData.getEventSource(), triggerTime);
-                    } catch (Exception ex) {
-                        logger.error("Unable to forward scheduled event to old endpoint, error {}", ex.getStackTrace());
-                    }
-                }
-                return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State Machine with Id: " + machineId + " not found on this cluster. Forwarding the event to the old cluster").build();
-            } else {
-                logger.error("StateMachine not found with id: {}, rejecting the event", machineId);
-                return Response.status(Response.Status.NOT_FOUND).entity("StateMachine not found with id: " + machineId + ", rejecting the event").build();
-            }
-        }
-
-        if (stateMachine.getStatus() == StateMachineStatus.cancelled) {
-            logger.info("Discarding event: {} as State machine: {} is in cancelled state", eventData.getName(), stateMachine.getId());
-            return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + stateMachine.getId() + " is in 'cancelled' state. Discarding the event.").build();
-        }
-
-        if (triggerTime == null) {
+        try {
+            LoggingUtils.registerStateMachineIdForLogging(machineId.toString());
             logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
-            try {
-                if (eventData.getCancelled() != null && eventData.getCancelled()) {
-                    workFlowExecutionController.handlePathCancellation(stateMachine, eventData);
-                } else {
-                    workFlowExecutionController.postEvent(eventData, stateMachine.getId());
-                }
-                return Response.status(Response.Status.ACCEPTED).build();
-            } catch (IllegalEventException ex) {
-                return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
-            }
-        } else {
-            logger.info("Received event: {} for state machine: {} with triggerTime: {}", eventData.getName(), machineId, triggerTime);
-            if (searchField == null || !searchField.equals(CORRELATION_ID))
-                return Response.status(Response.Status.BAD_REQUEST).entity("searchField=correlationId is missing in the request").build();
+            StateMachine stateMachine = null;
+            stateMachine = stateMachinesDAO.findById(machineId);
+            if (stateMachine == null) {
+                if (eventProxyEnabled.equalsIgnoreCase("yes")) {
+                    logger.warn("StateMachine " + machineId + " not found in this cluster. Forwarding this event to the old cluster.");
+                    if (triggerTime == null) {
+                        try {
+                            eventProxyConnector.submitEvent(eventData.getName(), eventData.getData(), machineId, eventData.getEventSource());
+                        } catch (Exception ex) {
+                            logger.error("Unable to forward event to old endpoint, error {}", ex.getStackTrace());
+                        }
 
-            //if trigger time is more than below value, it means the value has been passed in milliseconds, convert it to seconds and register
-            if (triggerTime > 9999999999L)
-                triggerTime = triggerTime / 1000;
-            eventSchedulerRegistry.registerEvent(machineId, eventData.getName(), objectMapper.writeValueAsString(eventData), triggerTime);
-            return Response.status(Response.Status.ACCEPTED).build();
+                    } else {
+                        try {
+                            eventProxyConnector.submitScheduledEvent(eventData.getName(), eventData.getData(), machineId, eventData.getEventSource(), triggerTime);
+                        } catch (Exception ex) {
+                            logger.error("Unable to forward scheduled event to old endpoint, error {}", ex.getStackTrace());
+                        }
+                    }
+                    return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State Machine with Id: " + machineId + " not found on this cluster. Forwarding the event to the old cluster").build();
+                } else {
+                    logger.error("StateMachine not found with id: {}, rejecting the event", machineId);
+                    return Response.status(Response.Status.NOT_FOUND).entity("StateMachine not found with id: " + machineId + ", rejecting the event").build();
+                }
+            }
+
+            if (stateMachine.getStatus() == StateMachineStatus.cancelled) {
+                logger.info("Discarding event: {} as State machine: {} is in cancelled state", eventData.getName(), stateMachine.getId());
+                return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + stateMachine.getId() + " is in 'cancelled' state. Discarding the event.").build();
+            }
+
+            if (triggerTime == null) {
+                logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
+                try {
+                    if (eventData.getCancelled() != null && eventData.getCancelled()) {
+                        workFlowExecutionController.handlePathCancellation(stateMachine, eventData);
+                    } else {
+                        workFlowExecutionController.postEvent(eventData, stateMachine.getId());
+                    }
+                    return Response.status(Response.Status.ACCEPTED).build();
+                } catch (IllegalEventException ex) {
+                    return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
+                }
+            } else {
+                logger.info("Received event: {} for state machine: {} with triggerTime: {}", eventData.getName(), machineId, triggerTime);
+                if (searchField == null || !searchField.equals(CORRELATION_ID))
+                    return Response.status(Response.Status.BAD_REQUEST).entity("searchField=correlationId is missing in the request").build();
+
+                //if trigger time is more than below value, it means the value has been passed in milliseconds, convert it to seconds and register
+                if (triggerTime > 9999999999L)
+                    triggerTime = triggerTime / 1000;
+                eventSchedulerRegistry.registerEvent(machineId, eventData.getName(), objectMapper.writeValueAsString(eventData), triggerTime);
+                return Response.status(Response.Status.ACCEPTED).build();
+            }
+        } finally {
+            LoggingUtils.deRegisterStateMachineIdForLogging();
         }
     }
 
@@ -272,22 +271,25 @@ public class StateMachineResource {
     public Response submitEvent(@PathParam("machineId") String machineId,
                                 EventAndExecutionData eventAndExecutionData
     ) throws Exception {
-        EventData eventData = eventAndExecutionData.getEventData();
-        ExecutionUpdateData executionUpdateData = eventAndExecutionData.getExecutionUpdateData();
-        MDC.clear();
-        MDC.put(STATE_MACHINE_ID, machineId);
-        MDC.put(TASK_ID, executionUpdateData.getTaskId().toString());
-        logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
         try {
-            this.workFlowExecutionController.updateTaskStatus(machineId, executionUpdateData.getTaskId(), executionUpdateData);
-        } catch (Exception ex) {
-            logger.error("exception {} {}", ex.getMessage(), ex.getStackTrace());
+            EventData eventData = eventAndExecutionData.getEventData();
+            ExecutionUpdateData executionUpdateData = eventAndExecutionData.getExecutionUpdateData();
+            LoggingUtils.registerStateMachineIdForLogging(machineId.toString());
+            logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
+            try {
+                this.workFlowExecutionController.updateTaskStatus(machineId, executionUpdateData.getTaskId(), executionUpdateData);
+            } catch (Exception ex) {
+                logger.error("exception {} {}", ex.getMessage(), ex.getStackTrace());
+            }
+            return postEvent(machineId, null, eventData);
+        } finally {
+            LoggingUtils.deRegisterStateMachineIdForLogging();
         }
-        return postEvent(machineId, null, eventData);
     }
 
     private Response postEvent(String machineId, String searchField, EventData eventData) {
         try {
+            LoggingUtils.registerStateMachineIdForLogging(machineId.toString());
             StateMachine stateMachine = null;
             if (searchField != null && !searchField.equals(CORRELATION_ID)) {
                 return Response.status(Response.Status.BAD_REQUEST).build();
@@ -307,7 +309,8 @@ public class StateMachineResource {
             workFlowExecutionController.postEvent(eventData, stateMachine.getId());
         } catch (IllegalEventException ex) {
             return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
-
+        } finally {
+            LoggingUtils.deRegisterStateMachineIdForLogging();
         }
 
         return Response.status(Response.Status.ACCEPTED).build();

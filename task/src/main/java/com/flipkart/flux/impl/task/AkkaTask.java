@@ -109,7 +109,7 @@ public class AkkaTask extends UntypedActor {
                         append(taskAndEvent.getTaskName()).
                         append(".queueSize").toString());
                 Map<String, Object> mdc = new HashMap<String, Object>();
-                mdc.put(STATE_MACHINE_ID, taskAndEvent.getStateMachineId());
+                mdc.put(STATE_MACHINE_ID, "smId:"+taskAndEvent.getStateMachineId());
                 mdc.put(TASK_ID, taskAndEvent.getTaskId());
                 logger.setMDC(mdc);
                 logger.info("Akka task processing state machine: {} task: {}", taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId());
