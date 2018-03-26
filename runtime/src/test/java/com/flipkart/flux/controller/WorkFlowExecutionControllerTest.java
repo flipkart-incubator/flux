@@ -280,7 +280,7 @@ public class WorkFlowExecutionControllerTest {
         when(eventsDAO.getAllEventsNameAndStatus("state-machine-cancel-path", true)).thenReturn(eventStatusHashMap);
 
         // invoke cancel
-        Set<State> executableStates = workFlowExecutionController.cancelPath(stateMachine, testEventData);
+        Set<State> executableStates = workFlowExecutionController.cancelPath(stateMachine.getId(), testEventData);
 
         assertThat(executableStates.size()).isEqualTo(1);
         assertThat(executableStates.contains("state3"));

@@ -239,7 +239,7 @@ public class StateMachineResource {
             logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
             try {
                 if (eventData.getCancelled() != null && eventData.getCancelled()) {
-                    workFlowExecutionController.handlePathCancellation(stateMachine, eventData);
+                    workFlowExecutionController.handlePathCancellation(stateMachine.getId(), eventData);
                 } else {
                     workFlowExecutionController.postEvent(eventData, stateMachine.getId());
                 }

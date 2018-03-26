@@ -156,7 +156,7 @@ public class WorkFlowExecutionController {
      * @param eventAndExecutionData
      */
     public void updateTaskStatusAndHandlePathCancellation(StateMachine stateMachine, EventAndExecutionData eventAndExecutionData) {
-        Set<State> executableStates = updateTaskStatusAndCancelPath(stateMachine, eventAndExecutionData);
+        Set<State> executableStates = updateTaskStatusAndCancelPath(stateMachine.getId(), eventAndExecutionData);
         logger.info("Path cancellation is done for state machine: {} event: {} which has come from task: {}",
                 stateMachine.getId(), eventAndExecutionData.getEventData().getName(), eventAndExecutionData.getExecutionUpdateData().getTaskId());
         executeStates(stateMachine, executableStates);
@@ -164,28 +164,28 @@ public class WorkFlowExecutionController {
 
     /**
      * Updates task status and cancels paths which are dependant on the current event
-     * @param stateMachine
+     * @param stateMachineId
      * @param eventAndExecutionData
      * @return executable states after cancellation
      */
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    protected Set<State> updateTaskStatusAndCancelPath(StateMachine stateMachine, EventAndExecutionData eventAndExecutionData) {
-        updateTaskStatus(stateMachine.getId(), eventAndExecutionData.getExecutionUpdateData().getTaskId(), eventAndExecutionData.getExecutionUpdateData());
-        return cancelPath(stateMachine, eventAndExecutionData.getEventData());
+    protected Set<State> updateTaskStatusAndCancelPath(String stateMachineId, EventAndExecutionData eventAndExecutionData) {
+        updateTaskStatus(stateMachineId, eventAndExecutionData.getExecutionUpdateData().getTaskId(), eventAndExecutionData.getExecutionUpdateData());
+        return cancelPath(stateMachineId, eventAndExecutionData.getEventData());
     }
 
     /**
      * Cancels paths which are dependant on the current event, and returns set of states which can be executed after the cancellation.
-     * @param stateMachine
+     * @param stateMachineId
      * @param eventData
      * @return executable states after cancellation
      */
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    protected Set<State> cancelPath(StateMachine stateMachine, EventData eventData) {
+    protected Set<State> cancelPath(String stateMachineId, EventData eventData) {
         Set<State> executableStates = new HashSet<>();
-
+        StateMachine stateMachine = stateMachinesDAO.findById(stateMachineId);
         //create context and dependency graph
         Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
 
@@ -252,14 +252,14 @@ public class WorkFlowExecutionController {
 
     /**
      * This is called when an event is received with cancelled status. This cancels the particular path in state machine DAG.
-     * @param stateMachine
+     * @param stateMachineId
      * @param eventData
      */
-    public void handlePathCancellation(StateMachine stateMachine, EventData eventData) {
-        Set<State> executableStates = cancelPath(stateMachine, eventData);
+    public void handlePathCancellation(String stateMachineId, EventData eventData) {
+        Set<State> executableStates = cancelPath(stateMachineId, eventData);
         logger.info("Path cancellation is done for state machine: {} event: {}",
-                stateMachine.getId(), eventData.getName());
-        executeStates(stateMachine, executableStates);
+                stateMachineId, eventData.getName());
+        executeStates(stateMachinesDAO.findById(stateMachineId), executableStates);
     }
 
     /**
