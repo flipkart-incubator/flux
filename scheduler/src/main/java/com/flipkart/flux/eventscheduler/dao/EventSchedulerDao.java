@@ -14,8 +14,7 @@
 package com.flipkart.flux.eventscheduler.dao;
 
 import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
-import com.flipkart.flux.persistence.SessionFactoryContext;
-import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.flux.persistence.*;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
@@ -37,16 +36,18 @@ public class EventSchedulerDao {
     private SessionFactoryContext sessionFactoryContext;
 
     @Inject
-    public EventSchedulerDao(@Named("schedulerSessionFactoryContext") SessionFactoryContext sessionFactoryContext) {
+    public EventSchedulerDao(@Named("schedulerSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
         this.sessionFactoryContext = sessionFactoryContext;
     }
 
     @Transactional
+    @SelectDataSource(storage = Storage.SCHEDULER)
     public void save(ScheduledEvent scheduledEvent) {
         currentSession().saveOrUpdate(scheduledEvent);
     }
 
     @Transactional
+    @SelectDataSource(storage = Storage.SCHEDULER)
     public void delete(String correlationId, String eventName) {
         final Query deleteQuery = currentSession().createQuery("delete ScheduledEvent s where s.correlationId=:correlationId " +
                 "and s.eventName=:eventName");
@@ -57,9 +58,11 @@ public class EventSchedulerDao {
 
     /**
      * Retrieves rowCount number of rows from ScheduledEvents table ordered by scheduledTime ascending.
+     *
      * @param rowCount
      */
     @Transactional
+    @SelectDataSource(storage = Storage.SCHEDULER)
     public List<ScheduledEvent> retrieveOldest(int rowCount) {
         return currentSession()
                 .createCriteria(ScheduledEvent.class)
@@ -70,10 +73,11 @@ public class EventSchedulerDao {
 
     /**
      * Provides the session which is bound to current thread.
+     *
      * @return Session
      */
     private Session currentSession() {
-        return sessionFactoryContext.getSessionFactory().getCurrentSession();
+        return sessionFactoryContext.getThreadLocalSession();
     }
 
 }

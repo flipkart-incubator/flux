@@ -13,42 +13,42 @@
 
 package com.flipkart.flux.guice.interceptor;
 
-import com.flipkart.flux.persistence.SelectDataSource;
-import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.*;
+import com.flipkart.flux.shard.ShardId;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.context.internal.ManagedSessionContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Provider;
 
 /**
- * <code>TransactionInterceptor</code> is a {@link MethodInterceptor} implementation to provide
- * transactional boundaries to methods which are annotated with {@link javax.transaction.Transactional}.
- * It appropriately selects a dataSource based on present {@link SelectDataSource} annotation.
- *
- * Example:
- * {
- *     method1(); //call method1 which is annotated with transactional
+ * @author shyam.akirala
+ * @author amitkumar.o
+ *         <p>
+ *         <code>TransactionInterceptor</code> is a {@link MethodInterceptor} implementation to provide
+ *         transactional boundaries to methods which are annotated with {@link javax.transaction.Transactional}.
+ *         It appropriately selects a dataSource based on present {@link com.flipkart.flux.persistence.SelectDataSource} annotation.
+ *         <p>
+ *         Example:
+ *         {
+ *         method1(); //call method1 which is annotated with transactional
+ *         }
+ * @Transactional void method1() {
+ * method2(); //call method2 which is annotated with transactional
  * }
- *
- * @Transactional
- * void method1() {
- *      method2(); //call method2 which is annotated with transactional
- * }
- *
- * @Transactional
- * void method2() {}
- *
+ * @Transactional void method2() {}
+ * <p>
  * In the above case a transaction would be started before method1 invocation using this interceptor and ended once method1's execution is over.
  * Same session and transaction would be used throughout.
- *
- * @author shyam.akirala
- */
+ **/
 public class TransactionInterceptor implements MethodInterceptor {
+
+    private static final Logger logger = LoggerFactory.getLogger(TransactionInterceptor.class);
 
     private final Provider<SessionFactoryContext> contextProvider;
 
@@ -64,50 +64,85 @@ public class TransactionInterceptor implements MethodInterceptor {
         SessionFactoryContext context = contextProvider.get();
 
         try {
-            SessionFactory currentSessionFactory = context.getSessionFactory();
-            if(currentSessionFactory != null) {
-                session = currentSessionFactory.getCurrentSession();
-            }
-        } catch (HibernateException e) {}
+            session = context.getThreadLocalSession();
+        } catch (HibernateException e) {
+        }
 
         if (session == null) {
-            //start a new session and transaction if current session is null
-            //get DataSourceType first
-            SelectDataSource selectedDS = invocation.getMethod().getAnnotation(SelectDataSource.class);
-            if(selectedDS == null) {
-                context.useDefault();
-            } else {
-                context.useSessionFactory(selectedDS.value());
+            //start a new session if current session is null
+            //get shardKey from method argument if there is any
+            String shardKey;
+            SessionFactory sessionFactory = null;
+
+            try {
+                Storage storage = invocation.getMethod().getAnnotation(SelectDataSource.class).storage();
+                switch (storage) {
+                    case SHARDED: {
+                        try {
+                            DataSourceType dataSourceType = invocation.getMethod().getAnnotation(SelectDataSource.class).type();
+                            switch (dataSourceType) {
+                                // in this case invocation method will provide shardKey as the first argument,
+                                // whose sessionFactory will be used
+                                case READ_ONLY: {
+                                    Object[] args = invocation.getArguments();
+                                    ShardId shardId = (ShardId) args[0];
+                                    sessionFactory = context.getROSessionFactory(shardId);
+                                    break;
+                                }
+                                // in this case invocation method will provide shardKey i.e stateMachineId, as the first argument,
+                                // which will determine to which shard the query should go to.
+                                case READ_WRITE: {
+                                    Object[] args = invocation.getArguments();
+                                    shardKey = (String) args[0];
+                                    String shardKeyPrefix = CryptHashGenerator.getUniformCryptHash(shardKey);
+                                    sessionFactory = context.getRWSessionFactory(shardKeyPrefix);
+                                    break;
+                                }
+                            }
+                        } catch (Exception ex) {
+                            logger.error("Current Transactional Method doesn't have annotation @SelectDataSource Method_name:{} {}"
+                                    , invocation.getMethod().getName(), ex.getStackTrace());
+                            return new Error("Something wrong with Method's annotations " + ex.getMessage());
+                        }
+                        break;
+                    }
+                    case SCHEDULER: {
+                        sessionFactory = context.getSchedulerSessionFactory();
+                        break;
+                    }
+                }
+            } catch (Exception ex) {
+                logger.error("Current Transactional Method doesn't have annotation @SelectDataSourceType Method_name:{} {}"
+                        , invocation.getMethod().getName(), ex.getStackTrace());
+                return new Error("Something wrong with Method's annotations " + ex.getMessage());
             }
-            session = context.getSessionFactory().openSession();
-            ManagedSessionContext.bind(session);
+            // open a new session, and set it in the ThreadLocal Context
+            session = sessionFactory.openSession();
+            context.setThreadLocalSession(session);
+            logger.debug("Open new session for the thread transaction started, using it: {}, {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
             transaction = session.getTransaction();
             transaction.begin();
-        }
-
-        try {
-
-            Object result = invocation.proceed();
-
-            if (transaction != null) {
+            try {
+                Object result = invocation.proceed();
                 transaction.commit();
-            }
-
-            return result;
-
-        } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            throw e;
-        } finally {
-            if (transaction != null && session != null) {
-                ManagedSessionContext.unbind(context.getSessionFactory());
-                session.close();
+                return result;
+            } catch (Exception e) {
+                if (transaction != null)
+                    transaction.rollback();
+                throw e;
+            } finally {
+                logger.debug("Transaction completed for method : {} {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
+                if (session != null)
+                    session.close();
                 context.clear();
+                logger.debug("Clearing session from ThreadLocal Context : {} {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
             }
+
+        } else {
+            Object result = invocation.proceed();
+            logger.debug("Use old session for the thread, reusing it: {}, {}", invocation.getMethod().getName(), invocation.getMethod().getDeclaringClass());
+            return result;
         }
     }
-
 }
 

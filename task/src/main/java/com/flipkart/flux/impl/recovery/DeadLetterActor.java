@@ -33,6 +33,6 @@ public class DeadLetterActor extends UntypedActor {
 	 * @see akka.actor.UntypedActor#onReceive(java.lang.Object)
 	 */
 	public void onReceive(Object message) {
-		logger.debug(message.toString());
+		logger.error(message.toString());
 	}
 }

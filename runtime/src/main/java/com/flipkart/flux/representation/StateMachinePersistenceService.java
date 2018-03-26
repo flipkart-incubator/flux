@@ -21,14 +21,20 @@ import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.*;
+import com.flipkart.flux.persistence.DataSourceType;
+import com.flipkart.flux.persistence.Storage;
+import com.flipkart.flux.persistence.SelectDataSource;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.transaction.Transactional;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * <code>StateMachinePersistenceService</code> class converts user provided state machine entity definition to domain type object and stores in DB.
+ *
  * @author shyam.akirala
  */
 @Singleton
@@ -54,43 +60,48 @@ public class StateMachinePersistenceService {
 
     /**
      * Converts state machine definition to state machine domain object and saves in DB.
+     *
      * @param stateMachineDefinition
      * @return saved state machine object
      */
-    public StateMachine createStateMachine(StateMachineDefinition stateMachineDefinition) {
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public StateMachine createStateMachine(String stateMachineId, StateMachineDefinition stateMachineDefinition) {
+
         final Map<EventDefinition, EventData> eventDataMap = stateMachineDefinition.getEventDataMap();
         Set<Event> allEvents = createAllEvents(eventDataMap);
         Set<StateDefinition> stateDefinitions = stateMachineDefinition.getStates();
         Set<State> states = new HashSet<>();
 
-
-        for(StateDefinition stateDefinition : stateDefinitions) {
-            State state = convertStateDefinitionToState(stateDefinition);
+        AtomicInteger stateId = new AtomicInteger(1);
+        for (StateDefinition stateDefinition : stateDefinitions) {
+            State state = convertStateDefinitionToState(stateDefinition, stateMachineId, stateId.longValue());
             states.add(state);
+            stateId.incrementAndGet();
         }
 
-        StateMachine stateMachine = new StateMachine(stateMachineDefinition.getVersion(),
+        StateMachine stateMachine = new StateMachine(stateMachineId, stateMachineDefinition.getVersion(),
                 stateMachineDefinition.getName(),
                 stateMachineDefinition.getDescription(),
-                states, stateMachineDefinition.getCorrelationId());
+                states);
 
-        stateMachinesDAO.create(stateMachine);
+        stateMachinesDAO.create(stateMachineId, stateMachine);
 
-        for(Event event: allEvents) {
+        for (Event event : allEvents) {
             event.setStateMachineInstanceId(stateMachine.getId());
             eventPersistenceService.persistEvent(event);
         }
 
         //create audit records for all the states
-        for(State state : stateMachine.getStates()) {
-            auditDAO.create(new AuditRecord(stateMachine.getId(), state.getId(), 0L, Status.initialized, null, null));
+        for (State state : stateMachine.getStates()) {
+            auditDAO.create(stateMachine.getId(), new AuditRecord(stateMachine.getId(), state.getId(), 0L, Status.initialized, null, null));
         }
-
         return stateMachine;
     }
 
     /**
      * creates event domain objects from event definitions.
+     *
      * @param eventDataMap
      * @return set of events
      */
@@ -110,15 +121,16 @@ public class StateMachinePersistenceService {
 
     /**
      * Converts state definition to state domain object.
+     *
      * @param stateDefinition
      * @return state
      */
-    private State convertStateDefinitionToState(StateDefinition stateDefinition)    {
+    private State convertStateDefinitionToState(StateDefinition stateDefinition, String stateMachineId, Long id) {
         try {
             List<EventDefinition> eventDefinitions = stateDefinition.getDependencies();
             List<String> events = new LinkedList<>();
-            if(eventDefinitions != null) {
-                for(EventDefinition e : eventDefinitions) {
+            if (eventDefinitions != null) {
+                for (EventDefinition e : eventDefinitions) {
                     events.add(e.getName());
                 }
             }
@@ -131,8 +143,8 @@ public class StateMachinePersistenceService {
                     events,
                     Math.min(stateDefinition.getRetryCount(), maxRetryCount),
                     stateDefinition.getTimeout(),
-                    stateDefinition.getOutputEvent() != null? objectMapper.writeValueAsString(stateDefinition.getOutputEvent()) : null,
-                    Status.initialized, null, 0l);
+                    stateDefinition.getOutputEvent() != null ? objectMapper.writeValueAsString(stateDefinition.getOutputEvent()) : null,
+                    Status.initialized, null, 0l, stateMachineId, id);
             return state;
         } catch (Exception e) {
             throw new IllegalRepresentationException("Unable to create state domain object", e);

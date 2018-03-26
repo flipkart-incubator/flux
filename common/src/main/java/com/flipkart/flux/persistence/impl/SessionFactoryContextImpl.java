@@ -13,60 +13,69 @@
 
 package com.flipkart.flux.persistence.impl;
 
-import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.shard.ShardId;
 import com.google.common.collect.ImmutableMap;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import java.util.Map;
 
 /**
- * A {@link SessionFactoryContext} implementation that maintains a map of {@link DataSourceType} to {@link SessionFactory},
- * and uses a thread local to save the SessionFactory that is being used in an ongoing transaction.
- *
- * Created by gaurav.ashok on 23/11/16.
+ * A {@link com.flipkart.flux.persistence.SessionFactoryContext} implementation that maintains a map of each  {@link ShardId} to {@link SessionFactory}
+ * for Master(Read-Write) and Slave(Read-Only) Shards, {@link SessionFactory} schedulerSessionFactory as well as shardString to ShardId Mapping for both Slave,Master
+ * and uses a thread local to save the Session that is being used in an ongoing transaction.
+ * <p>
+ * @author amitkumar.o
+ * @author gourav.ashok
  */
 public class SessionFactoryContextImpl implements SessionFactoryContext {
 
-    private final ImmutableMap<DataSourceType, SessionFactory> sessionFactoryImmutableMap;
+    private final ImmutableMap<ShardId, SessionFactory> RWSessionFactoryImmutableMap;
+    private final ImmutableMap<ShardId, SessionFactory> ROSessionFactoryImmutableMap;
+    private final ImmutableMap<String, ShardId> shardKeyToShardIdMap;
+    private final SessionFactory schedulerSessionFactory;
 
-    private final DataSourceType defaultDataSourceType;
 
-    private final ThreadLocal<SessionFactory> currentSessionFactory = new ThreadLocal<>();
+    private final ThreadLocal<Session> currentSessionFactoryContext = new ThreadLocal<>();
 
-    public SessionFactoryContextImpl(Map<DataSourceType, SessionFactory> sessionFactoryMap, DataSourceType defaultType) {
-        this.sessionFactoryImmutableMap = ImmutableMap.copyOf(sessionFactoryMap);
-        this.defaultDataSourceType = defaultType;
-
-        assert sessionFactoryImmutableMap.get(defaultDataSourceType) != null :
-                "DataSource of type " + defaultDataSourceType.name() + " not configured";
+    public SessionFactoryContextImpl(Map<ShardId, SessionFactory> rwSessionFactoryMap, Map<ShardId, SessionFactory> roSessionFactoryMap,
+                                     Map<String, ShardId> shardKeyToShardIdMap,
+                                     SessionFactory schedulerSessionFactory) {
+        this.RWSessionFactoryImmutableMap = ImmutableMap.copyOf(rwSessionFactoryMap);
+        this.ROSessionFactoryImmutableMap = ImmutableMap.copyOf(roSessionFactoryMap);
+        this.shardKeyToShardIdMap = ImmutableMap.copyOf(shardKeyToShardIdMap);
+        this.schedulerSessionFactory = schedulerSessionFactory;
     }
 
-    public SessionFactoryContextImpl(Map<DataSourceType, SessionFactory> sessionFactoryMap) {
-        this(sessionFactoryMap, DataSourceType.READ_WRITE);
+
+    @Override
+    public void setThreadLocalSession(Session session) {
+        currentSessionFactoryContext.set(session);
     }
 
     @Override
-    public SessionFactory getSessionFactory() {
-        return currentSessionFactory.get();
+    public Session getThreadLocalSession() {
+        return currentSessionFactoryContext.get();
     }
 
     @Override
-    public void useSessionFactory(DataSourceType type) {
-        SessionFactory sessionFactory = sessionFactoryImmutableMap.get(type);
-        if(sessionFactory == null) {
-            sessionFactory = sessionFactoryImmutableMap.get(defaultDataSourceType);
-        }
-        currentSessionFactory.set(sessionFactory);
+    public SessionFactory getSchedulerSessionFactory() {
+        return schedulerSessionFactory;
     }
 
     @Override
-    public void useDefault() {
-        useSessionFactory(defaultDataSourceType);
+    public SessionFactory getRWSessionFactory(String shardKey) {
+        return RWSessionFactoryImmutableMap.get(shardKeyToShardIdMap.get(shardKey));
+    }
+
+    @Override
+    public SessionFactory getROSessionFactory(ShardId shardId) {
+        return ROSessionFactoryImmutableMap.get(shardId);
     }
 
     @Override
     public void clear() {
-        currentSessionFactory.remove();
+        currentSessionFactoryContext.remove();
     }
 }

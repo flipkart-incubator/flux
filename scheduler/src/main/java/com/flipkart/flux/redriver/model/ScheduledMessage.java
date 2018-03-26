@@ -15,6 +15,7 @@ package com.flipkart.flux.redriver.model;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.Table;
 import java.io.Serializable;
 
@@ -25,19 +26,24 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "ScheduledMessages")
+@IdClass(ScheduledMessage.ScheduledMessagePK.class)
 public class ScheduledMessage implements Serializable {
 
     @Id
     private Long taskId;
+    @Id
+    private String stateMachineId;
+
     private long scheduledTime;
 
     /* For Hibernate */
     ScheduledMessage() {
     }
 
-    public ScheduledMessage(Long taskId, Long scheduledTime) {
+    public ScheduledMessage(Long taskId, String stateMachineId, Long scheduledTime) {
         this();
         this.taskId = taskId;
+        this.stateMachineId = stateMachineId;
         this.scheduledTime = scheduledTime;
     }
 
@@ -45,34 +51,98 @@ public class ScheduledMessage implements Serializable {
         return scheduledTime;
     }
 
+    public String getStateMachineId() {
+        return stateMachineId;
+    }
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof ScheduledMessage)) return false;
 
         ScheduledMessage that = (ScheduledMessage) o;
 
-        if (scheduledTime != that.scheduledTime) return false;
-        return taskId.equals(that.taskId);
+        if (getScheduledTime() != that.getScheduledTime()) return false;
+        if (!getTaskId().equals(that.getTaskId())) return false;
+        return getStateMachineId().equals(that.getStateMachineId());
 
     }
 
     @Override
     public int hashCode() {
-        int result = taskId.hashCode();
-        result = 31 * result + (int) (scheduledTime ^ (scheduledTime >>> 32));
+        int result = getTaskId().hashCode();
+        result = 31 * result + getStateMachineId().hashCode();
+        result = 31 * result + (int) (getScheduledTime() ^ (getScheduledTime() >>> 32));
         return result;
     }
 
     @Override
     public String toString() {
         return "ScheduledMessage{" +
-            ", taskId=" + taskId +
-            ", scheduledTime=" + scheduledTime +
-            '}';
+                "taskId=" + taskId +
+                ", stateMachineId='" + stateMachineId + '\'' +
+                ", scheduledTime=" + scheduledTime +
+                '}';
     }
 
     public Long getTaskId() {
         return taskId;
+    }
+
+    /**
+     * <code>ScheduledMessagePK</code> is the composite primary key of "ScheduledMessages" table in DB.
+     */
+    static class ScheduledMessagePK implements Serializable {
+
+        private Long taskId;
+        private String stateMachineId;
+
+
+        /**
+         * for Hibernate
+         */
+        public ScheduledMessagePK() {
+        }
+
+        public ScheduledMessagePK(Long taskId, String stateMachineId) {
+            this.taskId = taskId;
+            this.stateMachineId = stateMachineId;
+        }
+
+        public Long getTaskId() {
+            return taskId;
+        }
+
+        public void setTaskId(Long taskId) {
+            this.taskId = taskId;
+        }
+
+        public String getStateMachineId() {
+            return stateMachineId;
+        }
+
+        public void setStateMachineId(String stateMachineId) {
+            this.stateMachineId = stateMachineId;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof ScheduledMessagePK)) return false;
+
+            ScheduledMessagePK that = (ScheduledMessagePK) o;
+
+            if (!getTaskId().equals(that.getTaskId())) return false;
+            return getStateMachineId().equals(that.getStateMachineId());
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = getTaskId().hashCode();
+            result = 31 * result + getStateMachineId().hashCode();
+            return result;
+        }
     }
 }

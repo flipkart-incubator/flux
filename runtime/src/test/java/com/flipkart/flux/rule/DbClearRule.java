@@ -20,6 +20,7 @@ import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.flux.shard.ShardId;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -29,60 +30,71 @@ import org.junit.rules.ExternalResource;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import java.util.Map;
 
 /**
  * <code>DbClearRule</code> is a Junit Rule which clears db tables before running a test.
+ *
  * @author shyam.akirala
  */
 @Singleton
-public class DbClearRule extends ExternalResource{
+public class DbClearRule extends ExternalResource {
 
-    private final SessionFactoryContext fluxSessionFactoryContext;
+    private final Map<ShardId, SessionFactory> fluxRWSessionFactoriesMap;
     private final SessionFactoryContext schedulerSessionFactoryContext;
 
-    /** List of entity tables which need to be cleared from flux db*/
+    /**
+     * List of entity tables which need to be cleared from flux db
+     */
     private static Class[] fluxTables = {StateMachine.class, State.class, AuditRecord.class, Event.class};
 
-    /** List of entity tables which need to be cleared from flux redriver db*/
-    private static Class[] fluxRedriverTables = {ScheduledMessage.class, ScheduledEvent.class};
+    /**
+     * List of entity tables which need to be cleared from flux redriver db
+     */
+    private static Class[] fluxSchedulerTables = {ScheduledMessage.class, ScheduledEvent.class};
 
 
     @Inject
-    public DbClearRule(@Named("fluxSessionFactoryContext") SessionFactoryContext fluxSessionFactoryContext,
-                       @Named("schedulerSessionFactoryContext") SessionFactoryContext schedulerSessionFactoryContext) {
-        this.fluxSessionFactoryContext = fluxSessionFactoryContext;
+    public DbClearRule(@Named("fluxRWSessionFactoriesMap") Map<ShardId, SessionFactory> fluxRWSessionFactoriesMap,
+                       @Named("schedulerSessionFactoriesContext") SessionFactoryContext schedulerSessionFactoryContext) {
+        this.fluxRWSessionFactoriesMap = fluxRWSessionFactoriesMap;
         this.schedulerSessionFactoryContext = schedulerSessionFactoryContext;
     }
 
+
     @Override
     protected void before() throws Throwable {
-        fluxSessionFactoryContext.useDefault();
-        clearDb(fluxTables,fluxSessionFactoryContext.getSessionFactory());
-        fluxSessionFactoryContext.clear();
+        explicitClearTables();
+    }
 
-        schedulerSessionFactoryContext.useDefault();
-        clearDb(fluxRedriverTables, schedulerSessionFactoryContext.getSessionFactory());
+    public void explicitClearTables() {
+        fluxRWSessionFactoriesMap.entrySet().forEach(entry -> {
+            clearDb(fluxTables, entry.getValue());
+        });
+        clearDb(fluxSchedulerTables, schedulerSessionFactoryContext.getSchedulerSessionFactory());
         schedulerSessionFactoryContext.clear();
     }
 
-    /** Clears all given tables which are mentioned using the given sessionFactory*/
+    /**
+     * Clears all given tables which are mentioned using the given sessionFactory
+     */
     private void clearDb(Class[] tables, SessionFactory sessionFactory) {
         Session session = sessionFactory.openSession();
         ManagedSessionContext.bind(session);
         Transaction tx = session.beginTransaction();
         try {
-            sessionFactory.getCurrentSession().createSQLQuery("set foreign_key_checks=0").executeUpdate();
+                session.createSQLQuery("set foreign_key_checks=0").executeUpdate();
             for (Class anEntity : tables) {
-                sessionFactory.getCurrentSession().createSQLQuery("delete from " + anEntity.getSimpleName() + "s").executeUpdate(); //table name is plural form of class name, so appending 's'
+                session.createSQLQuery("delete from " + anEntity.getSimpleName() + "s").executeUpdate(); //table name is plural form of class name, so appending 's'
             }
-            sessionFactory.getCurrentSession().createSQLQuery("set foreign_key_checks=1").executeUpdate();
+                session.createSQLQuery("set foreign_key_checks=1").executeUpdate();
             tx.commit();
         } catch (Exception e) {
-            if(tx != null)
+            if (tx != null)
                 tx.rollback();
-            throw new RuntimeException("Unable to clear tables. Exception: "+e.getMessage(), e);
+            throw new RuntimeException("Unable to clear tables. Exception: " + e.getMessage(), e);
         } finally {
-            if(session != null) {
+            if (session != null) {
                 ManagedSessionContext.unbind(sessionFactory);
                 session.close();
             }

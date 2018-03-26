@@ -16,99 +16,99 @@ package com.flipkart.flux.dao;
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
-import com.flipkart.flux.persistence.DataSourceType;
-import com.flipkart.flux.persistence.SelectDataSource;
-import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.*;
+import com.flipkart.flux.shard.ShardId;
 import com.google.inject.name.Named;
 import org.hibernate.Query;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
-import java.util.List;
+import java.util.*;
 
 /**
  * <code>StatesDAOImpl</code> is an implementation of {@link StatesDAO} which uses Hibernate to perform operations.
+ *
  * @author shyam.akirala
  */
 public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
+
     @Inject
-    public StatesDAOImpl(@Named("fluxSessionFactoryContext") SessionFactoryContext sessionFactoryContext) {
+    public StatesDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
         super(sessionFactoryContext);
     }
 
     @Override
     @Transactional
-    public State create(State state) {
-        return super.save(state);
-    }
-
-    @Override
-    @Transactional
-    public void updateState(State state) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void updateState(String stateMachineInstanceId, State state) {
         super.update(state);
     }
 
     @Override
     @Transactional
-    public void updateStatus(Long stateId, Long stateMachineId, Status status) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void updateStatus(String stateMachineId, Long stateId, Status status) {
         Query query = currentSession().createQuery("update State set status = :status where id = :stateId and stateMachineId = :stateMachineId");
         query.setString("status", status != null ? status.toString() : null);
         query.setLong("stateId", stateId);
-        query.setLong("stateMachineId", stateMachineId);
+        query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
 
     @Override
     @Transactional
-    public void updateRollbackStatus(Long stateId, Long stateMachineId, Status rollbackStatus) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void updateRollbackStatus(String stateMachineId, Long stateId, Status rollbackStatus) {
         Query query = currentSession().createQuery("update State set rollbackStatus = :rollbackStatus where id = :stateId and stateMachineId = :stateMachineId");
         query.setString("rollbackStatus", rollbackStatus != null ? rollbackStatus.toString() : null);
         query.setLong("stateId", stateId);
-        query.setLong("stateMachineId", stateMachineId);
+        query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
 
     @Override
     @Transactional
-    public void incrementRetryCount(Long stateId, Long stateMachineId) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void incrementRetryCount(String stateMachineId, Long stateId) {
         Query query = currentSession().createQuery("update State set attemptedNoOfRetries = attemptedNoOfRetries + 1 where id = :stateId and stateMachineId = :stateMachineId");
         query.setLong("stateId", stateId);
-        query.setLong("stateMachineId", stateMachineId);
+        query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
 
+    /**
+     * Query should go to Default Shard , As it is a redriver Task
+     *
+     * @param id
+     * @return
+     */
     @Override
     @Transactional
-    public State findById(Long id) {
-        return super.findById(State.class, id);
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public State findById(String stateMachineId, Long id) {
+        return super.findByCompositeIdFromStateTable(State.class, stateMachineId ,id);
+    }
+
+
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
+    public List findErroredStates(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime) {
+        List<Status> statuses = new ArrayList<>();
+        statuses.add(Status.errored);
+        return findStatesByStatus(shardId, stateMachineName, fromTime, toTime, null, statuses);
     }
 
     @Override
     @Transactional
-    @SelectDataSource(DataSourceType.READ_ONLY)
-    public List findErroredStates(String stateMachineName, Long fromStateMachineId, Long toStateMachineId) {
-        Query query = currentSession().createQuery("select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
-                "where sm.id between :fromStateMachineId and :toStateMachineId and sm.name = :stateMachineName and state.status in ('errored', 'sidelined', 'cancelled')");
-
-        query.setLong("fromStateMachineId", fromStateMachineId);
-        query.setLong("toStateMachineId", toStateMachineId);
-        query.setString("stateMachineName", stateMachineName);
-
-        return query.list();
-    }
-
-    @Override
-    @Transactional
-    @SelectDataSource(DataSourceType.READ_ONLY)
-    public List findStatesByStatus(String stateMachineName, Timestamp fromTime, Timestamp toTime, String stateName, List<Status> statuses) {
+    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
+    public List findStatesByStatus(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime, String stateName, List<Status> statuses) {
         Query query;
-        String queryString = "select state.stateMachineId, state.id, state.status from StateMachine sm join sm.states state " +
-                "where sm.id between (select min(id) from StateMachine where createdAt >= :fromTime) and (select max(id) from StateMachine where createdAt <= :toTime) " +
-                "and sm.name = :stateMachineName";
+        String queryString = "select state.stateMachineId, state.id, state.status from State state join StateMachine sm " +
+                "on sm.id = state.stateMachineId and sm.createdAt between :fromTime and :toTime and sm.name = :stateMachineName";
 
-        if(statuses != null && !statuses.isEmpty()) {
+        if (statuses != null && !statuses.isEmpty()) {
             StringBuilder sb = new StringBuilder(" and state.status in (");
             for (Status status : statuses) {
                 sb.append("'" + status.toString() + "',");
@@ -118,7 +118,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
             queryString = queryString.concat(statusClause);
         }
 
-        if(stateName == null) {
+        if (stateName == null) {
             query = currentSession().createQuery(queryString);
         } else {
             query = currentSession().createQuery(queryString + " and state.name = :stateName");
@@ -128,8 +128,9 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         query.setString("stateMachineName", stateMachineName);
         query.setTimestamp("fromTime", fromTime);
         query.setTimestamp("toTime", toTime);
-
         return query.list();
     }
+
+
 
 }

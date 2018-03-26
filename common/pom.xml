@@ -75,6 +75,11 @@
             <version>${mockito-all.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.flipkart.flux</groupId>
+            <artifactId>model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

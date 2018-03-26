@@ -13,8 +13,9 @@
 
 package com.flipkart.flux.redriver.dao;
 
-import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.*;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.flux.redriver.model.SmIdAndTaskIdPair;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
@@ -36,21 +37,24 @@ public class MessageDao {
     private SessionFactoryContext sessionFactoryContext;
 
     @Inject
-    public MessageDao(@Named("schedulerSessionFactoryContext") SessionFactoryContext sessionFactoryContext) {
+    public MessageDao(@Named("schedulerSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
         this.sessionFactoryContext = sessionFactoryContext;
     }
 
     @Transactional
+    @SelectDataSource(storage = Storage.SCHEDULER)
     public void save(ScheduledMessage scheduledMessage) {
         currentSession().saveOrUpdate(scheduledMessage);
     }
 
     /**
      * Retrieves rows offset to offset+rowCount from ScheduledMessages table ordered by scheduledTime ascending.
+     *
      * @param offset
      * @param rowCount
      */
     @Transactional
+    @SelectDataSource(storage = Storage.SCHEDULER)
     public List<ScheduledMessage> retrieveOldest(int offset, int rowCount) {
         return currentSession()
                 .createCriteria(ScheduledMessage.class)
@@ -62,20 +66,26 @@ public class MessageDao {
 
     /**
      * Deletes the corresponding {@link ScheduledMessage}s from ScheduledMessages table in one shot.
+     *
      * @param messageIdsToDelete List of {@link ScheduledMessage} Ids
      */
     @Transactional
-    public void deleteInBatch(List<Long> messageIdsToDelete) {
-        final Query deleteQuery = currentSession().createQuery("delete ScheduledMessage s where s.taskId in :msgList ");
-        deleteQuery.setParameterList("msgList",messageIdsToDelete);
-        deleteQuery.executeUpdate();
+    @SelectDataSource(storage = Storage.SCHEDULER)
+    public void deleteInBatch(List<SmIdAndTaskIdPair> messageIdsToDelete) {
+        messageIdsToDelete.stream().forEach(smIdAndTaskIdPair -> {
+            final Query deleteQuery = currentSession().createQuery("delete ScheduledMessage s where s.stateMachineId = :smId and s.taskId = :taskId");
+            deleteQuery.setString("smId", smIdAndTaskIdPair.getSmId());
+            deleteQuery.setLong("taskId", smIdAndTaskIdPair.getTaskId());
+            deleteQuery.executeUpdate();
+        });
     }
 
     /**
      * Provides the session which is bound to current thread.
+     *
      * @return Session
      */
     private Session currentSession() {
-        return sessionFactoryContext.getSessionFactory().getCurrentSession();
+        return sessionFactoryContext.getThreadLocalSession();
     }
 }

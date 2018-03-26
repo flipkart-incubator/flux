@@ -17,7 +17,8 @@ import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.google.inject.AbstractModule;
 import com.google.inject.matcher.Matchers;
-import org.hibernate.SessionFactory;
+import com.google.inject.name.Names;
+import org.hibernate.Session;
 
 import javax.transaction.Transactional;
 
@@ -27,17 +28,28 @@ import javax.transaction.Transactional;
 public class TestModule extends AbstractModule {
 
     private final SessionFactoryContext context;
-    private final SessionFactory readOnlySessionFactory;
+    private final Session shardedReadWriteSession;
+    private final Session shardedReadOnlySession;
+    private final Session schedulerSession;
 
-    public TestModule(SessionFactoryContext context, SessionFactory readOnlySessionFactory) {
+
+    public TestModule(SessionFactoryContext context, Session shardedReadWriteSession,
+                      Session shardedReadOnlySession, Session schedulerSession) {
         this.context = context;
-        this.readOnlySessionFactory = readOnlySessionFactory;
+        this.shardedReadWriteSession = shardedReadWriteSession;
+        this.shardedReadOnlySession = shardedReadOnlySession;
+        this.schedulerSession = schedulerSession;
     }
 
     @Override
     protected void configure() {
         bind(SessionFactoryContext.class).toInstance(context);
-        bind(SessionFactory.class).toInstance(readOnlySessionFactory);
+        bind(Session.class).annotatedWith(Names.named("shardedReadWriteSession")).
+                toInstance(shardedReadWriteSession);
+        bind(Session.class).annotatedWith(Names.named("shardedReadOnlySession")).
+                toInstance(shardedReadOnlySession);
+        bind(Session.class).annotatedWith(Names.named("schedulerSession")).
+                toInstance(schedulerSession);
         bind(InterceptedClass.class);
         bindInterceptor(Matchers.subclassesOf(InterceptedClass.class), Matchers.annotatedWith(Transactional.class), new TransactionInterceptor(() -> context));
     }

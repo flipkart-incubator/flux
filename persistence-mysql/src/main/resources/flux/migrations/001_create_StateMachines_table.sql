@@ -3,15 +3,13 @@
 --changeset shyam.akirala:1 runOnChange:false
 
 CREATE TABLE IF NOT EXISTS `StateMachines` (
-  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `id` VARCHAR(64) NOT NULL,
   `name` VARCHAR(1000) NOT NULL,
   `version` SMALLINT UNSIGNED NOT NULL,
   `description` VARCHAR(10) DEFAULT NULL,
-  `correlationId` VARCHAR(128) DEFAULT NULL,
   `createdAt` TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3),
   `updatedAt` TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_correlationId` (`correlationId`)
+  PRIMARY KEY (`id`)
 )
 ENGINE=InnoDB
 ROW_FORMAT=DEFAULT

@@ -98,7 +98,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     }
 
     @Override
-    public void submitEventAndUpdateStatus(EventData eventData, Long stateMachineId, ExecutionUpdateData executionUpdateData) {
+    public void submitEventAndUpdateStatus(EventData eventData, String stateMachineId, ExecutionUpdateData executionUpdateData) {
         CloseableHttpResponse httpResponse = null;
         try {
             EventAndExecutionData eventAndExecutionData = new EventAndExecutionData(eventData, executionUpdateData);
@@ -174,10 +174,10 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
 
 	/**
 	 * Interface method implementation. Increments the execution retries in persistence by invoking suitable Flux runtime API
-	 * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#incrementExecutionRetries(java.lang.Long, java.lang.Long)
+	 * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#incrementExecutionRetries(String, Long)
 	 */
 	@Override
-	public void incrementExecutionRetries(Long stateMachineId,Long taskId) {
+	public void incrementExecutionRetries(String stateMachineId, Long taskId) {
 		CloseableHttpResponse httpResponse = null;
         httpResponse = postOverHttp(null,  "/" + stateMachineId + "/" + taskId + "/retries/inc");
         HttpClientUtils.closeQuietly(httpResponse);
@@ -187,27 +187,28 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
      * Interface method implementation. Posts to Flux Runtime API to redrive a task.
      */
     @Override
-    public void redriveTask(Long taskId) {
+    public void redriveTask(String stateMachineId, Long taskId) {
         CloseableHttpResponse httpResponse = null;
-        httpResponse = postOverHttp(null,  "/redrivetask/" + taskId);
+        httpResponse = postOverHttp(null,  "/redrivetask/" + stateMachineId + "/taskId/"+ taskId);
         HttpClientUtils.closeQuietly(httpResponse);
     }
 	
 	/** Helper method to post data over Http */
-    private CloseableHttpResponse postOverHttp(Object dataToPost, String pathSuffix)  {
+    protected CloseableHttpResponse postOverHttp(Object dataToPost, String pathSuffix)  {
         CloseableHttpResponse httpResponse = null;
         HttpPost httpPostRequest;
         httpPostRequest = new HttpPost(fluxEndpoint + pathSuffix);
         try {
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             objectMapper.writeValue(byteArrayOutputStream, dataToPost);
+
             httpPostRequest.setEntity(new ByteArrayEntity(byteArrayOutputStream.toByteArray(), ContentType.APPLICATION_JSON));
             httpResponse = closeableHttpClient.execute(httpPostRequest);
             final int statusCode = httpResponse.getStatusLine().getStatusCode();
             if (statusCode >= Response.Status.OK.getStatusCode() && statusCode < Response.Status.MOVED_PERMANENTLY.getStatusCode() ) {
                 logger.trace("Posting over http is successful. Status code: {}", statusCode);
             } else {
-                logger.error("Did not receive a valid response from Flux core. Status code: {}, message: {}", statusCode, EntityUtils.toString(httpResponse.getEntity()));
+               logger.error("Did not receive a valid response from Flux core. Status code: {}, message: {}", statusCode, EntityUtils.toString(httpResponse.getEntity()));
                 HttpClientUtils.closeQuietly(httpResponse);
                 throw new RuntimeCommunicationException("Did not receive a valid response from Flux core");
             }

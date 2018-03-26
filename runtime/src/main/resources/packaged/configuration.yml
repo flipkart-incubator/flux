@@ -1,15 +1,13 @@
-flux.Hibernate:
-  hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
-  hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
-  hibernate.connection.url: "jdbc:mysql://localhost:3306/flux"
-  hibernate.connection.username: "root"
-  hibernate.connection.password: ""
-  hibernate.current_session_context_class: "managed"
-  connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
-  hibernate.c3p0.min_size: 10
-  hibernate.c3p0.max_size: 100
+shard.Pair.Model.List:
+            -  shardId: 1
+               masterIp: "localhost:3306"
+               slaveIp:  "localhost:3306"
+               startKey: "00"
+               endKey:   "ff"
 
-fluxReadOnly.Hibernate:
+
+
+flux.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
   hibernate.connection.url: "jdbc:mysql://localhost:3306/flux"
@@ -20,6 +18,17 @@ fluxReadOnly.Hibernate:
   hibernate.c3p0.min_size: 3
   hibernate.c3p0.max_size: 10
 
+
+fluxReadOnly.Hibernate:
+  hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
+  hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
+  hibernate.connection.username: "root"
+  hibernate.connection.password: ""
+  hibernate.current_session_context_class: "managed"
+  connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
+  hibernate.c3p0.min_size: 3
+  hibernate.c3p0.max_size: 5
+
 flux_scheduler.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
@@ -28,8 +37,8 @@ flux_scheduler.Hibernate:
   hibernate.connection.password: ""
   hibernate.current_session_context_class: "managed"
   connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
-  hibernate.c3p0.min_size: 10
-  hibernate.c3p0.max_size: 100
+  hibernate.c3p0.min_size: 3
+  hibernate.c3p0.max_size: 5
 
 Dashboard:
   service.port: 9999
@@ -41,7 +50,7 @@ Api:
   service.port: 9998
   service.acceptors: 4
   service.selectors: 4
-  service.workers: 200
+  service.workers: 100
 
 routers:
   default:
@@ -59,17 +68,21 @@ runtime:
 
 redriver:
   batchDelete:
-    batchSize: 50
-    intervalms: 1000
+    batchSize: 1000
+    intervalms: 2500
   batchRead:
-    batchSize: 100
-    intervalms: 20000
-  noOfPersistenceWorkers: 10
+    batchSize: 1000
+    intervalms: 2500
+  noOfPersistenceWorkers: 3
 
 eventScheduler:
   batchRead:
     batchSize: 50
     intervalms: 1000
+
+eventProxyForMigration:
+  enabled: "yes"
+  endpoint: "http://localhost:9998/api/machines"
 
 deploymentType: directory
 deploymentUnitsPath: "/tmp/workflows/"

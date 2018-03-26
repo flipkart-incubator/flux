@@ -27,20 +27,27 @@ import java.text.MessageFormat;
 
 /**
  * <code>FluxInitializer</code> initializes the Flux runtime using the various Guice modules via Polyguice
+ *
  * @author shyam.akirala
  * @author regunath.balasubramanian
  * @author yogesh.nachnani
  */
 public class FluxInitializer {
 
-	/** Logger for this class */
+    /**
+     * Logger for this class
+     */
     private static final Logger logger = LoggerFactory.getLogger(FluxInitializer.class);
-	
-	/** The machine name where this Flux instance is running */
-	private String hostName;
-	
-	/** The Flux startup display contents*/
-	private static final MessageFormat STARTUP_DISPLAY = new MessageFormat(
+
+    /**
+     * The machine name where this Flux instance is running
+     */
+    private String hostName;
+
+    /**
+     * The Flux startup display contents
+     */
+    private static final MessageFormat STARTUP_DISPLAY = new MessageFormat(
             "\n*************************************************************************\n" +
                     " Flux             ___          \n" +
                     "          ___    /   \\        \n" +
@@ -55,35 +62,37 @@ public class FluxInitializer {
     );
 
 
-	/** The Polyguice DI container */
+    /**
+     * The Polyguice DI container
+     */
     private Polyguice fluxRuntimeContainer;
-    
+
     /**
      * Constructor for this class
      */
     public FluxInitializer() {
-    	try {
-    		this.hostName = InetAddress.getLocalHost().getHostName();
-    	} catch (UnknownHostException e) {
-    		//ignore the exception, not critical information
-    	}        
+        try {
+            this.hostName = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            //ignore the exception, not critical information
+        }
         this.fluxRuntimeContainer = new Polyguice();
     }
 
     /**
-     * Startup entry method 
+     * Startup entry method
      */
     public static void main(String[] args) throws Exception {
         String command = "start";
-        if (args != null && args.length> 0) {
+        if (args != null && args.length > 0) {
             command = args[0];
         }
         final FluxInitializer fluxInitializer = new FluxInitializer();
         switch (command) {
-            case "start" :
+            case "start":
                 fluxInitializer.start();
                 break;
-            case "migrate" :
+            case "migrate":
                 if (args.length < 2) {
                     throw new RuntimeException("<migrate> must be followed with db name");
                 }
@@ -91,7 +100,6 @@ public class FluxInitializer {
                     throw new RuntimeException("<migrate> works only for 'flux' or 'flux_scheduler'");
                 }
                 fluxInitializer.migrate(args[1]);
-                break;
         }
     }
 
@@ -99,18 +107,18 @@ public class FluxInitializer {
      * 1. Register all relavent modules with the Polyguice container
      * 2. Boot the polyguice container
      */
+
     private void loadFluxRuntimeContainer() {
         logger.debug("loading flux runtime container");
         final ConfigModule configModule = new ConfigModule();
         fluxRuntimeContainer.modules(
                 configModule,
-                new HibernateModule(),
+                new ShardModule(),
                 new ContainerModule(),
                 new DeploymentUnitModule(),
                 new AkkaModule(),
                 new TaskModule(),
-                new FluxClientInterceptorModule()
-        );
+                new FluxClientInterceptorModule());
         //scans package com.flipkart.flux for polyguice specific annotations like @Bindable, @Component etc.
         fluxRuntimeContainer.scanPackage("com.flipkart.flux");
         fluxRuntimeContainer.registerConfigurationProvider(configModule.getConfigProvider());
@@ -118,27 +126,27 @@ public class FluxInitializer {
     }
 
     private void start() throws Exception {
-    	logger.info("** Flux starting up... **");
-    	long start = System.currentTimeMillis();
+        logger.info("** Flux starting up... **");
+        long start = System.currentTimeMillis();
         //load flux runtime container
         loadFluxRuntimeContainer();
         // this ensures component booter is up and initialised
         final OrderedComponentBooter instance = this.fluxRuntimeContainer.getComponentContext().getInstance(OrderedComponentBooter.class);
         final Object[] displayArgs = {
-				(System.currentTimeMillis() - start),
-				this.hostName,
+                (System.currentTimeMillis() - start),
+                this.hostName,
         };
-		logger.info(STARTUP_DISPLAY.format(displayArgs));
+        logger.info(STARTUP_DISPLAY.format(displayArgs));
         logger.info("** Flux startup complete **");
     }
 
-    /** Helper method to perform migrations
-     * @param dbName - name of the database to run migrations on
-     * */
-    private void migrate(String dbName) {
+    /**
+     * Helper method to perform migrations
+     */
+    private void migrate(String dbName) throws InterruptedException {
         loadFluxRuntimeContainer();
         MigrationsRunner migrationsRunner = fluxRuntimeContainer.getComponentContext().getInstance(MigrationsRunner.class);
         migrationsRunner.migrate(dbName);
-    }
 
+    }
 }

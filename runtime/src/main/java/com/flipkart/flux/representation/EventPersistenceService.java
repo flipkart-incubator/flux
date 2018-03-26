@@ -49,7 +49,7 @@ public class EventPersistenceService {
      * @return created event
      */
     public Event persistEvent(Event event) {
-        return eventsDAO.create(event);
+        return eventsDAO.create(event.getStateMachineInstanceId(), event);
     }
 
 }

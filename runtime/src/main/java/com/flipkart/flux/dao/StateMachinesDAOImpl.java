@@ -16,8 +16,8 @@ package com.flipkart.flux.dao;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.StateMachineStatus;
-import com.flipkart.flux.domain.Status;
-import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.*;
+import com.flipkart.flux.shard.ShardId;
 import com.google.inject.name.Named;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
@@ -31,39 +31,46 @@ import java.util.Set;
 
 /**
  * <code>StateMachinesDAOImpl</code> is an implementation of {@link StateMachinesDAO} which uses Hibernate to perform operations.
+ *
  * @author shyam.akirala
  */
 public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements StateMachinesDAO {
 
     @Inject
-    public StateMachinesDAOImpl(@Named("fluxSessionFactoryContext") SessionFactoryContext sessionFactoryContext) {
+    public StateMachinesDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
         super(sessionFactoryContext);
     }
 
     @Override
     @Transactional
-    public StateMachine create(StateMachine stateMachine) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public StateMachine create(String stateMachineInstanceId, StateMachine stateMachine) {
         return super.save(stateMachine);
     }
 
     @Override
     @Transactional
-    public StateMachine findById(Long id) {
-        return super.findById(StateMachine.class, id);
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public StateMachine findById(String stateMachineInstanceId) {
+        return super.findById(StateMachine.class, stateMachineInstanceId);
     }
 
+    // scatter gather query
     @Override
     @Transactional
-    public Set<StateMachine> findByName(String stateMachineName) {
+    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
+    public Set<StateMachine> findByName(ShardId shardId, String stateMachineName) {
         Criteria criteria = currentSession().createCriteria(StateMachine.class)
                 .add(Restrictions.eq("name", stateMachineName));
         List<StateMachine> stateMachines = criteria.list();
         return new HashSet<>(stateMachines);
     }
 
+    //Scatter gather query
     @Override
     @Transactional
-    public Set<StateMachine> findByNameAndVersion(String stateMachineName, Long version) {
+    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
+    public Set<StateMachine> findByNameAndVersion(ShardId shardId, String stateMachineName, Long version) {
         Criteria criteria = currentSession().createCriteria(StateMachine.class)
                 .add(Restrictions.eq("name", stateMachineName))
                 .add(Restrictions.eq("version", version));
@@ -71,18 +78,15 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
         return new HashSet<>(stateMachines);
     }
 
-    @Override
-    @Transactional
-    public StateMachine findByCorrelationId(String correlationId) {
-        return (StateMachine) currentSession().createCriteria(StateMachine.class).add(Restrictions.eq("correlationId",correlationId)).uniqueResult();
-    }
 
     @Override
     @Transactional
-    public void updateStatus(Long stateMachineId, StateMachineStatus status) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void updateStatus(String stateMachineId, StateMachineStatus status) {
         Query query = currentSession().createQuery("update StateMachine set status = :status where id = :stateMachineId");
         query.setString("status", status != null ? status.toString() : null);
-        query.setLong("stateMachineId", stateMachineId);
+        query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
+
 }

@@ -30,100 +30,132 @@ import java.util.Set;
 @Table(name = "StateMachines")
 public class StateMachine {
 
-    /** Unique identifier of the state machine*/
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    /**
+     * Unique identifier of the state machine
+     */
+    @Id
+    private String id;
 
     /* provided */
-    /** The version identifier*/
+    /**
+     * The version identifier
+     */
     private Long version;
-    /** Name for this state machine*/
+    /**
+     * Name for this state machine
+     */
     private String name;
-    /** Description of the state machine*/
+    /**
+     * Description of the state machine
+     */
     private String description;
 
-    /** User supplied correlationId. A user can post events for a state machine given this correlation id */
-    private String correlationId;
-
-    /** List of states that this machine has*/
-    @OneToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL, targetEntity = State.class)
+    /**
+     * List of states that this machine has
+     */
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = State.class)
     @JoinColumn(name = "stateMachineId")
     private Set<State> states;
 
-    /** Status of the state machine, denotes whether it is active or cancelled */
+    /**
+     * Status of the state machine, denotes whether it is active or cancelled
+     */
     @Enumerated(EnumType.STRING)
     private StateMachineStatus status;
 
     /* maintained */
-    /** Current states of this state machine*/
+    /**
+     * Current states of this state machine
+     */
     @Transient
     private Set<State> currentStates;
 
-    /** The Context for interacting with the Flux runtime*/
+    /**
+     * The Context for interacting with the Flux runtime
+     */
     @Transient
     private Context context;
 
-    /** Time at which this State Machine has been created */
+    /**
+     * Time at which this State Machine has been created
+     */
     private Timestamp createdAt;
 
-    /** Time at which this State Machine has been last updated */
+    /**
+     * Time at which this State Machine has been last updated
+     */
     private Timestamp updatedAt;
 
 
-    /** Constructors*/
-    protected StateMachine() {}
-    public StateMachine(Long version, String name, String description, Set<State> states, String correlationId) {
+    /**
+     * Constructors
+     */
+    protected StateMachine() {
+    }
+
+    public StateMachine(String id, Long version, String name, String description, Set<State> states) {
         super();
+        this.id = id;
         this.version = version;
         this.name = name;
         this.description = description;
         this.states = states;
-        this.correlationId = correlationId;
         this.status = StateMachineStatus.active;
     }
 
-    /** Accessor/Mutator methods */
-    public Long getId() {
+    /**
+     * Accessor/Mutator methods
+     */
+    public String getId() {
         return id;
     }
+
     public Context getContext() {
         return context;
     }
+
     public void setContext(Context context) {
         this.context = context;
     }
+
     public Set<State> getCurrentStates() {
         return currentStates;
     }
+
     public void setCurrentStates(Set<State> currentStates) {
         this.currentStates = currentStates;
     }
+
     public Long getVersion() {
         return version;
     }
+
     public String getName() {
         return name;
     }
+
     public String getDescription() {
         return description;
     }
+
     public Set<State> getStates() {
         return states;
     }
+
     public StateMachineStatus getStatus() {
         return status;
     }
+
     public void setStatus(StateMachineStatus status) {
         this.status = status;
     }
+
     public Timestamp getCreatedAt() {
         return createdAt;
     }
+
     public Timestamp getUpdatedAt() {
         return updatedAt;
-    }
-    public String getCorrelationId() {
-        return correlationId;
     }
 
     @Override
@@ -162,15 +194,16 @@ public class StateMachine {
     @Override
     public String toString() {
         return "StateMachine{" +
-            "context=" + context +
-            ", id='" + id + '\'' +
-            ", version=" + version +
-            ", name='" + name + '\'' +
-            ", description='" + description + '\'' +
-            ", states=" + states +
-            ", currentStates=" + currentStates +
-            ", createdAt=" + createdAt +
-            ", updatedAt=" + updatedAt +
-            '}';
+                "context=" + context +
+                ", id='" + id + '\'' +
+                ", version=" + version +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", states=" + states +
+                ", currentStates=" + currentStates +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
+
 }

@@ -42,21 +42,20 @@ public class EventSchedulerDaoTest {
     EventSchedulerDao eventSchedulerDao;
 
     @Inject
-    @Named("schedulerSessionFactoryContext")
+    @Named("schedulerSessionFactoriesContext")
     SessionFactoryContext sessionFactory;
 
     @Before
     public void setUp() throws Exception {
-        sessionFactory.useDefault();
-        Session session = sessionFactory.getSessionFactory().openSession();
+        Session session = sessionFactory.getSchedulerSessionFactory().openSession();
         ManagedSessionContext.bind(session);
         Transaction tx = session.beginTransaction();
         try {
-            sessionFactory.getSessionFactory().getCurrentSession().createSQLQuery("delete from ScheduledEvents").executeUpdate();
+            session.createSQLQuery("delete from ScheduledEvents").executeUpdate();
             tx.commit();
         } finally {
             if (session != null) {
-                ManagedSessionContext.unbind(sessionFactory.getSessionFactory());
+                ManagedSessionContext.unbind(session.getSessionFactory());
                 session.close();
                 sessionFactory.clear();
             }

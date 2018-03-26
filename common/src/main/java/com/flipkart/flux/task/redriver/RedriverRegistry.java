@@ -28,17 +28,18 @@ public interface RedriverRegistry {
 	 * @param taskId the Task State identifier
 	 * @param redriverDelay the minimum elapsed duration after which restart is to be attempted
 	 */
-	public void registerTask(Long taskId, long redriverDelay);
+	public void registerTask(Long taskId, String stateMachineId, long redriverDelay);
 	
 	/**
 	 * Cancels restarts for the specified Task from stalled state.
-	 * @param taskId the Task State identifier
+	 * @param stateMachineId StateMachineIdentifier
+	 * @param taskId task Identifier
 	 */
-	public void deRegisterTask(Long taskId);
+	public void deRegisterTask(String stateMachineId, Long taskId);
 	
 	/**
 	 * Re-drives i.e. re-runs the Task identified by the specified Task Id
 	 * @param taskId identifier for the Task to re-drive/re-run 
 	 */
-	public void redriveTask(Long taskId);
+	public void redriveTask(String stateMachineId, Long taskId);
 }

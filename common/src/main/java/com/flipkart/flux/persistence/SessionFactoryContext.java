@@ -13,32 +13,57 @@
 
 package com.flipkart.flux.persistence;
 
+import com.flipkart.flux.shard.ShardId;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 /**
- * Context to set/get a particular {@link SessionFactory} for the ongoing transaction.
- * @see com.flipkart.flux.guice.interceptor.TransactionInterceptor
+ * Context to get a particular {@link SessionFactory} for the ongoing transaction.
  *
+ * @see com.flipkart.flux.guice.interceptor.TransactionInterceptor
+ * <p>
  * Created by gaurav.ashok on 23/11/16.
  */
 public interface SessionFactoryContext {
 
     /**
-     * Get the sessionFactory for the current thread context to be used for the ongoing transaction.
+     * Get the Scheduler sessionFactory for the current thread context to be used for the ongoing transaction.
+     *
      * @return {@link SessionFactory}
      */
-    SessionFactory getSessionFactory();
+
+    SessionFactory getSchedulerSessionFactory();
 
     /**
-     * Set a particular sessionFactory in the current thread context based on the DataSourceType.
-     * @param type {@link DataSourceType}
+     * Get the sessionFactory for the current thread context to be used for the ongoing transaction.
+     *
+     * @return {@link SessionFactory}
      */
-    void useSessionFactory(DataSourceType type);
+
+     Session getThreadLocalSession();
 
     /**
-     * Set the default sessionFactory in the current thread context.
+     * Set the sessionFactory for the current thread context to be used for the next transaction
+     *
+     * @param session
      */
-    void useDefault();
+    void setThreadLocalSession(Session session);
+
+    /**
+     * Get Session Factory for the given shardId from RWSessionFactoryMap
+     *
+     * @param shardKey
+     * @return
+     */
+    SessionFactory getRWSessionFactory(String shardKey);
+
+    /**
+     * Get Session Factory for the given  shardId from ROSessionFactoryMap
+     *
+     * @return
+     */
+    SessionFactory getROSessionFactory(ShardId shardId);
+
 
     /**
      * Clear the context.

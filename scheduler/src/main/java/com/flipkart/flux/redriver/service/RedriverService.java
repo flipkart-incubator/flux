@@ -25,10 +25,10 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.ArrayList;
 import java.util.List;
+
 import java.util.concurrent.*;
 
 import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
-
 /**
  * The service uses a scheduler to read the oldest message with fixed delay and redrives them if necessary. The task will
  * be scheduled for execution if the current time is greater than or equal to scheduledTime.
@@ -47,6 +47,8 @@ public class RedriverService {
     private MessageManagerService messageService;
     private ScheduledFuture scheduledFuture;
     private final RedriverRegistry redriverRegistry;
+
+
     private final InstrumentedScheduledExecutorService scheduledExecutorService;
     private ExecutorService asyncRedriveService;
 
@@ -77,8 +79,8 @@ public class RedriverService {
                 scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
                     try {
                         redrive();
-                    } catch (Exception e) {
-                        logger.error("Error while running redrive", e);
+                    } catch (Throwable e) {
+                        logger.error("Error while running redrive {}", e);
                     }
                 }, initialDelay, batchReadInterval, TimeUnit.MILLISECONDS);
                 logger.info("RedriverService started");
@@ -106,11 +108,9 @@ public class RedriverService {
             ArrayList<Future<?>> messageRedrived = new ArrayList<>();
             messages.stream().filter(e -> e.getScheduledTime() < now).forEach(e -> {
                 try {
-                    messageRedrived.add(asyncRedriveService.submit(() -> {
-                        redriverRegistry.redriveTask(e.getTaskId());
-                    }));
-                } catch (Exception ex) {
-                }
+                    redriverRegistry.redriveTask(e.getStateMachineId(), e.getTaskId());
+                } catch (Exception ex) {}
+
             });
             boolean allCompleted = false;
             while (!allCompleted) {

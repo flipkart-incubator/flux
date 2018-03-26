@@ -5,11 +5,11 @@
     </Properties>
     <Appenders>
         <Console name="console-log" target="SYSTEM_OUT">
-            <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{5} %X - %msg%n"/>
+            <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{5} %X{stateMachineId} - %msg%n"/>
         </Console>
     </Appenders>
     <Loggers>
-        <Root level="INFO" additivity="false">
+        <Root level="info" additivity="false">
             <AppenderRef ref="console-log"/>
         </Root>
         <Logger name="org.eclipse.jetty.*" level="info" additivity="false" >

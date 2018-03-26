@@ -30,7 +30,7 @@ public interface FluxRuntimeConnector {
     void submitNewWorkflow(StateMachineDefinition stateMachineDef);
 
     /* Post the event generated as a result of task execution back to the core runtime, also updates the state status to completed which generated this event*/
-    void submitEventAndUpdateStatus(EventData eventData, Long stateMachineId, ExecutionUpdateData executionUpdateData);
+    void submitEventAndUpdateStatus(EventData eventData, String stateMachineId, ExecutionUpdateData executionUpdateData);
 
     /**
      * Post an arbitrary event against a previously registered correlationId
@@ -69,11 +69,12 @@ public interface FluxRuntimeConnector {
      * @param stateMachineId the state machine identifier
      * @param taskId identifier for the Task whose retry count is to be updated
      */
-    void incrementExecutionRetries(Long stateMachineId, Long taskId);
+    void incrementExecutionRetries(String stateMachineId, Long taskId);
 
     /**
      * Posts to Flux Runtime by connecting over Http to redrive a task.
      * @param taskId the task/state identifier
+     * @param stateMachineId stateMachine Id, to which the task belongs
      */
-    void redriveTask(Long taskId);
+    void redriveTask(String stateMachineId, Long taskId);
 }

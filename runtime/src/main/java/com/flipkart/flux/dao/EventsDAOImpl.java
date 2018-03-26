@@ -16,7 +16,7 @@ package com.flipkart.flux.dao;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.*;
 import com.google.inject.name.Named;
 import org.hibernate.*;
 import org.hibernate.criterion.Projections;
@@ -28,42 +28,41 @@ import java.util.*;
 
 /**
  * <code>EventsDAOImpl</code> is an implementation of {@link EventsDAO} which uses Hibernate to perform operations.
+ *
  * @author shyam.akirala
  */
 public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Inject
-    public EventsDAOImpl(@Named("fluxSessionFactoryContext") SessionFactoryContext sessionFactoryContext) {
+    public EventsDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
         super(sessionFactoryContext);
     }
 
     @Override
     @Transactional
-    public Event create(Event event) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public Event create(String stateMachineInstanceId, Event event) {
         return super.save(event);
     }
 
     @Override
     @Transactional
-    public void updateEvent(Event event) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void updateEvent(String stateMachineInstanceId, Event event) {
         super.update(event);
     }
 
     @Override
     @Transactional
-    public List<Event> findBySMInstanceId(Long stateMachineInstanceId) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public List<Event> findBySMInstanceId(String stateMachineInstanceId) {
         return currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId)).list();
     }
 
     @Override
     @Transactional
-    public Event findById(Long id) {
-        return super.findById(Event.class, id);
-    }
-
-    @Override
-    @Transactional
-    public Event findBySMIdAndName(Long stateMachineInstanceId, String eventName) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public Event findBySMIdAndName(String stateMachineInstanceId, String eventName) {
         Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("name", eventName));
         return (Event) criteria.uniqueResult();
@@ -71,7 +70,9 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    public List<String> findTriggeredOrCancelledEventsNamesBySMId(Long stateMachineInstanceId) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public List<String> findTriggeredOrCancelledEventsNamesBySMId(String stateMachineInstanceId) {
+
         Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.or(
                         Restrictions.eq("status", Event.EventStatus.triggered),
@@ -82,7 +83,8 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    public List<Event> findTriggeredEventsBySMId(Long stateMachineInstanceId) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public List<Event> findTriggeredEventsBySMId(String stateMachineInstanceId) {
         Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("status", Event.EventStatus.triggered));
         return criteria.list();
@@ -90,14 +92,15 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    public List<EventData> findByEventNamesAndSMId(List<String> eventNames, Long stateMachineInstanceId) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public List<EventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames) {
         if (eventNames.isEmpty()) {
             return new ArrayList<>();
         }
         StringBuilder eventNamesString = new StringBuilder();
-        for(int i=0; i<eventNames.size(); i++) {
-            eventNamesString.append("\'"+eventNames.get(i)+"\'");
-            if(i!=eventNames.size()-1)
+        for (int i = 0; i < eventNames.size(); i++) {
+            eventNamesString.append("\'" + eventNames.get(i) + "\'");
+            if (i != eventNames.size() - 1)
                 eventNamesString.append(", ");
         }
         //retrieves and returns the events in the order of eventNames
@@ -106,14 +109,15 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         List<Event> readEvents = hqlQuery.list();
         LinkedList<EventData> readEventsDTOs = new LinkedList<EventData>();
         for (Event event : readEvents) {
-        	readEventsDTOs.add(new EventData(event.getName(), event.getType(),event.getEventData(), event.getEventSource()));
+            readEventsDTOs.add(new EventData(event.getName(), event.getType(), event.getEventData(), event.getEventSource()));
         }
         return readEventsDTOs;
     }
 
     @Override
     @Transactional
-    public Map<String, Event.EventStatus> getAllEventsNameAndStatus(Long stateMachineInstanceId, boolean forUpdate) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public Map<String, Event.EventStatus> getAllEventsNameAndStatus(String stateMachineInstanceId, boolean forUpdate) {
         SQLQuery sqlQuery = currentSession().createSQLQuery("Select name, status from Events where stateMachineInstanceId = " + stateMachineInstanceId + (forUpdate ? " for update" : ""));
         List<Object[]> eventRows = sqlQuery.list();
         Map<String, Event.EventStatus> eventStatusMap = new HashMap<>();
@@ -127,10 +131,11 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     @Transactional
-    public void markEventAsCancelled(Long stateMachineInstanceId, String eventName) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void markEventAsCancelled(String stateMachineInstanceId, String eventName) {
         Query query = currentSession().createQuery("update Event set status = :status where stateMachineInstanceId = :stateMachineInstanceId and name = :eventName");
         query.setString("status", Event.EventStatus.cancelled.toString());
-        query.setLong("stateMachineInstanceId", stateMachineInstanceId);
+        query.setString("stateMachineInstanceId", stateMachineInstanceId);
         query.setString("eventName", eventName);
         query.executeUpdate();
     }

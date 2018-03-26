@@ -20,7 +20,6 @@ import org.junit.rules.ExternalResource;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -40,18 +39,18 @@ public class TestSMRule extends ExternalResource {
         this.stateMachinesDAO = stateMachinesDAO;
     }
 
-    @Override @Transactional
+    @Override
     protected void before() throws Throwable {
         String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
         String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";
         String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
-        State state1 = new State(2L, "state1", "desc1", onEntryHook, task, onExitHook, null, 3L, 60L, null, null, null, 0l);
-        State state2 = new State(2L, "state2", "desc2", onEntryHook, task, onExitHook, null, 3L, 60L, null, null, null, 0l);
+        State state1 = new State(2L, "state1", "desc1", onEntryHook, task, onExitHook, null, 3L, 60L, null, null, null, 0l, "1", 1L);
+        State state2 = new State(2L, "state2", "desc2", onEntryHook, task, onExitHook, null, 3L, 60L, null, null, null, 0l, "1", 2L);
         Set<State> states = new HashSet<>();
         states.add(state1);
         states.add(state2);
-        StateMachine stateMachine1 = new StateMachine(2L, "SM_name", "SM_desc", states,null);
-        stateMachine = stateMachinesDAO.create(stateMachine1);
+        StateMachine stateMachine1 = new StateMachine("1", 2L, "SM_name", "SM_desc", states);
+        stateMachine = stateMachinesDAO.create(stateMachine1.getId(), stateMachine1);
     }
 
     public StateMachine getStateMachine() {
