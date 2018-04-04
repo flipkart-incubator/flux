@@ -272,42 +272,26 @@ public class StateMachineResource {
     public Response submitEvent(@PathParam("machineId") String machineId,
                                 EventAndExecutionData eventAndExecutionData
     ) throws Exception {
+        StateMachine stateMachine = null;
+        stateMachine = stateMachinesDAO.findById(machineId);
+        if (stateMachine == null) {
+            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity("State machine with Id: " + machineId + " not found").build();
+        }
         EventData eventData = eventAndExecutionData.getEventData();
         ExecutionUpdateData executionUpdateData = eventAndExecutionData.getExecutionUpdateData();
         MDC.clear();
         MDC.put(STATE_MACHINE_ID, machineId);
         MDC.put(TASK_ID, executionUpdateData.getTaskId().toString());
-        logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
         try {
-            this.workFlowExecutionController.updateTaskStatus(machineId, executionUpdateData.getTaskId(), executionUpdateData);
-        } catch (Exception ex) {
-            logger.error("exception {} {}", ex.getMessage(), ex.getStackTrace());
-        }
-        return postEvent(machineId, null, eventData);
-    }
-
-    private Response postEvent(String machineId, String searchField, EventData eventData) {
-        try {
-            StateMachine stateMachine = null;
-            if (searchField != null && !searchField.equals(CORRELATION_ID)) {
-                return Response.status(Response.Status.BAD_REQUEST).build();
+            logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
+            if (eventData.getCancelled() != null && eventData.getCancelled()) {
+                workFlowExecutionController.updateTaskStatusAndHandlePathCancellation(machineId, eventAndExecutionData);
             } else {
-                stateMachine = stateMachinesDAO.findById(machineId);
+                workFlowExecutionController.updateTaskStatus(machineId, executionUpdateData.getTaskId(), executionUpdateData);
+                workFlowExecutionController.postEvent(eventData, stateMachine.getId());
             }
-
-            if (stateMachine == null) {
-                return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity("State machine with Id: " + machineId + " not found").build();
-            }
-
-            if (stateMachine.getStatus() == StateMachineStatus.cancelled) {
-                logger.info("Discarding event: {} as State machine: {} is in cancelled state", eventData.getName(), stateMachine.getId());
-                return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + machineId + " is in 'cancelled' state. Discarding the event.").build();
-            }
-
-            workFlowExecutionController.postEvent(eventData, stateMachine.getId());
         } catch (IllegalEventException ex) {
             return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
-
         }
 
         return Response.status(Response.Status.ACCEPTED).build();

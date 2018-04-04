@@ -152,13 +152,14 @@ public class WorkFlowExecutionController {
 
     /**
      * Updates task status and cancels paths which are dependant on the current event. After the cancellation of path, executes the states which can be executed.
-     * @param stateMachine
+     * @param stateMachineId
      * @param eventAndExecutionData
      */
-    public void updateTaskStatusAndHandlePathCancellation(StateMachine stateMachine, EventAndExecutionData eventAndExecutionData) {
-        Set<State> executableStates = updateTaskStatusAndCancelPath(stateMachine.getId(), eventAndExecutionData);
+    public void updateTaskStatusAndHandlePathCancellation(String stateMachineId, EventAndExecutionData eventAndExecutionData) {
+        Set<State> executableStates = updateTaskStatusAndCancelPath(stateMachineId, eventAndExecutionData);
         logger.info("Path cancellation is done for state machine: {} event: {} which has come from task: {}",
-                stateMachine.getId(), eventAndExecutionData.getEventData().getName(), eventAndExecutionData.getExecutionUpdateData().getTaskId());
+                stateMachineId, eventAndExecutionData.getEventData().getName(), eventAndExecutionData.getExecutionUpdateData().getTaskId());
+        StateMachine stateMachine  = stateMachinesDAO.findById(stateMachineId);
         executeStates(stateMachine, executableStates);
     }
 
