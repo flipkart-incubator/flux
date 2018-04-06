@@ -50,8 +50,8 @@ public class TaskModule extends AbstractModule {
         } else {
             bind(RouterRegistry.class).to(EagerInitRouterRegistryImpl.class);
             bind(ExecutableRegistry.class).annotatedWith(ManagedEnv.class).to(TaskExecutableRegistryImpl.class);
-            install(new FluxClientComponentModule());
             requestStaticInjection(AkkaTask.class);
         }
+        install(new FluxClientComponentModule());
     }
 }
