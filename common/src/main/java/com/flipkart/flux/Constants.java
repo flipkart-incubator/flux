@@ -29,9 +29,15 @@ public interface Constants {
     String CONFIG_ROOT = "packaged";
 
     /**
-     * Configuration yml resource path.
+     * Configuration yml resource path for orchestration Node
      */
     String CONFIGURATION_YML = CONFIG_ROOT + "/configuration.yml";
+    /**
+     * Configuration yml resource path for execution Node
+     */
+    String EXECUTION_NODE_CONFIGURATION_YML = CONFIG_ROOT + "/execution_config.yml";
+    String ORCHESTRATION = "orchestration";
+    String EXECUTION = "execution";
 
     /**
      * Names for MDC Logging tags

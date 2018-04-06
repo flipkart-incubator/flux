@@ -1,0 +1,23 @@
+Execution.Node.Api:
+  service.port: 9997
+  service.acceptors: 4
+  service.selectors: 4
+  service.workers: 20
+
+routers:
+  default:
+    instancesPerNode: 5
+
+task:
+  maxTaskRetryCount: 10
+
+runtime:
+  actorsystem:
+    metrics: false
+    name: FluxSystem
+    configname: application.conf
+    maxTaskActorCreateRetries : -1
+
+flux.Orchestration.URL: "http://localhost:9998"
+deploymentType: directory
+deploymentUnitsPath: "/tmp/workflows/"

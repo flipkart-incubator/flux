@@ -28,7 +28,6 @@ import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.filter.CORSFilter;
 import com.flipkart.flux.metrics.MetricsClientImpl;
 import com.flipkart.flux.metrics.iface.MetricsClient;
-import com.flipkart.flux.resource.DeploymentUnitResource;
 import com.flipkart.flux.resource.StateMachineResource;
 import com.flipkart.flux.resource.StatusResource;
 import com.google.inject.AbstractModule;
@@ -48,8 +47,8 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
-import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
 import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
+import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
 
 /**
  * <code>ContainerModule</code> is a Guice {@link AbstractModule} implementation used for wiring Flux container components.
@@ -173,7 +172,7 @@ public class ContainerModule extends AbstractModule {
 	@Named("APIResourceConfig")
 	@Singleton
 	@Provides
-	public ResourceConfig getAPIResourceConfig(StateMachineResource stateMachineResource, DeploymentUnitResource deploymentUnitResource,
+	public ResourceConfig getAPIResourceConfig(StateMachineResource stateMachineResource,
 											   StatusResource statusResource, MetricRegistry metricRegistry) {
 		ResourceConfig resourceConfig = new ResourceConfig();
 
@@ -183,7 +182,6 @@ public class ContainerModule extends AbstractModule {
 
 		//register resources
 		resourceConfig.register(stateMachineResource);
-		resourceConfig.register(deploymentUnitResource);
 		resourceConfig.register(statusResource);
 
 		resourceConfig.register(CORSFilter.class);

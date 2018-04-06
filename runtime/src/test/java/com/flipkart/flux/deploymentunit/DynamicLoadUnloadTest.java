@@ -7,7 +7,7 @@ import com.flipkart.flux.guice.annotation.ManagedEnv;
 import com.flipkart.flux.guice.module.AkkaModule;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.ShardModule;
-import com.flipkart.flux.impl.boot.TaskModule;
+import com.flipkart.flux.guice.module.TaskModule;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
 import com.flipkart.flux.module.RuntimeTestModule;
 import com.flipkart.flux.registry.TaskNotFoundException;

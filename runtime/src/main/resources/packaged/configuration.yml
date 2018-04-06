@@ -52,19 +52,6 @@ Api:
   service.selectors: 4
   service.workers: 100
 
-routers:
-  default:
-    instancesPerNode: 5
-
-task:
-  maxTaskRetryCount: 10
-
-runtime:
-  actorsystem:
-    metrics: false
-    name: FluxSystem
-    configname: application.conf
-    maxTaskActorCreateRetries : -1
 
 redriver:
   batchDelete:
@@ -81,8 +68,6 @@ eventScheduler:
     intervalms: 1000
 
 eventProxyForMigration:
-  enabled: "yes"
+  enabled: "no"
   endpoint: "http://localhost:9998/api/machines"
 
-deploymentType: directory
-deploymentUnitsPath: "/tmp/workflows/"

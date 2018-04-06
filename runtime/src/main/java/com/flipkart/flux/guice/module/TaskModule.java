@@ -12,8 +12,9 @@
  *
  */
 
-package com.flipkart.flux.impl.boot;
+package com.flipkart.flux.guice.module;
 
+import com.flipkart.flux.Constants;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.guice.annotation.ManagedEnv;
@@ -22,6 +23,7 @@ import com.flipkart.flux.impl.redriver.RedriverRegistryImpl;
 import com.flipkart.flux.impl.task.AkkaTask;
 import com.flipkart.flux.impl.task.registry.EagerInitRouterRegistryImpl;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
+import com.flipkart.flux.initializer.FluxInitializer;
 import com.flipkart.flux.module.SchedulerModule;
 import com.flipkart.flux.registry.TaskExecutableRegistryImpl;
 import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
@@ -30,6 +32,7 @@ import com.google.inject.AbstractModule;
 
 /**
  * Guice module for the Task Runtime
+ *
  * @author yogesh.nachnani
  * @author shyam.akirala
  */
@@ -40,12 +43,15 @@ public class TaskModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(RouterRegistry.class).to(EagerInitRouterRegistryImpl.class);
-        bind(ExecutableRegistry.class).annotatedWith(ManagedEnv.class).to(TaskExecutableRegistryImpl.class);
-        bind(RedriverRegistry.class).to(RedriverRegistryImpl.class);
-        bind(EventSchedulerRegistry.class).to(EventSchedulerRegistryImpl.class);
-        install(new FluxClientComponentModule());
-        install(new SchedulerModule());
-        requestStaticInjection(AkkaTask.class);
+        if (FluxInitializer.role.equals(Constants.ORCHESTRATION)) {
+            bind(RedriverRegistry.class).to(RedriverRegistryImpl.class);
+            bind(EventSchedulerRegistry.class).to(EventSchedulerRegistryImpl.class);
+            install(new SchedulerModule());
+        } else {
+            bind(RouterRegistry.class).to(EagerInitRouterRegistryImpl.class);
+            bind(ExecutableRegistry.class).annotatedWith(ManagedEnv.class).to(TaskExecutableRegistryImpl.class);
+            install(new FluxClientComponentModule());
+            requestStaticInjection(AkkaTask.class);
+        }
     }
 }

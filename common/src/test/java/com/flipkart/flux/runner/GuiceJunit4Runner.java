@@ -41,7 +41,7 @@ import java.util.function.Function;
 public class GuiceJunit4Runner extends BlockJUnit4ClassRunner {
 //        polyguice.modules(configModule, new DeploymentUnitModule(), new HibernateModule(), new ContainerModule(), new TaskModule(), new FluxClientInterceptorModule(), new RuntimeTestModule(), new AkkaModule());
     static final Map<Set<Class<? extends AbstractModule>>,Polyguice> polyguiceMap = new HashMap<>();
-    static final ConfigModule configModule = new ConfigModule();
+    static final ConfigModule configModule = new ConfigModule("orchestration");
     /**
      * Creates a BlockJUnit4ClassRunner to run {@code klass}
      *

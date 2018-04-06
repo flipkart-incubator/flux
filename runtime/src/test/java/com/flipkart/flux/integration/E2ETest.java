@@ -26,8 +26,8 @@ import com.flipkart.flux.guice.annotation.ManagedEnv;
 import com.flipkart.flux.guice.module.AkkaModule;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.ShardModule;
-import com.flipkart.flux.impl.boot.TaskModule;
-import com.flipkart.flux.initializer.OrderedComponentBooter;
+import com.flipkart.flux.guice.module.TaskModule;
+import com.flipkart.flux.initializer.OrchestrationOrderedComponentBooter;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
 import com.flipkart.flux.module.RuntimeTestModule;
 import com.flipkart.flux.registry.TaskExecutableImpl;
@@ -64,7 +64,7 @@ public class E2ETest {
     SimpleWorkflow simpleWorkflow;
 
     @Inject
-    OrderedComponentBooter orderedComponentBooter;
+    OrchestrationOrderedComponentBooter orchestrationOrderedComponentBooter;
 
     /** Needed to populate deployment units before beginning the test */
     @Inject

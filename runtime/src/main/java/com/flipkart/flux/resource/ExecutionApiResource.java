@@ -15,7 +15,6 @@ package com.flipkart.flux.resource;
 
 import akka.actor.ActorRef;
 import com.codahale.metrics.annotation.Timed;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.flipkart.flux.metrics.iface.MetricsClient;
@@ -37,15 +36,11 @@ import javax.ws.rs.core.Response;
 public class ExecutionApiResource {
     private static final Logger logger = LoggerFactory.getLogger(ExecutionApiResource.class);
 
-    private ObjectMapper objectMapper;
-    private MetricsClient metricsClient;
     private RouterRegistry routerRegistry;
 
     @Inject
     public ExecutionApiResource(RouterRegistry routerRegistry, MetricsClient metricsClient) {
-        objectMapper = new ObjectMapper();
         routerRegistry = routerRegistry;
-        metricsClient = metricsClient;
     }
 
 

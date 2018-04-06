@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.guice.module;
 
+import com.flipkart.flux.Constants;
 import com.flipkart.polyguice.config.ApacheCommonsConfigProvider;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import com.flipkart.polyguice.core.ConfigurationProvider;
@@ -26,6 +27,7 @@ import java.net.URL;
 import java.util.Iterator;
 
 import static com.flipkart.flux.Constants.CONFIGURATION_YML;
+import static com.flipkart.flux.Constants.EXECUTION_NODE_CONFIGURATION_YML;
 
 /**
  * <code>ConfigModule</code> is a Guice {@link AbstractModule} implementation used for wiring flux configuration.
@@ -37,14 +39,23 @@ public class ConfigModule extends AbstractModule {
     private final ConfigurationProvider configProvider;
     private final YamlConfiguration yamlConfiguration;
 
-    public ConfigModule() {
+    public ConfigModule(String role) {
         try {
             URL configUrl = null;
-            String fluxConfigFile = System.getProperty("flux.configurationFile");
+            String fluxConfigFile;
+            if (role.equals(Constants.ORCHESTRATION))
+                fluxConfigFile = System.getProperty("flux.orchestration.configurationFile");
+            else
+                fluxConfigFile = System.getProperty("flux.execution.configurationFile");
+
             if (fluxConfigFile != null) {
                 configUrl = new File(fluxConfigFile).toURI().toURL();
             } else {
-                configUrl = this.getClass().getClassLoader().getResource(CONFIGURATION_YML);
+                if (role.equals(Constants.ORCHESTRATION)) {
+                    configUrl = this.getClass().getClassLoader().getResource(CONFIGURATION_YML);
+                } else {
+                    configUrl = this.getClass().getClassLoader().getResource(EXECUTION_NODE_CONFIGURATION_YML);
+                }
             }
             configProvider = new ApacheCommonsConfigProvider().location(configUrl);
             yamlConfiguration = new YamlConfiguration(configUrl);
