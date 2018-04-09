@@ -16,6 +16,7 @@ package com.flipkart.flux.resource;
 import akka.actor.ActorRef;
 import com.codahale.metrics.annotation.Timed;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
+import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.flipkart.flux.metrics.iface.MetricsClient;
 import org.slf4j.Logger;
@@ -37,10 +38,12 @@ public class ExecutionApiResource {
     private static final Logger logger = LoggerFactory.getLogger(ExecutionApiResource.class);
 
     private RouterRegistry routerRegistry;
+    private MetricsClient metricsClient;
 
     @Inject
     public ExecutionApiResource(RouterRegistry routerRegistry, MetricsClient metricsClient) {
-        routerRegistry = routerRegistry;
+        this.routerRegistry = routerRegistry;
+        this.metricsClient = metricsClient;
     }
 
 
@@ -48,20 +51,25 @@ public class ExecutionApiResource {
     @Timed
     @Consumes(MediaType.APPLICATION_JSON)
     public Response receiveTaskAndExecutionData(TaskExecutionMessage taskExecutionMessage) {
+        TaskAndEvents msg = taskExecutionMessage.getAkkaMessage();
+        String routerName = taskExecutionMessage.getRouterName();
+        logger.info("Received taskExecutionMessage for stateMachine {} taskId {} taskName {}",
+                msg.getStateMachineId(), msg.getTaskId(), msg.getTaskName());
         try {
-            ActorRef router = routerRegistry.getRouter(taskExecutionMessage.getRouterName());
-            if(router != null){
-                logger.info("Received taskExecutionMessage for stateMachine {} taskId {} taskName {}",
-                        taskExecutionMessage.getAkkaMessage().getStateMachineId(),
-                        taskExecutionMessage.getAkkaMessage().getTaskId(),
-                        taskExecutionMessage.getAkkaMessage().getTaskName());
-                router.tell(taskExecutionMessage.getAkkaMessage(), ActorRef.noSender());
-            }
-            else {
+            ActorRef router = routerRegistry.getRouter(routerName);
+            if (router != null) {
+                logger.info("Sending msg to router: {} to execute state machine: {} task: {}", router.path(), msg.getStateMachineId(), msg.getTaskId());
+                router.tell(msg, ActorRef.noSender());
+                metricsClient.incCounter(new StringBuilder().
+                        append("stateMachine.").
+                        append(msg.getStateMachineName()).
+                        append(".task.").
+                        append(msg.getTaskName()).
+                        append(".queueSize").toString());
+            } else {
                 logger.error("Corresponding router {} for the execution message not found", taskExecutionMessage.getRouterName());
                 return Response.status(Response.Status.NOT_FOUND).entity("Akka router for this executionMessage not found").build();
             }
-
         } catch (Exception ex) {
             logger.error("Unable to append the task to the Actor Queue {}", ex);
             return Response.serverError().entity(ex.getCause() != null ? ex.getCause().getMessage() : null).build();

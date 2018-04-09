@@ -12,9 +12,10 @@
     <!--todo: find a way to inject spring beans using guice, so that the below injector creation would be avoided.-->
     <bean id="configInjector" class="com.google.inject.Guice" factory-method="createInjector">
         <constructor-arg>
-            <bean class="com.flipkart.flux.guice.module.ConfigModule" />
+            <bean class="com.flipkart.flux.guice.module.ConfigModule"/>
         </constructor-arg>
     </bean>
+
 
     <bean class="com.flipkart.flux.controller.DashboardController">
     </bean>

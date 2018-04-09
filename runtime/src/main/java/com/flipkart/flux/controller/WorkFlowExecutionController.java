@@ -13,12 +13,12 @@
 
 package com.flipkart.flux.controller;
 
-import akka.actor.ActorRef;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventAndExecutionData;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.ExecutionUpdateData;
+import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
@@ -28,12 +28,12 @@ import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.impl.message.TaskAndEvents;
-import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
+import com.flipkart.flux.taskDispatcher.TaskDispatcher;
 import com.flipkart.flux.utils.LoggingUtils;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
@@ -74,12 +74,10 @@ public class WorkFlowExecutionController {
      * The DAO for AuditRecord related DB operations
      */
     private AuditDAO auditDAO;
-
-    /**
-     * The Router registry
-     */
-    private RouterRegistry routerRegistry;
-
+    /*
+    * Connector to forward the event to client Remote Machine For Execution
+    */
+    private TaskDispatcher taskDispatcher;
     /**
      * The Redriver Registry for driving stalled Tasks
      */
@@ -90,19 +88,23 @@ public class WorkFlowExecutionController {
      */
     private MetricsClient metricsClient;
 
-    /** ObjectMapper instance to be used for all purposes in this class */
+    /**
+     * ObjectMapper instance to be used for all purposes in this class
+     */
     private ObjectMapper objectMapper;
 
-    /** Constructor for this class */
+    /**
+     * Constructor for this class
+     */
     @Inject
     public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO,
-                                       StatesDAO statesDAO, AuditDAO auditDAO, RouterRegistry routerRegistry,
+                                       StatesDAO statesDAO, AuditDAO auditDAO,  TaskDispatcher taskDispatcher,
                                        RedriverRegistry redriverRegistry, MetricsClient metricsClient) {
         this.eventsDAO = eventsDAO;
         this.stateMachinesDAO = stateMachinesDAO;
         this.statesDAO = statesDAO;
         this.auditDAO = auditDAO;
-        this.routerRegistry = routerRegistry;
+        this.taskDispatcher = taskDispatcher;
         this.redriverRegistry = redriverRegistry;
         this.metricsClient = metricsClient;
         this.objectMapper = new ObjectMapper();
@@ -128,6 +130,7 @@ public class WorkFlowExecutionController {
 
     /**
      * Updates task status and retrieves the states which are dependant on this event and starts the execution of eligible states (whose all dependencies are met).
+     *
      * @param stateMachine
      * @param eventAndExecutionData
      */
@@ -138,6 +141,7 @@ public class WorkFlowExecutionController {
 
     /**
      * Updates task status and persists the event in a single transaction. Keeping this method as protected so that guice can intercept it.
+     *
      * @param stateMachine
      * @param eventAndExecutionData
      */
@@ -150,6 +154,7 @@ public class WorkFlowExecutionController {
 
     /**
      * Updates task status and cancels paths which are dependant on the current event. After the cancellation of path, executes the states which can be executed.
+     *
      * @param stateMachine
      * @param eventAndExecutionData
      */
@@ -167,6 +172,7 @@ public class WorkFlowExecutionController {
 
     /**
      * Updates task status and cancels paths which are dependant on the current event
+     *
      * @param stateMachine
      * @param eventAndExecutionData
      * @return executable states after cancellation
@@ -180,6 +186,7 @@ public class WorkFlowExecutionController {
 
     /**
      * Cancels paths which are dependant on the current event, and returns set of states which can be executed after the cancellation.
+     *
      * @param stateMachine
      * @param eventData
      * @return executable states after cancellation
@@ -202,7 +209,7 @@ public class WorkFlowExecutionController {
         cancelledEvents.add(eventData.getName());
 
         // until the cancelled events is empty
-        while(!cancelledEvents.isEmpty()) {
+        while (!cancelledEvents.isEmpty()) {
 
             // get event from queue
             String eventName = cancelledEvents.poll();
@@ -215,28 +222,28 @@ public class WorkFlowExecutionController {
             final Set<State> dependantStates = context.getDependantStates(eventName);
 
             // for each state
-            for(State state : dependantStates) {
+            for (State state : dependantStates) {
 
                 // fetch all event names this state is dependant on
                 List<String> dependencies = state.getDependencies();
 
                 boolean allCancelled = true;
                 boolean allMet = true;
-                for(String dependency : dependencies) {
-                    if(eventStatusMap.get(dependency) != Event.EventStatus.cancelled) {
+                for (String dependency : dependencies) {
+                    if (eventStatusMap.get(dependency) != Event.EventStatus.cancelled) {
                         allCancelled = false;
                     }
-                    if(!(eventStatusMap.get(dependency) == Event.EventStatus.cancelled || eventStatusMap.get(dependency) == Event.EventStatus.triggered)) {
+                    if (!(eventStatusMap.get(dependency) == Event.EventStatus.cancelled || eventStatusMap.get(dependency) == Event.EventStatus.triggered)) {
                         allMet = false;
                     }
                 }
 
                 // if all dependencies are in cancelled state, then add the output event of the state to cancelled events and mark state as cancelled
-                if(allCancelled) {
+                if (allCancelled) {
                     statesDAO.updateStatus(state.getStateMachineId(), state.getId(), Status.cancelled);
                     auditDAO.create(state.getStateMachineId(), new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNoOfRetries(), Status.cancelled, null, null));
                     EventDefinition eventDefinition = null;
-                    if(state.getOutputEvent() != null) {
+                    if (state.getOutputEvent() != null) {
                         try {
                             eventDefinition = objectMapper.readValue(state.getOutputEvent(), EventDefinition.class);
                         } catch (IOException ex) {
@@ -244,7 +251,7 @@ public class WorkFlowExecutionController {
                         }
                         cancelledEvents.add(eventDefinition.getName());
                     }
-                } else if(allMet) {
+                } else if (allMet) {
                     // if all dependencies are in cancelled or triggered state, then execute the state
                     executableStates.add(state);
                 }
@@ -255,6 +262,7 @@ public class WorkFlowExecutionController {
 
     /**
      * This is called when an event is received with cancelled status. This cancels the particular path in state machine DAG.
+     *
      * @param stateMachine
      * @param eventData
      */
@@ -272,12 +280,13 @@ public class WorkFlowExecutionController {
      * @param stateMachineInstanceId
      */
     public Set<State> postEvent(EventData eventData, String stateMachineInstanceId) {
-       Event event = persistEvent(stateMachineInstanceId, eventData);
-       return processEvent(event, stateMachineInstanceId);
+        Event event = persistEvent(stateMachineInstanceId, eventData);
+        return processEvent(event, stateMachineInstanceId);
     }
 
     /**
      * Persists Event data and changes event status
+     *
      * @param stateMachineInstanceId
      * @param eventData
      * @return
@@ -287,8 +296,8 @@ public class WorkFlowExecutionController {
     public Event persistEvent(String stateMachineInstanceId, EventData eventData) {
         //update event's data and status
         Event event = eventsDAO.findBySMIdAndName(stateMachineInstanceId, eventData.getName());
-        if(event == null)
-            throw new IllegalEventException("Event with stateMachineId: "+ stateMachineInstanceId+", event name: "+ eventData.getName()+" not found");
+        if (event == null)
+            throw new IllegalEventException("Event with stateMachineId: " + stateMachineInstanceId + ", event name: " + eventData.getName() + " not found");
         event.setStatus(eventData.getCancelled() != null && eventData.getCancelled() ? Event.EventStatus.cancelled : Event.EventStatus.triggered);
         event.setEventData(eventData.getData());
         event.setEventSource(eventData.getEventSource());
@@ -298,15 +307,16 @@ public class WorkFlowExecutionController {
 
     /**
      * Checks and triggers the states which are dependant on the current event
+     *
      * @param event
      * @param stateMachineInstanceId
      * @return
      */
     public Set<State> processEvent(Event event, String stateMachineInstanceId) {
         //create context and dependency graph
-        StateMachine stateMachine = null ;
+        StateMachine stateMachine = null;
         stateMachine = stateMachinesDAO.findById(stateMachineInstanceId);
-        if(stateMachine == null){
+        if (stateMachine == null) {
             logger.error("stateMachine with id not found while processing event {} ", stateMachineInstanceId, event.getName());
             throw new RuntimeException("StateMachine with id " + stateMachineInstanceId + " not found while processing event " + event.getName());
         }
@@ -369,7 +379,7 @@ public class WorkFlowExecutionController {
      * @param currentRetryCount current retry count for the task
      * @param errorMessage      the error message in case task has failed
      */
-       public void updateExecutionStatus(String stateMachineId, Long taskId, Status status, long retryCount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver) {
+    public void updateExecutionStatus(String stateMachineId, Long taskId, Status status, long retryCount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver) {
         this.statesDAO.updateStatus(stateMachineId, taskId, status);
         this.auditDAO.create(stateMachineId, new AuditRecord(stateMachineId, taskId, currentRetryCount, status, null, errorMessage));
         this.redriverRegistry.deRegisterTask(stateMachineId, taskId);
@@ -452,26 +462,37 @@ public class WorkFlowExecutionController {
                     if (state.getStatus().equals(Status.initialized) || state.getStatus().equals(Status.unsidelined)) {
                         msg.setFirstTimeExecution(true);
                     }
+
                     // register the Task with the redriver
-                    if (state.getRetryCount() > 0) {
-                        // Delay between retires is exponential (2, 4, 8, 16, 32.... seconds) as seen in AkkaTask.
-                        // Redriver interval is set as 2 x ( 2^(retryCount+1) x 1s + (retryCount+1) x timeout)
-                        long redriverInterval = 2 * ((int) Math.pow(2, state.getRetryCount() + 1) * 1000 + (state.getRetryCount() + 1) * state.getTimeout());
-                        this.redriverRegistry.registerTask(state.getId(), state.getStateMachineId(), redriverInterval);
-                    }
+                    // Delay between retires is exponential (2, 4, 8, 16, 32.... seconds) as seen in AkkaTask.
+                    // Redriver interval is set as 2 x ( 2^(retryCount+1) x 1s + (retryCount+1) x timeout)
+                    long redriverInterval = 2 * ((int) Math.pow(2, state.getRetryCount() + 1) * 1000 + (state.getRetryCount() + 1) * state.getTimeout());
+                    this.redriverRegistry.registerTask(state.getId(), state.getStateMachineId(), redriverInterval);
+
                     //send the message to the Router
                     String taskName = state.getTask();
                     int secondUnderscorePosition = taskName.indexOf('_', taskName.indexOf('_') + 1);
                     String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition); //the name of router would be classFQN_taskMethodName
-                    ActorRef router = this.routerRegistry.getRouter(routerName);
-                    router.tell(msg, ActorRef.noSender());
-                    metricsClient.incCounter(new StringBuilder().
-                            append("stateMachine.").
-                            append(msg.getStateMachineName()).
-                            append(".task.").
-                            append(msg.getTaskName()).
-                            append(".queueSize").toString());
-                    logger.info("Sending msg to router: {} to execute state machine: {} task: {}", router.path(), stateMachine.getId(), msg.getTaskId());
+                    /*
+                    *  sending message to remote Execution Node for execution
+                    *  Endpoint to be fetched from Cache or DB
+                    * */
+                    TaskExecutionMessage taskExecutionMessage = new TaskExecutionMessage(routerName, msg);
+                    String endPoint = "http://localhost:9997" + "/api/execution";
+                    long startTime = System.currentTimeMillis();
+                    int statusCode = taskDispatcher.forwardExecutionMessage(endPoint, taskExecutionMessage);
+                    long finishTime = System.currentTimeMillis();
+                    if (statusCode != 202) {
+                        logger.info("Successfully forwarded the taskExecutionMsg for smId:{} taskId:{} for" +
+                                        " remoteExecution to host {} took {}ms", msg.getStateMachineId(),
+                                msg.getTaskId(), endPoint, finishTime - startTime);
+                    } else {
+                        logger.error("Failed to succesfully send task for Execution smId:{} taskId:{}," +
+                                        " should be retried by Redriver after {} seconds",
+                                msg.getStateMachineId(), msg.getTaskId(), redriverInterval / 1000);
+
+                    }
+
                 } else {
                     logger.info("State machine: {} Task: {} execution request got discarded as the task is {}", state.getStateMachineId(), state.getId(), state.getStatus());
                 }

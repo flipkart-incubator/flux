@@ -121,10 +121,9 @@ public class FluxInitializer {
     private void loadFluxRuntimeContainer() {
         logger.debug("loading flux runtime container");
         logger.info("Running as role : {}", role);
-        final ConfigModule configModule;
+        final ConfigModule configModule =  new ConfigModule(role);
         switch (role) {
             case Constants.ORCHESTRATION:
-                configModule = new ConfigModule(role);
                 fluxRuntimeContainer.modules(
                         configModule,
                         new ShardModule(),
@@ -132,7 +131,6 @@ public class FluxInitializer {
                         new ContainerModule());
                 break;
             case Constants.EXECUTION:
-                configModule = new ConfigModule(role);
                 fluxRuntimeContainer.modules(
                         configModule,
                         new ExecutionContainerModule(),

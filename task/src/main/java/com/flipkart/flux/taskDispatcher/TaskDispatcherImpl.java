@@ -16,6 +16,7 @@ package com.flipkart.flux.taskDispatcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
+import com.google.inject.Inject;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -29,22 +30,27 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Singleton;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+@Singleton
 public class TaskDispatcherImpl implements TaskDispatcher {
 
     private static Logger logger = LoggerFactory.getLogger(TaskDispatcherImpl.class);
-    //Default , should be overriden via config if necessary
+    //Default , should be overridden via config if necessary
+    // Need to add a metric for this api as well
     public static final int MAX_TOTAL_CONNECTIONS = 100;
     public static final int MAX_CONNECTIONS_PER_ROUTE = 25;
     public static final Long connectionTimeOut = 10000L;
     public static final Long socketTimeOut = 10000L;
 
+
     private final CloseableHttpClient closeableHttpClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    @Inject
     public TaskDispatcherImpl() {
         RequestConfig clientConfig = RequestConfig.custom()
                 .setConnectTimeout((TaskDispatcherImpl.connectionTimeOut).intValue())

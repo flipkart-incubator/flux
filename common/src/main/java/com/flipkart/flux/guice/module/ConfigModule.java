@@ -64,6 +64,10 @@ public class ConfigModule extends AbstractModule {
         }
     }
 
+    public ConfigModule(){
+            this(Constants.ORCHESTRATION);
+    }
+
     /**
      * Performs concrete bindings for interfaces
      *

@@ -28,7 +28,10 @@ import com.flipkart.flux.module.SchedulerModule;
 import com.flipkart.flux.registry.TaskExecutableRegistryImpl;
 import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
+import com.flipkart.flux.taskDispatcher.TaskDispatcher;
+import com.flipkart.flux.taskDispatcher.TaskDispatcherImpl;
 import com.google.inject.AbstractModule;
+import com.google.inject.Singleton;
 
 /**
  * Guice module for the Task Runtime
@@ -44,6 +47,7 @@ public class TaskModule extends AbstractModule {
     @Override
     protected void configure() {
         if (FluxInitializer.role.equals(Constants.ORCHESTRATION)) {
+            bind(TaskDispatcher.class).to(TaskDispatcherImpl.class).in(Singleton.class);
             bind(RedriverRegistry.class).to(RedriverRegistryImpl.class);
             bind(EventSchedulerRegistry.class).to(EventSchedulerRegistryImpl.class);
             install(new SchedulerModule());

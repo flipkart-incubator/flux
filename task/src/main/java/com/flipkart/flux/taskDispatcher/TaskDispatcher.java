@@ -21,6 +21,5 @@ import com.flipkart.flux.api.core.TaskExecutionMessage;
  */
 public interface TaskDispatcher {
 
-
     int forwardExecutionMessage(String endpoint, TaskExecutionMessage taskExecutionMessage);
 }
