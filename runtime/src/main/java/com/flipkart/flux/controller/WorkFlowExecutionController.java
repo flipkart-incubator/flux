@@ -482,14 +482,14 @@ public class WorkFlowExecutionController {
                     long startTime = System.currentTimeMillis();
                     int statusCode = taskDispatcher.forwardExecutionMessage(endPoint, taskExecutionMessage);
                     long finishTime = System.currentTimeMillis();
-                    if (statusCode != 202) {
+                    if (statusCode == 202) {
                         logger.info("Successfully forwarded the taskExecutionMsg for smId:{} taskId:{} for" +
                                         " remoteExecution to host {} took {}ms", msg.getStateMachineId(),
                                 msg.getTaskId(), endPoint, finishTime - startTime);
                     } else {
                         logger.error("Failed to succesfully send task for Execution smId:{} taskId:{}," +
-                                        " should be retried by Redriver after {} seconds",
-                                msg.getStateMachineId(), msg.getTaskId(), redriverInterval / 1000);
+                                        " should be retried by Redriver after {} ms.",
+                                msg.getStateMachineId(), msg.getTaskId(), redriverInterval);
 
                     }
 
@@ -534,7 +534,7 @@ public class WorkFlowExecutionController {
         try {
             State state = statesDAO.findById(machineId, taskId);
 
-            if (state != null && isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() < state.getRetryCount()) {
+            if (state != null && isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() <= state.getRetryCount()) {
                 StateMachine stateMachine = retrieveStateMachine(state.getStateMachineId());
                 LoggingUtils.registerStateMachineIdForLogging(stateMachine.getId().toString());
                 logger.info("Redriving a task with Id: {} for state machine: {}", state.getId(), state.getStateMachineId());

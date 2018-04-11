@@ -23,6 +23,11 @@ public class TaskExecutionMessage {
         this.routerName = routerName;
         this.akkaMessage = akkaMessage;
     }
+    /*default constructor */
+    public TaskExecutionMessage(){
+
+    }
+
 
     public String getRouterName() {
         return routerName;
