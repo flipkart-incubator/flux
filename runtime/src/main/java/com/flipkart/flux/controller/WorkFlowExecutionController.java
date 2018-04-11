@@ -471,8 +471,7 @@ public class WorkFlowExecutionController {
 
                     //send the message to the Router
                     String taskName = state.getTask();
-                    int secondUnderscorePosition = taskName.indexOf('_', taskName.indexOf('_') + 1);
-                    String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition); //the name of router would be classFQN_taskMethodName
+                    String routerName = getRouterName(taskName);
                     /*
                     *  sending message to remote Execution Node for execution
                     *  Endpoint to be fetched from Cache or DB
@@ -566,5 +565,15 @@ public class WorkFlowExecutionController {
             this.statesDAO.updateStatus(stateMachine.getId(), state.getId(), Status.cancelled);
             this.auditDAO.create(stateMachine.getId(), new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNoOfRetries(), Status.cancelled, null, null));
         });
+    }
+
+    /*
+    * Returns a routerName for the task, given TaskName
+    *
+    * */
+    public static String getRouterName(String taskName){
+        int secondUnderscorePosition = taskName.indexOf('_', taskName.indexOf('_') + 1);
+        String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition);
+        return routerName;
     }
 }
