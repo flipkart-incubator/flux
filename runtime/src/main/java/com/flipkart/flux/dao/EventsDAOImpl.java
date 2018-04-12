@@ -119,8 +119,6 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Map<String, Event.EventStatus> getAllEventsNameAndStatus(String stateMachineInstanceId, boolean forUpdate) {
         SQLQuery sqlQuery = currentSession().createSQLQuery("Select name, status from Events where stateMachineInstanceId ='" + stateMachineInstanceId + (forUpdate ? "' for update" : "''"));
-//        Query query = currentSession().createQuery("select name, status from Event where stateMachineInstanceId = :stateMachineInstanceId for update");
-//        query.setString("stateMachineInstanceId", stateMachineInstanceId);
 
         List<Object[]> eventRows = sqlQuery.list();
         Map<String, Event.EventStatus> eventStatusMap = new HashMap<>();

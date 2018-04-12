@@ -279,7 +279,7 @@ public class WorkFlowExecutionControllerTest {
         StateMachine stateMachine = new StateMachine("state-machine-cancel-path", 1L, "state_machine_1", null, states);
         EventData testEventData = new EventData("event3", null, null, "runtime", true);
         when(eventsDAO.getAllEventsNameAndStatus("state-machine-cancel-path", true)).thenReturn(eventStatusHashMap);
-
+        when(stateMachinesDAO.findById("state-machine-cancel-path")).thenReturn(stateMachine);
         // invoke cancel
         Set<State> executableStates = workFlowExecutionController.cancelPath(stateMachine.getId(), testEventData);
 
