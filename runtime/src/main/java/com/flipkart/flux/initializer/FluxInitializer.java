@@ -17,7 +17,6 @@ import com.flipkart.flux.Constants;
 import com.flipkart.flux.MigrationUtil.MigrationsRunner;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.guice.module.*;
-import com.flipkart.flux.guice.module.TaskModule;
 import com.flipkart.polyguice.core.support.Polyguice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +39,7 @@ public class FluxInitializer {
      */
     private static final Logger logger = LoggerFactory.getLogger(FluxInitializer.class);
 
-    public static String role;
+    public static String role = Constants.ORCHESTRATION;
 
     /**
      * The machine name where this Flux instance is running
@@ -127,7 +126,7 @@ public class FluxInitializer {
                 fluxRuntimeContainer.modules(
                         configModule,
                         new ShardModule(),
-                        new TaskModule(),
+                        new OrchestrationTaskModule(),
                         new ContainerModule());
                 break;
             case Constants.EXECUTION:
@@ -136,7 +135,7 @@ public class FluxInitializer {
                         new ExecutionContainerModule(),
                         new DeploymentUnitModule(),
                         new AkkaModule(),
-                        new TaskModule(),
+                        new OrchestrationTaskModule(),
                         new FluxClientInterceptorModule());
                 break;
             default:

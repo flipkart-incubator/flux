@@ -6,8 +6,8 @@ import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import com.flipkart.flux.guice.annotation.ManagedEnv;
 import com.flipkart.flux.guice.module.AkkaModule;
 import com.flipkart.flux.guice.module.ContainerModule;
+import com.flipkart.flux.guice.module.OrchestrationTaskModule;
 import com.flipkart.flux.guice.module.ShardModule;
-import com.flipkart.flux.guice.module.TaskModule;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
 import com.flipkart.flux.module.RuntimeTestModule;
 import com.flipkart.flux.registry.TaskNotFoundException;
@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author gaurav.ashok
  */
 @RunWith(GuiceJunit4Runner.class)
-@Modules({DeploymentUnitTestModule.class,ShardModule.class,RuntimeTestModule.class,ContainerModule.class,AkkaModule.class,TaskModule.class,FluxClientInterceptorModule.class})
+@Modules({DeploymentUnitTestModule.class,ShardModule.class,RuntimeTestModule.class,ContainerModule.class,AkkaModule.class,OrchestrationTaskModule.class,FluxClientInterceptorModule.class})
 public class DynamicLoadUnloadTest {
 
     @Inject

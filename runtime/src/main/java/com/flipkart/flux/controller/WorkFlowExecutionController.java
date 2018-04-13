@@ -75,7 +75,7 @@ public class WorkFlowExecutionController {
      */
     private AuditDAO auditDAO;
     /*
-    * Connector to forward the event to client Remote Machine For Execution
+    * Connector to forward the TaskAndEvents akka Message to client Remote Machine For Execution
     */
     private TaskDispatcher taskDispatcher;
     /**

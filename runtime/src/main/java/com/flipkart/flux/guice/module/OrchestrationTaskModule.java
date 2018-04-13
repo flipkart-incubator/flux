@@ -39,9 +39,9 @@ import com.google.inject.Singleton;
  * @author yogesh.nachnani
  * @author shyam.akirala
  */
-public class TaskModule extends AbstractModule {
+public class OrchestrationTaskModule extends AbstractModule {
 
-    public TaskModule() {
+    public OrchestrationTaskModule() {
     }
 
     @Override

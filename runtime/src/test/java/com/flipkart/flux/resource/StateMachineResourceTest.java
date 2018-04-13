@@ -14,6 +14,7 @@
 package com.flipkart.flux.resource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.Constants;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.constant.RuntimeConstants;
@@ -25,10 +26,10 @@ import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.*;
 import com.flipkart.flux.eventscheduler.dao.EventSchedulerDao;
 import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
-import com.flipkart.flux.guice.module.AkkaModule;
 import com.flipkart.flux.guice.module.ContainerModule;
+import com.flipkart.flux.guice.module.OrchestrationTaskModule;
 import com.flipkart.flux.guice.module.ShardModule;
-import com.flipkart.flux.guice.module.TaskModule;
+import com.flipkart.flux.initializer.FluxInitializer;
 import com.flipkart.flux.initializer.OrchestrationOrderedComponentBooter;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
 import com.flipkart.flux.module.RuntimeTestModule;
@@ -53,8 +54,9 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(GuiceJunit4Runner.class)
-@Modules({DeploymentUnitTestModule.class, ShardModule.class, RuntimeTestModule.class, ContainerModule.class, AkkaModule.class, TaskModule.class, FluxClientInterceptorModule.class})
+@Modules({DeploymentUnitTestModule.class, OrchestrationTaskModule.class, ShardModule.class, RuntimeTestModule.class, ContainerModule.class, FluxClientInterceptorModule.class})
 public class StateMachineResourceTest {
+
 
     @Inject
     @Rule
@@ -90,9 +92,9 @@ public class StateMachineResourceTest {
 
     @Before
     public void setUp() throws Exception {
+        FluxInitializer.main(new String[]{"start", Constants.EXECUTION});
         objectMapper = new ObjectMapper();
         dbClearRule.explicitClearTables();
-
     }
 
     @AfterClass
@@ -214,7 +216,6 @@ public class StateMachineResourceTest {
     }
 
     @Test
-    @Ignore("ignore as if smid is missing it will try to forward to older ip, this feature will be removed in few weeks")
     public void testPostEvent_againstNonExistingCorrelationId() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
         final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
@@ -306,7 +307,7 @@ public class StateMachineResourceTest {
         Set<State> states = new HashSet<>();
         states.addAll(sm.getStates());
         /* persist */
-        Timestamp now =  new Timestamp( System.currentTimeMillis() - 10*1000 );
+        Timestamp now = new Timestamp(System.currentTimeMillis() - 10 * 1000);
         final StateMachine firstSM = stateMachinesDAO.create(firstSmId, new StateMachine(firstSmId, sm.getVersion(), sm.getName(), sm.getDescription(), states));
         /* change name and persist as 2nd statemachine */
         final String differentSMName = "state-machine-2";
@@ -317,15 +318,15 @@ public class StateMachineResourceTest {
         states.addAll(sm.getStates());
 
         final StateMachine secondSM = stateMachinesDAO.create(differentSMName, new StateMachine(differentSMName, sm.getVersion(), sm.getName(), sm.getDescription(), states));
-        Timestamp future = new Timestamp( System.currentTimeMillis() + 3*1000);
+        Timestamp future = new Timestamp(System.currentTimeMillis() + 3 * 1000);
         /* fetch errored states with name "differentStateMachine" */
         final HttpResponse<String> stringHttpResponse = Unirest.get(
-                STATE_MACHINE_RESOURCE_URL + "/" + "test_state_machine" + "/states/errored?fromTime=" +  now.toString().replace(' ' , '+') + "&toTime=" +  future.toString().replace(' ' , '+')).header("Content-Type", "application/json").asString();
+                STATE_MACHINE_RESOURCE_URL + "/" + "test_state_machine" + "/states/errored?fromTime=" + now.toString().replace(' ', '+') + "&toTime=" + future.toString().replace(' ', '+')).header("Content-Type", "application/json").asString();
 
         assertThat(stringHttpResponse.getStatus()).isEqualTo(200);
         assertThat(stringHttpResponse.getBody()).isEqualTo("[[\"" + firstSM.getId() + "\"," +
                 firstSM.getStates().stream().filter(e -> Status.errored.equals(e.getStatus())).findFirst().get().getId() + "," +
-                "\"errored\"]," +  "[\"" + secondSM.getId() + "\"," +
+                "\"errored\"]," + "[\"" + secondSM.getId() + "\"," +
                 secondSM.getStates().stream().filter(e -> Status.errored.equals(e.getStatus())).findFirst().get().getId() + "," +
                 "\"errored\"]" + "]");
     }
@@ -369,18 +370,20 @@ public class StateMachineResourceTest {
     }
 
     @Test
-    public void shouldProxyEventToOldCluster() throws Exception{
+    @Ignore("Feature no longer in use")
+    public void shouldProxyEventToOldCluster() throws Exception {
         final String stateMachineId = "some_random_machine_do_not_exist";
         final String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
-        final HttpResponse<String> httpResponse =  Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH +  stateMachineId + "/context/events").header("Content-Type", "application/json").body(eventJson).asString();
+        final HttpResponse<String> httpResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + stateMachineId + "/context/events").header("Content-Type", "application/json").body(eventJson).asString();
         assertThat(httpResponse.getStatus()).isEqualTo(HttpStatus.SC_ACCEPTED);
     }
 
     @Test
-    public void shouldProxyScheduledEventToOldCluster() throws Exception{
+    @Ignore("Feature no longer in use")
+    public void shouldProxyScheduledEventToOldCluster() throws Exception {
         final String stateMachineId = "some_random_machine_do_not_exist";
         final String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
-        final HttpResponse<String> httpResponse =  Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH +  stateMachineId + "/context/events?triggerTime=0").header("Content-Type", "application/json").body(eventJson).asString();
+        final HttpResponse<String> httpResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + stateMachineId + "/context/events?triggerTime=0").header("Content-Type", "application/json").body(eventJson).asString();
         assertThat(httpResponse.getStatus()).isEqualTo(HttpStatus.SC_ACCEPTED);
     }
 
