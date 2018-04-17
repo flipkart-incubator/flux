@@ -14,6 +14,7 @@
 package com.flipkart.flux.initializer;
 
 import com.flipkart.flux.Constants;
+import com.flipkart.flux.FluxRole;
 import com.flipkart.flux.MigrationUtil.MigrationsRunner;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.guice.module.*;
@@ -39,7 +40,7 @@ public class FluxInitializer {
      */
     private static final Logger logger = LoggerFactory.getLogger(FluxInitializer.class);
 
-    public static String role = Constants.ORCHESTRATION;
+    public static FluxRole fluxRole;
 
     /**
      * The machine name where this Flux instance is running
@@ -93,9 +94,18 @@ public class FluxInitializer {
         switch (command) {
             case "start":
                 //default role
-                role = "orchestration";
-                if (args.length == 2)
-                    role = args[1];
+                if (args.length == 2) {
+                    switch (args[1]) {
+                        case "orchestration":
+                            fluxRole = FluxRole.ORCHESTRATION;
+                            break;
+                        case "execution":
+                            fluxRole = FluxRole.EXECUTION;
+                            break;
+                        default:
+                            fluxRole = FluxRole.EXECUTION;
+                    }
+                }
                 fluxInitializer.start();
                 break;
             case "migrate":
@@ -119,17 +129,21 @@ public class FluxInitializer {
 
     private void loadFluxRuntimeContainer() {
         logger.debug("loading flux runtime container");
-        logger.info("Running as role : {}", role);
-        final ConfigModule configModule =  new ConfigModule(role);
-        switch (role) {
-            case Constants.ORCHESTRATION:
+        logger.info("Running as role : {}", fluxRole);
+        final ConfigModule configModule = new ConfigModule(fluxRole);
+        //load flux runtime container
+        // this ensures component booter is up and initialised
+        switch (fluxRole) {
+            case ORCHESTRATION:
                 fluxRuntimeContainer.modules(
                         configModule,
                         new ShardModule(),
                         new OrchestrationTaskModule(),
                         new ContainerModule());
+                final OrchestrationOrderedComponentBooter orchestratorInstance = this.fluxRuntimeContainer.getComponentContext()
+                        .getInstance(OrchestrationOrderedComponentBooter.class);
                 break;
-            case Constants.EXECUTION:
+            case EXECUTION:
                 fluxRuntimeContainer.modules(
                         configModule,
                         new ExecutionContainerModule(),
@@ -137,8 +151,11 @@ public class FluxInitializer {
                         new AkkaModule(),
                         new OrchestrationTaskModule(),
                         new FluxClientInterceptorModule());
+                final ExecutionOrderedComponentBooter executionInstance = this.fluxRuntimeContainer.getComponentContext()
+                        .getInstance(ExecutionOrderedComponentBooter.class);
                 break;
             default:
+                logger.error("Node running as wrong role, exiting");
                 throw new RuntimeException("App started with wrong parameters, should be either orchestration or" +
                         " execution");
         }
@@ -154,18 +171,6 @@ public class FluxInitializer {
         long start = System.currentTimeMillis();
         //load flux runtime container
         loadFluxRuntimeContainer();
-        // this ensures component booter is up and initialised
-        if (FluxInitializer.role.equals(Constants.ORCHESTRATION)) {
-            final OrchestrationOrderedComponentBooter instance = this.fluxRuntimeContainer.getComponentContext().getInstance(OrchestrationOrderedComponentBooter.class);
-        } else if (FluxInitializer.role.equals(Constants.EXECUTION)) {
-            final ExecutionOrderedComponentBooter instance = this.fluxRuntimeContainer.getComponentContext().getInstance(ExecutionOrderedComponentBooter.class);
-        } else {
-            logger.error("Node running as wrong role, exiting");
-            System.exit(1
-
-            );
-        }
-
         final Object[] displayArgs = {
                 (System.currentTimeMillis() - start),
                 this.hostName,

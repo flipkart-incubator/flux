@@ -14,6 +14,7 @@
 package com.flipkart.flux.guice.module;
 
 import com.flipkart.flux.Constants;
+import com.flipkart.flux.FluxRole;
 import com.flipkart.polyguice.config.ApacheCommonsConfigProvider;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import com.flipkart.polyguice.core.ConfigurationProvider;
@@ -39,11 +40,11 @@ public class ConfigModule extends AbstractModule {
     private final ConfigurationProvider configProvider;
     private final YamlConfiguration yamlConfiguration;
 
-    public ConfigModule(String role) {
+    public ConfigModule(FluxRole role) {
         try {
             URL configUrl = null;
             String fluxConfigFile;
-            if (role.equals(Constants.ORCHESTRATION))
+            if (role.equals(FluxRole.ORCHESTRATION))
                 fluxConfigFile = System.getProperty("flux.orchestration.configurationFile");
             else
                 fluxConfigFile = System.getProperty("flux.execution.configurationFile");
@@ -51,7 +52,7 @@ public class ConfigModule extends AbstractModule {
             if (fluxConfigFile != null) {
                 configUrl = new File(fluxConfigFile).toURI().toURL();
             } else {
-                if (role.equals(Constants.ORCHESTRATION)) {
+                if (role.equals(FluxRole.ORCHESTRATION)) {
                     configUrl = this.getClass().getClassLoader().getResource(CONFIGURATION_YML);
                 } else {
                     configUrl = this.getClass().getClassLoader().getResource(EXECUTION_NODE_CONFIGURATION_YML);
@@ -65,7 +66,7 @@ public class ConfigModule extends AbstractModule {
     }
 
     public ConfigModule(){
-            this(Constants.ORCHESTRATION);
+            this(FluxRole.EXECUTION);
     }
 
     /**

@@ -21,7 +21,6 @@ import com.flipkart.flux.domain.Event;
 import com.netflix.hystrix.*;
 import com.netflix.hystrix.HystrixCommandProperties.ExecutionIsolationStrategy;
 import javafx.util.Pair;
-
 /**
  * <code>TaskExecutor</code> wraps {@link Task} execution with Hystrix.
  *

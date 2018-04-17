@@ -15,6 +15,7 @@
 package com.flipkart.flux.guice.module;
 
 import com.flipkart.flux.Constants;
+import com.flipkart.flux.FluxRole;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.guice.annotation.ManagedEnv;
@@ -46,16 +47,16 @@ public class OrchestrationTaskModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        if (FluxInitializer.role.equals(Constants.ORCHESTRATION)) {
+//        if (FluxInitializer.fluxRole.equals(FluxRole.ORCHESTRATION)) {
             bind(TaskDispatcher.class).to(TaskDispatcherImpl.class).in(Singleton.class);
             bind(RedriverRegistry.class).to(RedriverRegistryImpl.class);
             bind(EventSchedulerRegistry.class).to(EventSchedulerRegistryImpl.class);
             install(new SchedulerModule());
-        } else {
-            bind(RouterRegistry.class).to(EagerInitRouterRegistryImpl.class);
-            bind(ExecutableRegistry.class).annotatedWith(ManagedEnv.class).to(TaskExecutableRegistryImpl.class);
-            requestStaticInjection(AkkaTask.class);
-        }
+//        } else {
+//            bind(RouterRegistry.class).to(EagerInitRouterRegistryImpl.class);
+//            bind(ExecutableRegistry.class).annotatedWith(ManagedEnv.class).to(TaskExecutableRegistryImpl.class);
+//            requestStaticInjection(AkkaTask.class);
+//        }
         install(new FluxClientComponentModule());
     }
 }

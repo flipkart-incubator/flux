@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.runner;
 
+import com.flipkart.flux.guice.FluxRoleProvider;
 import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.polyguice.core.support.Polyguice;
 import com.google.inject.AbstractModule;
@@ -40,7 +41,7 @@ import java.util.function.Function;
  */
 public class GuiceJunit4Runner extends BlockJUnit4ClassRunner {
     static final Map<Set<Class<? extends AbstractModule>>,Polyguice> polyguiceMap = new HashMap<>();
-    static final ConfigModule configModule = new ConfigModule();
+    static ConfigModule configModule = null;
     /**
      * Creates a BlockJUnit4ClassRunner to run {@code klass}
      *
@@ -54,6 +55,9 @@ public class GuiceJunit4Runner extends BlockJUnit4ClassRunner {
     @Override
     protected Object createTest() throws Exception {
         final Object testInstance = super.createTest();
+        System.out.println(testInstance.getClass().getAnnotation(FluxRoleProvider.class).toString());
+        if(configModule == null)
+        configModule = new ConfigModule(testInstance.getClass().getAnnotation(FluxRoleProvider.class).value());
         final Polyguice polyInstance = getPolyInstance(testInstance);
         polyInstance.getComponentContext().inject(testInstance);
         return testInstance;

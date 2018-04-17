@@ -15,6 +15,7 @@ package com.flipkart.flux.resource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.Constants;
+import com.flipkart.flux.FluxRole;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.constant.RuntimeConstants;
@@ -26,6 +27,7 @@ import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.*;
 import com.flipkart.flux.eventscheduler.dao.EventSchedulerDao;
 import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
+import com.flipkart.flux.guice.FluxRoleProvider;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.OrchestrationTaskModule;
 import com.flipkart.flux.guice.module.ShardModule;
@@ -54,7 +56,8 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(GuiceJunit4Runner.class)
-@Modules({DeploymentUnitTestModule.class, OrchestrationTaskModule.class, ShardModule.class, RuntimeTestModule.class, ContainerModule.class, FluxClientInterceptorModule.class})
+@Modules({/*DeploymentUnitTestModule.class,*/ OrchestrationTaskModule.class, ShardModule.class, RuntimeTestModule.class, ContainerModule.class, FluxClientInterceptorModule.class})
+@FluxRoleProvider(value=FluxRole.ORCHESTRATION)
 public class StateMachineResourceTest {
 
 
@@ -92,7 +95,6 @@ public class StateMachineResourceTest {
 
     @Before
     public void setUp() throws Exception {
-        FluxInitializer.main(new String[]{"start", Constants.EXECUTION});
         objectMapper = new ObjectMapper();
         dbClearRule.explicitClearTables();
     }
