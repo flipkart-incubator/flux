@@ -83,7 +83,8 @@ public class WorkFlowExecutionControllerTest {
         Thread.sleep(1000);
         workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, auditDAO, routerRegistry, redriverRegistry, metricsClient);
         when(stateMachinesDAO.findById(anyString())).thenReturn(TestUtils.getStandardTestMachineWithId());
-        actorSystem = ActorSystem.create("testActorSystem", ConfigFactory.load("testAkkaActorSystem") );
+
+        actorSystem = ActorSystem.create("testActorSystem",ConfigFactory.load("testAkkaActorSystem"));
         mockActor = TestActorRef.create(actorSystem, Props.create(MockActorRef.class));
         when(routerRegistry.getRouter(anyString())).thenReturn(mockActor);
         objectMapper = new ObjectMapper();
@@ -279,9 +280,9 @@ public class WorkFlowExecutionControllerTest {
         StateMachine stateMachine = new StateMachine("state-machine-cancel-path", 1L, "state_machine_1", null, states);
         EventData testEventData = new EventData("event3", null, null, "runtime", true);
         when(eventsDAO.getAllEventsNameAndStatus("state-machine-cancel-path", true)).thenReturn(eventStatusHashMap);
-
+        when(stateMachinesDAO.findById("state-machine-cancel-path")).thenReturn(stateMachine);
         // invoke cancel
-        Set<State> executableStates = workFlowExecutionController.cancelPath(stateMachine, testEventData);
+        Set<State> executableStates = workFlowExecutionController.cancelPath(stateMachine.getId(), testEventData);
 
         assertThat(executableStates.size()).isEqualTo(1);
         assertThat(executableStates.contains("state3"));
