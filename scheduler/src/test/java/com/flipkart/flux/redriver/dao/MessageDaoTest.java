@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.redriver.dao;
 
+import com.flipkart.flux.FluxRole;
+import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.boot.SchedulerTestModule;
 import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.flux.persistence.SessionFactoryContext;
@@ -34,13 +36,13 @@ import java.util.Arrays;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(GuiceJunit4Runner.class)
-@Modules({ConfigModule.class,SchedulerTestModule.class})
+@Modules(orchestrationModules = {SchedulerTestModule.class}, executionModules = {})
 public class MessageDaoTest {
-    @Inject
+
+    @InjectFromRole(value = FluxRole.ORCHESTRATION)
     MessageDao messageDao;
 
-    @Inject
-    @Named("schedulerSessionFactoriesContext")
+    @InjectFromRole(value = FluxRole.ORCHESTRATION, name="schedulerSessionFactoriesContext")
     SessionFactoryContext context;
 
     @Before

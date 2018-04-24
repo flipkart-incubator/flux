@@ -22,7 +22,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 
+@Singleton
 public class ExecutionOrderedComponentBooter implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(ExecutionOrderedComponentBooter.class);
     private final Server executionApiServer;

@@ -15,6 +15,7 @@ package com.flipkart.flux.dao;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.dao.iface.EventsDAO;
@@ -50,17 +51,18 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author kartik.bommepally
  */
 @RunWith(GuiceJunit4Runner.class)
-@Modules({DeploymentUnitTestModule.class, ShardModule.class, RuntimeTestModule.class, ContainerModule.class, AkkaModule.class, OrchestrationTaskModule.class, FluxClientInterceptorModule.class})
+@Modules(orchestrationModules = {ShardModule.class, RuntimeTestModule.class, ContainerModule.class,
+        OrchestrationTaskModule.class, FluxClientInterceptorModule.class})
 public class EventsDAOTest {
 
-    @Inject
+    @InjectFromRole
     EventsDAO eventsDAO;
 
-    @Inject
+    @InjectFromRole
     @Rule
     public DbClearWithTestSMRule dbClearWithTestSMRule;
 
-    @Inject
+    @InjectFromRole
     StateMachinesDAO stateMachinesDAO;
 
     ObjectMapper objectMapper;

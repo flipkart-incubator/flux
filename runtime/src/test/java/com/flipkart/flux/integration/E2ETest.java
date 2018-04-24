@@ -14,6 +14,8 @@
 
 package com.flipkart.flux.integration;
 
+import com.flipkart.flux.FluxRole;
+import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
@@ -22,15 +24,14 @@ import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.guice.annotation.ManagedEnv;
-import com.flipkart.flux.guice.module.AkkaModule;
-import com.flipkart.flux.guice.module.ContainerModule;
-import com.flipkart.flux.guice.module.ShardModule;
-import com.flipkart.flux.guice.module.OrchestrationTaskModule;
+import com.flipkart.flux.annotation.ManagedEnv;
+import com.flipkart.flux.guice.module.*;
+import com.flipkart.flux.initializer.ExecutionOrderedComponentBooter;
 import com.flipkart.flux.initializer.OrchestrationOrderedComponentBooter;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
 import com.flipkart.flux.module.RuntimeTestModule;
 import com.flipkart.flux.registry.TaskExecutableImpl;
+import com.flipkart.flux.registry.TaskExecutableRegistryImpl;
 import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
@@ -38,52 +39,57 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.inject.Inject;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(GuiceJunit4Runner.class)
-@Modules({DeploymentUnitTestModule.class,ShardModule.class,RuntimeTestModule.class,ContainerModule.class,AkkaModule.class,OrchestrationTaskModule.class,FluxClientInterceptorModule.class})
+@Modules(orchestrationModules = {ShardModule.class, RuntimeTestModule.class, ContainerModule.class,
+        OrchestrationTaskModule.class, FluxClientInterceptorModule.class},
+        executionModules = { DeploymentUnitTestModule.class, AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class, FluxClientInterceptorModule.class})
 public class E2ETest {
 
-    @Inject
+    @InjectFromRole(value = FluxRole.ORCHESTRATION)
     StateMachinesDAO stateMachinesDAO;
 
-    @Inject
+    @InjectFromRole(value = FluxRole.ORCHESTRATION)
     ParallelScatterGatherQueryHelper parallelScatterGatherQueryHelper;
 
-    @Inject
+    @InjectFromRole(value = FluxRole.ORCHESTRATION)
     EventsDAO eventsDAO;
 
     @Rule
-    @Inject
+    @InjectFromRole(value = FluxRole.ORCHESTRATION)
     public DbClearRule dbClearRule;
 
-    @Inject
+    @InjectFromRole(value = FluxRole.ORCHESTRATION)
     SimpleWorkflow simpleWorkflow;
 
-    @Inject
+    @InjectFromRole(value = FluxRole.ORCHESTRATION)
     OrchestrationOrderedComponentBooter orchestrationOrderedComponentBooter;
 
-    /** Needed to populate deployment units before beginning the test */
-    @Inject
+    /**
+     * Needed to populate deployment units before beginning the test
+     */
+    @InjectFromRole(value = FluxRole.EXECUTION)
     DeploymentUnitsManager deploymentUnitManager;
 
-    @Inject
-    @ManagedEnv
-    ExecutableRegistry registry;
+    @InjectFromRole(value = FluxRole.EXECUTION)
+    TaskExecutableRegistryImpl registry;
+
+    @InjectFromRole(value = FluxRole.EXECUTION)
+    ExecutionOrderedComponentBooter executionOrderedComponentBooter;
 
     @Test
     public void testSimpleWorkflowE2E() throws Exception {
         /* Invocation */
         simpleWorkflow.simpleDummyWorkflow(new StringEvent("startingEvent"));
-        
+
         // sleep for a while to let things complete and then eval results and shutdown
         Thread.sleep(2000L);
 
         /* Asserts*/
-        final Set<StateMachine> smInDb =  parallelScatterGatherQueryHelper.findStateMachinesByNameAndVersion("com.flipkart.flux.integration.SimpleWorkflow_simpleDummyWorkflow_void_com.flipkart.flux.integration.StringEvent_version1", 1l);
+        final Set<StateMachine> smInDb = parallelScatterGatherQueryHelper.findStateMachinesByNameAndVersion("com.flipkart.flux.integration.SimpleWorkflow_simpleDummyWorkflow_void_com.flipkart.flux.integration.StringEvent_version1", 1l);
         final String smId = smInDb.stream().findFirst().get().getId();
         assertThat(smInDb).hasSize(1);
         assertThat(eventsDAO.findBySMInstanceId(smId)).hasSize(3);
@@ -97,7 +103,7 @@ public class E2ETest {
         Executable executable = registry.getTask("com.flipkart.flux.integration.SimpleWorkflow_simpleStringReturningTask_com.flipkart.flux.integration.StringEvent_com.flipkart.flux.integration.StringEvent_version1");
 
         assertThat(executable).isInstanceOf(TaskExecutableImpl.class);
-        TaskExecutableImpl taskExecutable = (TaskExecutableImpl)executable;
+        TaskExecutableImpl taskExecutable = (TaskExecutableImpl) executable;
         assertThat(taskExecutable.getExecutionConcurrency()).isEqualTo(5);
     }
 }

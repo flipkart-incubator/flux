@@ -91,8 +91,8 @@ public class ExecutionContainerModule extends AbstractModule {
     }
 
     @Named("ExecutionAPIResourceConfig")
-    @javax.inject.Singleton
     @Provides
+    @Singleton
     public ResourceConfig getAPIResourceConfig(ExecutionApiResource executionApiResource, DeploymentUnitResource deploymentUnitResource,
                                                StatusResource statusResource, MetricRegistry metricRegistry) {
         ResourceConfig resourceConfig = new ResourceConfig();

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package com.flipkart.flux.guice.annotation;
+package com.flipkart.flux.annotation;
 
 import com.google.inject.BindingAnnotation;
 

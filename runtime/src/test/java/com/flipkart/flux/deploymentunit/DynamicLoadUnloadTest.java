@@ -1,19 +1,16 @@
 package com.flipkart.flux.deploymentunit;
 
-import com.flipkart.flux.client.FluxClientInterceptorModule;
+import com.flipkart.flux.FluxRole;
+import com.flipkart.flux.InjectFromRole;
+import com.flipkart.flux.annotation.ManagedEnv;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
-import com.flipkart.flux.guice.annotation.ManagedEnv;
-import com.flipkart.flux.guice.module.AkkaModule;
-import com.flipkart.flux.guice.module.ContainerModule;
-import com.flipkart.flux.guice.module.OrchestrationTaskModule;
-import com.flipkart.flux.guice.module.ShardModule;
+import com.flipkart.flux.guice.module.*;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
-import com.flipkart.flux.module.RuntimeTestModule;
+import com.flipkart.flux.registry.TaskExecutableRegistryImpl;
 import com.flipkart.flux.registry.TaskNotFoundException;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
-import com.google.inject.Inject;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,15 +21,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author gaurav.ashok
  */
 @RunWith(GuiceJunit4Runner.class)
-@Modules({DeploymentUnitTestModule.class,ShardModule.class,RuntimeTestModule.class,ContainerModule.class,AkkaModule.class,OrchestrationTaskModule.class,FluxClientInterceptorModule.class})
+@Modules(executionModules = {DeploymentUnitTestModule.class , ExecutionTaskModule.class, AkkaModule.class, ExecutionContainerModule.class})
 public class DynamicLoadUnloadTest {
 
-    @Inject
+    @InjectFromRole(value = FluxRole.EXECUTION)
     DeploymentUnitsManager dUnitManager;
 
-    @Inject
-    @ManagedEnv
-    ExecutableRegistry registry;
+    @InjectFromRole(value = FluxRole.EXECUTION)
+    TaskExecutableRegistryImpl registry;
 
     @Test
     public void testDynamicLoad() {

@@ -140,19 +140,16 @@ public class FluxInitializer {
                         new ShardModule(),
                         new OrchestrationTaskModule(),
                         new ContainerModule());
-                final OrchestrationOrderedComponentBooter orchestratorInstance = this.fluxRuntimeContainer.getComponentContext()
-                        .getInstance(OrchestrationOrderedComponentBooter.class);
                 break;
             case EXECUTION:
+                logger.info("here");
                 fluxRuntimeContainer.modules(
                         configModule,
                         new ExecutionContainerModule(),
                         new DeploymentUnitModule(),
                         new AkkaModule(),
-                        new OrchestrationTaskModule(),
+                        new ExecutionTaskModule(),
                         new FluxClientInterceptorModule());
-                final ExecutionOrderedComponentBooter executionInstance = this.fluxRuntimeContainer.getComponentContext()
-                        .getInstance(ExecutionOrderedComponentBooter.class);
                 break;
             default:
                 logger.error("Node running as wrong role, exiting");
@@ -171,6 +168,13 @@ public class FluxInitializer {
         long start = System.currentTimeMillis();
         //load flux runtime container
         loadFluxRuntimeContainer();
+        if (fluxRole.equals(FluxRole.ORCHESTRATION)) {
+            final OrchestrationOrderedComponentBooter orchestratorInstance = this.fluxRuntimeContainer.getComponentContext()
+                    .getInstance(OrchestrationOrderedComponentBooter.class);
+        } else {
+            final ExecutionOrderedComponentBooter executionInstance = this.fluxRuntimeContainer.getComponentContext()
+                    .getInstance(ExecutionOrderedComponentBooter.class);
+        }
         final Object[] displayArgs = {
                 (System.currentTimeMillis() - start),
                 this.hostName,

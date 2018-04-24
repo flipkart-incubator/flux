@@ -7,7 +7,7 @@ import com.flipkart.flux.deploymentunit.iface.DeploymentUnitUtil;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import com.flipkart.flux.deploymentunit.iface.ExecutableLoader;
 import com.flipkart.flux.exception.DuplicateDeploymentUnitException;
-import com.flipkart.flux.guice.annotation.ManagedEnv;
+import com.flipkart.flux.annotation.ManagedEnv;
 import com.flipkart.flux.registry.TaskExecutableImpl;
 import com.flipkart.polyguice.core.Initializable;
 import com.google.inject.Inject;

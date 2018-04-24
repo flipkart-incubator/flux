@@ -13,9 +13,11 @@
 
 package com.flipkart.flux.resource;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.Constants;
 import com.flipkart.flux.FluxRole;
+import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.constant.RuntimeConstants;
@@ -28,9 +30,8 @@ import com.flipkart.flux.domain.*;
 import com.flipkart.flux.eventscheduler.dao.EventSchedulerDao;
 import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
 import com.flipkart.flux.guice.FluxRoleProvider;
-import com.flipkart.flux.guice.module.ContainerModule;
-import com.flipkart.flux.guice.module.OrchestrationTaskModule;
-import com.flipkart.flux.guice.module.ShardModule;
+import com.flipkart.flux.guice.module.*;
+import com.flipkart.flux.initializer.ExecutionOrderedComponentBooter;
 import com.flipkart.flux.initializer.FluxInitializer;
 import com.flipkart.flux.initializer.OrchestrationOrderedComponentBooter;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
@@ -39,13 +40,16 @@ import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
+import com.flipkart.flux.taskDispatcher.TaskDispatcher;
 import com.flipkart.flux.util.TestUtils;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
+import jdk.nashorn.internal.objects.annotations.Setter;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.junit.*;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
@@ -54,38 +58,47 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 @RunWith(GuiceJunit4Runner.class)
-@Modules({/*DeploymentUnitTestModule.class,*/ OrchestrationTaskModule.class, ShardModule.class, RuntimeTestModule.class, ContainerModule.class, FluxClientInterceptorModule.class})
-@FluxRoleProvider(value=FluxRole.ORCHESTRATION)
+@Modules(orchestrationModules = {OrchestrationTaskModule.class, ShardModule.class,
+        RuntimeTestModule.class, ContainerModule.class, FluxClientInterceptorModule.class}, executionModules = {
+        DeploymentUnitTestModule.class, AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class, FluxClientInterceptorModule.class})
 public class StateMachineResourceTest {
 
-
-    @Inject
     @Rule
+    @InjectFromRole(value = FluxRole.ORCHESTRATION)
     public DbClearRule dbClearRule;
 
-    @Inject
+    @InjectFromRole(value = FluxRole.ORCHESTRATION)
     private StateMachinesDAO stateMachinesDAO;
 
-    @Inject
+    @InjectFromRole(value = FluxRole.ORCHESTRATION)
     private ParallelScatterGatherQueryHelper parallelScatterGatherQueryHelper;
 
-    @Inject
+    @InjectFromRole(value = FluxRole.ORCHESTRATION)
     private StatesDAO statesDAO;
 
-    @Inject
+    @InjectFromRole(value = FluxRole.ORCHESTRATION)
     private EventsDAO eventsDAO;
 
-    @Inject
+    @InjectFromRole(value = FluxRole.ORCHESTRATION)
     private EventSchedulerDao eventSchedulerDao;
 
-    @Inject
+    @InjectFromRole(value = FluxRole.ORCHESTRATION)
     OrchestrationOrderedComponentBooter orchestrationOrderedComponentBooter;
 
-    @Inject
-    StateMachinePersistenceService stateMachinePersistenceService;
 
+    @InjectFromRole(value = FluxRole.EXECUTION)
+    ExecutionApiResource executionApiResource;
+
+    @InjectFromRole(value = FluxRole.EXECUTION)
+    ExecutionOrderedComponentBooter executionOrderedComponentBooter;
+
+    @InjectFromRole(value = FluxRole.ORCHESTRATION)
+    StateMachinePersistenceService stateMachinePersistenceService;
 
     public static final String STATE_MACHINE_RESOURCE_URL = "http://localhost:9998" + RuntimeConstants.API_CONTEXT_PATH + RuntimeConstants.STATE_MACHINE_RESOURCE_RELATIVE_PATH;
     private static final String SLASH = "/";
@@ -132,7 +145,7 @@ public class StateMachineResourceTest {
             String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
             final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events").header("Content-Type", "application/json").body(eventJson).asString();
             assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
-            // give some time to execute
+            //  give some time to execute
             Thread.sleep(6000);
 
             //status of state should be sidelined
@@ -168,11 +181,12 @@ public class StateMachineResourceTest {
 
     @Test
     public void testPostEvent() throws Exception {
+        //  doReturn(202).when(spyTaskDispatcher).forwardExecutionMessage(anyString(), anyObject());
+        //when(spyTaskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(202);
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
         final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
         Event event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event0");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.pending);
-
         String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
         final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events").header("Content-Type", "application/json").body(eventJson).asString();
         assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());

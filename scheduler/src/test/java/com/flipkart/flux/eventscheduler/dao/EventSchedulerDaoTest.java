@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.eventscheduler.dao;
 
+import com.flipkart.flux.FluxRole;
+import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.boot.SchedulerTestModule;
 import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
 import com.flipkart.flux.guice.module.ConfigModule;
@@ -35,14 +37,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author shyam.akirala
  */
 @RunWith(GuiceJunit4Runner.class)
-@Modules({ConfigModule.class, SchedulerTestModule.class})
+@Modules(orchestrationModules = {SchedulerTestModule.class}, executionModules = {})
 public class EventSchedulerDaoTest {
 
-    @Inject
+    @InjectFromRole(value = FluxRole.ORCHESTRATION)
     EventSchedulerDao eventSchedulerDao;
 
-    @Inject
-    @Named("schedulerSessionFactoriesContext")
+    @InjectFromRole(value = FluxRole.ORCHESTRATION, name = "schedulerSessionFactoriesContext")
     SessionFactoryContext sessionFactory;
 
     @Before

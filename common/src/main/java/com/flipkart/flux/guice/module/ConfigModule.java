@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.Iterator;
 
 import static com.flipkart.flux.Constants.CONFIGURATION_YML;
+import static com.flipkart.flux.Constants.DUAL_MODE_CONFIGURATION_YML;
 import static com.flipkart.flux.Constants.EXECUTION_NODE_CONFIGURATION_YML;
 
 /**
@@ -52,6 +53,7 @@ public class ConfigModule extends AbstractModule {
             if (fluxConfigFile != null) {
                 configUrl = new File(fluxConfigFile).toURI().toURL();
             } else {
+
                 if (role.equals(FluxRole.ORCHESTRATION)) {
                     configUrl = this.getClass().getClassLoader().getResource(CONFIGURATION_YML);
                 } else {
@@ -65,8 +67,8 @@ public class ConfigModule extends AbstractModule {
         }
     }
 
-    public ConfigModule(){
-            this(FluxRole.EXECUTION);
+    public ConfigModule() {
+        this(FluxRole.ORCHESTRATION);
     }
 
     /**

@@ -15,6 +15,7 @@ package com.flipkart.flux.registry;
 
 import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
+import com.google.inject.Inject;
 
 import javax.inject.Singleton;
 import java.lang.reflect.Method;
@@ -32,6 +33,7 @@ public class TaskExecutableRegistryImpl implements ExecutableRegistry {
 
     private final Map<String, Executable> identifierToMethodMap;
 
+    @javax.inject.Inject
     public TaskExecutableRegistryImpl() {
         this.identifierToMethodMap = new ConcurrentHashMap<>();
     }
