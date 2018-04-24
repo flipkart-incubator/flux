@@ -39,7 +39,7 @@ public class SimpleWorkflow {
 
     @Task(version = 1,retries = 2,timeout = 2000l)
     public StringEvent simpleStringReturningTask(StringEvent stringEvent) {
-        logger.info("In Simple String returning task {}, received",stringEvent);
+        logger.info("In Simple  String returning task {}, received",stringEvent);
         return new StringEvent("randomString");
     }
 
@@ -49,7 +49,7 @@ public class SimpleWorkflow {
         return new IntegerEvent(2);
     }
 
-    @Task(version = 1, retries = 0, timeout = 1000l)
+    @Task(version = 1, retries = 2, timeout = 1000l)
     public void someTaskWithIntegerAndString(StringEvent someString, IntegerEvent someInteger) {
         logger.info("In someTaskWithIntegerAndString with integer {} and string {}",someInteger,someString);
     }

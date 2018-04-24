@@ -16,22 +16,25 @@ package com.flipkart.flux.module;
 import com.flipkart.flux.eventscheduler.dao.EventSchedulerDao;
 import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
-import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.impl.SessionFactoryContextImpl;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.flux.shard.ShardId;
+import com.flipkart.flux.type.BlobType;
+import com.flipkart.flux.type.ListJsonType;
+import com.flipkart.flux.type.StoreFQNType;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import com.google.inject.AbstractModule;
 import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.matcher.Matchers;
+import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
-import javax.inject.Named;
 import javax.inject.Provider;
 import javax.transaction.Transactional;
 import java.util.HashMap;
@@ -42,7 +45,7 @@ import java.util.Properties;
 /**
  * <code>SchedulerModule</code> is a Guice {@link AbstractModule} which binds all Scheduler related stuff.
  *
- * @author yogesh.nachnani
+ * @author amitkumar.o
  * @author shyam.akirala
  */
 public class SchedulerModule extends AbstractModule {
@@ -50,7 +53,7 @@ public class SchedulerModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        Provider<SessionFactoryContext> provider = getProvider(Key.get(SessionFactoryContext.class, Names.named("schedulerSessionFactoryContext")));
+        Provider<SessionFactoryContext> provider = getProvider(Key.get(SessionFactoryContext.class, Names.named("schedulerSessionFactoriesContext")));
         final TransactionInterceptor transactionInterceptor = new TransactionInterceptor(provider);
         bindInterceptor(Matchers.inPackage(MessageDao.class.getPackage()), Matchers.annotatedWith(Transactional.class), transactionInterceptor);
         bindInterceptor(Matchers.inPackage(EventSchedulerDao.class.getPackage()), Matchers.annotatedWith(Transactional.class), transactionInterceptor);
@@ -84,16 +87,28 @@ public class SchedulerModule extends AbstractModule {
      */
     @Provides
     @Singleton
-    @Named("schedulerSessionFactoryContext")
-    public SessionFactoryContext getSessionFactoryProvider(@Named("schedulerHibernateConfiguration") Configuration configuration) {
-        SessionFactory sessionFactory = configuration.buildSessionFactory();
-        Map<DataSourceType, SessionFactory> map = new HashMap<>();
-        map.put(DataSourceType.READ_WRITE, sessionFactory);
-        return new SessionFactoryContextImpl(map, DataSourceType.READ_WRITE);
+    @Named("schedulerSessionFactory")
+    public SessionFactory getSessionFactoryProvider(@Named("schedulerHibernateConfiguration") Configuration configuration) {
+        return configuration.buildSessionFactory();
     }
 
     private void addAnnotatedClassesAndTypes(Configuration configuration) {
+        //register hibernate custom types
+        configuration.registerTypeOverride(new BlobType(), new String[]{"BlobType"});
+        configuration.registerTypeOverride(new StoreFQNType(), new String[]{"StoreFQNOnly"});
+        configuration.registerTypeOverride(new ListJsonType(), new String[]{"ListJsonType"});
+
         configuration.addAnnotatedClass(ScheduledMessage.class);
         configuration.addAnnotatedClass(ScheduledEvent.class);
+    }
+
+    @Provides
+    @Singleton
+    @Named("schedulerSessionFactoriesContext")
+    public SessionFactoryContext getSessionFactoryProvider(@Named("schedulerSessionFactory") SessionFactory schedulerSessionFactory) {
+        Map fluxRWSessionFactoriesMap = new HashMap<ShardId, SessionFactory>();
+        Map fluxROSessionFactoriesMap = new HashMap<ShardId, SessionFactory>();
+        Map fluxShardKeyToShardIdMap = new HashMap<String, ShardId>();
+        return new SessionFactoryContextImpl(fluxRWSessionFactoriesMap, fluxROSessionFactoriesMap, fluxShardKeyToShardIdMap, schedulerSessionFactory);
     }
 }

@@ -43,10 +43,8 @@ public class FsmGraph {
     private List<Long> erroredStateIds;
 
     @JsonProperty
-    private Long stateMachineId;
+    private String stateMachineId;
 
-    @JsonProperty
-    private String correlationId;
 
     @JsonProperty
     private Long fsmVersion;
@@ -82,12 +80,8 @@ public class FsmGraph {
         this.auditData = auditData;
     }
 
-    public void setStateMachineId(Long stateMachineId) {
+    public void setStateMachineId(String stateMachineId) {
         this.stateMachineId = stateMachineId;
-    }
-
-    public void setCorrelationId(String correlationId) {
-        this.correlationId = correlationId;
     }
 
     public void setFsmVersion(Long fsmVersion) {

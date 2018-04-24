@@ -41,7 +41,7 @@ public class TaskAndEvents implements Serializable {
     /* The set of events that have presently unblocked the task and whose data will be utilised during task execution */
     private EventData[] events;
     /* The state machine id for which this execution message is raised */
-    private Long stateMachineId;
+    private String stateMachineId;
     /* The state machine name for which this execution message is raised */
     private String stateMachineName;
     /* Serialised output event definition */
@@ -55,7 +55,7 @@ public class TaskAndEvents implements Serializable {
 
     /** constructors*/
     public TaskAndEvents() {}
-    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, EventData[] events, Long stateMachineId, String stateMachineName, String outputEvent, long retryCount) {
+    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, EventData[] events, String stateMachineId, String stateMachineName, String outputEvent, long retryCount) {
     	this.taskName = taskName;
         this.taskIdentifier = taskIdentifier;
         this.taskId = taskId;
@@ -66,7 +66,7 @@ public class TaskAndEvents implements Serializable {
         this.retryCount = retryCount;
     }
 
-    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, EventData[] events, Long stateMachineId, String stateMachineName, String outputEvent, long retryCount, long currentRetryCount) {
+    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, EventData[] events, String stateMachineId, String stateMachineName, String outputEvent, long retryCount, long currentRetryCount) {
         this(taskName, taskIdentifier, taskId, events, stateMachineId, stateMachineName, outputEvent, retryCount);
         this.currentRetryCount = currentRetryCount;
     }
@@ -83,7 +83,7 @@ public class TaskAndEvents implements Serializable {
 	public EventData[] getEvents() {
         return this.events;
     }
-    public Long getStateMachineId() {
+    public String getStateMachineId() {
         return stateMachineId;
     }
     public String getStateMachineName() {

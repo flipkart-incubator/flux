@@ -15,30 +15,42 @@ package com.flipkart.flux.dao.iface;
 
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.StateMachineStatus;
+import com.flipkart.flux.shard.ShardId;
 
 import java.util.Set;
 
 /**
  * <code>StateMachinesDAO</code> interface provides methods to perform CR operations on {@link StateMachine}
+ *
  * @author shyam.akirala
  */
 public interface StateMachinesDAO {
 
-    /** Creates state machine and returns saved object*/
-    StateMachine create(StateMachine stateMachine);
+    /**
+     * Creates state machine and returns saved object
+     */
+    StateMachine create(String StateMachineInstanceId, StateMachine stateMachine);
 
-    /** Retrieves state machine by it's unique identifier*/
-    StateMachine findById(Long id);
+    /**
+     * Retrieves state machine by it's unique identifier
+     */
+    StateMachine findById(String stateMachineId);
 
-    /** Retrieves set of state machines by State machine's Name*/
-    Set<StateMachine> findByName(String stateMachineName);
 
-    /** Retrieves set of state machines by Name and version*/
-    Set<StateMachine> findByNameAndVersion(String stateMachineName, Long Version);
+    /**
+     * Retrieves set of state machines by State machine's Name
+     */
+    Set<StateMachine> findByName(ShardId shardId, String stateMachineName);
 
-    /** Retrieves state machine by it's unique correlationId*/
-    StateMachine findByCorrelationId(String correlationId);
 
-    /** Updates status of a state machine*/
-    void updateStatus(Long stateMachineId, StateMachineStatus status);
+    /**
+     * Retrieves set of state machines by Name and version
+     */
+    Set<StateMachine> findByNameAndVersion(ShardId shardId, String stateMachineName, Long Version);
+
+    /**
+     * Updates status of a state machine
+     */
+    void updateStatus(String stateMachineId, StateMachineStatus status);
+
 }

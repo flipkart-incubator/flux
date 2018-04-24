@@ -30,6 +30,7 @@ import java.util.Properties;
 /**
  * <code>MigrationsRunner</code> performs mysql migration using liquibase.
  * To perform migration run this class with "migrate" parameter.
+ *
  * @author shyam.akirala
  */
 @Singleton
@@ -40,16 +41,16 @@ public class MigrationsRunner {
 
     public void migrate(String dbName) {
         try {
-            Configuration configuration = yamlConfiguration.subset(dbName+ ".Hibernate");
+            Configuration configuration = yamlConfiguration.subset(dbName + ".Hibernate");
             Properties properties = new Properties();
             properties.put("user", configuration.getProperty("hibernate.connection.username"));
             properties.put("password", configuration.getProperty("hibernate.connection.password"));
-            String url = (String) configuration.getProperty("hibernate.connection.url");
             Class.forName("com.mysql.jdbc.Driver").newInstance();
+            String url = (String) configuration.getProperty("hibernate.connection.url");
             java.sql.Connection connection = DriverManager.getConnection(url, properties);
             Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
             ClassLoader classLoader = getClass().getClassLoader();
-            File file = new File(classLoader.getResource(dbName+"/migrations.xml").getFile());
+            File file = new File(classLoader.getResource(dbName +  "/migrations.xml").getFile());
             Liquibase liquibase = new Liquibase(file.getCanonicalPath(), new FileSystemResourceAccessor(), database);
             liquibase.update(new Contexts());
         } catch (Exception e) {
@@ -57,5 +58,4 @@ public class MigrationsRunner {
             e.printStackTrace();
         }
     }
-
 }

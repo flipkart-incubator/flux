@@ -13,10 +13,11 @@
 
 package com.flipkart.flux.redriver.dao;
 
+import com.flipkart.flux.boot.SchedulerTestModule;
 import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.flux.persistence.SessionFactoryContext;
-import com.flipkart.flux.boot.SchedulerTestModule;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.flux.redriver.model.SmIdAndTaskIdPair;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
 import com.google.inject.Inject;
@@ -39,45 +40,47 @@ public class MessageDaoTest {
     MessageDao messageDao;
 
     @Inject
-    @Named("schedulerSessionFactoryContext")
-    SessionFactoryContext sessionFactory;
+    @Named("schedulerSessionFactoriesContext")
+    SessionFactoryContext context;
 
     @Before
     public void setUp() throws Exception {
-        sessionFactory.useDefault();
-        Session session = sessionFactory.getSessionFactory().openSession();
+        context.setThreadLocalSession(context.getSchedulerSessionFactory().openSession());
+        Session session = context.getThreadLocalSession();
         ManagedSessionContext.bind(session);
         Transaction tx = session.beginTransaction();
         try {
-            sessionFactory.getSessionFactory().getCurrentSession().createSQLQuery("delete from ScheduledMessages").executeUpdate();
+            session.createSQLQuery("delete from ScheduledMessages").executeUpdate();
             tx.commit();
         } finally {
             if(session != null) {
-                ManagedSessionContext.unbind(sessionFactory.getSessionFactory());
+                ManagedSessionContext.unbind(context.getThreadLocalSession().getSessionFactory());
                 session.close();
-                sessionFactory.clear();
+                context.clear();
             }
         }
     }
 
     @Test
     public void testDeleteInBatch() throws Exception {
-        messageDao.save(new ScheduledMessage(1l,2l));
-        messageDao.save(new ScheduledMessage(2l,3l));
-        messageDao.save(new ScheduledMessage(3l,4l));
-        messageDao.deleteInBatch(Arrays.asList(1l, 2l));
+        messageDao.save(new ScheduledMessage(1l, "sample-state-machine-uuid", 2l));
+        messageDao.save(new ScheduledMessage(2l, "sample-state-machine-uuid", 3l));
+        messageDao.save(new ScheduledMessage(3l, "sample-state-machine-uuid", 4l));
+        messageDao.deleteInBatch(Arrays.asList(new SmIdAndTaskIdPair("sample-state-machine-uuid", 1l),
+                new SmIdAndTaskIdPair("sample-state-machine-uuid", 2l)));
 
-        assertThat(messageDao.retrieveOldest(0, 10)).containsExactly(new ScheduledMessage(3l,4l));
+        assertThat(messageDao.retrieveOldest(0, 10)).containsExactly(new ScheduledMessage(3l, "sample-state-machine-uuid", 4l));
     }
 
     @Test
     public void testRetrieveOldest() throws Exception {
-        messageDao.save(new ScheduledMessage(1l,2l));
-        messageDao.save(new ScheduledMessage(2l,3l));
-        messageDao.save(new ScheduledMessage(3l,4l));
+        messageDao.save(new ScheduledMessage(1l, "sample-state-machine-uuid", 2l));
+        messageDao.save(new ScheduledMessage(2l, "sample-state-machine-uuid", 3l));
+        messageDao.save(new ScheduledMessage(3l, "sample-state-machine-uuid", 4l));
 
-        assertThat(messageDao.retrieveOldest(0, 1)).containsExactly(new ScheduledMessage(1l,2l));
+        assertThat(messageDao.retrieveOldest(0, 1)).containsExactly(new ScheduledMessage(1l, "sample-state-machine-uuid", 2l));
         assertThat(messageDao.retrieveOldest(1, 3)).hasSize(2);
-        assertThat(messageDao.retrieveOldest(1, 3)).containsSequence(new ScheduledMessage(2l,3l), new ScheduledMessage(3l,4l));
+        assertThat(messageDao.retrieveOldest(1, 3)).containsSequence(new ScheduledMessage(2l, "sample-state-machine-uuid", 3l),
+                new ScheduledMessage(3l, "sample-state-machine-uuid", 4l));
     }
 }

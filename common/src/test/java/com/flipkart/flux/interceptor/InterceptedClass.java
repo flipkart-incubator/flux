@@ -13,11 +13,11 @@
 
 package com.flipkart.flux.interceptor;
 
-import com.flipkart.flux.persistence.DataSourceType;
-import com.flipkart.flux.persistence.SelectDataSource;
-import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.*;
+import com.flipkart.flux.shard.ShardId;
 import com.google.inject.Inject;
-import org.hibernate.SessionFactory;
+import com.google.inject.name.Named;
+import org.hibernate.Session;
 import org.junit.Assert;
 
 import javax.transaction.Transactional;
@@ -31,19 +31,32 @@ public class InterceptedClass {
     private SessionFactoryContext context;
 
     @Inject
-    private SessionFactory readOnlySessionFactory;
+    @Named("shardedReadWriteSession")
+    private Session shardedReadWriteSession;
+
+    @Inject
+    @Named("shardedReadOnlySession")
+    private Session shardedReadOnlySession;
+
+    @Inject
+    @Named("schedulerSession")
+    private Session schedulerSession;
 
     @Transactional
-    @SelectDataSource(DataSourceType.READ_ONLY)
-    public void readSome() {
-        /* assert that the current session factory in context is equals to readOnlySessionFactory. */
-        Assert.assertSame(context.getSessionFactory(), readOnlySessionFactory);
+    @SelectDataSource(type=DataSourceType.READ_WRITE, storage= Storage.SHARDED)
+    public void verifySessionFactoryAndSessionAndTransactionForShardedMaster(String shardKey) {
+        Assert.assertSame(context.getThreadLocalSession(), shardedReadWriteSession);
     }
 
     @Transactional
-    public void writeSome() {
-        /* assert that the current session factory in context is not null and not equals to readOnlySessionFactory. */
-        Assert.assertNotNull(context.getSessionFactory());
-        Assert.assertNotSame(context.getSessionFactory(), readOnlySessionFactory);
+    @SelectDataSource(type=DataSourceType.READ_ONLY, storage= Storage.SHARDED)
+    public void verifySessionFactoryAndSessionAndTransactionForShardedSlave(ShardId shardId) {
+        Assert.assertSame(context.getThreadLocalSession(), shardedReadOnlySession);
+    }
+
+    @Transactional
+    @SelectDataSource(storage= Storage.SCHEDULER)
+    public void verifySessionFactoryAndSessionAndTransactionForRedriverHost() {
+        Assert.assertSame(context.getThreadLocalSession(), schedulerSession);
     }
 }

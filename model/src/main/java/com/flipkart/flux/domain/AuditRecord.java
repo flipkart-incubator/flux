@@ -30,7 +30,7 @@ public class AuditRecord {
     private Long id;
 
     /** Instance id of the state machine to which this audit belongs */
-    private Long stateMachineInstanceId;
+    private String stateMachineInstanceId;
 
     /** The State identifier to which this audit belongs */
     private Long stateId;
@@ -54,7 +54,7 @@ public class AuditRecord {
 
     /** Constructors */
     protected AuditRecord(){}
-    public AuditRecord(Long stateMachineInstanceId, Long stateId, Long retryAttempt, Status stateStatus, Status stateRollbackStatus,
+    public AuditRecord(String stateMachineInstanceId, Long stateId, Long retryAttempt, Status stateStatus, Status stateRollbackStatus,
                        String errors) {
         this.stateMachineInstanceId = stateMachineInstanceId;
         this.stateId = stateId;
@@ -68,10 +68,10 @@ public class AuditRecord {
     public Long getId() {
         return id;
     }
-    public Long getStateMachineInstanceId() {
+    public String getStateMachineInstanceId() {
         return stateMachineInstanceId;
     }
-    public void setStateMachineInstanceId(Long stateMachineInstanceId) {
+    public void setStateMachineInstanceId(String stateMachineInstanceId) {
         this.stateMachineInstanceId = stateMachineInstanceId;
     }
     public Long getStateId() {
@@ -134,4 +134,5 @@ public class AuditRecord {
         result = 31 * result + (stateRollbackStatus != null ? stateRollbackStatus.hashCode() : 0);
         return result;
     }
+
 }

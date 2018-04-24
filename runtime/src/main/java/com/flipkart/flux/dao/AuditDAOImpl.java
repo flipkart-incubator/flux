@@ -15,7 +15,7 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
-import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.*;
 import com.google.inject.name.Named;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
@@ -31,13 +31,14 @@ import java.util.List;
 public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
 
     @Inject
-    public AuditDAOImpl(@Named("fluxSessionFactoryContext") SessionFactoryContext sessionFactoryContext) {
+    public AuditDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
         super(sessionFactoryContext);
     }
 
     @Override
     @Transactional
-    public List<AuditRecord> findBySMInstanceId(Long stateMachineInstanceId) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public List<AuditRecord> findBySMInstanceId(String stateMachineInstanceId) {
         Criteria criteria = currentSession().createCriteria(AuditRecord.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId));
         List<AuditRecord> records = criteria.list();
         return records;
@@ -45,13 +46,15 @@ public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
 
     @Override
     @Transactional
-    public AuditRecord create(AuditRecord auditRecord) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public AuditRecord create(String stateMachineId, AuditRecord auditRecord) {
         return super.save(auditRecord);
     }
 
     @Override
     @Transactional
-    public AuditRecord findById(Long id) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public AuditRecord findById(String stateMachineId, Long id) {
         return super.findById(AuditRecord.class, id);
     }
 }

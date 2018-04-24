@@ -63,13 +63,13 @@ public class OrderedComponentBooter implements Initializable {
 
         try {
              /* Bring up the API server */
-            logger.debug("loading API server");
+            logger.info("loading API server");
             apiServer.start();
-            logger.debug("API server started. Say Hello!");
+            logger.info("API server started. Say Hello!");
         /* Bring up the Dashboard server */
-            logger.debug("Loading Dashboard Server");
+            logger.info("Loading Dashboard Server");
             dashboardServer.start();
-            logger.debug("Dashboard server has started. Say Hello!");
+            logger.info("Dashboard server has started. Say Hello!");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

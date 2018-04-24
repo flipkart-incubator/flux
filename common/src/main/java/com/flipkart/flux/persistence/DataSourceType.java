@@ -12,7 +12,6 @@
  */
 
 package com.flipkart.flux.persistence;
-
 /**
  * Types of data source based on usage
  *

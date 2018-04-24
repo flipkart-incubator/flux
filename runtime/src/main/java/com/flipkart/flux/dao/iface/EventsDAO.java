@@ -26,32 +26,31 @@ import java.util.Map;
 public interface EventsDAO {
 
     /** Creates Event in the db, and returns the saved object*/
-    Event create(Event event);
+    Event create(String stateMachineInstanceId, Event event);
 
     /** Updates the event */
-    void updateEvent(Event event);
+    void updateEvent(String stateMachineInstanceId, Event event);
 
     /** Retrieves all the events which belongs to a particular state machine instance*/
-    List<Event> findBySMInstanceId(Long stateMachineInstanceId);
+    List<Event> findBySMInstanceId(String stateMachineInstanceId);
 
-    /** Retrieves Event by it's unique identifier*/
-    Event findById(Long id);
 
     /** Retrieves Event by state machine instance id and event name */
-    Event findBySMIdAndName(Long stateMachineInstanceId, String eventName);
+    Event findBySMIdAndName(String stateMachineInstanceId, String eventName);
 
-    /** Retrieves list of event names which are in triggered state or cancelled state and belongs to provided state machine */
-    List<String> findTriggeredOrCancelledEventsNamesBySMId(Long stateMachineInstanceId);
+    /** Retrieves list of event names which are in triggered state and belongs to provided state machine */
+    List<String> findTriggeredOrCancelledEventsNamesBySMId(String stateMachineInstanceId);
 
     /** Retrieves list of events which are in triggered state and belongs to provided state machine */
-    List<Event> findTriggeredEventsBySMId(Long stateMachineInstanceId);
+    List<Event> findTriggeredEventsBySMId(String stateMachineInstanceId);
 
     /** Retrieves list of events by their names and state machine id */
-    List<EventData> findByEventNamesAndSMId(List<String> eventNames, Long stateMachineInstanceId);
+    List<EventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames );
+
 
     /** Retrieves all the events names and statuses. Selects for update if forUpdate is true */
-    Map<String, Event.EventStatus> getAllEventsNameAndStatus(Long stateMachineInstanceId, boolean forUpdate);
+    Map<String, Event.EventStatus> getAllEventsNameAndStatus(String stateMachineInstanceId, boolean forUpdate);
 
     /** Marks an event as cancelled */
-    void markEventAsCancelled(Long stateMachineInstanceId, String eventName);
+    void markEventAsCancelled(String stateMachineInstanceId, String eventName);
 }

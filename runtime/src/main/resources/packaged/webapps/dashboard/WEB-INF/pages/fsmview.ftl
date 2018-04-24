@@ -65,10 +65,6 @@
                                             <td id="fsmId" align="left" style="border-top: none; vertical-align: middle;"></td>
                                         </tr>
                                         <tr>
-                                            <th align="left" style="border-top: none; vertical-align: middle;">Correlation Id:</th>
-                                            <td id="correlationId" align="left" style="border-top: none; vertical-align: middle; max-width: 100px; word-wrap: break-word;"></td>
-                                        </tr>
-                                        <tr>
                                             <th align="left" style="border-top: none; vertical-align: middle;">FSM Version:</th>
                                             <td id="fsmVersion" align="left" style="border-top: none; vertical-align: middle;"></td>
                                         </tr>
@@ -443,9 +439,8 @@
             });
         }
 
-        function displayFsmInfo(fsmId, correlationId, fsmVersion, fsmName) {
+        function displayFsmInfo(fsmId, fsmVersion, fsmName) {
             document.getElementById("fsmId").innerHTML = fsmId;
-            document.getElementById("correlationId").innerHTML = correlationId;
             document.getElementById("fsmVersion").innerHTML = fsmVersion;
             document.getElementById("fsmName").innerHTML = fsmName;
         }
@@ -465,7 +460,7 @@
                         document.getElementById("alert-msg").style.display = 'none';
                         layout(data.fsmGraphData, data.initStateEdges);
                         createAuditTable(data.fsmGraphData, data.auditData);
-                        displayFsmInfo(data.stateMachineId, data.correlationId, data.fsmVersion, data.fsmName);
+                        displayFsmInfo(data.stateMachineId, data.fsmVersion, data.fsmName);
                         document.getElementById("fsm-unsideline-btn").style.display = 'block';
                         document.getElementById("fsm-event-details-btn").style.display='block';
                         document.getElementById("fsm-details").style.display='block';

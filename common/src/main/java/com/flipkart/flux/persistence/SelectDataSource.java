@@ -21,11 +21,13 @@ import java.lang.annotation.Target;
 /**
  * Annotation to select a particular data source based on the usage pattern. To be used along with
  * {@link javax.transaction.Transactional}.
- *
+ * <p>
  * Created by gaurav.ashok on 24/11/16.
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface SelectDataSource {
-    DataSourceType value() default DataSourceType.READ_WRITE;
+    DataSourceType type() default DataSourceType.READ_WRITE;
+
+    Storage storage() default Storage.SHARDED;
 }

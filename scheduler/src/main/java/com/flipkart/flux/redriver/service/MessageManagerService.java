@@ -18,6 +18,7 @@ import com.codahale.metrics.InstrumentedScheduledExecutorService;
 import com.codahale.metrics.SharedMetricRegistries;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.flux.redriver.model.SmIdAndTaskIdPair;
 import com.flipkart.polyguice.core.Initializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,13 +48,14 @@ public class MessageManagerService implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(MessageManagerService.class);
     private static final String scheduledDeletionSvcName = "redriver-batch-delete-executor-svc";
     private static final String taskRegisterSvcName = "redriver-task-register-executor-svc";
-
+    private static final String scheduledDeletionSvcFailureCounter = "scheduled.deletion.failure.counter";
     private final MessageDao messageDao;
     private final Integer batchDeleteInterval;
     private final Integer batchSize;
-    private final ConcurrentLinkedQueue<Long> messagesToDelete;
+    private final ConcurrentLinkedQueue<SmIdAndTaskIdPair> messagesToDelete;
     private final InstrumentedScheduledExecutorService scheduledDeletionService;
     private final InstrumentedExecutorService persistenceExecutorService;
+
 
     @Inject
     public MessageManagerService(MessageDao messageDao,
@@ -65,34 +67,39 @@ public class MessageManagerService implements Initializable {
         this.batchSize = batchSize;
         this.messagesToDelete = new ConcurrentLinkedQueue<>();
         scheduledDeletionService =
-            new InstrumentedScheduledExecutorService(Executors.newScheduledThreadPool(2), SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME), scheduledDeletionSvcName);
+                new InstrumentedScheduledExecutorService(Executors.newScheduledThreadPool(2), SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME), scheduledDeletionSvcName);
         persistenceExecutorService =
-            new InstrumentedExecutorService(Executors.newFixedThreadPool(noOfPersistenceWorkers), SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME), taskRegisterSvcName);
+                new InstrumentedExecutorService(Executors.newFixedThreadPool(noOfPersistenceWorkers), SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME), taskRegisterSvcName);
     }
 
     public List<ScheduledMessage> retrieveOldest(int offset, int count) {
+        logger.info("Retrieving messages from ScheduledMessages offset:{} count:{}", offset, count);
         return messageDao.retrieveOldest(offset, count);
     }
 
     public void saveMessage(ScheduledMessage message) {
         persistenceExecutorService.execute(() -> messageDao.save(message));
     }
-    public void scheduleForRemoval(Long taskId) {
-        messagesToDelete.add(taskId);
+
+    public void scheduleForRemoval(String stateMachine, Long taskId) {
+        messagesToDelete.add(new SmIdAndTaskIdPair(stateMachine, taskId));
     }
 
     @Override
     public void initialize() {
         scheduledDeletionService.scheduleAtFixedRate(() -> {
-            Long currentMessageIdToDelete = null;
-            List<Long> messageIdsToDelete = new ArrayList<>(batchSize);
-
-            while(messageIdsToDelete.size() < batchSize && (currentMessageIdToDelete = messagesToDelete.poll()) != null) {
-                messageIdsToDelete.add(currentMessageIdToDelete);
-            }
-
-            if (!messageIdsToDelete.isEmpty()) {
-                messageDao.deleteInBatch(messageIdsToDelete);
+            try {
+                logger.info("Running Deletion job, deleting {} messages", Math.min(batchSize, messagesToDelete.size()));
+                SmIdAndTaskIdPair currentMessageIdToDelete = null;
+                List messageIdsToDelete = new ArrayList<SmIdAndTaskIdPair>(batchSize);
+                while (messageIdsToDelete.size() < batchSize && (currentMessageIdToDelete = messagesToDelete.poll()) != null) {
+                    messageIdsToDelete.add(currentMessageIdToDelete);
+                }
+                if (!messageIdsToDelete.isEmpty()) {
+                    messageDao.deleteInBatch(messageIdsToDelete);
+                }
+            } catch (Throwable throwable) {
+                logger.error("ScheduledDeletion Job failed for Redriver Messages.", throwable);
             }
         }, 0l, batchDeleteInterval, TimeUnit.MILLISECONDS);
 
@@ -102,17 +109,17 @@ public class MessageManagerService implements Initializable {
 
     private void registerShutdownHook(ExecutorService executorService, int timeout, String customErrorMsg) {
         Runtime.getRuntime().addShutdownHook(
-            new Thread() {
-                @Override
-                public void run() {
-                    executorService.shutdown();
-                    try {
-                        executorService.awaitTermination(timeout,TimeUnit.SECONDS);
-                    } catch (InterruptedException e) {
-                        logger.error(customErrorMsg, e);
+                new Thread() {
+                    @Override
+                    public void run() {
+                        executorService.shutdown();
+                        try {
+                            executorService.awaitTermination(timeout, TimeUnit.SECONDS);
+                        } catch (InterruptedException e) {
+                            logger.error(customErrorMsg, e);
+                        }
                     }
                 }
-            }
         );
     }
 }
