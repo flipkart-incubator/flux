@@ -64,6 +64,9 @@ public class E2ETest {
     SimpleWorkflow simpleWorkflow;
 
     @Inject
+    TestCancelPathWorkflow testCancelPathWorkflow;
+
+    @Inject
     OrderedComponentBooter orderedComponentBooter;
 
     /** Needed to populate deployment units before beginning the test */
@@ -78,7 +81,6 @@ public class E2ETest {
     public void testSimpleWorkflowE2E() throws Exception {
         /* Invocation */
         simpleWorkflow.simpleDummyWorkflow(new StringEvent("startingEvent"));
-        
         // sleep for a while to let things complete and then eval results and shutdown
         Thread.sleep(2000L);
 
@@ -90,6 +92,30 @@ public class E2ETest {
 
         /** All the events should be in triggered state after execution*/
         assertThat(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId(smId)).hasSize(3);
+    }
+
+    @Test
+    public void testCancelPathWorkflowE2E() throws Exception {
+        /* Invocation */
+        testCancelPathWorkflow.create(new StartEvent("test_cancel_path"));
+        // sleep for a while to let things complete and then eval results and shutdown
+        Thread.sleep(2000L);
+
+        /* Asserts*/
+        final Set<StateMachine> smInDb =  parallelScatterGatherQueryHelper.findStateMachinesByNameAndVersion("com.flipkart.flux.integration.TestCancelPathWorkflow_create_void_com.flipkart.flux.integration.StartEvent_version1", 1l);
+        final String smId = smInDb.stream().findFirst().get().getId();
+        assertThat(smInDb).hasSize(1);
+        assertThat(eventsDAO.findBySMInstanceId(smId)).hasSize(9);
+
+        /* Tests the propagation of FluxCancelPathException via event ParamEvent2 */
+        String eventName = "com.flipkart.flux.integration.ParamEvent2";
+        assertThat(eventsDAO.findBySMIdAndName(smId, eventName).getStatus().toString().equalsIgnoreCase("cancelled"));
+
+        /* Triggered events coming from States which do not throw FluxCancelPathException */
+        assertThat(eventsDAO.findTriggeredEventsBySMId(smId)).hasSize(3);
+
+        /** All the events should be in triggered or cancelled state after execution*/
+        assertThat(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId(smId)).hasSize(9);
     }
 
     @Test
