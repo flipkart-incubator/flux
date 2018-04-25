@@ -90,7 +90,7 @@ public class WorkFlowExecutionControllerTest {
     }
 
     @Test
-    public void testEventPost_shouldLookupRouterAndSendMessageForExecution() throws Exception {
+    public void testEventPost_shouldForwardToTaskDispatcher() throws Exception {
         final EventData testEventData = new EventData("event0", "java.lang.String", "42", "runtime");
 
         when(eventsDAO.findBySMIdAndName("standard-machine", "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, "standard-machine", null, null));
