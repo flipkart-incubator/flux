@@ -80,6 +80,9 @@ eventScheduler:
     batchSize: 50
     intervalms: 1000
 
+elbCache:
+  maxSize: 50
+
 eventProxyForMigration:
   enabled: "yes"
   endpoint: "http://localhost:9998/api/machines"
