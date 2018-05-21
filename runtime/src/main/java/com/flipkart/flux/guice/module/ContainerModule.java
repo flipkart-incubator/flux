@@ -28,6 +28,7 @@ import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.filter.CORSFilter;
 import com.flipkart.flux.metrics.MetricsClientImpl;
 import com.flipkart.flux.metrics.iface.MetricsClient;
+import com.flipkart.flux.resource.ClientElbResource;
 import com.flipkart.flux.resource.DeploymentUnitResource;
 import com.flipkart.flux.resource.StateMachineResource;
 import com.flipkart.flux.resource.StatusResource;
@@ -174,7 +175,8 @@ public class ContainerModule extends AbstractModule {
 	@Singleton
 	@Provides
 	public ResourceConfig getAPIResourceConfig(StateMachineResource stateMachineResource, DeploymentUnitResource deploymentUnitResource,
-											   StatusResource statusResource, MetricRegistry metricRegistry) {
+											   StatusResource statusResource, ClientElbResource clientElbResource,
+											   MetricRegistry metricRegistry) {
 		ResourceConfig resourceConfig = new ResourceConfig();
 
 		//Register codahale metrics and publish to jmx
@@ -185,6 +187,7 @@ public class ContainerModule extends AbstractModule {
 		resourceConfig.register(stateMachineResource);
 		resourceConfig.register(deploymentUnitResource);
 		resourceConfig.register(statusResource);
+		resourceConfig.register(clientElbResource);
 
 		resourceConfig.register(CORSFilter.class);
 		jmxReporter.start();
