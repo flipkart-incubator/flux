@@ -15,6 +15,7 @@ package com.flipkart.flux.initializer;
 
 import com.flipkart.flux.impl.boot.ActorSystemManager;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
+import com.flipkart.flux.representation.ClientElbCacheInitializer;
 import com.flipkart.polyguice.core.Initializable;
 import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ import javax.inject.Singleton;
 @Singleton
 public class OrderedComponentBooter implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(OrderedComponentBooter.class);
+    private final ClientElbCacheInitializer clientElbCacheInitializer;
     private final Server apiServer;
     private final Server dashboardServer;
     private final ActorSystemManager actorSystemManager;
@@ -41,12 +43,14 @@ public class OrderedComponentBooter implements Initializable {
     public OrderedComponentBooter(RouterRegistry routerRegistry,
                                   @Named("APIJettyServer") Server apiServer,
                                   @Named("DashboardJettyServer") Server dashboardServer,
-                                  ActorSystemManager actorSystemManager
+                                  ActorSystemManager actorSystemManager,
+                                  ClientElbCacheInitializer clientElbCacheInitializer
     ) {
         this.routerRegistry = routerRegistry;
         this.apiServer = apiServer;
         this.dashboardServer = dashboardServer;
         this.actorSystemManager = actorSystemManager;
+        this.clientElbCacheInitializer = clientElbCacheInitializer;
     }
 
     @Override
@@ -62,11 +66,12 @@ public class OrderedComponentBooter implements Initializable {
         }
 
         try {
+            clientElbCacheInitializer.initialize();
              /* Bring up the API server */
             logger.info("loading API server");
             apiServer.start();
             logger.info("API server started. Say Hello!");
-        /* Bring up the Dashboard server */
+            /* Bring up the Dashboard server */
             logger.info("Loading Dashboard Server");
             dashboardServer.start();
             logger.info("Dashboard server has started. Say Hello!");
