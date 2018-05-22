@@ -77,6 +77,9 @@ runtime:
 task:
   maxTaskRetryCount: 10
 
+elbCache:
+  maxSize: 50
+
 eventProxyForMigration:
   enabled: "no"
   endpoint: "http://localhost:9998/api/machines"
