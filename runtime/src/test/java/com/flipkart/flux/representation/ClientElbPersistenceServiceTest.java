@@ -1,5 +1,7 @@
 package com.flipkart.flux.representation;
 
+import com.flipkart.flux.FluxRole;
+import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.clientelb.dao.ClientElbDAOImpl;
 import com.flipkart.flux.domain.ClientElb;
 import com.flipkart.flux.guice.module.ConfigModule;
@@ -7,7 +9,6 @@ import com.flipkart.flux.guice.module.SchedulerModuleTest;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
-import com.google.inject.Inject;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.context.internal.ManagedSessionContext;
@@ -16,20 +17,17 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.inject.Named;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 
 @RunWith(GuiceJunit4Runner.class)
-@Modules({ConfigModule.class, SchedulerModuleTest.class})
+@Modules(orchestrationModules = {ConfigModule.class, SchedulerModuleTest.class}, executionModules = {})
 public class ClientElbPersistenceServiceTest {
 
-    @Inject
+    @InjectFromRole(value = FluxRole.ORCHESTRATION)
     ClientElbDAOImpl clientElbDAO;
 
-    @Inject
-    @Named("schedulerSessionFactoriesContext")
+    @InjectFromRole(value = FluxRole.ORCHESTRATION, name = "schedulerSessionFactoriesContext")
     SessionFactoryContext sessionFactory;
 
     private void clean() throws Exception {

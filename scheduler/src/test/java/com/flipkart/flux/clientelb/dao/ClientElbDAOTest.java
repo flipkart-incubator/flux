@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.clientelb.dao;
 
+import com.flipkart.flux.FluxRole;
+import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.boot.SchedulerTestModule;
 import com.flipkart.flux.domain.ClientElb;
 import com.flipkart.flux.guice.module.ConfigModule;
@@ -28,8 +30,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.inject.Named;
-
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -39,14 +39,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author akif.khan
  */
 @RunWith(GuiceJunit4Runner.class)
-@Modules({ConfigModule.class, SchedulerTestModule.class})
+@Modules(orchestrationModules = {ConfigModule.class, SchedulerTestModule.class}, executionModules = {})
 public class ClientElbDAOTest {
 
-    @Inject
+    @InjectFromRole(value = FluxRole.ORCHESTRATION)
     ClientElbDAOImpl clientElbDAOImpl;
 
-    @Inject
-    @Named("schedulerSessionFactoriesContext")
+    @InjectFromRole(value = FluxRole.ORCHESTRATION, name = "schedulerSessionFactoriesContext")
     SessionFactoryContext sessionFactory;
 
     private void clean() throws Exception {
