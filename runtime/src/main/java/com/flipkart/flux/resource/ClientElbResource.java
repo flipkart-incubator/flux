@@ -13,6 +13,8 @@ import javax.inject.Named;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.UUID;
 
@@ -45,9 +47,9 @@ public class ClientElbResource {
     @POST
     @Path("/create")
     @Timed
+    @Produces(MediaType.APPLICATION_JSON)
     public Response createClientElb(@QueryParam("clientId") String clientId,
-                                @QueryParam("clientElbUrl") String clientElbUrl)
-     throws Exception {
+                                @QueryParam("clientElbUrl") String clientElbUrl) {
         if(clientElbUrl == null)
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
                     "ClientElbUrl cannot be null").build();
@@ -55,19 +57,26 @@ public class ClientElbResource {
             try {
                 URL verifyingURL = new URL(clientElbUrl);
                 verifyingURL.toURI();
+                if(clientId == null)
+                    clientId = UUID.randomUUID().toString();
+                ClientElbDefinition clientElbDefinition = new ClientElbDefinition(clientId, clientElbUrl);
+                ClientElb clientElb = clientElbPersistenceService.persistClientElb(
+                        clientElbDefinition.getId(), clientElbDefinition);
+                return Response.status(Response.Status.CREATED.getStatusCode()).entity(clientElb.getId()).build();
+            }
+            catch(MalformedURLException ex) {
+                logger.error("Malformed URL exception {} {} ", ex.getMessage(), ex.getStackTrace());
+                return Response.status(Response.Status.BAD_REQUEST).entity("MalformedURLException").build();
+            }
+            catch(URISyntaxException ex) {
+                logger.error("URI Syntax Exception {} {} ", ex.getMessage(), ex.getStackTrace());
+                return Response.status(Response.Status.BAD_REQUEST).entity("URISyntaxException").build();
             }
             catch(Exception ex) {
-                logger.error("Input ClientElbUrl is malformed {}", ex.getMessage(), ex.getStackTrace());
-
+                logger.error("Exception occured in ClientElb create {} {} ", ex.getMessage(), ex.getStackTrace());
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
             }
         }
-
-        if(clientId == null)
-            clientId = UUID.randomUUID().toString();
-        ClientElbDefinition clientElbDefinition = new ClientElbDefinition(clientId, clientElbUrl);
-        ClientElb clientElb = clientElbPersistenceService.persistClientElb(
-                clientElbDefinition.getId(), clientElbDefinition);
-        return Response.status(Response.Status.CREATED.getStatusCode()).entity(clientElb.getId()).build();
     }
 
     /**
@@ -80,20 +89,25 @@ public class ClientElbResource {
     @Path("/findById")
     @Timed
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findByIdClientElb(@QueryParam("clientId") String clientId)
-            throws Exception {
+    public Response findByIdClientElb(@QueryParam("clientId") String clientId) {
 
         if(clientId == null) {
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
                     "ClientId cannot be null").build();
         }
 
-        ClientElb clientElb = clientElbPersistenceService.findByIdClientElb(clientId);
-        if (clientElb == null) {
-            return Response.status(Response.Status.NOT_FOUND.getStatusCode())
-                    .entity("ClientElb with Id: " + clientId + " not found").build();
+        try {
+            ClientElb clientElb = clientElbPersistenceService.findByIdClientElb(clientId);
+            if (clientElb == null) {
+                return Response.status(Response.Status.NOT_FOUND.getStatusCode())
+                        .entity("ClientElb with Id: " + clientId + " not found").build();
+            }
+            return Response.status(Response.Status.FOUND.getStatusCode()).entity(clientElb.getElbUrl()).build();
         }
-        return Response.status(Response.Status.FOUND.getStatusCode()).entity(clientElb.getElbUrl()).build();
+        catch(Exception ex) {
+            logger.error("findById failed for input: "+ clientId + " {} {} ", ex.getMessage(), ex.getStackTrace());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
@@ -106,14 +120,30 @@ public class ClientElbResource {
     @Path("/update")
     @Timed
     public Response updateClientElb(@QueryParam("clientId") String clientId,
-                                    @QueryParam("clientElbUrl") String clientElbUrl)
-            throws Exception {
+                                    @QueryParam("clientElbUrl") String clientElbUrl) {
 
         if(clientId == null || clientElbUrl == null) {
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
                     "ClientId OR ClientElbUrl cannot be null").build();
         }
-        clientElbPersistenceService.updateClientElb(clientId, clientElbUrl);
+        try {
+            URL verifyingURL = new URL(clientElbUrl);
+            verifyingURL.toURI();
+            clientElbPersistenceService.updateClientElb(clientId, clientElbUrl);
+        }
+        catch(MalformedURLException ex) {
+            logger.error("Malformed URL exception {} {} ", ex.getMessage(), ex.getStackTrace());
+            return Response.status(Response.Status.BAD_REQUEST).entity("MalformedURLException").build();
+        }
+        catch(URISyntaxException ex) {
+            logger.error("URI Syntax Exception {} {} ", ex.getMessage(), ex.getStackTrace());
+            return Response.status(Response.Status.BAD_REQUEST).entity("URISyntaxException").build();
+        }
+        catch(Exception ex) {
+            logger.error("Update failed for input: "+ clientId + " " + clientElbUrl + " {} {} "
+                    , ex.getMessage(), ex.getStackTrace());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
@@ -126,13 +156,20 @@ public class ClientElbResource {
     @POST
     @Path("/delete")
     @Timed
-    public Response deleteClientElb(@QueryParam("clientId") String clientId)
-            throws Exception {
+    public Response deleteClientElb(@QueryParam("clientId") String clientId) {
+
         if(clientId == null) {
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
                     "ClientId cannot be null").build();
         }
-        clientElbPersistenceService.deleteClientElb(clientId);
+
+        try {
+            clientElbPersistenceService.deleteClientElb(clientId);
+        }
+        catch(Exception ex) {
+            logger.error("Deletion failed for input: "+ clientId + " {} {} ", ex.getMessage(), ex.getStackTrace());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
         return Response.status(Response.Status.ACCEPTED).build();
     }
 }
