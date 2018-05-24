@@ -244,10 +244,6 @@ public class ClientElbPersistenceService {
             return clientElb;
 
         synchronized (this) {
-            clientElb = this.queryClientElbCache(clientId);
-            if(clientElb != null)
-                return clientElb;
-
             clientElb = clientElbDAO.findById(clientId);
             if (clientElb != null)
                 this.clientElbCacheRefresh(clientId, clientElb);
