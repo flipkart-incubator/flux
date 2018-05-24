@@ -41,7 +41,7 @@ public class ExecutionApiResourceTest {
 
     @BeforeClass
     public static  void setUp(){
-        actorSystem  = ActorSystem.create("FluxExecutionSystem", ConfigFactory.load("execution_akka.conf"));
+        actorSystem  = ActorSystem.create("FluxExecutionSystem", ConfigFactory.load("testAkkaActorSystem.conf"));
         mockActor = TestActorRef.create(actorSystem, Props.create(MockActorRef.class));
     }
 
