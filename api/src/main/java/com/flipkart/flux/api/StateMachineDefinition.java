@@ -44,19 +44,25 @@ public class StateMachineDefinition {
     /* User supplied string for easy identification of a workflow instance */
     private String correlationId;
 
+    /* Client Eb Id to which task is supposed to be forwarded for execution in Flux Runtime  */
+    private String clientElbId;
+
     /* For Jackson */
     StateMachineDefinition() {
-        this(null,null,null, Collections.emptySet(),Collections.emptySet(), null);
+        this(null,null,null, Collections.emptySet(),Collections.emptySet(),
+                null, null);
     }
 
     /** Constructor */
-    public StateMachineDefinition(String description, String name, Long version, Set<StateDefinition> stateDefinitions, Set<EventData> eventData, String correlationId) {
+    public StateMachineDefinition(String description, String name, Long version, Set<StateDefinition> stateDefinitions,
+                                  Set<EventData> eventData, String correlationId, String clientElbId) {
         this.description = description;
         this.name = name;
         this.states = stateDefinitions;
         this.version = version;
         this.eventData = eventData;
         this.correlationId = correlationId;
+        this.clientElbId = clientElbId;
     }
 
     public void addState(StateDefinition stateDefinition) {
@@ -70,6 +76,12 @@ public class StateMachineDefinition {
 	public void setName(String name) {
 		this.name = name;
 	}
+    public String getClientElbId() {
+        return clientElbId;
+    }
+    public void setClientElbId(String clientElbId) {
+        this.clientElbId = clientElbId;
+    }
     public Long getVersion() {
         return version;
     }
