@@ -6,6 +6,7 @@ CREATE TABLE `ScheduledEvents` (
   `correlationId` VARCHAR(64) NOT NULL,
   `eventName` VARCHAR(255) NOT NULL,
   `scheduledTime` bigint(20) NOT NULL,
-  `eventData` BLOB,
-  PRIMARY KEY (`correlationId`,`eventName`)
+  `eventData` MEDIUMBLOB,
+  PRIMARY KEY (`correlationId`,`eventName`),
+  KEY `sTime` (`scheduledTime`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
