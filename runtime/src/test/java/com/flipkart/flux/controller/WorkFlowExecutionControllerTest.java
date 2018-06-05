@@ -268,7 +268,8 @@ public class WorkFlowExecutionControllerTest {
             add(state6);
             add(state7);
         }};
-        StateMachine stateMachine = new StateMachine("state-machine-cancel-path", 1L, "state_machine_1", null, states);
+        StateMachine stateMachine = new StateMachine("state-machine-cancel-path", 1L, "state_machine_1",
+                null, states, "client_elb_id_1");
         EventData testEventData = new EventData("event3", null, null, "runtime", true);
         when(eventsDAO.getAllEventsNameAndStatus("state-machine-cancel-path", true)).thenReturn(eventStatusHashMap);
 

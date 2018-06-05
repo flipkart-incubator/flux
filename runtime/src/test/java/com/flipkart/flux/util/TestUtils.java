@@ -48,7 +48,8 @@ public class TestUtils {
             add(state3);
             add(state4);
         }};
-        return new StateMachine(stateMachineId, 1l, "test_state_machine", "desc", states);
+        return new StateMachine(stateMachineId, 1l, "test_state_machine", "desc", states,
+                "client_elb_id_1");
     }
 
     /**
@@ -77,7 +78,8 @@ public class TestUtils {
             add(state3);
             add(state4);
         }};
-        StateMachine stateMachine = new StateMachine(stateMachineId, 1l, "test_state_machine", "desc", states);
+        StateMachine stateMachine = new StateMachine(stateMachineId, 1l, "test_state_machine",
+                "desc", states, "client_elb_id_1");
         return stateMachine;
     }
 

@@ -324,7 +324,8 @@ public class StateMachineResourceTest {
         states.addAll(sm.getStates());
         /* persist */
         Timestamp now = new Timestamp(System.currentTimeMillis() - 10 * 1000);
-        final StateMachine firstSM = stateMachinesDAO.create(firstSmId, new StateMachine(firstSmId, sm.getVersion(), sm.getName(), sm.getDescription(), states));
+        final StateMachine firstSM = stateMachinesDAO.create(firstSmId, new StateMachine(firstSmId, sm.getVersion(),
+                sm.getName(), sm.getDescription(), states, sm.getClientElbId()));
         /* change name and persist as 2nd statemachine */
         final String differentSMName = "state-machine-2";
         sm.getStates().stream().forEach(state -> {
@@ -333,7 +334,8 @@ public class StateMachineResourceTest {
         states.clear();
         states.addAll(sm.getStates());
 
-        final StateMachine secondSM = stateMachinesDAO.create(differentSMName, new StateMachine(differentSMName, sm.getVersion(), sm.getName(), sm.getDescription(), states));
+        final StateMachine secondSM = stateMachinesDAO.create(differentSMName, new StateMachine(
+                differentSMName, sm.getVersion(), sm.getName(), sm.getDescription(), states, sm.getClientElbId()));
         Timestamp future = new Timestamp(System.currentTimeMillis() + 3 * 1000);
         /* fetch errored states with name "differentStateMachine" */
         final HttpResponse<String> stringHttpResponse = Unirest.get(

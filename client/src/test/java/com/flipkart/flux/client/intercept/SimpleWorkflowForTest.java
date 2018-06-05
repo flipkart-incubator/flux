@@ -157,7 +157,9 @@ public class SimpleWorkflowForTest {
             add(new EventData(STRING_EVENT_NAME+"0","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent",objectMapper.writeValueAsString(stringEvent),CLIENT));
             add(new EventData(INTEGER_EVENT_NAME+"1","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent",objectMapper.writeValueAsString(integerEvent),CLIENT));
         }};
-        return new StateMachineDefinition("",new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod("simpleDummyWorkflow", StringEvent.class, IntegerEvent.class)).toString()+"_version1",1l,expectedStateDefs, expectedEventData, null);
+        return new StateMachineDefinition("",new MethodId(SimpleWorkflowForTest.class.getDeclaredMethod(
+                "simpleDummyWorkflow", StringEvent.class, IntegerEvent.class)).toString()+"_version1",1l,
+                expectedStateDefs, expectedEventData, null, null);
 
     }
 

@@ -80,5 +80,6 @@
         "type": "java.lang.Integer"
       }
     }
-  ]
+  ],
+  "clientElbId" : "client_elb_id_1"
 }

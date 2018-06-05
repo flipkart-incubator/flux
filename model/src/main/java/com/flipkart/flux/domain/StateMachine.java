@@ -86,6 +86,13 @@ public class StateMachine {
      */
     private Timestamp updatedAt;
 
+    /**
+     * ClientElbId pointing to ClientElb table to retrieve ClientElbUrl
+     * for task forwarding to execute
+     */
+    private String clientElbId;
+
+
 
     /**
      * Constructors
@@ -93,7 +100,7 @@ public class StateMachine {
     protected StateMachine() {
     }
 
-    public StateMachine(String id, Long version, String name, String description, Set<State> states) {
+    public StateMachine(String id, Long version, String name, String description, Set<State> states, String clientElbId) {
         super();
         this.id = id;
         this.version = version;
@@ -101,6 +108,7 @@ public class StateMachine {
         this.description = description;
         this.states = states;
         this.status = StateMachineStatus.active;
+        this.clientElbId = clientElbId;
     }
 
     /**
@@ -158,6 +166,14 @@ public class StateMachine {
         return updatedAt;
     }
 
+    public String getClientElbId() {
+        return clientElbId;
+    }
+
+    public void setClientElbId(String clientElbId) {
+        this.clientElbId = clientElbId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -173,6 +189,7 @@ public class StateMachine {
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (states != null ? !states.equals(that.states) : that.states != null) return false;
         if (updatedAt != null ? !updatedAt.equals(that.updatedAt) : that.updatedAt != null) return false;
+        if (clientElbId != null ? !clientElbId.equals(that.clientElbId) : that.clientElbId != null) return false;
         if (version != null ? !version.equals(that.version) : that.version != null) return false;
 
         return true;

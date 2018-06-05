@@ -53,10 +53,13 @@ public class StateMachinePersistenceServiceTest {
         Integer maxTaskRetryCount = 10;
         StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(stateMachinesDAO, auditDAO, eventPersistenceService, maxTaskRetryCount);
         StateDefinition stateDefinition = new StateDefinition(1L, "state1", "desc", null, "task1", null, 13L, 1000L, Collections.emptyList(), null);
-        StateMachineDefinition stateMachineDefinition = new StateMachineDefinition("desc", "state_machine_1", 1L, Collections.singleton(stateDefinition), null, null);
+        StateMachineDefinition stateMachineDefinition = new StateMachineDefinition("desc", "state_machine_1",
+                1L, Collections.singleton(stateDefinition), null, null, "client_elb_id_1");
         stateMachinePersistenceService.createStateMachine("sample-state-machine-id", stateMachineDefinition);
         State state = new State(1L, "state1", "desc", null, "task1", null, Collections.emptyList(), 10L, 1000L, null, Status.initialized, null, 0L, "sample-state-machine-id", 1L );
-        verify(stateMachinesDAO).create("sample-state-machine-id", new StateMachine("sample-state-machine-id", 1L, "state_machine_1", "desc", Collections.singleton(state)));
+        verify(stateMachinesDAO).create("sample-state-machine-id", new StateMachine(
+                "sample-state-machine-id", 1L, "state_machine_1", "desc",
+                Collections.singleton(state), "client_elb_id_1"));
     }
 
     @Test
@@ -64,9 +67,12 @@ public class StateMachinePersistenceServiceTest {
         Integer maxTaskRetryCount = 10;
         StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(stateMachinesDAO, auditDAO, eventPersistenceService, maxTaskRetryCount);
         StateDefinition stateDefinition = new StateDefinition(1L, "state1", "desc", null, "task1", null, 3L, 1000L, Collections.emptyList(), null);
-        StateMachineDefinition stateMachineDefinition = new StateMachineDefinition("desc", "state_machine_1", 1L, Collections.singleton(stateDefinition), null, null);
+        StateMachineDefinition stateMachineDefinition = new StateMachineDefinition("desc", "state_machine_1",
+                1L, Collections.singleton(stateDefinition), null, null, "client_elb_id_1");
         stateMachinePersistenceService.createStateMachine("sample-state-machine-id", stateMachineDefinition);
         State state = new State(1L, "state1", "desc", null, "task1", null, Collections.emptyList(), 3L, 1000L, null, Status.initialized, null, 0L, "sample-state-machine-id", 1L);
-        verify(stateMachinesDAO).create("sample-state-machine-id", new StateMachine("sample-state-machine-id", 1L, "state_machine_1", "desc", Collections.singleton(state)));
+        verify(stateMachinesDAO).create("sample-state-machine-id", new StateMachine(
+                "sample-state-machine-id", 1L, "state_machine_1", "desc",
+                Collections.singleton(state), "client_elb_id_1"));
     }
 }
