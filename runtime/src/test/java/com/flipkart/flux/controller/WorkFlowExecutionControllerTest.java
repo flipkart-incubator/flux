@@ -22,13 +22,11 @@ import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.State;
-import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.domain.*;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.flipkart.flux.metrics.iface.MetricsClient;
+import com.flipkart.flux.representation.ClientElbPersistenceService;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.taskDispatcher.TaskDispatcher;
 import com.flipkart.flux.util.TestUtils;
@@ -72,6 +70,8 @@ public class WorkFlowExecutionControllerTest {
     @Mock
     private MetricsClient metricsClient;
 
+    @Mock
+    private ClientElbPersistenceService clientElbPersistenceService;
 
     private WorkFlowExecutionController workFlowExecutionController;
     private ObjectMapper objectMapper;
@@ -80,8 +80,11 @@ public class WorkFlowExecutionControllerTest {
     @Before
     public void setUp() throws Exception {
         Thread.sleep(1000);
-        workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, auditDAO, taskDispatcher, redriverRegistry, metricsClient);
+        workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, auditDAO,
+                taskDispatcher, redriverRegistry, metricsClient, clientElbPersistenceService);
+        ClientElb clientElb = new ClientElb("client_elb_id_1", "http://localhost:9997");
         when(stateMachinesDAO.findById(anyString())).thenReturn(TestUtils.getStandardTestMachineWithId());
+        when(clientElbPersistenceService.findByIdClientElb(anyString())).thenReturn(clientElb);
         objectMapper = new ObjectMapper();
     }
 

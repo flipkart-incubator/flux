@@ -18,13 +18,11 @@ import com.flipkart.flux.FluxRole;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.client.registry.Executable;
-import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.annotation.ManagedEnv;
 import com.flipkart.flux.guice.module.*;
 import com.flipkart.flux.initializer.ExecutionOrderedComponentBooter;
 import com.flipkart.flux.initializer.OrchestrationOrderedComponentBooter;
@@ -35,6 +33,10 @@ import com.flipkart.flux.registry.TaskExecutableRegistryImpl;
 import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -79,6 +81,27 @@ public class E2ETest {
 
     @InjectFromRole(value = FluxRole.EXECUTION)
     ExecutionOrderedComponentBooter executionOrderedComponentBooter;
+
+    @Before
+    public void setUp() {
+        try {
+            Unirest.post("http://localhost:9998/api/clientelb/create")
+                    .queryString("clientId", "client_elb_id_1").queryString("clientElbUrl",
+                    "http://localhost:9997").asString();
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @After
+    public void tearDown() {
+        try {
+            Unirest.post("http://localhost:9998/api/clientelb/delete")
+                    .queryString("clientId", "client_elb_id_1").asString();
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Test
     public void testSimpleWorkflowE2E() throws Exception {

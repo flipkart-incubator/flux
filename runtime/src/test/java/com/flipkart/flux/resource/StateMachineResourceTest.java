@@ -13,9 +13,7 @@
 
 package com.flipkart.flux.resource;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.Constants;
 import com.flipkart.flux.FluxRole;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.api.StateMachineDefinition;
@@ -29,10 +27,8 @@ import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.*;
 import com.flipkart.flux.eventscheduler.dao.EventSchedulerDao;
 import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
-import com.flipkart.flux.guice.FluxRoleProvider;
 import com.flipkart.flux.guice.module.*;
 import com.flipkart.flux.initializer.ExecutionOrderedComponentBooter;
-import com.flipkart.flux.initializer.FluxInitializer;
 import com.flipkart.flux.initializer.OrchestrationOrderedComponentBooter;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
 import com.flipkart.flux.module.RuntimeTestModule;
@@ -40,27 +36,21 @@ import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
-import com.flipkart.flux.taskDispatcher.TaskDispatcher;
 import com.flipkart.flux.util.TestUtils;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-import jdk.nashorn.internal.objects.annotations.Setter;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.junit.*;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 
-import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
 
 @RunWith(GuiceJunit4Runner.class)
 @Modules(orchestrationModules = {OrchestrationTaskModule.class, ShardModule.class,
@@ -112,11 +102,27 @@ public class StateMachineResourceTest {
         dbClearRule.explicitClearTables();
     }
 
+    @BeforeClass
+    public static void beforeClass() {
+        try {
+            Unirest.post("http://localhost:9998/api/clientelb/create")
+                    .queryString("clientId", "client_elb_id_1").queryString("clientElbUrl",
+                    "http://localhost:9997").asString();
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
+    }
+
     @AfterClass
     public static void afterClass() {
         try {
+
+            Unirest.post("http://localhost:9998/api/clientelb/delete")
+                    .queryString("clientId", "client_elb_id_1").asString();
             Thread.sleep(3000);
         } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (UnirestException e) {
             e.printStackTrace();
         }
     }

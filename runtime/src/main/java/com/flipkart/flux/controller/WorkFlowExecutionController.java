@@ -32,6 +32,8 @@ import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.Storage;
+import com.flipkart.flux.representation.ClientElbPersistenceService;
+import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.taskDispatcher.TaskDispatcher;
 import com.flipkart.flux.utils.LoggingUtils;
@@ -93,13 +95,22 @@ public class WorkFlowExecutionController {
      */
     private ObjectMapper objectMapper;
 
+
+    /**
+     * ClientElbPersistenceService to retrieve ClientElb URL from ClientElbDAO.
+     * This service searches in in-memory cache first, in case of miss hits DAO/DB layer.
+     * ClientElbUrl is the one where a particular state machines states is supposed to be executed.
+     */
+    private ClientElbPersistenceService clientElbPersistenceService;
+
     /**
      * Constructor for this class
      */
     @Inject
     public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO,
                                        StatesDAO statesDAO, AuditDAO auditDAO,  TaskDispatcher taskDispatcher,
-                                       RedriverRegistry redriverRegistry, MetricsClient metricsClient) {
+                                       RedriverRegistry redriverRegistry, MetricsClient metricsClient,
+                                       ClientElbPersistenceService clientElbPersistenceService) {
         this.eventsDAO = eventsDAO;
         this.stateMachinesDAO = stateMachinesDAO;
         this.statesDAO = statesDAO;
@@ -108,6 +119,7 @@ public class WorkFlowExecutionController {
         this.redriverRegistry = redriverRegistry;
         this.metricsClient = metricsClient;
         this.objectMapper = new ObjectMapper();
+        this.clientElbPersistenceService = clientElbPersistenceService;
     }
 
     /**
@@ -477,8 +489,9 @@ public class WorkFlowExecutionController {
                     *  Endpoint to be fetched from Cache or DB
                     * */
                     TaskExecutionMessage taskExecutionMessage = new TaskExecutionMessage(routerName, msg);
-                    //Routing logic should be here
-                    String endPoint = "http://localhost:9997" + "/api/execution";
+
+                    ClientElb clientElb = clientElbPersistenceService.findByIdClientElb(stateMachine.getClientElbId());
+                    String endPoint = clientElb.getElbUrl() + "/api/execution";
                     long startTime = System.currentTimeMillis();
                     int statusCode = taskDispatcher.forwardExecutionMessage(endPoint, taskExecutionMessage);
                     long finishTime = System.currentTimeMillis();
