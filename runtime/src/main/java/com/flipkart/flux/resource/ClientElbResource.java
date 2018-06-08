@@ -50,15 +50,13 @@ public class ClientElbResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createClientElb(@QueryParam("clientId") String clientId,
                                 @QueryParam("clientElbUrl") String clientElbUrl) {
-        if(clientElbUrl == null)
+        if(clientElbUrl == null || clientId == null)
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
-                    "ClientElbUrl cannot be null").build();
+                    "ClientElbUrl or ClientId cannot be null").build();
         else {
             try {
                 URL verifyingURL = new URL(clientElbUrl);
                 verifyingURL.toURI();
-                if(clientId == null)
-                    clientId = UUID.randomUUID().toString();
                 ClientElbDefinition clientElbDefinition = new ClientElbDefinition(clientId, clientElbUrl);
                 ClientElb clientElb = clientElbPersistenceService.persistClientElb(
                         clientElbDefinition.getId(), clientElbDefinition);

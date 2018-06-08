@@ -51,7 +51,8 @@ public class ClientElbDAOImpl implements ClientElbDAO {
     @Transactional
     @SelectDataSource(storage = Storage.SCHEDULER)
     public ClientElb create(String clientElbId, ClientElb clientElb) {
-        return this.save(clientElb);
+        currentSession().save(clientElb);
+        return clientElb;
     }
 
     /**
@@ -112,16 +113,6 @@ public class ClientElbDAOImpl implements ClientElbDAO {
                 .addOrder(Order.asc("createdAt"))
                 .setMaxResults(rowCount)
                 .list();
-    }
-
-    /**
-     * Saves the object in DB and returns the saved object.
-     * @param clientElb
-     * @return saved clientElb object
-     */
-    public ClientElb save(ClientElb clientElb) {
-        currentSession().save(clientElb);
-        return clientElb;
     }
 
     /**

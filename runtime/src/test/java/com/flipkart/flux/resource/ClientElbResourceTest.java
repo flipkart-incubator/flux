@@ -44,6 +44,9 @@ public class ClientElbResourceTest {
         Response response_3 = clientElbResource.createClientElb("id1", "httpd:/10.2");
         Assertions.assertThat(response_3.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
+        Response response_4 = clientElbResource.createClientElb(null, "http://10.5.4.3/api");
+        Assertions.assertThat(response_4.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+
         verify(clientElbPersistenceService, times(1)).persistClientElb(
                 "id1", clientElbDefinition);
         verifyNoMoreInteractions(clientElbPersistenceService);
