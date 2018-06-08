@@ -23,7 +23,7 @@ import java.util.UUID;
  * @author akif.khan
  */
 @Singleton
-@Path("/api/clientelb")
+@Path("/api/client-elb")
 @Named
 public class ClientElbResource {
 
