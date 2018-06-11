@@ -18,6 +18,9 @@ import com.flipkart.flux.clientelb.dao.iface.ClientElbDAO;
 import com.flipkart.flux.domain.ClientElb;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.Storage;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,13 +28,14 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <code>ClientElbPersistenceService</code> class does persistence related operations in memory
  * before storing, updating, reading or deleting objects in DB. It is also responsible for maintaining
- * an in-memory cache of clientElb entries for faster query results.
+ * an in-memory cache(Google Guava: https://github.com/google/guava/wiki) of clientElb entries for faster query results.
+ *
  * @author akif.khan
  */
 @Singleton
@@ -39,9 +43,7 @@ public class ClientElbPersistenceService {
 
     private ClientElbDAO clientElbDAO;
 
-    private ConcurrentHashMap<String, ClientElb> clientElbCache;
-
-    private ConcurrentHashMap<String, Long> lastAccessed;
+    private LoadingCache<String, ClientElb> clientElbCache;
 
     private Integer MAX_CACHE_SIZE;
 
@@ -50,165 +52,40 @@ public class ClientElbPersistenceService {
     @Inject
     public ClientElbPersistenceService(ClientElbDAO clientElbDAO,
                                        @Named("elbCache.maxSize") Integer MAX_CACHE_SIZE) {
-
         this.clientElbDAO = clientElbDAO;
         this.MAX_CACHE_SIZE = MAX_CACHE_SIZE;
-        this.clientElbCache = new ConcurrentHashMap<>();
-        this.lastAccessed = new ConcurrentHashMap<>();
+        this.clientElbCache = CacheBuilder.newBuilder().maximumSize(MAX_CACHE_SIZE)
+                .expireAfterAccess(1, TimeUnit.DAYS)
+                .build(new CacheLoader<String, ClientElb>() {
+                    @Override
+                    public ClientElb load(String clientElbId) throws Exception {
+                        //Call ClientElbDAO layer, if entry not found in cache
+                        return clientElbDAO.findById(clientElbId);
+                    }
+                });
     }
 
-    public Integer getClientElbCacheSize() {
-        return clientElbCache.size();
+    public long getClientElbCacheSize() {
+        return this.clientElbCache.size();
     }
 
     public boolean clientElbCacheContainsKey(String key) {
-        return clientElbCache.containsKey(key);
+        return this.clientElbCache.asMap().containsKey(key);
     }
 
-    public String getClientElbCacheUrl(String key) {
-        return clientElbCache.get(key).getElbUrl();
-    }
-
-    /**
-     * Query Local Cache ClientElbCache for a given clientId
-     * Updates and stores last access time of a Client ELb Entry in lastAccessed Map which is a basis for
-     * LRU operation in case of cache entry replacement.
-     * @param clientId
-     * @return clientElb
-     */
-    private ClientElb queryClientElbCache(String clientId) {
-
-        ClientElb clientElb = null;
+    public String getClientElbCacheUrl(String id) {
+        String clientElbUrl = null;
         try {
-            clientElb = clientElbCache.get(clientId);
-            if (clientElb != null) {
-                lastAccessed.replace(clientId, System.currentTimeMillis());
-            }
+            clientElbUrl = this.clientElbCache.get(id).getElbUrl();
+        } catch (ExecutionException e) {
+            logger.error("ClientElbCache entry not found in both DB and cache {} {}", e.getMessage(), e.getStackTrace());
         }
-        catch(Exception ex) {
-            logger.error("Exception in ClientElbCache read {} {}", ex.getMessage(), ex.getStackTrace());
-        }
-        return clientElb;
-
-    }
-
-    /**
-     * Refreshes ClientElbCache in case of cache miss, either with a new entry addition into the cache if cache has not
-     * reached it's maximum size or a LRU replacement policy.
-     * It's a thread safe method synchronized on singleton instance of this class.
-     * @param clientId
-     * @param clientElb
-     */
-    private synchronized void clientElbCacheRefresh(String clientId, ClientElb clientElb) {
-
-        try {
-
-            if(clientElbCache.size() < MAX_CACHE_SIZE) {
-                clientElbCache.put(clientId, clientElb);
-                lastAccessed.put(clientId, System.currentTimeMillis());
-            }
-
-            else {
-                String removableEntryKey = null;
-                Long oldestAccessTime = Long.MAX_VALUE;
-                for (String key : lastAccessed.keySet()) {
-                    if (lastAccessed.get(key) < oldestAccessTime) {
-                        oldestAccessTime = lastAccessed.get(key);
-                        removableEntryKey = key;
-                    }
-                }
-
-                if (removableEntryKey != null) {
-                    clientElbCache.remove(removableEntryKey);
-                    lastAccessed.remove(removableEntryKey);
-                    clientElbCache.put(clientId, clientElb);
-                    lastAccessed.put(clientId, System.currentTimeMillis());
-                }
-            }
-            logger.info("ClientElbCache after refresh, size =" + clientElbCache.size() +
-                    " entries: " + clientElbCache);
-        }
-        catch(Exception ex) {
-            logger.error("Exception in ClientElbCache refresh {} {}", ex.getMessage(), ex.getStackTrace());
-        }
-    }
-
-    /**
-     * Updates in memory ClientElbCache when there is an URL update in database, double verification is done
-     * within this function operation before update.
-     * It's a thread safe method synchronized on singleton instance of this class.
-     * @param clientId
-     */
-    private synchronized void clientElbCacheUpdate(String clientId) {
-        try {
-            if(clientElbCache.containsKey(clientId) && lastAccessed.containsKey(clientId)) {
-                ClientElb clientElb = clientElbDAO.findById(clientId);
-                if (clientElb != null) {
-                    clientElbCache.replace(clientId, clientElb);
-                    lastAccessed.replace(clientId, System.currentTimeMillis());
-                    logger.info("After update ClientElbCache, " +
-                            "size=" + this.clientElbCache.size() + " entries=" + this.clientElbCache);
-                }
-            }
-        }
-        catch(Exception ex) {
-            logger.error("ClientElbCache update entry failed {} {}", ex.getMessage(), ex.getStackTrace());
-        }
-    }
-
-    /**
-     * Deletes in memory ClientElbCache entry when there is a delete in database, double verification is done
-     * within this function operation before delete in cache.
-     * It's a thread safe method synchronized on singleton instance of this class.
-     * @param clientId
-     */
-    private synchronized void clientElbCacheDelete(String clientId) {
-
-        try {
-            if(clientElbCache.containsKey(clientId) && lastAccessed.containsKey(clientId)) {
-                ClientElb clientElb = clientElbDAO.findById(clientId);
-
-                if (clientElb == null) {
-                    clientElbCache.remove(clientId);
-                    lastAccessed.remove(clientId);
-                    logger.info("After delete ClientElbCache, " +
-                            "size=" + this.clientElbCache.size() + " entries=" + this.clientElbCache);
-                }
-            }
-        }
-        catch(Exception ex) {
-            logger.error("ClientElbCache delete failed {} {}", ex.getMessage(), ex.getStackTrace());
-        }
-    }
-
-    /**
-     * ClientElbCache Initializer function, initialized during the startup of Flux Runtime. It populates cache
-     * by retrieving oldest entries from database bounded by maximum cache size mentioned.
-     * It's a thread safe method synchronized on singleton instance of this class.
-     */
-    public synchronized void clientElbCacheInitializer() {
-        try {
-            if (clientElbCache.size() < 1) {
-                List<ClientElb> clientElbList;
-                clientElbList = clientElbDAO.retrieveOldest(MAX_CACHE_SIZE);
-                clientElbCache.clear();
-                lastAccessed.clear();
-                for (int i = 0; i < clientElbList.size(); i++) {
-                    ClientElb curEntry = clientElbList.get(i);
-                    clientElbCache.put(curEntry.getId(), curEntry);
-                    lastAccessed.put(curEntry.getId(), System.currentTimeMillis());
-                }
-                logger.info("Initialized ClientElbCache, size=" + this.clientElbCache.size() +
-                        " entries=" + this.clientElbCache);
-            }
-        }
-        catch(Exception ex) {
-            logger.error("Exception in local ClientElbCache initializer {} {}", ex.getMessage(), ex.getStackTrace());
-        }
+        return clientElbUrl;
     }
 
     /**
      * Converts {@link ClientElbDefinition} to domain object {@link ClientElb}
+     *
      * @param clientElbDefinition
      * @return clientElb domain object
      */
@@ -218,6 +95,7 @@ public class ClientElbPersistenceService {
 
     /**
      * Persists the ClientElb details object in DB.
+     *
      * @param clientElbDefinition
      * @return created clientElb
      */
@@ -231,29 +109,25 @@ public class ClientElbPersistenceService {
     /**
      * findById ClientElb details in DB. It queries in-memory clientElbCache before querying the database.
      * Block for clientElbCacheRefresh is thread safe on the instance of this class.
+     *
      * @param clientId
      * @return searched clientElb
      */
     @Transactional
     @SelectDataSource(storage = Storage.SCHEDULER)
     public ClientElb findByIdClientElb(String clientId) {
-
-        ClientElb clientElb;
-        clientElb = this.queryClientElbCache(clientId);
-        if(clientElb != null)
-            return clientElb;
-
-        synchronized (this) {
-            clientElb = clientElbDAO.findById(clientId);
-            if (clientElb != null)
-                this.clientElbCacheRefresh(clientId, clientElb);
-            return clientElb;
+        ClientElb clientElb = null;
+        try {
+            clientElb = this.clientElbCache.get(clientId);
+        } catch (ExecutionException e) {
+            logger.error("ClientElbCache entry not found in both DB and cache {} {}", e.getMessage(), e.getStackTrace());
         }
-
+        return clientElb;
     }
 
     /**
      * Update ClientElb URL in DB.
+     *
      * @param clientId
      * @param clientElbUrl
      */
@@ -261,17 +135,25 @@ public class ClientElbPersistenceService {
     @SelectDataSource(storage = Storage.SCHEDULER)
     public void updateClientElb(String clientId, String clientElbUrl) {
         clientElbDAO.updateElbUrl(clientId, clientElbUrl);
-        this.clientElbCacheUpdate(clientId);
+        synchronized (this) {
+            this.clientElbCache.refresh(clientId);
+        }
+        logger.info("After ClientElb entry update, cache contains: {}", clientElbCache.asMap());
     }
 
     /**
      * Delete ClientElb identified by given id in DB.
+     *
      * @param clientId
      */
     @Transactional
     @SelectDataSource(storage = Storage.SCHEDULER)
     public void deleteClientElb(String clientId) {
         clientElbDAO.delete(clientId);
-        this.clientElbCacheDelete(clientId);
+        synchronized (this) {
+            if(this.clientElbCache.asMap().containsKey(clientId))
+                this.clientElbCache.asMap().remove(clientId);
+        }
+        logger.info("After ClientElb entry delete, cache contains: {}", clientElbCache.asMap());
     }
 }

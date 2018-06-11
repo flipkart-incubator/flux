@@ -13,9 +13,6 @@
 
 package com.flipkart.flux.initializer;
 
-import com.flipkart.flux.impl.boot.ActorSystemManager;
-import com.flipkart.flux.impl.task.registry.RouterRegistry;
-import com.flipkart.flux.representation.ClientElbCacheInitializer;
 import com.flipkart.polyguice.core.Initializable;
 import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
@@ -35,18 +32,14 @@ import javax.inject.Singleton;
 public class OrchestrationOrderedComponentBooter implements Initializable {
 
     private static final Logger logger = LoggerFactory.getLogger(OrchestrationOrderedComponentBooter.class);
-    private final ClientElbCacheInitializer clientElbCacheInitializer;
     private final Server apiServer;
     private final Server dashboardServer;
 
     @Inject
     public OrchestrationOrderedComponentBooter(@Named("APIJettyServer") Server apiServer,
-                                               @Named("DashboardJettyServer") Server dashboardServer,
-                                               ClientElbCacheInitializer clientElbCacheInitializer
-    ) {
+                                               @Named("DashboardJettyServer") Server dashboardServer) {
         this.apiServer = apiServer;
         this.dashboardServer = dashboardServer;
-        this.clientElbCacheInitializer = clientElbCacheInitializer;
     }
 
     @Override
@@ -57,8 +50,7 @@ public class OrchestrationOrderedComponentBooter implements Initializable {
          */
 
         try {
-            clientElbCacheInitializer.initialize();
-             /* Bring up the API server */
+            /* Bring up the API server */
             logger.info("loading API server");
             apiServer.start();
             logger.info("API server started. Say Hello!");

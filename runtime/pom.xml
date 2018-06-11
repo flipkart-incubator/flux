@@ -283,6 +283,13 @@
             <version>${codahale.metrics.version}</version>
         </dependency>
 
+        <!-- In-Memory Guava Cache dependencies-->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
