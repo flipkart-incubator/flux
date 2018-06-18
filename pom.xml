@@ -61,7 +61,6 @@
         <slf4j-api.version>1.7.12</slf4j-api.version>
         <codahale.metrics.version>3.1.2</codahale.metrics.version>
         <javax.transaction-api.version>1.2</javax.transaction-api.version>
-        <guava.version>23.0</guava.version>
     </properties>
 
     <modules>

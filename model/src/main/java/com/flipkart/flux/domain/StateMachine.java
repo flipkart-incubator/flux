@@ -170,10 +170,6 @@ public class StateMachine {
         return clientElbId;
     }
 
-    public void setClientElbId(String clientElbId) {
-        this.clientElbId = clientElbId;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

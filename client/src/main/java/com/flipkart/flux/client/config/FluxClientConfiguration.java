@@ -31,7 +31,7 @@ package com.flipkart.flux.client.config;
 public class FluxClientConfiguration {
 
     private String fluxRuntimeUrl = "http://localhost:9998";
-    private String clientElbId = "client_elb_id_1";
+    private String clientElbId = "defaultElbId";
     private long socketTimeout = 10000;
     private long connectionTimeout = 10000;
 
@@ -69,8 +69,4 @@ public class FluxClientConfiguration {
     public String getClientElbId() {
         return clientElbId;
     }
-    public void setClientElbId(String clientElbId) {
-        this.clientElbId = clientElbId;
-    }
-
 }

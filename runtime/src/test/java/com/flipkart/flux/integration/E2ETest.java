@@ -86,7 +86,7 @@ public class E2ETest {
     public void setUp() {
         try {
             Unirest.post("http://localhost:9998/api/client-elb/create")
-                    .queryString("clientId", "client_elb_id_1").queryString("clientElbUrl",
+                    .queryString("clientId", "defaultElbId").queryString("clientElbUrl",
                     "http://localhost:9997").asString();
         } catch (UnirestException e) {
             e.printStackTrace();
@@ -97,7 +97,7 @@ public class E2ETest {
     public void tearDown() {
         try {
             Unirest.post("http://localhost:9998/api/client-elb/delete")
-                    .queryString("clientId", "client_elb_id_1").asString();
+                    .queryString("clientId", "defaultElbId").asString();
         } catch (UnirestException e) {
             e.printStackTrace();
         }

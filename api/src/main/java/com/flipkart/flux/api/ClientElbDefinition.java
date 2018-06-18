@@ -32,7 +32,6 @@ public class ClientElbDefinition {
 
     /** Constructor*/
     public ClientElbDefinition(String id, String elbUrl) {
-        super();
         this.id = id;
         this.elbUrl = elbUrl;
     }

@@ -53,7 +53,6 @@ public class ClientElb {
     }
 
     public ClientElb(String id, String elbUrl) {
-        super();
         this.id = id;
         this.elbUrl = elbUrl;
     }
@@ -73,14 +72,6 @@ public class ClientElb {
         this.elbUrl = elbUrl;
     }
 
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    public Timestamp getUpdatedAt() {
-        return updatedAt;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -88,9 +79,7 @@ public class ClientElb {
 
         ClientElb that = (ClientElb) o;
 
-        if (createdAt != null ? !createdAt.equals(that.createdAt) : that.createdAt != null) return false;
         if (elbUrl != null ? !elbUrl.equals(that.elbUrl) : that.elbUrl != null) return false;
-        if (updatedAt != null ? !updatedAt.equals(that.updatedAt) : that.updatedAt != null) return false;
 
         return true;
     }
@@ -98,8 +87,6 @@ public class ClientElb {
     @Override
     public int hashCode() {
         int result = (elbUrl != null ? elbUrl.hashCode() : 0);
-        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
-        result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
         return result;
     }
 
@@ -108,8 +95,6 @@ public class ClientElb {
         return "ClientElb{" +
                 " id='" + id + '\'' +
                 ", elbUrl='" + elbUrl + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
                 '}';
     }
 
