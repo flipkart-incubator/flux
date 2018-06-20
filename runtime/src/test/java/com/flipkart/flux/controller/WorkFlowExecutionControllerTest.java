@@ -82,9 +82,8 @@ public class WorkFlowExecutionControllerTest {
         Thread.sleep(1000);
         workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, auditDAO,
                 taskDispatcher, redriverRegistry, metricsClient, clientElbPersistenceService);
-        ClientElb clientElb = new ClientElb("client_elb_id_1", "http://localhost:9997");
         when(stateMachinesDAO.findById(anyString())).thenReturn(TestUtils.getStandardTestMachineWithId());
-        when(clientElbPersistenceService.findByIdClientElb(anyString())).thenReturn(clientElb);
+        when(clientElbPersistenceService.findByIdClientElb(anyString())).thenReturn("http://localhost:9997");
         objectMapper = new ObjectMapper();
     }
 

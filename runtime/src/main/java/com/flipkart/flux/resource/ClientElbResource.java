@@ -95,12 +95,12 @@ public class ClientElbResource {
         }
 
         try {
-            ClientElb clientElb = clientElbPersistenceService.findByIdClientElb(clientId);
-            if (clientElb == null) {
+            String clientElbUrl = clientElbPersistenceService.findByIdClientElb(clientId);
+            if (clientElbUrl == null) {
                 return Response.status(Response.Status.NOT_FOUND.getStatusCode())
                         .entity("ClientElb with Id: " + clientId + " not found").build();
             }
-            return Response.status(Response.Status.FOUND.getStatusCode()).entity(clientElb.getElbUrl()).build();
+            return Response.status(Response.Status.FOUND.getStatusCode()).entity(clientElbUrl).build();
         }
         catch(Exception ex) {
             logger.error("findById failed for input: "+ clientId + " {} {} ", ex.getMessage(), ex.getStackTrace());

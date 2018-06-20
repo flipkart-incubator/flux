@@ -58,39 +58,19 @@ public class ClientElbPersistenceServiceTest {
     private void ClientElbDAOUtil() {
         String clientId1 = "id1";
         String elbUrl1 = "http://10.3.3.3";
-        clientElbDAO.create(clientId1, new ClientElb(clientId1, elbUrl1));
+        clientElbDAO.create(new ClientElb(clientId1, elbUrl1));
 
         String clientId2 = "id2";
         String elbUrl2 = "http://10.4.3.3";
-        clientElbDAO.create(clientId2, new ClientElb(clientId2, elbUrl2));
+        clientElbDAO.create(new ClientElb(clientId2, elbUrl2));
 
         String clientId3 = "id3";
         String elbUrl3 = "http://10.4.3.3";
-        clientElbDAO.create(clientId3, new ClientElb(clientId3, elbUrl3));
+        clientElbDAO.create(new ClientElb(clientId3, elbUrl3));
 
         String clientId4 = "id4";
         String elbUrl4 = "http://10.4.3.3";
-        clientElbDAO.create(clientId4, new ClientElb(clientId4, elbUrl4));
-    }
-
-    @Test
-    public void testClientElbCacheRefresherLRUPolicy() {
-        Integer clientElbCacheSize = 2;
-        ClientElbPersistenceService clientElbPersistenceService = new ClientElbPersistenceService(
-                clientElbDAO, clientElbCacheSize);
-
-        this.ClientElbDAOUtil();
-
-        clientElbPersistenceService.findByIdClientElb("id1");
-        clientElbPersistenceService.findByIdClientElb("id2");
-        clientElbPersistenceService.findByIdClientElb("id3");
-        clientElbPersistenceService.findByIdClientElb("id1");
-
-        assertThat(clientElbPersistenceService.getClientElbCacheSize()).isEqualTo(2);
-        assertThat(clientElbPersistenceService.clientElbCacheContainsKey("id1")).isTrue();
-        assertThat(clientElbPersistenceService.clientElbCacheContainsKey("id3")).isTrue();
-        assertThat(clientElbPersistenceService.clientElbCacheContainsKey("id4")).isFalse();
-        assertThat(clientElbPersistenceService.clientElbCacheContainsKey("id2")).isFalse();
+        clientElbDAO.create(new ClientElb(clientId4, elbUrl4));
     }
 
     @Test
@@ -109,7 +89,7 @@ public class ClientElbPersistenceServiceTest {
         clientElbPersistenceService.updateClientElb("id1", "http://10.240.23.65");
         clientElbPersistenceService.updateClientElb("id2", "http://10.4.3.65");
 
-        String updatedUrl = clientElbPersistenceService.getClientElbCacheUrl("id1");
+        String updatedUrl = clientElbPersistenceService.findByIdClientElb("id1");
 
         assertThat(clientElbPersistenceService.getClientElbCacheSize()).isEqualTo(2);
         assertThat(updatedUrl.equalsIgnoreCase("http://10.240.23.65")).isTrue();

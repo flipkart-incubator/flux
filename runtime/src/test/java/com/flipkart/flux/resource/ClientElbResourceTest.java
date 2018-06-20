@@ -56,9 +56,8 @@ public class ClientElbResourceTest {
     @Test
     public void testFindById() {
 
-        ClientElb clientElb = new ClientElb("id2", "http://10.3.2.3/api");
         when(clientElbPersistenceService.findByIdClientElb("id2"))
-                .thenReturn(clientElb);
+                .thenReturn("http://10.3.2.3/api");
 
         Response response_1 = clientElbResource.findByIdClientElb(null);
         Assertions.assertThat(response_1.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());

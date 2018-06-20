@@ -490,8 +490,8 @@ public class WorkFlowExecutionController {
                     * */
                     TaskExecutionMessage taskExecutionMessage = new TaskExecutionMessage(routerName, msg);
 
-                    ClientElb clientElb = clientElbPersistenceService.findByIdClientElb(stateMachine.getClientElbId());
-                    String endPoint = clientElb.getElbUrl() + "/api/execution";
+                    String clientElbUrl = clientElbPersistenceService.findByIdClientElb(stateMachine.getClientElbId());
+                    String endPoint = clientElbUrl + "/api/execution";
                     long startTime = System.currentTimeMillis();
                     int statusCode = taskDispatcher.forwardExecutionMessage(endPoint, taskExecutionMessage);
                     long finishTime = System.currentTimeMillis();

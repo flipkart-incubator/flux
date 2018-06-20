@@ -16,8 +16,6 @@ package com.flipkart.flux.representation;
 import com.flipkart.flux.api.ClientElbDefinition;
 import com.flipkart.flux.clientelb.dao.iface.ClientElbDAO;
 import com.flipkart.flux.domain.ClientElb;
-import com.flipkart.flux.persistence.SelectDataSource;
-import com.flipkart.flux.persistence.Storage;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -27,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.transaction.Transactional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -43,7 +40,7 @@ public class ClientElbPersistenceService {
 
     private ClientElbDAO clientElbDAO;
 
-    private LoadingCache<String, ClientElb> clientElbCache;
+    private LoadingCache<String, String> clientElbCache;
 
     private Integer MAX_CACHE_SIZE;
 
@@ -56,11 +53,11 @@ public class ClientElbPersistenceService {
         this.MAX_CACHE_SIZE = MAX_CACHE_SIZE;
         this.clientElbCache = CacheBuilder.newBuilder().maximumSize(MAX_CACHE_SIZE)
                 .expireAfterAccess(1, TimeUnit.DAYS)
-                .build(new CacheLoader<String, ClientElb>() {
+                .build(new CacheLoader<String, String>() {
                     @Override
-                    public ClientElb load(String clientElbId) throws Exception {
+                    public String load(String clientElbId) throws Exception {
                         //Call ClientElbDAO layer, if entry not found in cache
-                        return clientElbDAO.findById(clientElbId);
+                        return clientElbDAO.findById(clientElbId).getElbUrl();
                     }
                 });
     }
@@ -71,16 +68,6 @@ public class ClientElbPersistenceService {
 
     public boolean clientElbCacheContainsKey(String key) {
         return this.clientElbCache.asMap().containsKey(key);
-    }
-
-    public String getClientElbCacheUrl(String id) {
-        String clientElbUrl = null;
-        try {
-            clientElbUrl = this.clientElbCache.get(id).getElbUrl();
-        } catch (ExecutionException e) {
-            logger.error("ClientElbCache entry not found in both DB and cache {} {}", e.getMessage(), e.getStackTrace());
-        }
-        return clientElbUrl;
     }
 
     /**
@@ -99,11 +86,9 @@ public class ClientElbPersistenceService {
      * @param clientElbDefinition
      * @return created clientElb
      */
-    @Transactional
-    @SelectDataSource(storage = Storage.SCHEDULER)
     public ClientElb persistClientElb(String clientId, ClientElbDefinition clientElbDefinition) {
         ClientElb clientElb = new ClientElb(clientElbDefinition.getId(), clientElbDefinition.getElbUrl());
-        return clientElbDAO.create(clientId, clientElb);
+        return clientElbDAO.create(clientElb);
     }
 
     /**
@@ -113,16 +98,17 @@ public class ClientElbPersistenceService {
      * @param clientId
      * @return searched clientElb
      */
-    @Transactional
-    @SelectDataSource(storage = Storage.SCHEDULER)
-    public ClientElb findByIdClientElb(String clientId) {
-        ClientElb clientElb = null;
+    public String findByIdClientElb(String clientId) {
+        String clientElbUrl = null;
         try {
-            clientElb = this.clientElbCache.get(clientId);
+            clientElbUrl = this.clientElbCache.get(clientId);
+            if(clientElbUrl == null) {
+                logger.error("ClientElbCache entry not found in both DB and cache. Try registering ClientElb again.");
+            }
         } catch (ExecutionException e) {
-            logger.error("ClientElbCache entry not found in both DB and cache {} {}", e.getMessage(), e.getStackTrace());
+            logger.error("Error occured while accessing ClientElbCache Entry {} {}", e.getMessage(), e.getStackTrace());
         }
-        return clientElb;
+        return clientElbUrl;
     }
 
     /**
@@ -131,8 +117,6 @@ public class ClientElbPersistenceService {
      * @param clientId
      * @param clientElbUrl
      */
-    @Transactional
-    @SelectDataSource(storage = Storage.SCHEDULER)
     public void updateClientElb(String clientId, String clientElbUrl) {
         clientElbDAO.updateElbUrl(clientId, clientElbUrl);
         synchronized (this) {
@@ -146,8 +130,6 @@ public class ClientElbPersistenceService {
      *
      * @param clientId
      */
-    @Transactional
-    @SelectDataSource(storage = Storage.SCHEDULER)
     public void deleteClientElb(String clientId) {
         clientElbDAO.delete(clientId);
         synchronized (this) {

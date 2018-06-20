@@ -28,7 +28,7 @@ public interface ClientElbDAO {
     /**
      * Creates client elb entry in DB and returns saved object
      */
-    ClientElb create(String clientElbId, ClientElb clientElb);
+    ClientElb create(ClientElb clientElb);
 
     /**
      * Retrieves Client Elb from DB by it's unique identifier

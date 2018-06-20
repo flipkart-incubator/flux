@@ -75,8 +75,8 @@ public class ClientElbDAOTest {
 
     @Test
     public void testCreateAndDelete() throws Exception {
-        clientElbDAOImpl.create("client_1", new ClientElb("client_1", "http://2.2.2.2"));
-        clientElbDAOImpl.create("client_2", new ClientElb("client_2", "http://1.1.1.1"));
+        clientElbDAOImpl.create(new ClientElb("client_1", "http://2.2.2.2"));
+        clientElbDAOImpl.create(new ClientElb("client_2", "http://1.1.1.1"));
         assertThat(clientElbDAOImpl.retrieveOldest(10)).hasSize(2);
 
         clientElbDAOImpl.delete("client_1");
@@ -92,7 +92,7 @@ public class ClientElbDAOTest {
 
     @Test
     public void testFindByIdAndUpdate() throws Exception {
-        clientElbDAOImpl.create("client_1", new ClientElb("client_1", "http://2.2.2.2"));
+        clientElbDAOImpl.create(new ClientElb("client_1", "http://2.2.2.2"));
         clientElbDAOImpl.updateElbUrl("client_1", "http://1.1.1.1");
 
         ClientElb clientElb = clientElbDAOImpl.findById("client_1");
@@ -104,10 +104,10 @@ public class ClientElbDAOTest {
     @Test
     public void testRetrieveOldest() throws Exception {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        clientElbDAOImpl.create("client_1", new ClientElb("client_1", "http://1.1.1.1"));
-        clientElbDAOImpl.create("client_2", new ClientElb("client_2", "http://2.2.2.2"));
-        clientElbDAOImpl.create("client_3", new ClientElb("client_3", "http://3.3.3.3"));
-        clientElbDAOImpl.create("client_4", new ClientElb("client_4", "http://4.4.4.4"));
+        clientElbDAOImpl.create(new ClientElb("client_1", "http://1.1.1.1"));
+        clientElbDAOImpl.create(new ClientElb("client_2", "http://2.2.2.2"));
+        clientElbDAOImpl.create(new ClientElb("client_3", "http://3.3.3.3"));
+        clientElbDAOImpl.create(new ClientElb("client_4", "http://4.4.4.4"));
 
         List<ClientElb> clientElbList = clientElbDAOImpl.retrieveOldest(10);
         assertThat(clientElbList).hasSize(4);

@@ -50,7 +50,7 @@ public class ClientElbDAOImpl implements ClientElbDAO {
     @Override
     @Transactional
     @SelectDataSource(storage = Storage.SCHEDULER)
-    public ClientElb create(String clientElbId, ClientElb clientElb) {
+    public ClientElb create(ClientElb clientElb) {
         currentSession().save(clientElb);
         return clientElb;
     }
@@ -82,7 +82,7 @@ public class ClientElbDAOImpl implements ClientElbDAO {
     public void updateElbUrl(String clientElbId, String clientElbUrl) {
         Query updateQuery = currentSession().createQuery(
                 "update ClientElb set elbUrl = :clientElbUrl where id = :clientElbId");
-        updateQuery.setString("clientElbUrl", clientElbUrl != null ? clientElbUrl.toString() : null);
+        updateQuery.setString("clientElbUrl", clientElbUrl.toString());
         updateQuery.setString("clientElbId", clientElbId);
         updateQuery.executeUpdate();
     }
