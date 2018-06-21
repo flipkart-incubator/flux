@@ -44,13 +44,4 @@ public interface ClientElbDAO {
      * Delete Client Elb entry from DB
      */
     void delete(String clientElbId);
-
-    /**
-     * Retrieve Older Client Elb entry limit by parameter rowCount
-     * @param rowCount
-     * @return List of oldest ClientElbs'
-     */
-    public List<ClientElb> retrieveOldest(int rowCount);
-
-
 }

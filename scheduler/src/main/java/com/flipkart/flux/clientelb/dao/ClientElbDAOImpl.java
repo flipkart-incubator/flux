@@ -100,22 +100,6 @@ public class ClientElbDAOImpl implements ClientElbDAO {
     }
 
     /**
-     * Retrieve Older Client Elb entry limit by parameter rowCount
-     * @param rowCount
-     * @return List of oldest ClientElbs'
-     */
-    @Override
-    @Transactional
-    @SelectDataSource(storage = Storage.SCHEDULER)
-    public List<ClientElb> retrieveOldest(int rowCount) {
-        return currentSession()
-                .createCriteria(ClientElb.class)
-                .addOrder(Order.asc("createdAt"))
-                .setMaxResults(rowCount)
-                .list();
-    }
-
-    /**
      * Provides the session which is bound to current thread.
      * @return Session
      */

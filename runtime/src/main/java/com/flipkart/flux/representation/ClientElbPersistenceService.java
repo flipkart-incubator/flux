@@ -119,9 +119,7 @@ public class ClientElbPersistenceService {
      */
     public void updateClientElb(String clientId, String clientElbUrl) {
         clientElbDAO.updateElbUrl(clientId, clientElbUrl);
-        synchronized (this) {
-            this.clientElbCache.refresh(clientId);
-        }
+        this.clientElbCache.refresh(clientId);
         logger.info("After ClientElb entry update, cache contains: {}", clientElbCache.asMap());
     }
 
@@ -132,10 +130,8 @@ public class ClientElbPersistenceService {
      */
     public void deleteClientElb(String clientId) {
         clientElbDAO.delete(clientId);
-        synchronized (this) {
-            if(this.clientElbCache.asMap().containsKey(clientId))
-                this.clientElbCache.asMap().remove(clientId);
-        }
+        if(this.clientElbCache.asMap().containsKey(clientId))
+            this.clientElbCache.asMap().remove(clientId);
         logger.info("After ClientElb entry delete, cache contains: {}", clientElbCache.asMap());
     }
 }

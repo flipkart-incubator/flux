@@ -18,6 +18,8 @@ import java.sql.Timestamp;
 
 /**
  * <code>ClientElb</code> represents Client Cluster's Elb details.
+ * This entity stores information about Client's Elb URL in MySQL DB table.
+ * These Client Elb URLs' are the endpoints of client execution environment.
  *
  *  * @author akif.khan
  */

@@ -77,17 +77,16 @@ public class ClientElbDAOTest {
     public void testCreateAndDelete() throws Exception {
         clientElbDAOImpl.create(new ClientElb("client_1", "http://2.2.2.2"));
         clientElbDAOImpl.create(new ClientElb("client_2", "http://1.1.1.1"));
-        assertThat(clientElbDAOImpl.retrieveOldest(10)).hasSize(2);
+
+        ClientElb clientElb1 = clientElbDAOImpl.findById("client_1");
+        assertThat(clientElb1.getId()).isEqualTo("client_1");
+        assertThat(clientElb1.getElbUrl()).isEqualTo("http://2.2.2.2");
 
         clientElbDAOImpl.delete("client_1");
-        List<ClientElb> clientElbList = clientElbDAOImpl.retrieveOldest(10);
-        assertThat(clientElbList.size()).isEqualTo(1);
-        for(int i=0 ; i < clientElbList.size(); i++) {
-            ClientElb curEntry = clientElbList.get(i);
-            assertThat(curEntry.getId()).isEqualTo("client_2");
-            assertThat(curEntry.getElbUrl()).isEqualTo("http://1.1.1.1");
-        }
 
+        ClientElb clientElb2 = clientElbDAOImpl.findById("client_2");
+        assertThat(clientElb2.getId()).isEqualTo("client_2");
+        assertThat(clientElb2.getElbUrl()).isEqualTo("http://1.1.1.1");
     }
 
     @Test
@@ -98,43 +97,5 @@ public class ClientElbDAOTest {
         ClientElb clientElb = clientElbDAOImpl.findById("client_1");
         assertThat(clientElb.getId()).isEqualTo("client_1");
         assertThat(clientElb.getElbUrl()).isEqualTo("http://1.1.1.1");
-    }
-
-
-    @Test
-    public void testRetrieveOldest() throws Exception {
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        clientElbDAOImpl.create(new ClientElb("client_1", "http://1.1.1.1"));
-        clientElbDAOImpl.create(new ClientElb("client_2", "http://2.2.2.2"));
-        clientElbDAOImpl.create(new ClientElb("client_3", "http://3.3.3.3"));
-        clientElbDAOImpl.create(new ClientElb("client_4", "http://4.4.4.4"));
-
-        List<ClientElb> clientElbList = clientElbDAOImpl.retrieveOldest(10);
-        assertThat(clientElbList).hasSize(4);
-
-        /*
-         * Test Sequence of entries in ClientElb as it is ordered by createdAt time
-         */
-        for(int i = 0; i < clientElbList.size(); i++) {
-            ClientElb curEntry = clientElbList.get(i);
-            switch(i) {
-                case 0:
-                    assertThat(curEntry.getId()).isEqualTo("client_1");
-                    assertThat(curEntry.getElbUrl()).isEqualTo("http://1.1.1.1");
-                    break;
-                case 1:
-                    assertThat(curEntry.getId()).isEqualTo("client_2");
-                    assertThat(curEntry.getElbUrl()).isEqualTo("http://2.2.2.2");
-                    break;
-                case 2:
-                    assertThat(curEntry.getId()).isEqualTo("client_3");
-                    assertThat(curEntry.getElbUrl()).isEqualTo("http://3.3.3.3");
-                    break;
-                case 3:
-                    assertThat(curEntry.getId()).isEqualTo("client_4");
-                    assertThat(curEntry.getElbUrl()).isEqualTo("http://4.4.4.4");
-                    break;
-            }
-        }
     }
 }
