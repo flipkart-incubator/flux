@@ -57,13 +57,17 @@ public class ClientElbResource {
             try {
                 URL verifyingURL = new URL(clientElbUrl);
                 verifyingURL.toURI();
+                if(verifyingURL.getHost().length() < 1 || verifyingURL.getPath().length() > 0) {
+                    throw new MalformedURLException();
+                }
                 ClientElbDefinition clientElbDefinition = new ClientElbDefinition(clientId, clientElbUrl);
                 ClientElb clientElb = clientElbPersistenceService.persistClientElb(
                         clientElbDefinition.getId(), clientElbDefinition);
                 return Response.status(Response.Status.CREATED.getStatusCode()).entity(clientElb.getId()).build();
             }
             catch(MalformedURLException ex) {
-                logger.error("Malformed URL exception {} {} ", ex.getMessage(), ex.getStackTrace());
+                logger.error("Malformed URL exception(no path allowed because Elb Url doesn't contain path) {} {} ",
+                        ex.getMessage(), ex.getStackTrace());
                 return Response.status(Response.Status.BAD_REQUEST).entity("MalformedURLException").build();
             }
             catch(URISyntaxException ex) {
@@ -127,10 +131,14 @@ public class ClientElbResource {
         try {
             URL verifyingURL = new URL(clientElbUrl);
             verifyingURL.toURI();
+            if(verifyingURL.getHost().length() < 1 || verifyingURL.getPath().length() > 0) {
+                throw new MalformedURLException();
+            }
             clientElbPersistenceService.updateClientElb(clientId, clientElbUrl);
         }
         catch(MalformedURLException ex) {
-            logger.error("Malformed URL exception {} {} ", ex.getMessage(), ex.getStackTrace());
+            logger.error("Malformed URL exception(no path allowed because Elb Url doesn't contain path) {} {} ",
+                    ex.getMessage(), ex.getStackTrace());
             return Response.status(Response.Status.BAD_REQUEST).entity("MalformedURLException").build();
         }
         catch(URISyntaxException ex) {

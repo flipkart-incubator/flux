@@ -29,23 +29,26 @@ public class ClientElbResourceTest {
     public void testCreateClientElb() {
 
         ClientElbDefinition clientElbDefinition = new ClientElbDefinition(
-                "id1", "http://10.3.2.3/api/resource/");
-        ClientElb clientElb = new ClientElb("id1", "http://10.3.2.3/api/resource/");
+                "id1", "http://10.3.2.3");
+        ClientElb clientElb = new ClientElb("id1", "http://10.3.2.3");
         when(clientElbPersistenceService.persistClientElb("id1", clientElbDefinition))
                 .thenReturn(clientElb);
 
         Response response_1 = clientElbResource.createClientElb(
-                "id1", "http://10.3.2.3/api/resource/");
+                "id1", "http://10.3.2.3");
         Assertions.assertThat(response_1.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
 
         Response response_2 = clientElbResource.createClientElb("id1", null);
         Assertions.assertThat(response_2.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
-        Response response_3 = clientElbResource.createClientElb("id1", "httpd:/10.2");
+        Response response_3 = clientElbResource.createClientElb("id1", "http:///10.2");
         Assertions.assertThat(response_3.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
-        Response response_4 = clientElbResource.createClientElb(null, "http://10.5.4.3/api");
+        Response response_4 = clientElbResource.createClientElb(null, "http://10.5.4.3");
         Assertions.assertThat(response_4.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+
+        Response response_5 = clientElbResource.createClientElb("id1", "http://10.5.4.3/api");
+        Assertions.assertThat(response_5.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(clientElbPersistenceService, times(1)).persistClientElb(
                 "id1", clientElbDefinition);
@@ -57,7 +60,7 @@ public class ClientElbResourceTest {
     public void testFindById() {
 
         when(clientElbPersistenceService.findByIdClientElb("id2"))
-                .thenReturn("http://10.3.2.3/api");
+                .thenReturn("http://10.3.2.3");
 
         Response response_1 = clientElbResource.findByIdClientElb(null);
         Assertions.assertThat(response_1.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
@@ -85,10 +88,13 @@ public class ClientElbResourceTest {
         Response response_2 = clientElbResource.updateClientElb(null, "http://10.24.35.3");
         Assertions.assertThat(response_2.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
+        Response response_3 = clientElbResource.updateClientElb(null, "http://10.24.35.3/api");
+        Assertions.assertThat(response_3.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+
         doNothing().when(clientElbPersistenceService).updateClientElb("id1", "http://10.24.32.1");
 
-        Response response_3 = clientElbResource.updateClientElb("id1", "http://10.24.32.1");
-        Assertions.assertThat(response_3.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
+        Response response_4 = clientElbResource.updateClientElb("id1", "http://10.24.32.1");
+        Assertions.assertThat(response_4.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
 
         verify(clientElbPersistenceService, times(1)).updateClientElb(
                 "id1", "http://10.24.32.1");
