@@ -81,5 +81,5 @@
       }
     }
   ],
-  "clientElbId" : "client_elb_id_1"
+  "clientElbId" : "defaultElbId"
 }

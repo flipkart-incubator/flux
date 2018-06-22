@@ -106,7 +106,7 @@ public class StateMachineResourceTest {
     public static void beforeClass() {
         try {
             Unirest.post("http://localhost:9998/api/client-elb/create")
-                    .queryString("clientId", "client_elb_id_1").queryString("clientElbUrl",
+                    .queryString("clientId", "defaultElbId").queryString("clientElbUrl",
                     "http://localhost:9997").asString();
         } catch (UnirestException e) {
             e.printStackTrace();
@@ -118,7 +118,7 @@ public class StateMachineResourceTest {
         try {
 
             Unirest.post("http://localhost:9998/api/client-elb/delete")
-                    .queryString("clientId", "client_elb_id_1").asString();
+                    .queryString("clientId", "defaultElbId").asString();
             Thread.sleep(3000);
         } catch (InterruptedException e) {
             e.printStackTrace();

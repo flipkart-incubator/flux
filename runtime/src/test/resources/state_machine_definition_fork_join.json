@@ -94,5 +94,6 @@
       "data" : "{ \"aString\" : \"foo\"}",
       "eventSource" : "client"
     }
-  ]
+  ],
+  "clientElbId" : "defaultElbId"
 }

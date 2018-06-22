@@ -44,17 +44,17 @@ public class LocalContextTest {
     @Test
     public void testRegisterNew_shouldCreateALocalRegistration() throws Exception {
         localContext.registerNew("fooBar", 1, "someDescription",
-                "someContextId", "client_elb_id_1"
+                "someContextId", "defaultElbId"
         );
         assertThat(tlStateMachineDef.get()).isEqualTo(new StateMachineDefinition("someDescription", "fooBar",
-                1l, new HashSet<>(), new HashSet<>(), "someContextId", "client_elb_id_1"));
+                1l, new HashSet<>(), new HashSet<>(), "someContextId", "defaultElbId"));
         assertThat(tlMutableInteger.get().intValue()).isEqualTo(0);
     }
 
     @Test
     public void testReset() throws Exception {
         localContext.registerNew("fooBar", 1, "someDescription",
-                "someContextId", "client_elb_id_1");
+                "someContextId", "defaultElbId");
         localContext.reset();
         assertThat(tlStateMachineDef.get()).isNull();
         assertThat(tlMutableInteger.get()).isNull();
@@ -63,9 +63,9 @@ public class LocalContextTest {
     @Test(expected = IllegalStateException.class)
     public void shouldDisallowDuplicateRegistrations() throws Exception {
         localContext.registerNew("fooBar", 1, "someDescription","someContextId",
-                "client_elb_id_1");
+                "defaultElbId");
         localContext.registerNew("fooBar", 1, "someOtherDescription",
-                "someOtherContextId", "client_elb_id_1");
+                "someOtherContextId", "defaultElbId");
     }
 
     @Test
@@ -76,12 +76,12 @@ public class LocalContextTest {
 
         final Thread thread1 = new Thread(() -> {
             localContext.registerNew("fooBar", 1, "someDescription",
-                    "someContext", "client_elb_id_1");
+                    "someContext", "defaultElbId");
             definitionOne.setValue(tlStateMachineDef.get());
         });
         final Thread thread2 = new Thread(() -> {
             localContext.registerNew("fooBar", 1, "someDescription",
-                    "someContext", "client_elb_id_1");
+                    "someContext", "defaultElbId");
             definitionTwo.setValue(tlStateMachineDef.get());
         });
         thread1.start();
@@ -92,13 +92,13 @@ public class LocalContextTest {
 
         assertThat(definitionOne.getValue()).isNotNull().isEqualTo(definitionTwo.getValue()).isEqualTo(new StateMachineDefinition(
                 "someDescription", "fooBar", 1l, new HashSet<>(), new HashSet<>(),
-                "someContext", "client_elb_id_1"));
+                "someContext", "defaultElbId"));
     }
 
     @Test
     public void testRegisterNewState() throws Exception {
         localContext.registerNew("fooBar", 1, "someDescription",null,
-                "client_elb_id_1");
+                "defaultElbId");
         EventDefinition dummyDependency = new EventDefinition("someName","com.blah.some.Event");
         EventDefinition dummyOutput = new EventDefinition("someOutput","com.blah.some.Event");
         localContext.registerNewState(1l, "someState", null, "com.blah.some.Hook", "com.blah.some.Task", 1l, 1000l, Collections.singletonList(dummyDependency), dummyOutput);
@@ -106,21 +106,21 @@ public class LocalContextTest {
             "com.blah.some.Hook", "com.blah.some.Task", "com.blah.some.Hook",
             1l, 1000l, Collections.singletonList(dummyDependency), dummyOutput);
         assertThat(tlStateMachineDef.get()).isEqualTo(new StateMachineDefinition("someDescription", "fooBar",
-                1l, Collections.singleton(expectedStateDefinition), new HashSet<>(), null, "client_elb_id_1"));
+                1l, Collections.singleton(expectedStateDefinition), new HashSet<>(), null, "defaultElbId"));
     }
 
     @Test
     public void testGet_shouldReturnStateMachineDefinition() throws Exception {
         localContext.registerNew("fooBar", 1, "someDescription","someCtx",
-                "client_elb_id_1");
+                "defaultElbId");
         assertThat(localContext.getStateMachineDef()).isEqualTo(new StateMachineDefinition("someDescription",
-                "fooBar", 1l, new HashSet<>(), new HashSet<>(), "someCtx", "client_elb_id_1"));
+                "fooBar", 1l, new HashSet<>(), new HashSet<>(), "someCtx", "defaultElbId"));
     }
 
     @Test
     public void testEventName_ReturnEventNameAppendedWithIncreasingCount() throws Exception {
         localContext.registerNew("fooBar", 1, "someDescription",
-                null, "client_elb_id_1");
+                null, "defaultElbId");
         final SimpleWorkflowForTest.StringEvent event1 = new SimpleWorkflowForTest.StringEvent("foo");
         final SimpleWorkflowForTest.StringEvent event2 = new SimpleWorkflowForTest.StringEvent("foo");
         assertThat(event1).isEqualTo(event2); // Basically, we have object-equality but referential inequality
@@ -130,7 +130,7 @@ public class LocalContextTest {
 
     @Test
     public void testEventName_ReturnSameEventNameForKnownObject() throws Exception {
-        localContext.registerNew("fooBar", 1, "someDescription",null, "client_elb_id_1");
+        localContext.registerNew("fooBar", 1, "someDescription",null, "defaultElbId");
         final SimpleWorkflowForTest.StringEvent event1 = new SimpleWorkflowForTest.StringEvent("foo");
         assertThat(localContext.generateEventName(event1)).isEqualTo(SimpleWorkflowForTest.STRING_EVENT_NAME+"0");
         assertThat(localContext.generateEventName(event1)).isEqualTo(SimpleWorkflowForTest.STRING_EVENT_NAME+"0");
