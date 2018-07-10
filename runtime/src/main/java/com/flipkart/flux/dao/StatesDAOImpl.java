@@ -131,6 +131,16 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         return query.list();
     }
 
-
-
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
+    public List findStatesByDependentEvent(ShardId shardId, String stateMachineId, String eventName) {
+        Query query;
+        String queryString = "select id, stateMachineId, status from State where stateMachineId = :stateMachineId" +
+                " and dependencies like :eventName";
+        query = currentSession().createQuery(queryString);
+        query.setString("stateMachineId", stateMachineId);
+        query.setString("eventName", "%"+eventName+"%");
+        return query.list();
+    }
 }
