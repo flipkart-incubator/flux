@@ -13,8 +13,7 @@
 
 package com.flipkart.flux.guice.module;
 
-import com.flipkart.flux.Constants;
-import com.flipkart.flux.FluxRole;
+import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.polyguice.config.ApacheCommonsConfigProvider;
 import com.flipkart.polyguice.config.YamlConfiguration;
 import com.flipkart.polyguice.core.ConfigurationProvider;
@@ -24,12 +23,14 @@ import com.google.inject.name.Names;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
+import java.util.Optional;
 
-import static com.flipkart.flux.Constants.CONFIGURATION_YML;
-import static com.flipkart.flux.Constants.DUAL_MODE_CONFIGURATION_YML;
+import static com.flipkart.flux.Constants.ORCHESTRATION_NODE_CONFIGURATION_YML;
 import static com.flipkart.flux.Constants.EXECUTION_NODE_CONFIGURATION_YML;
+import static com.flipkart.flux.FluxRuntimeRole.*;
 
 /**
  * <code>ConfigModule</code> is a Guice {@link AbstractModule} implementation used for wiring flux configuration.
@@ -41,34 +42,32 @@ public class ConfigModule extends AbstractModule {
     private final ConfigurationProvider configProvider;
     private final YamlConfiguration yamlConfiguration;
 
-    public ConfigModule(FluxRole role) {
+    public ConfigModule(FluxRuntimeRole role) {
         try {
             URL configUrl = null;
-            String fluxConfigFile;
-            if (role.equals(FluxRole.ORCHESTRATION))
-                fluxConfigFile = System.getProperty("flux.orchestration.configurationFile");
-            else
-                fluxConfigFile = System.getProperty("flux.execution.configurationFile");
+            String fluxConfigFile = null;
+            switch (role) {
+                case ORCHESTRATION:
+                    fluxConfigFile = System.getProperty("flux.orchestration.configurationFile");
+                    if (fluxConfigFile != null) {
+                        configUrl = new File(fluxConfigFile).toURI().toURL();
+                    } else {
+                        configUrl = this.getClass().getClassLoader().getResource(ORCHESTRATION_NODE_CONFIGURATION_YML);
+                    }
+                    break;
+                case EXECUTION:
+                    configUrl = loadExecutinNodeConfiguration(fluxConfigFile);
+                    break;
+                default:
+                    configUrl = loadExecutinNodeConfiguration(fluxConfigFile);
+                    break;
 
-            if (fluxConfigFile != null) {
-                configUrl = new File(fluxConfigFile).toURI().toURL();
-            } else {
-
-                if (role.equals(FluxRole.ORCHESTRATION)) {
-                    configUrl = this.getClass().getClassLoader().getResource(CONFIGURATION_YML);
-                } else {
-                    configUrl = this.getClass().getClassLoader().getResource(EXECUTION_NODE_CONFIGURATION_YML);
-                }
             }
             configProvider = new ApacheCommonsConfigProvider().location(configUrl);
             yamlConfiguration = new YamlConfiguration(configUrl);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public ConfigModule() {
-        this(FluxRole.ORCHESTRATION);
     }
 
     /**
@@ -103,5 +102,16 @@ public class ConfigModule extends AbstractModule {
 
     public ConfigurationProvider getConfigProvider() {
         return configProvider;
+    }
+
+    private URL loadExecutinNodeConfiguration( String fluxConfigFile) throws MalformedURLException {
+        URL configUrl = null;
+        fluxConfigFile = System.getProperty("flux.execution.configurationFile");
+        if (fluxConfigFile != null) {
+            configUrl = new File(fluxConfigFile).toURI().toURL();
+        } else {
+            configUrl = this.getClass().getClassLoader().getResource(EXECUTION_NODE_CONFIGURATION_YML);
+        }
+        return configUrl;
     }
 }

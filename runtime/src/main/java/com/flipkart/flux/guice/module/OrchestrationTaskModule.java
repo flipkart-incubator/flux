@@ -20,8 +20,8 @@ import com.flipkart.flux.impl.redriver.RedriverRegistryImpl;
 import com.flipkart.flux.module.SchedulerModule;
 import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
-import com.flipkart.flux.taskDispatcher.TaskDispatcher;
-import com.flipkart.flux.taskDispatcher.TaskDispatcherImpl;
+import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
+import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcherImpl;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 
@@ -38,7 +38,7 @@ public class OrchestrationTaskModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(TaskDispatcher.class).to(TaskDispatcherImpl.class).in(Singleton.class);
+        bind(ExecutionNodeTaskDispatcher.class).to(ExecutionNodeTaskDispatcherImpl.class).in(Singleton.class);
         bind(RedriverRegistry.class).to(RedriverRegistryImpl.class);
         bind(EventSchedulerRegistry.class).to(EventSchedulerRegistryImpl.class);
         install(new SchedulerModule());

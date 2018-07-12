@@ -28,7 +28,7 @@ import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.representation.ClientElbPersistenceService;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
-import com.flipkart.flux.taskDispatcher.TaskDispatcher;
+import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.util.TestUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -62,7 +62,7 @@ public class WorkFlowExecutionControllerTest {
     private RouterRegistry routerRegistry;
 
     @Mock
-    private TaskDispatcher taskDispatcher;
+    private ExecutionNodeTaskDispatcher executionNodeTaskDispatcher;
 
     @Mock
     private RedriverRegistry redriverRegistry;
@@ -81,7 +81,7 @@ public class WorkFlowExecutionControllerTest {
     public void setUp() throws Exception {
         Thread.sleep(1000);
         workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, auditDAO,
-                taskDispatcher, redriverRegistry, metricsClient, clientElbPersistenceService);
+                executionNodeTaskDispatcher, redriverRegistry, metricsClient, clientElbPersistenceService);
         when(stateMachinesDAO.findById(anyString())).thenReturn(TestUtils.getStandardTestMachineWithId());
         when(clientElbPersistenceService.findByIdClientElb(anyString())).thenReturn("http://localhost:9997");
         objectMapper = new ObjectMapper();
@@ -98,15 +98,15 @@ public class WorkFlowExecutionControllerTest {
         when(eventsDAO.findBySMIdAndName("standard-machine", "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, "standard-machine", null, null));
         EventData[] expectedEvents = new EventData[]{new EventData("event0", "java.lang.String", "42", "runtime")};
         when(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId("standard-machine")).thenReturn(Collections.singletonList("event0"));
-        when(taskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(Response.Status.ACCEPTED.getStatusCode());
+        when(executionNodeTaskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(Response.Status.ACCEPTED.getStatusCode());
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
         State state = stateMachinesDAO.findById("standard-machine").getStates().stream().filter((s) -> s.getId() == 4L).findFirst().orElse(null);
 
         TaskExecutionMessage msg = new TaskExecutionMessage();
         msg.setRouterName(WorkFlowExecutionController.getRouterName(state.getTask()));
         msg.setAkkaMessage(new TaskAndEvents(state.getName(), state.getTask(), state.getId(), expectedEvents, state.getStateMachineId(), "test_state_machine", state.getOutputEvent(), state.getRetryCount()));
-        verify(taskDispatcher, times(1)).forwardExecutionMessage("http://localhost:9997" + "/api/execution", msg);
-        verifyNoMoreInteractions(taskDispatcher);
+        verify(executionNodeTaskDispatcher, times(1)).forwardExecutionMessage("http://localhost:9997" + "/api/execution", msg);
+        verifyNoMoreInteractions(executionNodeTaskDispatcher);
     }
 
     @Test
@@ -151,7 +151,7 @@ public class WorkFlowExecutionControllerTest {
         when(eventsDAO.findBySMIdAndName("standard-machine", "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, "1", null, null));
         EventData[] expectedEvents = new EventData[]{new EventData("event0", "java.lang.String", "42", "runtime")};
         when(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId("standard-machine")).thenReturn(Collections.singletonList("event0"));
-        when(taskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(Response.Status.ACCEPTED.getStatusCode());
+        when(executionNodeTaskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(Response.Status.ACCEPTED.getStatusCode());
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
         State state = stateMachinesDAO.findById("standard-machine").getStates().stream().filter((s) -> s.getId() == 4L).findFirst().orElse(null);
         state.setStatus(Status.completed);
@@ -159,8 +159,8 @@ public class WorkFlowExecutionControllerTest {
         //post the event again, this should not send msg to router for execution
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
 
-        verify(taskDispatcher, times(1)).forwardExecutionMessage(anyString(), anyObject());
-        verifyNoMoreInteractions(taskDispatcher);
+        verify(executionNodeTaskDispatcher, times(1)).forwardExecutionMessage(anyString(), anyObject());
+        verifyNoMoreInteractions(executionNodeTaskDispatcher);
     }
 
     @Test
@@ -170,7 +170,7 @@ public class WorkFlowExecutionControllerTest {
         when(eventsDAO.findBySMIdAndName("standard-machine", "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, "1", null, null));
         EventData[] expectedEvents = new EventData[]{new EventData("event0", "java.lang.String", "42", "runtime")};
         when(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId("standard-machine")).thenReturn(Collections.singletonList("event0"));
-        when(taskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(Response.Status.ACCEPTED.getStatusCode());
+        when(executionNodeTaskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(Response.Status.ACCEPTED.getStatusCode());
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
         StateMachine stateMachine = stateMachinesDAO.findById("standard-machine");
         State state = stateMachinesDAO.findById("standard-machine").getStates().stream().filter((s) -> s.getId() == 4L).findFirst().orElse(null);
@@ -179,8 +179,8 @@ public class WorkFlowExecutionControllerTest {
 
         //post the event again, this should send msg to router again for execution
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
-        verify(taskDispatcher, times(2)).forwardExecutionMessage(anyString(), anyObject());
-        verifyNoMoreInteractions(taskDispatcher);
+        verify(executionNodeTaskDispatcher, times(2)).forwardExecutionMessage(anyString(), anyObject());
+        verifyNoMoreInteractions(executionNodeTaskDispatcher);
     }
 
     @Test
@@ -190,7 +190,7 @@ public class WorkFlowExecutionControllerTest {
         when(eventsDAO.findBySMIdAndName("standard-machine", "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, "1", null, null));
         EventData[] expectedEvents = new EventData[]{testEventData};
         when(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId("standard-machine")).thenReturn(Collections.singletonList("event0"));
-        when(taskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(Response.Status.ACCEPTED.getStatusCode());
+        when(executionNodeTaskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(Response.Status.ACCEPTED.getStatusCode());
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
         StateMachine stateMachine = stateMachinesDAO.findById("standard-machine");
         State state = stateMachine.getStates().stream().filter((s) -> s.getId() == 4L).findFirst().orElse(null);
@@ -198,7 +198,7 @@ public class WorkFlowExecutionControllerTest {
         //post the event again, this should not send msg to router for execution
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
         // Dispatcher Thread should only forward the task for Execution only once.
-        verify(taskDispatcher, times(1)).forwardExecutionMessage(anyString(), anyObject());
+        verify(executionNodeTaskDispatcher, times(1)).forwardExecutionMessage(anyString(), anyObject());
     }
 
     @Test

@@ -13,6 +13,10 @@
 package com.flipkart.flux.api.core;
 
 import com.flipkart.flux.impl.message.TaskAndEvents;
+/*
+* TaskExecutionMessage is the entity which encapsulate executionData and the Akka Router name to which the message
+* should be dispatched for execution.
+* */
 
 public class TaskExecutionMessage {
     //name of the Akka task router to which this Object belongs

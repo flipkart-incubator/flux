@@ -14,7 +14,7 @@
 package com.flipkart.flux.resource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.FluxRole;
+import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
@@ -59,35 +59,35 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class StateMachineResourceTest {
 
     @Rule
-    @InjectFromRole(value = FluxRole.ORCHESTRATION)
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     public DbClearRule dbClearRule;
 
-    @InjectFromRole(value = FluxRole.ORCHESTRATION)
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     private StateMachinesDAO stateMachinesDAO;
 
-    @InjectFromRole(value = FluxRole.ORCHESTRATION)
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     private ParallelScatterGatherQueryHelper parallelScatterGatherQueryHelper;
 
-    @InjectFromRole(value = FluxRole.ORCHESTRATION)
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     private StatesDAO statesDAO;
 
-    @InjectFromRole(value = FluxRole.ORCHESTRATION)
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     private EventsDAO eventsDAO;
 
-    @InjectFromRole(value = FluxRole.ORCHESTRATION)
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     private EventSchedulerDao eventSchedulerDao;
 
-    @InjectFromRole(value = FluxRole.ORCHESTRATION)
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     OrchestrationOrderedComponentBooter orchestrationOrderedComponentBooter;
 
 
-    @InjectFromRole(value = FluxRole.EXECUTION)
+    @InjectFromRole(value = FluxRuntimeRole.EXECUTION)
     ExecutionApiResource executionApiResource;
 
-    @InjectFromRole(value = FluxRole.EXECUTION)
+    @InjectFromRole(value = FluxRuntimeRole.EXECUTION)
     ExecutionOrderedComponentBooter executionOrderedComponentBooter;
 
-    @InjectFromRole(value = FluxRole.ORCHESTRATION)
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     StateMachinePersistenceService stateMachinePersistenceService;
 
     public static final String STATE_MACHINE_RESOURCE_URL = "http://localhost:9998" + RuntimeConstants.API_CONTEXT_PATH + RuntimeConstants.STATE_MACHINE_RESOURCE_RELATIVE_PATH;

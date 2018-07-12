@@ -8,6 +8,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface InjectFromRole {
-    FluxRole value() default FluxRole.ORCHESTRATION;
+    FluxRuntimeRole value() default FluxRuntimeRole.ORCHESTRATION;
     String name() default "";
 }

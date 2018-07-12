@@ -31,12 +31,11 @@ public interface Constants {
     /**
      * Configuration yml resource path for orchestration Node
      */
-    String CONFIGURATION_YML = CONFIG_ROOT + "/configuration.yml";
+    String ORCHESTRATION_NODE_CONFIGURATION_YML = CONFIG_ROOT + "/configuration.yml";
     /**
      * Configuration yml resource path for execution Node
      */
     String EXECUTION_NODE_CONFIGURATION_YML = CONFIG_ROOT + "/executionConfiguration.yml";
-    String DUAL_MODE_CONFIGURATION_YML = CONFIG_ROOT + "/test_config.yml";
     String ORCHESTRATION = "orchestration";
     String EXECUTION = "execution";
 

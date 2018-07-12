@@ -13,8 +13,7 @@
 
 package com.flipkart.flux.initializer;
 
-import com.flipkart.flux.Constants;
-import com.flipkart.flux.FluxRole;
+import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.MigrationUtil.MigrationsRunner;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.guice.module.*;
@@ -40,7 +39,7 @@ public class FluxInitializer {
      */
     private static final Logger logger = LoggerFactory.getLogger(FluxInitializer.class);
 
-    public static FluxRole fluxRole;
+    public static FluxRuntimeRole fluxRole;
 
     /**
      * The machine name where this Flux instance is running
@@ -97,13 +96,13 @@ public class FluxInitializer {
                 if (args.length == 2) {
                     switch (args[1]) {
                         case "orchestration":
-                            fluxRole = FluxRole.ORCHESTRATION;
+                            fluxRole = FluxRuntimeRole.ORCHESTRATION;
                             break;
                         case "execution":
-                            fluxRole = FluxRole.EXECUTION;
+                            fluxRole = FluxRuntimeRole.EXECUTION;
                             break;
                         default:
-                            fluxRole = FluxRole.EXECUTION;
+                            fluxRole = FluxRuntimeRole.EXECUTION;
                     }
                 }
                 fluxInitializer.start();
@@ -168,7 +167,7 @@ public class FluxInitializer {
         long start = System.currentTimeMillis();
         //load flux runtime container
         loadFluxRuntimeContainer();
-        if (fluxRole.equals(FluxRole.ORCHESTRATION)) {
+        if (fluxRole.equals(FluxRuntimeRole.ORCHESTRATION)) {
             final OrchestrationOrderedComponentBooter orchestratorInstance = this.fluxRuntimeContainer.getComponentContext()
                     .getInstance(OrchestrationOrderedComponentBooter.class);
         } else {

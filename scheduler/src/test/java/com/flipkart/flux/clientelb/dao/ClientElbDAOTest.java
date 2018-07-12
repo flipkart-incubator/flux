@@ -13,7 +13,7 @@
 
 package com.flipkart.flux.clientelb.dao;
 
-import com.flipkart.flux.FluxRole;
+import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.boot.SchedulerTestModule;
 import com.flipkart.flux.domain.ClientElb;
@@ -21,7 +21,6 @@ import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
-import com.google.inject.Inject;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.context.internal.ManagedSessionContext;
@@ -29,9 +28,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.sql.Timestamp;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,10 +38,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Modules(orchestrationModules = {ConfigModule.class, SchedulerTestModule.class}, executionModules = {})
 public class ClientElbDAOTest {
 
-    @InjectFromRole(value = FluxRole.ORCHESTRATION)
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     ClientElbDAOImpl clientElbDAOImpl;
 
-    @InjectFromRole(value = FluxRole.ORCHESTRATION, name = "schedulerSessionFactoriesContext")
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION, name = "schedulerSessionFactoriesContext")
     SessionFactoryContext sessionFactory;
 
     private void clean() throws Exception {

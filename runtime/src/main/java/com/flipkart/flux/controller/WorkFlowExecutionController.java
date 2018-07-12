@@ -33,9 +33,8 @@ import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.representation.ClientElbPersistenceService;
-import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
-import com.flipkart.flux.taskDispatcher.TaskDispatcher;
+import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.utils.LoggingUtils;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
@@ -77,9 +76,9 @@ public class WorkFlowExecutionController {
      */
     private AuditDAO auditDAO;
     /*
-    * Connector to forward the TaskAndEvents akka Message to client Remote Machine For Execution
-    */
-    private TaskDispatcher taskDispatcher;
+     * Connector to forward the TaskAndEvents akka Message to client Remote Machine For Execution
+     */
+    private ExecutionNodeTaskDispatcher executionNodeTaskDispatcher;
     /**
      * The Redriver Registry for driving stalled Tasks
      */
@@ -108,14 +107,14 @@ public class WorkFlowExecutionController {
      */
     @Inject
     public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO,
-                                       StatesDAO statesDAO, AuditDAO auditDAO,  TaskDispatcher taskDispatcher,
+                                       StatesDAO statesDAO, AuditDAO auditDAO, ExecutionNodeTaskDispatcher executionNodeTaskDispatcher,
                                        RedriverRegistry redriverRegistry, MetricsClient metricsClient,
                                        ClientElbPersistenceService clientElbPersistenceService) {
         this.eventsDAO = eventsDAO;
         this.stateMachinesDAO = stateMachinesDAO;
         this.statesDAO = statesDAO;
         this.auditDAO = auditDAO;
-        this.taskDispatcher = taskDispatcher;
+        this.executionNodeTaskDispatcher = executionNodeTaskDispatcher;
         this.redriverRegistry = redriverRegistry;
         this.metricsClient = metricsClient;
         this.objectMapper = new ObjectMapper();
@@ -485,15 +484,15 @@ public class WorkFlowExecutionController {
                     String taskName = state.getTask();
                     String routerName = getRouterName(taskName);
                     /*
-                    *  sending message to remote Execution Node for execution
-                    *  Endpoint to be fetched from Cache or DB
-                    * */
+                     *  sending message to remote Execution Node for execution
+                     *  Endpoint to be fetched from Cache or DB
+                     * */
                     TaskExecutionMessage taskExecutionMessage = new TaskExecutionMessage(routerName, msg);
 
                     String clientElbUrl = clientElbPersistenceService.findByIdClientElb(stateMachine.getClientElbId());
                     String endPoint = clientElbUrl + "/api/execution";
                     long startTime = System.currentTimeMillis();
-                    int statusCode = taskDispatcher.forwardExecutionMessage(endPoint, taskExecutionMessage);
+                    int statusCode = executionNodeTaskDispatcher.forwardExecutionMessage(endPoint, taskExecutionMessage);
                     long finishTime = System.currentTimeMillis();
                     if (statusCode == 202) {
                         logger.info("Successfully forwarded the taskExecutionMsg for smId:{} taskId:{} for" +
@@ -582,10 +581,10 @@ public class WorkFlowExecutionController {
     }
 
     /*
-    * Returns a routerName for the task, given TaskName
-    *
-    * */
-    public static String getRouterName(String taskName){
+     * Returns a routerName for the task, given TaskName
+     *
+     * */
+    public static String getRouterName(String taskName) {
         int secondUnderscorePosition = taskName.indexOf('_', taskName.indexOf('_') + 1);
         String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition);
         return routerName;

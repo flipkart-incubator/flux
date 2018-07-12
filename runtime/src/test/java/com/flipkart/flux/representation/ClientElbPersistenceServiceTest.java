@@ -1,6 +1,6 @@
 package com.flipkart.flux.representation;
 
-import com.flipkart.flux.FluxRole;
+import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.clientelb.dao.ClientElbDAOImpl;
 import com.flipkart.flux.domain.ClientElb;
@@ -24,10 +24,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Modules(orchestrationModules = {ConfigModule.class, SchedulerModuleTest.class}, executionModules = {})
 public class ClientElbPersistenceServiceTest {
 
-    @InjectFromRole(value = FluxRole.ORCHESTRATION)
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     ClientElbDAOImpl clientElbDAO;
 
-    @InjectFromRole(value = FluxRole.ORCHESTRATION, name = "schedulerSessionFactoriesContext")
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION, name = "schedulerSessionFactoriesContext")
     SessionFactoryContext sessionFactory;
 
     private void clean() throws Exception {

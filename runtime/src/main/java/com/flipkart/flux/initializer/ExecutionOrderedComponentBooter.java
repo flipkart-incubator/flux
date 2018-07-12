@@ -24,6 +24,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+/*
+* ExecutionOrderedComponentBooter boots startup components of runtime.
+* */
+
 @Singleton
 public class ExecutionOrderedComponentBooter implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(ExecutionOrderedComponentBooter.class);

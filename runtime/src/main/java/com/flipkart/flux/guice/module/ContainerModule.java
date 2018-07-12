@@ -52,7 +52,7 @@ import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
 import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
 
 /**
- * <code>ContainerModule</code> is a Guice {@link AbstractModule} implementation used for wiring Flux container components.
+ * <code>ContainerModule</code> is a Guice {@link AbstractModule} implementation used for wiring Flux Orchestration container components.
  * 
  * @author regunath.balasubramanian
  * @author kartik.bommepally

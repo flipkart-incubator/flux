@@ -13,24 +13,16 @@
 
 package com.flipkart.flux.runner;
 
-import com.flipkart.flux.FluxRole;
+import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.InjectFromRole;
-import com.flipkart.flux.annotation.ManagedEnv;
-import com.flipkart.flux.guice.FluxRoleProvider;
 import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.polyguice.core.support.Polyguice;
 import com.google.inject.AbstractModule;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.InitializationError;
-import sun.security.krb5.Config;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.*;
-import java.util.function.Function;
 
 /**
  * <code>GuiceJunit4Runner</code> provides guice injection capabilities to a test class instance
@@ -71,12 +63,12 @@ public class GuiceJunit4Runner extends BlockJUnit4ClassRunner {
             throw new RuntimeException("You now have to supply a @Modules annotation to use GuiceJunit4Runner");
         }
         if (moduleAnnotation.executionModules().length > 0) {
-            configModuleForExecution = new ConfigModule(FluxRole.EXECUTION);
+            configModuleForExecution = new ConfigModule(FluxRuntimeRole.EXECUTION);
             final Polyguice polyInstance = getPolyInstance(moduleAnnotation.executionModules(), configModuleForExecution);
             Arrays.stream(testInstance.getClass().getDeclaredFields()).
                     filter(field -> field.getAnnotation(InjectFromRole.class) != null).
                     filter(field ->
-                            (field.getAnnotation(InjectFromRole.class).value().equals(FluxRole.EXECUTION))).forEach(field -> {
+                            (field.getAnnotation(InjectFromRole.class).value().equals(FluxRuntimeRole.EXECUTION))).forEach(field -> {
                 try {
                     field.setAccessible(true);
                     String namedInstance = field.getAnnotation(InjectFromRole.class).name();
@@ -91,12 +83,12 @@ public class GuiceJunit4Runner extends BlockJUnit4ClassRunner {
             });
         }
         if (moduleAnnotation.orchestrationModules().length > 0) {
-            configModuleForOrchestration = new ConfigModule(FluxRole.ORCHESTRATION);
+            configModuleForOrchestration = new ConfigModule(FluxRuntimeRole.ORCHESTRATION);
             final Polyguice polyInstance2 = getPolyInstance(moduleAnnotation.orchestrationModules(), configModuleForOrchestration);
             Arrays.stream(testInstance.getClass().getDeclaredFields()).
                     filter(field -> field.getAnnotation(InjectFromRole.class) != null).
                     filter(field ->
-                            (field.getAnnotation(InjectFromRole.class).value().equals(FluxRole.ORCHESTRATION))).forEach(field -> {
+                            (field.getAnnotation(InjectFromRole.class).value().equals(FluxRuntimeRole.ORCHESTRATION))).forEach(field -> {
                 try {
                     field.setAccessible(true);
                     String namedInstance = field.getAnnotation(InjectFromRole.class).name();

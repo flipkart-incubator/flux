@@ -1,9 +1,7 @@
 package com.flipkart.flux.deploymentunit;
 
-import com.flipkart.flux.FluxRole;
+import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.InjectFromRole;
-import com.flipkart.flux.annotation.ManagedEnv;
-import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import com.flipkart.flux.guice.module.*;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
@@ -24,10 +22,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Modules(executionModules = {DeploymentUnitTestModule.class , ExecutionTaskModule.class, AkkaModule.class, ExecutionContainerModule.class})
 public class DynamicLoadUnloadTest {
 
-    @InjectFromRole(value = FluxRole.EXECUTION)
+    @InjectFromRole(value = FluxRuntimeRole.EXECUTION)
     DeploymentUnitsManager dUnitManager;
 
-    @InjectFromRole(value = FluxRole.EXECUTION)
+    @InjectFromRole(value = FluxRuntimeRole.EXECUTION)
     TaskExecutableRegistryImpl registry;
 
     @Test

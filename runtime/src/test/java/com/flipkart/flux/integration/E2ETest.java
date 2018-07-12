@@ -14,7 +14,7 @@
 
 package com.flipkart.flux.integration;
 
-import com.flipkart.flux.FluxRole;
+import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.client.registry.Executable;
@@ -51,35 +51,35 @@ import static org.assertj.core.api.Assertions.assertThat;
         executionModules = { DeploymentUnitTestModule.class, AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class, FluxClientInterceptorModule.class})
 public class E2ETest {
 
-    @InjectFromRole(value = FluxRole.ORCHESTRATION)
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     StateMachinesDAO stateMachinesDAO;
 
-    @InjectFromRole(value = FluxRole.ORCHESTRATION)
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     ParallelScatterGatherQueryHelper parallelScatterGatherQueryHelper;
 
-    @InjectFromRole(value = FluxRole.ORCHESTRATION)
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     EventsDAO eventsDAO;
 
     @Rule
-    @InjectFromRole(value = FluxRole.ORCHESTRATION)
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     public DbClearRule dbClearRule;
 
-    @InjectFromRole(value = FluxRole.ORCHESTRATION)
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     SimpleWorkflow simpleWorkflow;
 
-    @InjectFromRole(value = FluxRole.ORCHESTRATION)
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     OrchestrationOrderedComponentBooter orchestrationOrderedComponentBooter;
 
     /**
      * Needed to populate deployment units before beginning the test
      */
-    @InjectFromRole(value = FluxRole.EXECUTION)
+    @InjectFromRole(value = FluxRuntimeRole.EXECUTION)
     DeploymentUnitsManager deploymentUnitManager;
 
-    @InjectFromRole(value = FluxRole.EXECUTION)
+    @InjectFromRole(value = FluxRuntimeRole.EXECUTION)
     TaskExecutableRegistryImpl registry;
 
-    @InjectFromRole(value = FluxRole.EXECUTION)
+    @InjectFromRole(value = FluxRuntimeRole.EXECUTION)
     ExecutionOrderedComponentBooter executionOrderedComponentBooter;
 
     @Before

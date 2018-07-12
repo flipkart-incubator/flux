@@ -19,7 +19,7 @@ import com.flipkart.flux.api.core.TaskExecutionMessage;
 /**
  * Interface to forward TaskExecutionMessages to remote Execution nodes.
  */
-public interface TaskDispatcher {
+public interface ExecutionNodeTaskDispatcher {
 
     int forwardExecutionMessage(String endpoint, TaskExecutionMessage taskExecutionMessage);
 }

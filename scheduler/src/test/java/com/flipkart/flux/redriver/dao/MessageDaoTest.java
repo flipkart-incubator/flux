@@ -13,16 +13,14 @@
 
 package com.flipkart.flux.redriver.dao;
 
-import com.flipkart.flux.FluxRole;
+import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.boot.SchedulerTestModule;
-import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.flux.redriver.model.SmIdAndTaskIdPair;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
-import com.google.inject.Inject;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.context.internal.ManagedSessionContext;
@@ -30,7 +28,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.inject.Named;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,10 +36,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Modules(orchestrationModules = {SchedulerTestModule.class}, executionModules = {})
 public class MessageDaoTest {
 
-    @InjectFromRole(value = FluxRole.ORCHESTRATION)
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     MessageDao messageDao;
 
-    @InjectFromRole(value = FluxRole.ORCHESTRATION, name="schedulerSessionFactoriesContext")
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION, name="schedulerSessionFactoriesContext")
     SessionFactoryContext context;
 
     @Before

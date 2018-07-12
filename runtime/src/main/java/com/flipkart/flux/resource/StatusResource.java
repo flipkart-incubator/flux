@@ -15,8 +15,7 @@ package com.flipkart.flux.resource;
 
 import akka.actor.Address;
 import akka.cluster.Cluster;
-import com.flipkart.flux.Constants;
-import com.flipkart.flux.FluxRole;
+import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.impl.boot.ActorSystemManager;
 import com.flipkart.flux.initializer.FluxInitializer;
 import com.google.inject.Inject;
@@ -89,7 +88,7 @@ public class StatusResource {
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity("empty hostname or port").build();
         }
 
-        if(FluxInitializer.fluxRole.equals(FluxRole.ORCHESTRATION)){
+        if(FluxInitializer.fluxRole.equals(FluxRuntimeRole.ORCHESTRATION)){
             return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity("Api not valid for Flux's" +
                     " orchestraton nodes.").build();
         }

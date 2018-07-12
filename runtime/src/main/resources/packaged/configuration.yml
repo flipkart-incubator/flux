@@ -84,3 +84,9 @@ eventProxyForMigration:
   enabled: "no"
   endpoint: "http://localhost:9998/api/machines"
 
+connector:
+  max.connections: 100
+  max.connections.per.route: 25
+  connection.timeout: 10000
+  socket.timeout: 10000
+

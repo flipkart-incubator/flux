@@ -43,6 +43,10 @@ import java.net.UnknownHostException;
 
 import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
 
+/*
+* ExecutionContainer Module prepares execution node FluxRuntime. It prepares api servers and resources at startup.
+* */
+
 public class ExecutionContainerModule extends AbstractModule {
 
     @Override
