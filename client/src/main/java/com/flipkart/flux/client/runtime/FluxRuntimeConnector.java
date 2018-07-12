@@ -52,6 +52,15 @@ public interface FluxRuntimeConnector {
     void submitScheduledEvent(String name, Object data, String correlationId, String eventSource, Long scheduledTime);
 
     /**
+     * Post an updated event against a previously registered correlationId and event for EventData update.
+     * @param name name of the event. Should be same as the name given using <code>ExternalEvent</code> annotation
+     * @param data data to post and update against the given event name
+     * @param correlationId the string used to identify a workflow instance (as passed using <code>CorrelationId</code> annotation
+     * @param eventSource source who generated this event, might be state name or external
+     */
+    void submitEventUpdate(String name, Object data, String correlationId, String eventSource);
+
+    /**
      * Cancels the event, which results cancellation of subsequent path in state machine DAG
      * @param eventName name of the event which needs to be cancelled
      * @param correlationId state machine identifier
