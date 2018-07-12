@@ -300,6 +300,53 @@ public class StateMachineResource {
     }
 
     /**
+     * Update EventData of the specified Event name under the specified State machine
+     *
+     * @param machineId the state machine identifier
+     * @return Response with execution status code
+     * @throws Exception
+     */
+    @POST
+    @Path("/{machineId}/context/eventupdate")
+    @Timed
+    public Response updateEvent(@PathParam("machineId") String machineId,
+                                EventData eventData
+    ) throws Exception {
+        if(eventData.getData() == null || eventData.getName() == null || eventData.getEventSource() == null) {
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
+                    "Event Data|Name|Source cannot be null.").build();
+        }
+        if (!(eventsDAO.findBySMIdAndName(machineId, eventData.getName()).getStatus() == Event.EventStatus.triggered)) {
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
+                    "Input event is not in triggered state.").build();
+        }
+        boolean canUpdateEventData = false;
+        /* List holds objects retrieved from States matching input machineId and eventName as [taskId, machineId, status] */
+        List<Object[]> states = parallelScatterGatherQueryHelper.findStatesByDependentEvent(machineId, eventData.getName());
+
+        for(Object[] state : states) {
+            if(state[2] == Status.running) {
+                return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
+                        "EventData update not allowed, one of the states is in running state.").build();
+            }
+            else if(state[2] == Status.initialized || state[2] == Status.errored || state[2] == Status.sidelined) {
+                canUpdateEventData = true;
+            }
+        }
+        if(canUpdateEventData) {
+            this.workFlowExecutionController.persistEvent(machineId, eventData);
+            for(Object[] state : states) {
+                if(state[2] == Status.errored || state[2] == Status.sidelined) {
+                    this.unsidelineState((String) state[1], (Long) state[0]);
+                }
+            }
+            return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
+        }
+        return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity("No eligible state dependent on" +
+                "input event found to update EventData.").build();
+    }
+
+    /**
      * Updates the status of the specified Task under the specified State machine
      *
      * @param machineId the state machine identifier
