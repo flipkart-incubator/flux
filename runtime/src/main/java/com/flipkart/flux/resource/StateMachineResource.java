@@ -343,7 +343,7 @@ public class StateMachineResource {
             return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
         }
         return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity("No eligible state dependent on" +
-                "input event found to update EventData.").build();
+                " input event found to update EventData.").build();
     }
 
     /**
