@@ -102,11 +102,13 @@ public class ClientElbPersistenceService {
         String clientElbUrl = null;
         try {
             clientElbUrl = this.clientElbCache.get(clientId);
-            if(clientElbUrl == null) {
+            if (clientElbUrl == null) {
                 logger.error("ClientElbCache entry not found in both DB and cache. Try registering ClientElb again.");
             }
         } catch (ExecutionException e) {
-            logger.error("Error occured while accessing ClientElbCache Entry {} {}", e.getMessage(), e.getStackTrace());
+            logger.error("Error occured while accessing ClientElbCache Entry {} {}", clientId, e.getMessage(), e.getStackTrace());
+        } catch (Exception ex) {
+            logger.error("Errored occured while loading entity {} in Cache {}", clientId, ex);
         }
         return clientElbUrl;
     }
@@ -130,7 +132,7 @@ public class ClientElbPersistenceService {
      */
     public void deleteClientElb(String clientId) {
         clientElbDAO.delete(clientId);
-        if(this.clientElbCache.asMap().containsKey(clientId))
+        if (this.clientElbCache.asMap().containsKey(clientId))
             this.clientElbCache.asMap().remove(clientId);
         logger.info("After ClientElb entry delete, cache contains: {}", clientElbCache.asMap());
     }

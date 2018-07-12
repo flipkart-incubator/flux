@@ -116,7 +116,6 @@ public class StateMachineResourceTest {
     @AfterClass
     public static void afterClass() {
         try {
-
             Unirest.post("http://localhost:9998/api/client-elb/delete")
                     .queryString("clientId", "defaultElbId").asString();
             Thread.sleep(3000);
