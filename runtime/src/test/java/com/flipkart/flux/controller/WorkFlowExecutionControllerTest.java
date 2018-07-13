@@ -14,7 +14,11 @@
 
 package com.flipkart.flux.controller;
 
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.testkit.TestActorRef;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.MockActorRef;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
@@ -30,6 +34,7 @@ import com.flipkart.flux.representation.ClientElbPersistenceService;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.util.TestUtils;
+import com.typesafe.config.ConfigFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,8 +78,12 @@ public class WorkFlowExecutionControllerTest {
     @Mock
     private ClientElbPersistenceService clientElbPersistenceService;
 
+    TestActorRef<MockActorRef> mockActor;
+
     private WorkFlowExecutionController workFlowExecutionController;
     private ObjectMapper objectMapper;
+    ActorSystem actorSystem;
+
 
 
     @Before
@@ -84,11 +93,15 @@ public class WorkFlowExecutionControllerTest {
                 executionNodeTaskDispatcher, redriverRegistry, metricsClient, clientElbPersistenceService);
         when(stateMachinesDAO.findById(anyString())).thenReturn(TestUtils.getStandardTestMachineWithId());
         when(clientElbPersistenceService.findByIdClientElb(anyString())).thenReturn("http://localhost:9997");
+        actorSystem = ActorSystem.create("testActorSystem",ConfigFactory.load("testAkkaActorSystem"));
+        mockActor = TestActorRef.create(actorSystem, Props.create(MockActorRef.class));
+        when(routerRegistry.getRouter(anyString())).thenReturn(mockActor);
         objectMapper = new ObjectMapper();
     }
 
     @After
     public void tearDown() throws Exception {
+        actorSystem.terminate();
     }
 
     @Test
@@ -274,9 +287,9 @@ public class WorkFlowExecutionControllerTest {
                 null, states, "client_elb_id_1");
         EventData testEventData = new EventData("event3", null, null, "runtime", true);
         when(eventsDAO.getAllEventsNameAndStatus("state-machine-cancel-path", true)).thenReturn(eventStatusHashMap);
-
+        when(stateMachinesDAO.findById("state-machine-cancel-path")).thenReturn(stateMachine);
         // invoke cancel
-        Set<State> executableStates = workFlowExecutionController.cancelPath(stateMachine, testEventData);
+        Set<State> executableStates = workFlowExecutionController.cancelPath(stateMachine.getId(), testEventData);
 
         assertThat(executableStates.size()).isEqualTo(1);
         assertThat(executableStates.contains("state3"));

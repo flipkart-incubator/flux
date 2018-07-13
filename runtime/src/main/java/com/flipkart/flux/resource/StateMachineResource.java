@@ -40,6 +40,7 @@ import com.google.inject.Inject;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -199,7 +200,7 @@ public class StateMachineResource {
     ) throws Exception {
 
         try {
-            LoggingUtils.registerStateMachineIdForLogging(machineId.toString());
+            LoggingUtils.registerStateMachineIdForLogging(machineId);
             logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
             StateMachine stateMachine = null;
             stateMachine = stateMachinesDAO.findById(machineId);
@@ -232,11 +233,12 @@ public class StateMachineResource {
                 return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + stateMachine.getId() + " is in 'cancelled' state. Discarding the event.").build();
             }
 
+
             if (triggerTime == null) {
                 logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
                 try {
                     if (eventData.getCancelled() != null && eventData.getCancelled()) {
-                        workFlowExecutionController.handlePathCancellation(stateMachine, eventData);
+                        workFlowExecutionController.handlePathCancellation(stateMachine.getId(), eventData);
                     } else {
                         workFlowExecutionController.postEvent(eventData, stateMachine.getId());
                     }
@@ -273,47 +275,28 @@ public class StateMachineResource {
                                 EventAndExecutionData eventAndExecutionData
     ) throws Exception {
         try {
-            EventData eventData = eventAndExecutionData.getEventData();
-            ExecutionUpdateData executionUpdateData = eventAndExecutionData.getExecutionUpdateData();
-            LoggingUtils.registerStateMachineIdForLogging(machineId.toString());
-            logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
-            try {
-                this.workFlowExecutionController.updateTaskStatus(machineId, executionUpdateData.getTaskId(), executionUpdateData);
-            } catch (Exception ex) {
-                logger.error("exception {} {}", ex.getMessage(), ex.getStackTrace());
-            }
-            return postEvent(machineId, null, eventData);
-        } finally {
-            LoggingUtils.deRegisterStateMachineIdForLogging();
-        }
-    }
-
-    private Response postEvent(String machineId, String searchField, EventData eventData) {
-        try {
-            LoggingUtils.registerStateMachineIdForLogging(machineId.toString());
+            LoggingUtils.registerStateMachineIdForLogging(machineId);
             StateMachine stateMachine = null;
-            if (searchField != null && !searchField.equals(CORRELATION_ID)) {
-                return Response.status(Response.Status.BAD_REQUEST).build();
-            } else {
-                stateMachine = stateMachinesDAO.findById(machineId);
-            }
-
+            stateMachine = stateMachinesDAO.findById(machineId);
             if (stateMachine == null) {
                 return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity("State machine with Id: " + machineId + " not found").build();
             }
-
-            if (stateMachine.getStatus() == StateMachineStatus.cancelled) {
-                logger.info("Discarding event: {} as State machine: {} is in cancelled state", eventData.getName(), stateMachine.getId());
-                return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + machineId + " is in 'cancelled' state. Discarding the event.").build();
+            EventData eventData = eventAndExecutionData.getEventData();
+            ExecutionUpdateData executionUpdateData = eventAndExecutionData.getExecutionUpdateData();
+            try {
+                logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
+                if (eventData.getCancelled() != null && eventData.getCancelled()) {
+                    workFlowExecutionController.updateTaskStatusAndHandlePathCancellation(machineId, eventAndExecutionData);
+                } else {
+                    workFlowExecutionController.updateTaskStatus(machineId, executionUpdateData.getTaskId(), executionUpdateData);
+                    workFlowExecutionController.postEvent(eventData, stateMachine.getId());
+                }
+            } catch (IllegalEventException ex) {
+                return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
             }
-
-            workFlowExecutionController.postEvent(eventData, stateMachine.getId());
-        } catch (IllegalEventException ex) {
-            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
         } finally {
             LoggingUtils.deRegisterStateMachineIdForLogging();
         }
-
         return Response.status(Response.Status.ACCEPTED).build();
     }
 

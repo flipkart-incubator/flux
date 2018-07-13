@@ -3,6 +3,7 @@ package com.flipkart.flux.resource;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import akka.actor.Terminated;
 import akka.testkit.TestActorRef;
 import akka.testkit.TestProbe;
 import com.flipkart.flux.MockActorRef;
@@ -19,6 +20,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 import static org.mockito.Mockito.*;
 
@@ -43,6 +47,12 @@ public class ExecutionApiResourceTest {
     public static  void setUp(){
         actorSystem  = ActorSystem.create("FluxExecutionSystem", ConfigFactory.load("testAkkaActorSystem.conf"));
         mockActor = TestActorRef.create(actorSystem, Props.create(MockActorRef.class));
+    }
+
+    @AfterClass
+    public static void cleanUp(){
+       scala.concurrent.Future<Terminated> x =  actorSystem.terminate();
+       while(!x.isCompleted() );
     }
 
     @Before
