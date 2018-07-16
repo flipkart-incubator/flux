@@ -336,6 +336,15 @@ public class StateMachineResource {
             }
             if (canUpdateEventData) {
                 this.workFlowExecutionController.persistEvent(machineId, eventData);
+
+                /* Audit entry in AuditRecord. Though audit record is in alignment with stateId, adding here
+                 * in a customised way for Event. This is temporary for audit purpose, will be adding past Event details
+                 * in a separate effort in future.
+                 * Default values: [{machineId}, 0, 0, null, null, {EventUpdateAudit} String] */
+                String EventUdpateAudit = "Event data updated for event: "+eventData.getName()+" and stateMachineId: "
+                        + machineId;
+                this.auditDAO.create(machineId, new AuditRecord(machineId, Long.valueOf(0), Long.valueOf(0),
+                        null, null, EventUdpateAudit));
                 logger.info("Event data updated for event: {} and stateMachineId: {}", eventData.getName(), machineId);
                 for (Object[] state : states) {
                     if (state[2] == Status.errored || state[2] == Status.sidelined) {
