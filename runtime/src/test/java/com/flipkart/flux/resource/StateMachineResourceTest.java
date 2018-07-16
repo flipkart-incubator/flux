@@ -297,6 +297,93 @@ public class StateMachineResourceTest {
     }
 
     @Test
+    public void testEventUpdate() throws Exception {
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
+                "state_machine_definition.json"));
+        final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header(
+                "Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
+        Event event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event0");
+        assertThat(event.getStatus()).isEqualTo(Event.EventStatus.pending);
+
+        /* Make the task fail, eventually sidelined. */
+        TestWorkflow.shouldFail = true;
+        try {
+            /* Since event0 is in pending state, updateEvent should fail. */
+            String eventJson0 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
+                    "updated_event_data.json"));
+            final HttpResponse<String> eventPostResponse0 = Unirest.post(
+                    STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/eventupdate").header(
+                            "Content-Type", "application/json").body(eventJson0).asString();
+            assertThat(eventPostResponse0.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+
+            String eventJson1 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+            final HttpResponse<String> eventPostResponse1 = Unirest.post(
+                    STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events").header(
+                            "Content-Type", "application/json").body(eventJson1).asString();
+            assertThat(eventPostResponse1.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
+            /* Give some time to task to execute, task thread sleeps for 1000 ms with 1 retry. */
+            Thread.sleep(4000);
+
+            //status of state should be sidelined and should be able to update event data now
+            String smId = smCreationResponse.getBody();
+            State state4 = stateMachinesDAO.findById(smId).getStates().stream().filter(e -> e.getName().equals("test_state4"))
+                    .findFirst().orElse(null);
+            assertThat(state4).isNotNull();
+            assertThat(state4.getStatus()).isEqualTo(Status.sidelined);
+            /* Make 'shouldFail' flag to false before update Event. Update Event will unsideline the dependent task
+            * after event data update. */
+            TestWorkflow.shouldFail = false;
+            String eventJson2 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
+                    "updated_event_data.json"));
+            final HttpResponse<String> eventPostResponse2 = Unirest.post(
+                    STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/eventupdate").header(
+                    "Content-Type", "application/json").body(eventJson2).asString();
+            assertThat(eventPostResponse2.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
+            /* Give some time to task to execute, task thread sleeps for 1000 ms */
+            Thread.sleep(2000);
+
+            /* Assert for task completed and updated event data.*/
+            state4 = stateMachinesDAO.findById(smId).getStates().stream().filter(e -> e.getName().equals("test_state4"))
+                    .findFirst().orElse(null);
+            assertThat(state4).isNotNull();
+            assertThat(state4.getStatus()).isEqualTo(Status.completed);
+            Event event0 = eventsDAO.findBySMIdAndName(smId, "event0");
+            assertThat(event0.getEventData()).isEqualTo("50");
+        } finally {
+            TestWorkflow.shouldFail = false;
+        }
+    }
+
+    @Test
+    public void testEventUpdate_taskRunning() throws Exception {
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
+                "state_machine_definition.json"));
+        final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header(
+                "Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
+        Event event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event0");
+        assertThat(event.getStatus()).isEqualTo(Event.EventStatus.pending);
+
+        /* Make the task fail, eventually sidelined. */
+        TestWorkflow.shouldFail = true;
+        try {
+            String eventJson1 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+            String eventJson2 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
+                    "updated_event_data.json"));
+
+            final HttpResponse<String> eventPostResponse1 = Unirest.post(
+                    STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events").header(
+                    "Content-Type", "application/json").body(eventJson1).asString();
+            /* Try update Event while task is in running state */
+            final HttpResponse<String> eventPostResponse2 = Unirest.post(
+                    STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/eventupdate").header(
+                    "Content-Type", "application/json").body(eventJson2).asString();
+            assertThat(eventPostResponse2.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        } finally {
+            TestWorkflow.shouldFail = false;
+        }
+    }
+
+    @Test
     public void testFsmGraphCreation() throws Exception {
         final StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(standardStateMachine, objectMapper.readValue(this.getClass().getClassLoader().getResource("state_machine_definition_fork_join.json"), StateMachineDefinition.class));
         final HttpResponse<String> stringHttpResponse = Unirest.get(STATE_MACHINE_RESOURCE_URL + "/" + stateMachine.getId() + "/fsmdata").header("Content-Type", "application/json").asString();
