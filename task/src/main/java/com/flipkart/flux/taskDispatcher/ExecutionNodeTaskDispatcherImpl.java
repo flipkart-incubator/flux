@@ -16,6 +16,7 @@ package com.flipkart.flux.taskDispatcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
+import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
 import org.apache.http.client.config.RequestConfig;
@@ -43,11 +44,13 @@ public class ExecutionNodeTaskDispatcherImpl implements ExecutionNodeTaskDispatc
     private static Logger logger = LoggerFactory.getLogger(ExecutionNodeTaskDispatcherImpl.class);
     private final CloseableHttpClient closeableHttpClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private MetricsClient metricsClient;
 
 
     @Inject
     public ExecutionNodeTaskDispatcherImpl(@Named("connector.max.connections") Integer maxConnections, @Named("connector.max.connections.per.route") Integer maxConnectionsPerRoute,
-                                           @Named("connector.connection.timeout") Integer connectionTimeout, @Named("connector.socket.timeout") Integer socketTimeOut ) {
+                                           @Named("connector.connection.timeout") Integer connectionTimeout, @Named("connector.socket.timeout") Integer socketTimeOut,
+                                           MetricsClient metricsClient) {
         RequestConfig clientConfig = RequestConfig.custom()
                 .setConnectTimeout((connectionTimeout).intValue())
                 .setSocketTimeout((socketTimeOut).intValue())
@@ -62,6 +65,7 @@ public class ExecutionNodeTaskDispatcherImpl implements ExecutionNodeTaskDispatc
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             HttpClientUtils.closeQuietly(closeableHttpClient);
         }));
+        this.metricsClient = metricsClient;
     }
 
 
@@ -82,6 +86,7 @@ public class ExecutionNodeTaskDispatcherImpl implements ExecutionNodeTaskDispatc
                 logger.info("Posting over http is successful. StatusCode: {} smId:{} taskId:{}", defaultStatusCode,
                         taskExecutionMessage.getAkkaMessage().getStateMachineId(),
                         taskExecutionMessage.getAkkaMessage().getTaskId());
+
             } else {
                 logger.error("Did not receive a valid response from Flux core. StatusCode: {}, smId:{} taskId:{} message: {}",
                         defaultStatusCode,
@@ -94,6 +99,26 @@ public class ExecutionNodeTaskDispatcherImpl implements ExecutionNodeTaskDispatc
                     taskExecutionMessage.getAkkaMessage().getStateMachineId(),
                     taskExecutionMessage.getAkkaMessage().getTaskId(),
                     e.getMessage(), e);
+        } finally {
+            /* 200 <= defaultStatusCode < 301 */
+            if (defaultStatusCode >= Response.Status.OK.getStatusCode()
+                    && defaultStatusCode < Response.Status.MOVED_PERMANENTLY.getStatusCode()) {
+                metricsClient.markMeter(new StringBuilder().
+                        append("stateMachine.tasks.forwardToExecutor.2xx").toString());
+            }
+            /* 400 <= defaultStatusCode < 500 */
+            else if (defaultStatusCode >= Response.Status.BAD_REQUEST.getStatusCode()
+                    && defaultStatusCode < Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                metricsClient.markMeter(new StringBuilder().
+                        append("stateMachine.tasks.forwardToExecutor.4xx").toString());
+            }
+            /* 500 <= defaultStatusCode <= 505 */
+            else if (defaultStatusCode >= Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()
+                    && defaultStatusCode < Response.Status.HTTP_VERSION_NOT_SUPPORTED.getStatusCode()) {
+                metricsClient.markMeter(new StringBuilder().
+                        append("stateMachine.tasks.forwardToExecutor.5xx").toString());
+            }
+
         }
         HttpClientUtils.closeQuietly(httpResponse);
         return defaultStatusCode;
