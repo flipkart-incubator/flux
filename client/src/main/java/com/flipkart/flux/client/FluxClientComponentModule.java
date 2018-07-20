@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.client;
 
+import com.codahale.metrics.SharedMetricRegistries;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.client.config.FluxClientConfiguration;
 import com.flipkart.flux.client.guice.annotation.IsolatedEnv;
@@ -62,7 +63,7 @@ public class FluxClientComponentModule extends AbstractModule {
         return new FluxRuntimeConnectorHttpImpl(configuration.getConnectionTimeout(),
                 configuration.getSocketTimeout(),
                 fluxRuntimeUrl + "/api/machines",
-                objectMapper);
+                objectMapper, SharedMetricRegistries.getOrCreate("mainMetricRegistry"));
     }
 
     @Provides
