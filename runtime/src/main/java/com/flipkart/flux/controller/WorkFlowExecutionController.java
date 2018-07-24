@@ -393,7 +393,12 @@ public class WorkFlowExecutionController {
             throw new IllegalStateException("State with the asked id: " + stateId + " not found in stateMachine with id: " + stateMachineId);
         }
 
-        if (askedState.getStatus() == Status.sidelined || askedState.getStatus() == Status.errored) {
+        Set<State> checkExecutableState = new HashSet<>();
+        checkExecutableState.add(askedState);
+        if(getExecutableStates(checkExecutableState, stateMachineId).isEmpty()) {
+            logger.error("Cannot unsideline state: {}, at least one dependent event is in pending status.", askedState);
+        }
+        else if (askedState.getStatus() == Status.sidelined || askedState.getStatus() == Status.errored) {
             askedState.setStatus(Status.unsidelined);
             askedState.setAttemptedNoOfRetries(0L);
 
