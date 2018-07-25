@@ -314,7 +314,7 @@ public class StateMachineResourceTest {
             final HttpResponse<String> eventPostResponse0 = Unirest.post(
                     STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/eventupdate").header(
                             "Content-Type", "application/json").body(eventJson0).asString();
-            assertThat(eventPostResponse0.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+            assertThat(eventPostResponse0.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
             String eventJson1 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
             final HttpResponse<String> eventPostResponse1 = Unirest.post(
@@ -377,7 +377,7 @@ public class StateMachineResourceTest {
             final HttpResponse<String> eventPostResponse2 = Unirest.post(
                     STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/eventupdate").header(
                     "Content-Type", "application/json").body(eventJson2).asString();
-            assertThat(eventPostResponse2.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+            assertThat(eventPostResponse2.getStatus()).isEqualTo(Response.Status.NOT_ACCEPTABLE.getStatusCode());
         } finally {
             TestWorkflow.shouldFail = false;
         }

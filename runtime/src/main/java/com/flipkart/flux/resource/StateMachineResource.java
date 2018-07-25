@@ -319,7 +319,7 @@ public class StateMachineResource {
                         "Event Data|Name|Source cannot be null.").build();
             }
             if (!(eventsDAO.findBySMIdAndName(machineId, eventData.getName()).getStatus() == Event.EventStatus.triggered)) {
-                return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
+                return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
                         "Input event is not in triggered state.").build();
             }
             boolean canUpdateEventData = false;
@@ -328,7 +328,7 @@ public class StateMachineResource {
 
             for (Object[] state : states) {
                 if (state[2] == Status.running) {
-                    return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
+                    return Response.status(Response.Status.NOT_ACCEPTABLE.getStatusCode()).entity(
                             "EventData update not allowed, one of the states is in running state.").build();
                 } else if (state[2] == Status.initialized || state[2] == Status.errored || state[2] == Status.sidelined) {
                     canUpdateEventData = true;
@@ -356,7 +356,7 @@ public class StateMachineResource {
         } finally {
             LoggingUtils.deRegisterStateMachineIdForLogging();
         }
-        return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity("No eligible state dependent on" +
+        return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity("No eligible state dependent on" +
                 " input event found to update EventData.").build();
     }
 
