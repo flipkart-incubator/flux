@@ -51,7 +51,6 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     public static final int MAX_TOTAL = 200;
     public static final int MAX_PER_ROUTE = 20;
     public static final String EXTERNAL = "external";
-    public static final String EXTERNAL_UPDATE = "externalUpdate";
     private final CloseableHttpClient closeableHttpClient;
     private final String fluxEndpoint;
     private final ObjectMapper objectMapper;
@@ -154,7 +153,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     public void submitEventUpdate(String name, Object data, String correlationId,String eventSource) {
         final String eventType = data.getClass().getName();
         if (eventSource == null) {
-            eventSource = EXTERNAL_UPDATE;
+            eventSource = EXTERNAL;
         }
         CloseableHttpResponse httpResponse = null;
         try {

@@ -68,11 +68,10 @@ public interface StatesDAO {
     List findStatesByStatus(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime, String taskName, List<Status> statuses);
 
     /**
-     * Scatter gather query for slave shards
      * Retrieves all states for a particular state-machine-id and like input dependent-event-name.
      * This query results are specifically used in business logic to make a decision whether to edit EventData or not
      * based on state's status in [initialized, sidelined, errored] but [running].
      * Query result is a list as [taskId, stateMachineId, status]
      */
-    List findStatesByDependentEvent(ShardId shardId, String stateMachineId, String eventName);
+    List findStatesByDependentEvent(String stateMachineId, String eventName);
 }

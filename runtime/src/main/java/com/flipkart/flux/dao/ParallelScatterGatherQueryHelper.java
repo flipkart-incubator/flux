@@ -72,14 +72,6 @@ public class ParallelScatterGatherQueryHelper {
         return result;
     }
 
-    public List findStatesByDependentEvent(String stateMachineId, String eventName) {
-        List result = Collections.synchronizedList(new ArrayList<>());
-        scatterGatherQueryHelper((shardId) ->
-                statesDAO.findStatesByDependentEvent(shardId, stateMachineId, eventName), result,
-                "states by dependent events");
-        return result;
-    }
-
     public Set<StateMachine> findStateMachinesByName(String stateMachineName) {
         Set result = Collections.synchronizedSet(new HashSet<StateMachine>());
         scatterGatherQueryHelper((shardId) ->

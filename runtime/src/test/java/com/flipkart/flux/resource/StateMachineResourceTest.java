@@ -377,7 +377,7 @@ public class StateMachineResourceTest {
             final HttpResponse<String> eventPostResponse2 = Unirest.post(
                     STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/eventupdate").header(
                     "Content-Type", "application/json").body(eventJson2).asString();
-            assertThat(eventPostResponse2.getStatus()).isEqualTo(Response.Status.NOT_ACCEPTABLE.getStatusCode());
+            assertThat(eventPostResponse2.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
         } finally {
             TestWorkflow.shouldFail = false;
         }

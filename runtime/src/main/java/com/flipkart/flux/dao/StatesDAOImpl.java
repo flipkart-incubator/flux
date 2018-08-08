@@ -133,8 +133,8 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
-    public List findStatesByDependentEvent(ShardId shardId, String stateMachineId, String eventName) {
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public List findStatesByDependentEvent(String stateMachineId, String eventName) {
         Query query;
         String queryString = "select id, stateMachineId, status from State where stateMachineId = :stateMachineId" +
                 " and dependencies like :eventName";
