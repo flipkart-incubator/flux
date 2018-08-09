@@ -348,7 +348,7 @@ public class StateMachineResource {
                 logger.info("Event data updated for event: {} and stateMachineId: {}", eventData.getName(), machineId);
                 for (Object[] state : states) {
                     if (state[2] == Status.errored || state[2] == Status.sidelined) {
-                        this.unsidelineState((String) state[1], (Long) state[0]);
+                        this.workFlowExecutionController.unsidelineState((String) state[1], (Long) state[0]);
                     }
                 }
                 return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
@@ -506,9 +506,7 @@ public class StateMachineResource {
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Response unsidelineState(@PathParam("stateMachineId") String stateMachineId, @PathParam("stateId") Long stateId) {
-        this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
-
-        return Response.status(Response.Status.ACCEPTED).build();
+        return this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
     }
 
     @PUT
