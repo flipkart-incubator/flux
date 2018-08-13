@@ -80,6 +80,7 @@ public class MessageDao {
         StringBuilder queryBuilder = new StringBuilder();
         queryBuilder.append("delete from ScheduledMessage where (stateMachineId,taskId) in (");
         messageIdsToDelete.forEach(smIdAndTaskIdPair -> {
+
             queryBuilder.append("(\'")
                     .append(smIdAndTaskIdPair.getSmId())
                     .append("\',\'").append(smIdAndTaskIdPair.getTaskId())
@@ -89,7 +90,7 @@ public class MessageDao {
         queryBuilder.setCharAt(queryBuilder.length() - 1, ')');
         logger.info(queryBuilder.toString());
         final Query deleteQuery = currentSession().createQuery(queryBuilder.toString());
-        int rowsAffected =  deleteQuery.executeUpdate();
+        int rowsAffected = deleteQuery.executeUpdate();
         logger.info("Trying to delete {} , actually impacted rows {}", messageIdsToDelete.size(), rowsAffected);
     }
 
