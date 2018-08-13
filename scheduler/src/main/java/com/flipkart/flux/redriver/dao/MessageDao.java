@@ -19,11 +19,14 @@ import com.flipkart.flux.redriver.model.SmIdAndTaskIdPair;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -34,6 +37,7 @@ import java.util.List;
 @Singleton
 public class MessageDao {
 
+    private static final Logger logger = LoggerFactory.getLogger(MessageDao.class);
     private SessionFactoryContext sessionFactoryContext;
 
     @Inject
@@ -80,10 +84,13 @@ public class MessageDao {
                     .append(smIdAndTaskIdPair.getSmId())
                     .append("\',\'").append(smIdAndTaskIdPair.getTaskId())
                     .append("\'),");
+            logger.info(smIdAndTaskIdPair.toString() + ",");
         });
         queryBuilder.setCharAt(queryBuilder.length() - 1, ')');
+        logger.info(queryBuilder.toString());
         final Query deleteQuery = currentSession().createQuery(queryBuilder.toString());
-        deleteQuery.executeUpdate();
+        int rowsAffected =  deleteQuery.executeUpdate();
+        logger.info("Trying to delete {} , actually impacted rows {}", messageIdsToDelete.size(), rowsAffected);
     }
 
     /**

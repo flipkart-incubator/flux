@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
+
 /**
  * The service uses a scheduler to read the oldest message with fixed delay and redrives them if necessary. The task will
  * be scheduled for execution if the current time is greater than or equal to scheduledTime.
@@ -78,7 +79,9 @@ public class RedriverService {
             if (scheduledFuture == null || scheduledFuture.isDone()) {
                 scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
                     try {
-                        redrive();
+                        asyncRedriveService.submit(() -> {
+                            redrive();
+                        });
                     } catch (Throwable e) {
                         logger.error("Error while running redrive {}", e);
                     }
@@ -91,6 +94,12 @@ public class RedriverService {
     public void stop() {
         synchronized (this) {
             scheduledFuture.cancel(false);
+            try {
+                asyncRedriveService.awaitTermination(1000, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                logger.error("Forcefully terminated redrive jobs {}", e);
+            }
+            //       asyncRedriveService.shutdown();
             logger.info("RedriverService stopped");
         }
     }
@@ -109,7 +118,8 @@ public class RedriverService {
             messages.stream().filter(e -> e.getScheduledTime() < now).forEach(e -> {
                 try {
                     redriverRegistry.redriveTask(e.getStateMachineId(), e.getTaskId());
-                } catch (Exception ex) {}
+                } catch (Exception ex) {
+                }
 
             });
             boolean allCompleted = false;
@@ -122,7 +132,7 @@ public class RedriverService {
                 allCompleted = true;
                 for (int i = 0; i < messageRedrived.size(); i++)
                     if (messageRedrived.get(i).isDone() || messageRedrived.get(i).isCancelled())
-                            continue;
+                        continue;
                     else {
                         allCompleted = false;
                         break;
