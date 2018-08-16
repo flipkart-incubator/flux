@@ -56,8 +56,10 @@ public class TestWorkflow {
             try {
                 throw new FluxCancelPathException();
             } catch (Exception e){
-                System.out.println("Failed to cancel path.");
-                e.printStackTrace();
+                if (!(e instanceof FluxCancelPathException)) {
+                    System.out.println("Failed to cancel path.");
+                    e.printStackTrace();
+                }
             }
         }
         try {

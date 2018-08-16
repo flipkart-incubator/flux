@@ -2,5 +2,5 @@
   "name": "event0",
   "type": "java.lang.String",
   "data": "50",
-  "eventSource": "externalUpdate"
+  "eventSource": "external"
 }

@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
+import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.*;
@@ -378,7 +379,7 @@ public class WorkFlowExecutionController {
      * @param stateMachineId
      * @param stateId
      */
-    public Response unsidelineState(String stateMachineId, Long stateId) {
+    public void unsidelineState(String stateMachineId, Long stateId) throws ForbiddenException{
         State askedState = null;
         StateMachine stateMachine = retrieveStateMachine(stateMachineId);
         if (stateMachine == null)
@@ -399,8 +400,7 @@ public class WorkFlowExecutionController {
         if(getExecutableStates(checkExecutableState, stateMachineId).isEmpty()) {
             logger.error("Cannot unsideline state: {}, at least one of the dependent events is in pending status.",
                     askedState.getName());
-            return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
-                    "Cannot unsideline state, at least one of the dependent events is in pending status.").build();
+            throw new ForbiddenException();
         }
         else if (askedState.getStatus() == Status.initialized || askedState.getStatus() == Status.sidelined
                 || askedState.getStatus() == Status.errored) {
@@ -409,7 +409,6 @@ public class WorkFlowExecutionController {
             this.statesDAO.updateState(stateMachineId, askedState);
             this.executeStates(stateMachine, Sets.newHashSet(Arrays.asList(askedState)));
         }
-        return Response.status(Response.Status.ACCEPTED).build();
     }
 
     /**

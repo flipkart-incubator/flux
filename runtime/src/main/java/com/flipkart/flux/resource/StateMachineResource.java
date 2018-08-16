@@ -348,9 +348,16 @@ public class StateMachineResource {
                 logger.info("Event data updated for event: {} and stateMachineId: {}", eventData.getName(), machineId);
                 for (Object[] state : states) {
                     if (state[2] == Status.initialized || state[2] == Status.errored || state[2] == Status.sidelined) {
-                        return this.workFlowExecutionController.unsidelineState((String) state[1], (Long) state[0]);
+                        try {
+                            this.workFlowExecutionController.unsidelineState((String) state[1], (Long) state[0]);
+                        } catch (ForbiddenException e) {
+                            return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
+                                    "Cannot unsideline state, at least one of dependent events is in pending status.")
+                                    .build();
+                        }
                     }
                 }
+                return Response.status(Response.Status.ACCEPTED).build();
             }
         } finally {
             LoggingUtils.deRegisterStateMachineIdForLogging();
@@ -505,7 +512,14 @@ public class StateMachineResource {
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Response unsidelineState(@PathParam("stateMachineId") String stateMachineId, @PathParam("stateId") Long stateId) {
-        return this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
+        try {
+            this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
+        } catch (ForbiddenException e) {
+            return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
+                    "Cannot unsideline state, at least one of dependent events is in pending status.")
+                    .build();
+        }
+        return Response.status(Response.Status.ACCEPTED).build();
     }
 
     @PUT

@@ -69,9 +69,6 @@ public interface StatesDAO {
 
     /**
      * Retrieves all states for a particular state-machine-id and like input dependent-event-name.
-     * This query results are specifically used in business logic to make a decision whether to edit EventData or not
-     * based on state's status in [initialized, sidelined, errored] but [running].
-     * Query result is a list as [taskId, stateMachineId, status]
      */
     List findStatesByDependentEvent(String stateMachineId, String eventName);
 }
