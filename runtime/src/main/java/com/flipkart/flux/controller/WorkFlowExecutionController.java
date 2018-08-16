@@ -400,7 +400,8 @@ public class WorkFlowExecutionController {
             logger.error("Cannot unsideline state: {}, at least one of the dependent events is in pending status.", askedState);
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        else if (askedState.getStatus() == Status.sidelined || askedState.getStatus() == Status.errored) {
+        else if (askedState.getStatus() == Status.initialized || askedState.getStatus() == Status.sidelined
+                || askedState.getStatus() == Status.errored) {
             askedState.setStatus(Status.unsidelined);
             askedState.setAttemptedNoOfRetries(0L);
             this.statesDAO.updateState(stateMachineId, askedState);
