@@ -348,10 +348,9 @@ public class StateMachineResource {
                 logger.info("Event data updated for event: {} and stateMachineId: {}", eventData.getName(), machineId);
                 for (Object[] state : states) {
                     if (state[2] == Status.initialized || state[2] == Status.errored || state[2] == Status.sidelined) {
-                        this.workFlowExecutionController.unsidelineState((String) state[1], (Long) state[0]);
+                        return this.workFlowExecutionController.unsidelineState((String) state[1], (Long) state[0]);
                     }
                 }
-                return Response.status(Response.Status.ACCEPTED.getStatusCode()).build();
             }
         } finally {
             LoggingUtils.deRegisterStateMachineIdForLogging();

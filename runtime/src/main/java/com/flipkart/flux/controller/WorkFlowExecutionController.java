@@ -397,8 +397,10 @@ public class WorkFlowExecutionController {
         Set<State> checkExecutableState = new HashSet<>();
         checkExecutableState.add(askedState);
         if(getExecutableStates(checkExecutableState, stateMachineId).isEmpty()) {
-            logger.error("Cannot unsideline state: {}, at least one of the dependent events is in pending status.", askedState);
-            return Response.status(Response.Status.FORBIDDEN).build();
+            logger.error("Cannot unsideline state: {}, at least one of the dependent events is in pending status.",
+                    askedState.getName());
+            return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
+                    "Cannot unsideline state, at least one of the dependent events is in pending status.").build();
         }
         else if (askedState.getStatus() == Status.initialized || askedState.getStatus() == Status.sidelined
                 || askedState.getStatus() == Status.errored) {
