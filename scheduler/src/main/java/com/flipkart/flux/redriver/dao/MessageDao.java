@@ -19,6 +19,7 @@ import com.flipkart.flux.redriver.model.SmIdAndTaskIdPair;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -59,6 +60,7 @@ public class MessageDao {
         return currentSession()
                 .createCriteria(ScheduledMessage.class)
                 .addOrder(Order.asc("scheduledTime"))
+                .add(Restrictions.lt("scheduledTime", System.currentTimeMillis()))
                 .setFirstResult(offset)
                 .setMaxResults(rowCount)
                 .list();
@@ -71,13 +73,18 @@ public class MessageDao {
      */
     @Transactional
     @SelectDataSource(storage = Storage.SCHEDULER)
-    public void deleteInBatch(List<SmIdAndTaskIdPair> messageIdsToDelete) {
-        messageIdsToDelete.stream().forEach(smIdAndTaskIdPair -> {
-            final Query deleteQuery = currentSession().createQuery("delete ScheduledMessage s where s.stateMachineId = :smId and s.taskId = :taskId");
-            deleteQuery.setString("smId", smIdAndTaskIdPair.getSmId());
-            deleteQuery.setLong("taskId", smIdAndTaskIdPair.getTaskId());
-            deleteQuery.executeUpdate();
+    public int deleteInBatch(List<SmIdAndTaskIdPair> messageIdsToDelete) {
+        StringBuilder queryBuilder = new StringBuilder();
+        queryBuilder.append("delete from ScheduledMessage where (stateMachineId,taskId) in (");
+        messageIdsToDelete.forEach(smIdAndTaskIdPair -> {
+            queryBuilder.append("(\'")
+                    .append(smIdAndTaskIdPair.getSmId())
+                    .append("\',\'").append(smIdAndTaskIdPair.getTaskId())
+                    .append("\'),");
         });
+        queryBuilder.setCharAt(queryBuilder.length() - 1, ')');
+        final Query deleteQuery = currentSession().createQuery(queryBuilder.toString());
+        return deleteQuery.executeUpdate();
     }
 
     /**

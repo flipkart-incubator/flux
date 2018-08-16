@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
+
 /**
  * The service uses a scheduler to read the oldest message with fixed delay and redrives them if necessary. The task will
  * be scheduled for execution if the current time is greater than or equal to scheduledTime.
@@ -105,32 +106,14 @@ public class RedriverService {
         long now = System.currentTimeMillis();
         do {
             messages = messageService.retrieveOldest(offset, batchSize);
-            ArrayList<Future<?>> messageRedrived = new ArrayList<>();
-            messages.stream().filter(e -> e.getScheduledTime() < now).forEach(e -> {
-                try {
+            messages.forEach(e -> {
+                asyncRedriveService.submit(() -> {
                     redriverRegistry.redriveTask(e.getStateMachineId(), e.getTaskId());
-                } catch (Exception ex) {}
-
+                });
             });
-            boolean allCompleted = false;
-            while (!allCompleted) {
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    logger.warn("Error while sleeping before checking async redrive callbacks {}", e.getStackTrace());
-                }
-                allCompleted = true;
-                for (int i = 0; i < messageRedrived.size(); i++)
-                    if (messageRedrived.get(i).isDone() || messageRedrived.get(i).isCancelled())
-                            continue;
-                    else {
-                        allCompleted = false;
-                        break;
-                    }
-            }
             offset += batchSize;
             // get next batch if we found batchSize tasks and all were redriven
-        } while (messages.size() == batchSize && messages.get(messages.size() - 1).getScheduledTime() < now);
+        } while (messages.size() > 0);
     }
 
     public void setInitialDelay(Long initialDelay) {
