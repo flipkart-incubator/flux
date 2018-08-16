@@ -354,6 +354,21 @@ public class StateMachineResourceTest {
         }
     }
 
+    private void testEventUpdate_IneligibleTaskStatus_Util(HttpResponse<String> smCreationResponse) throws Exception {
+        String eventJson1 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        String eventJson2 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
+                "updated_event_data.json"));
+
+        final HttpResponse<String> eventPostResponse1 = Unirest.post(
+                STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events").header(
+                "Content-Type", "application/json").body(eventJson1).asString();
+            /* Try update Event while task is in running state */
+        final HttpResponse<String> eventPostResponse2 = Unirest.post(
+                STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/eventupdate").header(
+                "Content-Type", "application/json").body(eventJson2).asString();
+        assertThat(eventPostResponse2.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
+    }
+
     @Test
     public void testEventUpdate_taskRunning() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
@@ -366,18 +381,7 @@ public class StateMachineResourceTest {
         /* Make the task fail, eventually sidelined. */
         TestWorkflow.shouldFail = true;
         try {
-            String eventJson1 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
-            String eventJson2 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
-                    "updated_event_data.json"));
-
-            final HttpResponse<String> eventPostResponse1 = Unirest.post(
-                    STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events").header(
-                    "Content-Type", "application/json").body(eventJson1).asString();
-            /* Try update Event while task is in running state */
-            final HttpResponse<String> eventPostResponse2 = Unirest.post(
-                    STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/eventupdate").header(
-                    "Content-Type", "application/json").body(eventJson2).asString();
-            assertThat(eventPostResponse2.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
+            testEventUpdate_IneligibleTaskStatus_Util(smCreationResponse);
         } finally {
             TestWorkflow.shouldFail = false;
         }
@@ -395,19 +399,7 @@ public class StateMachineResourceTest {
         /* Make the task complete to test Event update failure after task completion. */
         TestWorkflow.shouldFail = false;
         try {
-            String eventJson1 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
-            String eventJson2 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
-                    "updated_event_data.json"));
-
-            final HttpResponse<String> eventPostResponse1 = Unirest.post(
-                    STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events").header(
-                    "Content-Type", "application/json").body(eventJson1).asString();
-
-            /* Try update Event Data when dependent task is completed */
-            final HttpResponse<String> eventPostResponse2 = Unirest.post(
-                    STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/eventupdate").header(
-                    "Content-Type", "application/json").body(eventJson2).asString();
-            assertThat(eventPostResponse2.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
+            testEventUpdate_IneligibleTaskStatus_Util(smCreationResponse);
         } finally {
             TestWorkflow.shouldFail = false;
         }
@@ -425,18 +417,7 @@ public class StateMachineResourceTest {
         /* Mark the task path as cancelled. */
         TestWorkflow.shouldCancel = true;
         try {
-            String eventJson1 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
-            String eventJson2 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
-                    "updated_event_data.json"));
-
-            final HttpResponse<String> eventPostResponse1 = Unirest.post(
-                    STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events").header(
-                    "Content-Type", "application/json").body(eventJson1).asString();
-            /* Try update Event when dependent task is in cancelled state */
-            final HttpResponse<String> eventPostResponse2 = Unirest.post(
-                    STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/eventupdate").header(
-                    "Content-Type", "application/json").body(eventJson2).asString();
-            assertThat(eventPostResponse2.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
+            testEventUpdate_IneligibleTaskStatus_Util(smCreationResponse);
         } finally {
             TestWorkflow.shouldCancel = false;
         }
