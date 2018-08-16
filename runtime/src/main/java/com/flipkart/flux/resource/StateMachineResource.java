@@ -343,10 +343,11 @@ public class StateMachineResource {
             List<Object[]> states = statesDAO.findStatesByDependentEvent(machineId, eventData.getName());
 
             for (Object[] state : states) {
-                if (state[2] == Status.running) {
+                Status status = (Status)state[2];
+                if (status == Status.running) {
                     canUpdateEventData = false;
                     break;
-                } else if (state[2] == Status.initialized || state[2] == Status.errored || state[2] == Status.sidelined) {
+                } else if (status == Status.initialized || status == Status.errored || status == Status.sidelined) {
                     canUpdateEventData = true;
                 }
             }
