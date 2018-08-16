@@ -19,6 +19,7 @@ import com.flipkart.flux.redriver.model.SmIdAndTaskIdPair;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
 import javax.inject.Inject;
@@ -46,6 +47,12 @@ public class MessageDao {
     @SelectDataSource(storage = Storage.SCHEDULER)
     public void save(ScheduledMessage scheduledMessage) {
         currentSession().saveOrUpdate(scheduledMessage);
+    }
+
+    @Transactional
+    @SelectDataSource(storage = Storage.SCHEDULER)
+    public Long redriverCount() {
+      return  ((Long)currentSession().createQuery("select count(*) from ScheduledMessage").iterate().next());
     }
 
     /**
