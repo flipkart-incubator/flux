@@ -299,6 +299,22 @@ public class StateMachineResource {
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
+    private void updateEventDataUtil(String machineId, EventData eventData, List<Object[]> states)
+            throws ForbiddenException {
+        this.workFlowExecutionController.persistEvent(machineId, eventData);
+        /* Audit entry in AuditRecord.
+         * Default values: [{machineId}, 0, 0, null, null, {EventUpdateAudit} String] */
+        String EventUdpateAudit = "Event data updated for event: "+eventData.getName()+" and stateMachineId: "
+                + machineId;
+        this.auditDAO.create(machineId, new AuditRecord(machineId, Long.valueOf(0), Long.valueOf(0),
+                null, null, EventUdpateAudit));
+        logger.info("Event data updated for event: {} and stateMachineId: {}", eventData.getName(), machineId);
+        for (Object[] state : states) {
+            if (state[2] == Status.initialized || state[2] == Status.errored || state[2] == Status.sidelined) {
+                this.workFlowExecutionController.unsidelineState((String) state[1], (Long) state[0]);
+            }
+        }
+    }
     /**
      * Update EventData of the specified Event name under the specified State machine
      *
@@ -334,35 +350,21 @@ public class StateMachineResource {
                     canUpdateEventData = true;
                 }
             }
-            if (canUpdateEventData) {
-                this.workFlowExecutionController.persistEvent(machineId, eventData);
 
-                /* Audit entry in AuditRecord. Though audit record is in alignment with stateId, adding here
-                 * in a customised way for Event. This is temporary for audit purpose, will be adding past Event details
-                 * in a separate effort in future.
-                 * Default values: [{machineId}, 0, 0, null, null, {EventUpdateAudit} String] */
-                String EventUdpateAudit = "Event data updated for event: "+eventData.getName()+" and stateMachineId: "
-                        + machineId;
-                this.auditDAO.create(machineId, new AuditRecord(machineId, Long.valueOf(0), Long.valueOf(0),
-                        null, null, EventUdpateAudit));
-                logger.info("Event data updated for event: {} and stateMachineId: {}", eventData.getName(), machineId);
-                for (Object[] state : states) {
-                    if (state[2] == Status.initialized || state[2] == Status.errored || state[2] == Status.sidelined) {
-                        try {
-                            this.workFlowExecutionController.unsidelineState((String) state[1], (Long) state[0]);
-                        } catch (ForbiddenException e) {
-                            return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
-                                    "Cannot unsideline state, at least one of dependent events is in pending status.")
-                                    .build();
-                        }
-                    }
+            if (canUpdateEventData) {
+                try {
+                    this.updateEventDataUtil(machineId, eventData, states);
+                } catch (ForbiddenException e) {
+                    return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
+                            "Cannot unsideline state, at least one of dependent events is in pending status.")
+                            .build();
                 }
                 return Response.status(Response.Status.ACCEPTED).build();
             }
         } finally {
             LoggingUtils.deRegisterStateMachineIdForLogging();
         }
-        return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity("No eligible state dependent on" +
+        return Response.status(Response.Status.CONFLICT.getStatusCode()).entity("No eligible state dependent on" +
                 " input event found to update EventData.").build();
     }
 

@@ -379,7 +379,7 @@ public class WorkFlowExecutionController {
      * @param stateMachineId
      * @param stateId
      */
-    public void unsidelineState(String stateMachineId, Long stateId) throws ForbiddenException{
+    public void unsidelineState(String stateMachineId, Long stateId) throws ForbiddenException {
         State askedState = null;
         StateMachine stateMachine = retrieveStateMachine(stateMachineId);
         if (stateMachine == null)

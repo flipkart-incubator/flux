@@ -362,11 +362,10 @@ public class StateMachineResourceTest {
         final HttpResponse<String> eventPostResponse1 = Unirest.post(
                 STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events").header(
                 "Content-Type", "application/json").body(eventJson1).asString();
-            /* Try update Event while task is in running state */
         final HttpResponse<String> eventPostResponse2 = Unirest.post(
                 STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/eventupdate").header(
                 "Content-Type", "application/json").body(eventJson2).asString();
-        assertThat(eventPostResponse2.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
+        assertThat(eventPostResponse2.getStatus()).isEqualTo(Response.Status.CONFLICT.getStatusCode());
     }
 
     @Test
