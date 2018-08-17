@@ -150,6 +150,24 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     }
 
     @Override
+    public void submitEventUpdate(String name, Object data, String correlationId,String eventSource) {
+        final String eventType = data.getClass().getName();
+        if (eventSource == null) {
+            eventSource = EXTERNAL;
+        }
+        CloseableHttpResponse httpResponse = null;
+        try {
+            final EventData eventData = new EventData(name, eventType, objectMapper.writeValueAsString(data), eventSource);
+            httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/eventupdate");
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        } finally {
+            HttpClientUtils.closeQuietly(httpResponse);
+        }
+    }
+
+    @Override
     public void cancelEvent(String eventName, String correlationId) {
         CloseableHttpResponse httpResponse = null;
         try {

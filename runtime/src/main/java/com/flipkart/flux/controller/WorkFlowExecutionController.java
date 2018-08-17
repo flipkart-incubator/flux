@@ -42,6 +42,8 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
+import javax.ws.rs.ForbiddenException;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.*;
 
@@ -379,7 +381,7 @@ public class WorkFlowExecutionController {
      * @param stateMachineId
      * @param stateId
      */
-    public void unsidelineState(String stateMachineId, Long stateId) {
+    public void unsidelineState(String stateMachineId, Long stateId) throws ForbiddenException {
         State askedState = null;
         StateMachine stateMachine = retrieveStateMachine(stateMachineId);
         if (stateMachine == null)
@@ -395,16 +397,20 @@ public class WorkFlowExecutionController {
             throw new IllegalStateException("State with the asked id: " + stateId + " not found in stateMachine with id: " + stateMachineId);
         }
 
-        if (askedState.getStatus() == Status.sidelined || askedState.getStatus() == Status.errored) {
+        Set<State> checkExecutableState = new HashSet<>();
+        checkExecutableState.add(askedState);
+        if(getExecutableStates(checkExecutableState, stateMachineId).isEmpty()) {
+            logger.error("Cannot unsideline state: {}, at least one of the dependent events is in pending status.",
+                    askedState.getName());
+            throw new ForbiddenException();
+        }
+        else if (askedState.getStatus() == Status.initialized || askedState.getStatus() == Status.sidelined
+                || askedState.getStatus() == Status.errored) {
             askedState.setStatus(Status.unsidelined);
             askedState.setAttemptedNoOfRetries(0L);
-
             this.statesDAO.updateState(stateMachineId, askedState);
-
             this.executeStates(stateMachine, Sets.newHashSet(Arrays.asList(askedState)));
         }
-
-
     }
 
     /**
@@ -539,7 +545,8 @@ public class WorkFlowExecutionController {
      */
     public void cancelWorkflow(StateMachine stateMachine) {
         stateMachinesDAO.updateStatus(stateMachine.getId(), StateMachineStatus.cancelled);
-        stateMachine.getStates().stream().filter(state -> state.getStatus() == Status.initialized).forEach(state -> {
+        stateMachine.getStates().stream().filter(state -> state.getStatus() == Status.initialized ||
+            state.getStatus() == Status.errored || state.getStatus() == Status.sidelined).forEach(state -> {
             this.statesDAO.updateStatus(stateMachine.getId(), state.getId(), Status.cancelled);
             this.auditDAO.create(stateMachine.getId(), new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNoOfRetries(), Status.cancelled, null, null));
         });

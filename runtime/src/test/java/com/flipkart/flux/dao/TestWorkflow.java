@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.dao;
 
+import com.flipkart.flux.client.exception.FluxCancelPathException;
 import com.flipkart.flux.client.model.Task;
 
 /**
@@ -21,6 +22,7 @@ import com.flipkart.flux.client.model.Task;
 public class TestWorkflow {
 
     public static boolean shouldFail = false;
+    public static boolean shouldCancel = false;
 
     @Task(version = 1L, timeout = 1000l)
     public String testTask() {
@@ -48,6 +50,16 @@ public class TestWorkflow {
             } catch (Exception e){
                 System.out.println("interrupted");
                 e.printStackTrace();
+            }
+        }
+        if(shouldCancel) {
+            try {
+                throw new FluxCancelPathException();
+            } catch (Exception e){
+                if (!(e instanceof FluxCancelPathException)) {
+                    System.out.println("Failed to cancel path.");
+                    e.printStackTrace();
+                }
             }
         }
         try {

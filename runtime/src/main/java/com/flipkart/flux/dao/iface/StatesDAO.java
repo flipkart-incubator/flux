@@ -67,4 +67,8 @@ public interface StatesDAO {
      */
     List findStatesByStatus(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime, String taskName, List<Status> statuses);
 
+    /**
+     * Retrieves all states for a particular state-machine-id and like input dependent-event-name.
+     */
+    List findStatesByDependentEvent(String stateMachineId, String eventName);
 }
