@@ -283,7 +283,7 @@ public class StateMachineResource {
             EventData eventData = eventAndExecutionData.getEventData();
             ExecutionUpdateData executionUpdateData = eventAndExecutionData.getExecutionUpdateData();
             try {
-                logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
+                logger.info("Received event:{} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
                 if (eventData.getCancelled() != null && eventData.getCancelled()) {
                     workFlowExecutionController.updateTaskStatusAndHandlePathCancellation(machineId, eventAndExecutionData);
                 } else {
@@ -299,21 +299,7 @@ public class StateMachineResource {
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
-    private void updateEventDataUtil(String machineId, EventData eventData, List<Object[]> states)
-            throws ForbiddenException {
-        this.workFlowExecutionController.persistEvent(machineId, eventData);
-        /* Audit entry in AuditRecord.
-         * Default values: [{machineId}, 0, 0, null, null, {EventUpdateAudit} String] */
-        String EventUdpateAudit = "Event data updated for event: "+eventData.getName();
-        this.auditDAO.create(machineId, new AuditRecord(machineId, Long.valueOf(0), Long.valueOf(0),
-                null, null, EventUdpateAudit));
-        logger.info("Event data updated for event: {} and stateMachineId: {}", eventData.getName(), machineId);
-        for (Object[] state : states) {
-            if (state[2] == Status.initialized || state[2] == Status.errored || state[2] == Status.sidelined) {
-                this.workFlowExecutionController.unsidelineState((String) state[1], (Long) state[0]);
-            }
-        }
-    }
+
     /**
      * Update EventData of the specified Event name under the specified State machine
      *
@@ -337,35 +323,42 @@ public class StateMachineResource {
                 return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
                         "Input event is not in triggered state.").build();
             }
-            boolean canUpdateEventData = false;
+            logger.info("Received event update request for event:{}", eventData.getName());
             /* List holds objects retrieved from States matching input machineId and eventName as [taskId, machineId, status] */
             List<Object[]> states = statesDAO.findStatesByDependentEvent(machineId, eventData.getName());
-
-            for (Object[] state : states) {
-                Status status = (Status)state[2];
-                if (status == Status.running) {
-                    canUpdateEventData = false;
-                    break;
-                } else if (status == Status.initialized || status == Status.errored || status == Status.sidelined) {
-                    canUpdateEventData = true;
-                }
-            }
-
-            if (canUpdateEventData) {
-                try {
-                    this.updateEventDataUtil(machineId, eventData, states);
-                } catch (ForbiddenException e) {
-                    return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
-                            "Cannot unsideline state, at least one of dependent events is in pending status.")
-                            .build();
+            if (validateEventUpdate(states)) {
+                workFlowExecutionController.updateEventData(machineId, eventData);
+                for (Object[] state : states) {
+                    Status stateStatus = (Status) state[2];
+                    if (stateStatus == Status.initialized || stateStatus == Status.errored || stateStatus == Status.sidelined) {
+                        try {
+                            workFlowExecutionController.unsidelineState((String) state[1], (Long) state[0]);
+                        } catch (Exception ex) {
+                            logger.warn("Unable to unsideline for stateId:{} msg:{}", state[0], ex.getMessage());
+                        }
+                    }
                 }
                 return Response.status(Response.Status.ACCEPTED).build();
             }
         } finally {
             LoggingUtils.deRegisterStateMachineIdForLogging();
         }
-        return Response.status(Response.Status.CONFLICT.getStatusCode()).entity("No eligible state dependent on" +
-                " input event found to update EventData.").build();
+        return Response.status(Response.Status.CONFLICT.getStatusCode()).entity("Current stateMachine's state is not " +
+                "eligible for this event's update, try after some time.").build();
+    }
+
+    public boolean validateEventUpdate(List<Object[]> states) {
+        boolean canUpdateEventData = false;
+        for (Object[] state : states) {
+            Status status = (Status) state[2];
+            if (status == Status.running) {
+                canUpdateEventData = false;
+                break;
+            } else if (status == Status.initialized || status == Status.errored || status == Status.sidelined) {
+                canUpdateEventData = true;
+            }
+        }
+        return canUpdateEventData;
     }
 
     /**
@@ -514,13 +507,8 @@ public class StateMachineResource {
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Response unsidelineState(@PathParam("stateMachineId") String stateMachineId, @PathParam("stateId") Long stateId) {
-        try {
-            this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
-        } catch (ForbiddenException e) {
-            return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
-                    "Cannot unsideline state, at least one of dependent events is in pending status.")
-                    .build();
-        }
+
+        workFlowExecutionController.unsidelineState(stateMachineId, stateId);
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
