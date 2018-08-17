@@ -313,11 +313,23 @@ public class StateMachineResource {
     public Response updateEvent(@PathParam("machineId") String machineId,
                                 EventData eventData
     ) throws Exception {
+        StateMachine stateMachine = stateMachinesDAO.findById(machineId);
+        if (stateMachine == null) {
+            logger.error("State Machine with input machineId {} doesn't exist.", machineId);
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
+                    "State Machine with input machineId doesn't exist.").build();
+        }
         try {
             LoggingUtils.registerStateMachineIdForLogging(machineId);
             if (eventData.getData() == null || eventData.getName() == null || eventData.getEventSource() == null) {
                 return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
                         "Event Data|Name|Source cannot be null.").build();
+            }
+            Event event = eventsDAO.findBySMIdAndName(machineId, eventData.getName());
+            if (event == null) {
+                logger.error("Event with input event Name {} doesn't exist.", eventData.getName());
+                return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
+                        "Event with input event Name doesn't exist.").build();
             }
             if (eventsDAO.findBySMIdAndName(machineId, eventData.getName()).getStatus() != Event.EventStatus.triggered) {
                 return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
