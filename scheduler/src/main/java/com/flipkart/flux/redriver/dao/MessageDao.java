@@ -13,13 +13,14 @@
 
 package com.flipkart.flux.redriver.dao;
 
-import com.flipkart.flux.persistence.*;
+import com.flipkart.flux.persistence.SelectDataSource;
+import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.flux.redriver.model.SmIdAndTaskIdPair;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
 import javax.inject.Inject;
