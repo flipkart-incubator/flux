@@ -543,7 +543,8 @@ public class WorkFlowExecutionController {
      */
     public void cancelWorkflow(StateMachine stateMachine) {
         stateMachinesDAO.updateStatus(stateMachine.getId(), StateMachineStatus.cancelled);
-        stateMachine.getStates().stream().filter(state -> state.getStatus() == Status.initialized).forEach(state -> {
+        stateMachine.getStates().stream().filter(state -> state.getStatus() == Status.initialized ||
+            state.getStatus() == Status.errored || state.getStatus() == Status.sidelined).forEach(state -> {
             this.statesDAO.updateStatus(stateMachine.getId(), state.getId(), Status.cancelled);
             this.auditDAO.create(stateMachine.getId(), new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNoOfRetries(), Status.cancelled, null, null));
         });
