@@ -89,14 +89,15 @@ public class MessageManagerService implements Initializable {
     public void initialize() {
         scheduledDeletionService.scheduleAtFixedRate(() -> {
             try {
-                logger.info("Running Deletion job, deleting {} messages", Math.min(batchSize, messagesToDelete.size()));
+                logger.info("Running Deletion job, trying deleting {} messages", Math.min(batchSize, messagesToDelete.size()));
                 SmIdAndTaskIdPair currentMessageIdToDelete = null;
                 List messageIdsToDelete = new ArrayList<SmIdAndTaskIdPair>(batchSize);
                 while (messageIdsToDelete.size() < batchSize && (currentMessageIdToDelete = messagesToDelete.poll()) != null) {
                     messageIdsToDelete.add(currentMessageIdToDelete);
                 }
                 if (!messageIdsToDelete.isEmpty()) {
-                    messageDao.deleteInBatch(messageIdsToDelete);
+                   int rowsAffected =  messageDao.deleteInBatch(messageIdsToDelete);
+                   logger.info("Actually Deleted {} rows", rowsAffected);
                 }
             } catch (Throwable throwable) {
                 logger.error("ScheduledDeletion Job failed for Redriver Messages.", throwable);

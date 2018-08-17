@@ -58,13 +58,10 @@ public class RedriverServiceTest {
     @Test
     public void testRedriveMessage_shouldRedriveWhenOldMessageFound() throws Exception {
         long now = System.currentTimeMillis();
-        when(messageManagerService.retrieveOldest(0, batchSize)).
-                thenReturn(Arrays.asList(new ScheduledMessage(1l, "sample-state-machine-uuid", now - 2),
-                        new ScheduledMessage(2l, "sample-state-machine-uuid", now + 10000))).
-                thenReturn(Arrays.asList(new ScheduledMessage(2l, "sample-state-machine-uuid", now + 10000)));
-
+        when(messageManagerService.retrieveOldest(0, batchSize))
+                .thenReturn(Arrays.asList(new ScheduledMessage(1l, "sample-state-machine-uuid", now - 2)))
+                .thenReturn(Arrays.asList());
         redriverService.start();
-
         Thread.sleep(300);
         verify(redriverRegistry).redriveTask("sample-state-machine-uuid", 1l);
         Thread.sleep(500);
@@ -89,19 +86,6 @@ public class RedriverServiceTest {
             long x = (long) (Math.random() * 1000.0);
             verify(redriverRegistry).redriveTask("sample-state-machine-uuid", x);
         }
-    }
-
-    @Test
-    public void testNoRedriveMessages_shouldNotRedriveMessagesWithScheduledTimeOfFuture() throws Exception {
-        long now = System.currentTimeMillis();
-        when(messageManagerService.retrieveOldest(0, batchSize)).
-                thenReturn(Arrays.asList(new ScheduledMessage(1l, "sample-state-machine-uuid", now + 9000),
-                        new ScheduledMessage(2l, "sample-state-machine-uuid", now + 10000)));
-
-        redriverService.start();
-
-        Thread.sleep(1000);
-        verifyZeroInteractions(redriverRegistry);
     }
 
     @Test
