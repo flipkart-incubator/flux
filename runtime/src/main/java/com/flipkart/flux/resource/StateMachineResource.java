@@ -284,7 +284,7 @@ public class StateMachineResource {
             EventData eventData = eventAndExecutionData.getEventData();
             ExecutionUpdateData executionUpdateData = eventAndExecutionData.getExecutionUpdateData();
             try {
-                logger.info("Received event: {} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
+                logger.info("Received event:{} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
                 if (eventData.getCancelled() != null && eventData.getCancelled()) {
                     workFlowExecutionController.updateTaskStatusAndHandlePathCancellation(machineId, eventAndExecutionData);
                 } else {
@@ -298,6 +298,80 @@ public class StateMachineResource {
             LoggingUtils.deRegisterStateMachineIdForLogging();
         }
         return Response.status(Response.Status.ACCEPTED).build();
+    }
+
+
+    /**
+     * Update EventData of the specified Event name under the specified State machine
+     *
+     * @param machineId the state machine identifier
+     * @return Response with execution status code
+     * @throws Exception
+     */
+    @POST
+    @Path("/{machineId}/context/eventupdate")
+    @Timed
+    public Response updateEvent(@PathParam("machineId") String machineId,
+                                EventData eventData
+    ) throws Exception {
+        StateMachine stateMachine = stateMachinesDAO.findById(machineId);
+        if (stateMachine == null) {
+            logger.error("State Machine with input machineId {} doesn't exist.", machineId);
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
+                    "State Machine with input machineId doesn't exist.").build();
+        }
+        try {
+            LoggingUtils.registerStateMachineIdForLogging(machineId);
+            if (eventData.getData() == null || eventData.getName() == null || eventData.getEventSource() == null) {
+                return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
+                        "Event Data|Name|Source cannot be null.").build();
+            }
+            Event event = eventsDAO.findBySMIdAndName(machineId, eventData.getName());
+            if (event == null) {
+                logger.error("Event with input event Name {} doesn't exist.", eventData.getName());
+                return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
+                        "Event with input event Name doesn't exist.").build();
+            }
+            if (eventsDAO.findBySMIdAndName(machineId, eventData.getName()).getStatus() != Event.EventStatus.triggered) {
+                return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
+                        "Input event is not in triggered state.").build();
+            }
+            logger.info("Received event update request for event:{}", eventData.getName());
+            /* List holds objects retrieved from States matching input machineId and eventName as [taskId, machineId, status] */
+            List<Object[]> states = statesDAO.findStatesByDependentEvent(machineId, eventData.getName());
+            if (validateEventUpdate(states)) {
+                workFlowExecutionController.updateEventData(machineId, eventData);
+                for (Object[] state : states) {
+                    Status stateStatus = (Status) state[2];
+                    if (stateStatus == Status.initialized || stateStatus == Status.errored || stateStatus == Status.sidelined) {
+                        try {
+                            workFlowExecutionController.unsidelineState((String) state[1], (Long) state[0]);
+                        } catch (Exception ex) {
+                            logger.warn("Unable to unsideline for stateId:{} msg:{}", state[0], ex.getMessage());
+                        }
+                    }
+                }
+                return Response.status(Response.Status.ACCEPTED).build();
+            }
+        } finally {
+            LoggingUtils.deRegisterStateMachineIdForLogging();
+        }
+        return Response.status(Response.Status.CONFLICT.getStatusCode()).entity("Current stateMachine's state is not " +
+                "eligible for this event's update, try after some time.").build();
+    }
+
+    public boolean validateEventUpdate(List<Object[]> states) {
+        boolean canUpdateEventData = false;
+        for (Object[] state : states) {
+            Status status = (Status) state[2];
+            if (status == Status.running) {
+                canUpdateEventData = false;
+                break;
+            } else if (status == Status.initialized || status == Status.errored || status == Status.sidelined) {
+                canUpdateEventData = true;
+            }
+        }
+        return canUpdateEventData;
     }
 
     /**
@@ -446,8 +520,8 @@ public class StateMachineResource {
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Response unsidelineState(@PathParam("stateMachineId") String stateMachineId, @PathParam("stateId") Long stateId) {
-        this.workFlowExecutionController.unsidelineState(stateMachineId, stateId);
 
+        workFlowExecutionController.unsidelineState(stateMachineId, stateId);
         return Response.status(Response.Status.ACCEPTED).build();
     }
 

@@ -114,33 +114,19 @@ public class RedriverService {
         long now = System.currentTimeMillis();
         do {
             messages = messageService.retrieveOldest(offset, batchSize);
-            ArrayList<Future<?>> messageRedrived = new ArrayList<>();
-            messages.stream().filter(e -> e.getScheduledTime() < now).forEach(e -> {
-                try {
-                    redriverRegistry.redriveTask(e.getStateMachineId(), e.getTaskId());
-                } catch (Exception ex) {
-                }
-
-            });
-            boolean allCompleted = false;
-            while (!allCompleted) {
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    logger.warn("Error while sleeping before checking async redrive callbacks {}", e.getStackTrace());
-                }
-                allCompleted = true;
-                for (int i = 0; i < messageRedrived.size(); i++)
-                    if (messageRedrived.get(i).isDone() || messageRedrived.get(i).isCancelled())
-                        continue;
-                    else {
-                        allCompleted = false;
-                        break;
+            logger.info("Retrieved {} messages to redrive", messages.size());
+            messages.forEach(e -> {
+                asyncRedriveService.submit(() -> {
+                    try {
+                        redriverRegistry.redriveTask(e.getStateMachineId(), e.getTaskId());
+                    } catch (Exception ex) {
+                        logger.error("Something went wrong in redriving task:{} smId:{}", e.getTaskId(), e.getStateMachineId());
                     }
-            }
+                });
+            });
             offset += batchSize;
             // get next batch if we found batchSize tasks and all were redriven
-        } while (messages.size() == batchSize && messages.get(messages.size() - 1).getScheduledTime() < now);
+        } while (messages.size() > 0);
     }
 
     public void setInitialDelay(Long initialDelay) {

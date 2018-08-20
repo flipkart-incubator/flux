@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.MockActorRef;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
@@ -303,5 +304,27 @@ public class WorkFlowExecutionControllerTest {
         verify(statesDAO).updateStatus("state-machine-cancel-path", 7L, Status.cancelled);
 
 
+    }
+
+    @Test
+    public void testUpdateTaskStatusBehaviourWhenTaskStatusIsUpdatedToRunning() {
+        workFlowExecutionController.updateTaskStatus("random-state-machine", 1L,
+                new ExecutionUpdateData("random-state-machine", "someStateMachine",
+                        "someTask", 1L, com.flipkart.flux.api.Status.running,
+                        0, 1, "", false));
+        verify(statesDAO).updateStatus("random-state-machine", 1L, Status.running);
+        verify(auditDAO).create("random-state-machine", new AuditRecord("random-state-machine", 1L, 1L, Status.running, null , ""));
+        verifyNoMoreInteractions(redriverRegistry);
+    }
+
+    @Test
+    public void testUpdateTaskStatusBehaviourWhenTaskStatusIsUpdatedToCompleted() {
+        workFlowExecutionController.updateTaskStatus("random-state-machine", 1L,
+                new ExecutionUpdateData("random-state-machine", "someStateMachine",
+                        "someTask", 1L, com.flipkart.flux.api.Status.completed,
+                        0, 1, "", true));
+        verify(statesDAO).updateStatus("random-state-machine", 1L, Status.completed);
+        verify(auditDAO).create("random-state-machine", new AuditRecord("random-state-machine", 1L, 1L, Status.completed, null , ""));
+        verify(redriverRegistry).deRegisterTask("random-state-machine",1L );
     }
 }

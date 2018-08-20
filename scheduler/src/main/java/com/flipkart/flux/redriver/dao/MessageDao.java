@@ -13,20 +13,20 @@
 
 package com.flipkart.flux.redriver.dao;
 
-import com.flipkart.flux.persistence.*;
+import com.flipkart.flux.persistence.SelectDataSource;
+import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.flux.redriver.model.SmIdAndTaskIdPair;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.hibernate.criterion.Restrictions;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -37,7 +37,6 @@ import java.util.List;
 @Singleton
 public class MessageDao {
 
-    private static final Logger logger = LoggerFactory.getLogger(MessageDao.class);
     private SessionFactoryContext sessionFactoryContext;
 
     @Inject
@@ -49,6 +48,12 @@ public class MessageDao {
     @SelectDataSource(storage = Storage.SCHEDULER)
     public void save(ScheduledMessage scheduledMessage) {
         currentSession().saveOrUpdate(scheduledMessage);
+    }
+
+    @Transactional
+    @SelectDataSource(storage = Storage.SCHEDULER)
+    public Long redriverCount() {
+        return ((Long) currentSession().createQuery("select count(*) from ScheduledMessage").iterate().next());
     }
 
     /**
@@ -63,6 +68,7 @@ public class MessageDao {
         return currentSession()
                 .createCriteria(ScheduledMessage.class)
                 .addOrder(Order.asc("scheduledTime"))
+                .add(Restrictions.lt("scheduledTime", System.currentTimeMillis()))
                 .setFirstResult(offset)
                 .setMaxResults(rowCount)
                 .list();
@@ -75,23 +81,19 @@ public class MessageDao {
      */
     @Transactional
     @SelectDataSource(storage = Storage.SCHEDULER)
-    public void deleteInBatch(List<SmIdAndTaskIdPair> messageIdsToDelete) {
 
+    public int deleteInBatch(List<SmIdAndTaskIdPair> messageIdsToDelete) {
         StringBuilder queryBuilder = new StringBuilder();
         queryBuilder.append("delete from ScheduledMessage where (stateMachineId,taskId) in (");
         messageIdsToDelete.forEach(smIdAndTaskIdPair -> {
-
             queryBuilder.append("(\'")
                     .append(smIdAndTaskIdPair.getSmId())
                     .append("\',\'").append(smIdAndTaskIdPair.getTaskId())
                     .append("\'),");
-            logger.info(smIdAndTaskIdPair.toString() + ",");
         });
         queryBuilder.setCharAt(queryBuilder.length() - 1, ')');
-        logger.info(queryBuilder.toString());
         final Query deleteQuery = currentSession().createQuery(queryBuilder.toString());
-        int rowsAffected = deleteQuery.executeUpdate();
-        logger.info("Trying to delete {} , actually impacted rows {}", messageIdsToDelete.size(), rowsAffected);
+        return deleteQuery.executeUpdate();
     }
 
     /**

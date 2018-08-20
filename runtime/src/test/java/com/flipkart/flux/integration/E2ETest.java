@@ -28,11 +28,13 @@ import com.flipkart.flux.initializer.ExecutionOrderedComponentBooter;
 import com.flipkart.flux.initializer.OrchestrationOrderedComponentBooter;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
 import com.flipkart.flux.module.RuntimeTestModule;
+import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.registry.TaskExecutableImpl;
 import com.flipkart.flux.registry.TaskExecutableRegistryImpl;
 import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
+import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import org.junit.After;
@@ -107,6 +109,12 @@ public class E2ETest {
         }
     }
 
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
+    RedriverRegistry redriverRegistry;
+
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
+    MessageDao messageDao;
+
     @Test
     public void testSimpleWorkflowE2E() throws Exception {
         /* Invocation */
@@ -154,5 +162,22 @@ public class E2ETest {
         assertThat(executable).isInstanceOf(TaskExecutableImpl.class);
         TaskExecutableImpl taskExecutable = (TaskExecutableImpl) executable;
         assertThat(taskExecutable.getExecutionConcurrency()).isEqualTo(5);
+    }
+
+    @Test
+    public void verifyRedriverPolling(){
+        dbClearRule.explicitClearTables();
+        for(int i = 0 ; i < 100; i++)
+            redriverRegistry.registerTask(i * 1L, "smId", 0);
+        for(int i = 1; i <= 100 ; i++)
+            redriverRegistry.registerTask( 1000L + i, "smId",  (i*10000000L));
+        Long total  = messageDao.redriverCount();
+        try {
+            Thread.sleep(12000);
+        }
+        catch (InterruptedException ex){
+        }
+        assertThat(messageDao.redriverCount()).isEqualTo(100L);
+        dbClearRule.explicitClearTables();
     }
 }

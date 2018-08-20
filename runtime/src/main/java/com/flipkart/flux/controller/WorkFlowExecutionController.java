@@ -43,6 +43,8 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
+import javax.ws.rs.ForbiddenException;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.*;
 
@@ -94,13 +96,13 @@ public class WorkFlowExecutionController {
      */
     private ObjectMapper objectMapper;
 
-
     /**
      * ClientElbPersistenceService to retrieve ClientElb URL from ClientElbDAO.
      * This service searches in in-memory cache first, in case of miss hits DAO/DB layer.
      * ClientElbUrl is the one where a particular state machines states is supposed to be executed.
      */
     private ClientElbPersistenceService clientElbPersistenceService;
+
 
     /**
      * Constructor for this class
@@ -165,7 +167,6 @@ public class WorkFlowExecutionController {
 
     /**
      * Updates task status and cancels paths which are dependant on the current event. After the cancellation of path, executes the states which can be executed.
-
      * @param stateMachineId
      * @param eventAndExecutionData
      */
@@ -173,13 +174,12 @@ public class WorkFlowExecutionController {
         Set<State> executableStates = updateTaskStatusAndCancelPath(stateMachineId, eventAndExecutionData);
         logger.info("Path cancellation is done for state machine: {} event: {} which has come from task: {}",
                 stateMachineId, eventAndExecutionData.getEventData().getName(), eventAndExecutionData.getExecutionUpdateData().getTaskId());
-        StateMachine stateMachine  = stateMachinesDAO.findById(stateMachineId);
+        StateMachine stateMachine = stateMachinesDAO.findById(stateMachineId);
         executeStates(stateMachine, executableStates);
     }
 
     /**
      * Updates task status and cancels paths which are dependant on the current event
-
      * @param stateMachineId
      * @param eventAndExecutionData
      * @return executable states after cancellation
@@ -193,7 +193,6 @@ public class WorkFlowExecutionController {
 
     /**
      * Cancels paths which are dependant on the current event, and returns set of states which can be executed after the cancellation.
-
      * @param stateMachineId
      * @param eventData
      * @return executable states after cancellation
@@ -269,6 +268,7 @@ public class WorkFlowExecutionController {
 
     /**
      * This is called when an event is received with cancelled status. This cancels the particular path in state machine DAG.
+     *
      * @param stateMachineId
      * @param eventData
      */
@@ -388,8 +388,24 @@ public class WorkFlowExecutionController {
     public void updateExecutionStatus(String stateMachineId, Long taskId, Status status, long retryCount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver) {
         this.statesDAO.updateStatus(stateMachineId, taskId, status);
         this.auditDAO.create(stateMachineId, new AuditRecord(stateMachineId, taskId, currentRetryCount, status, null, errorMessage));
-        if(deleteFromRedriver)
-        this.redriverRegistry.deRegisterTask(stateMachineId, taskId);
+        if (deleteFromRedriver) {
+            this.redriverRegistry.deRegisterTask(stateMachineId, taskId);
+        }
+    }
+
+
+    /*
+     *  Audit entry in AuditRecord.
+     * Default values: [{machineId}, 0, 0, null, null, {EventUpdateAudit} String]
+     */
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void updateEventData(String machineId, EventData eventData) {
+        persistEvent(machineId, eventData);
+        String EventUdpateAudit = "Event data updated for event: " + eventData.getName();
+        this.auditDAO.create(machineId, new AuditRecord(machineId, Long.valueOf(0), Long.valueOf(0),
+                null, null, EventUdpateAudit));
+        logger.info("Updated event data persisted for event: {} and stateMachineId: {}", eventData.getName(), machineId);
     }
 
     /**
@@ -398,7 +414,7 @@ public class WorkFlowExecutionController {
      * @param stateMachineId
      * @param stateId
      */
-    public void unsidelineState(String stateMachineId, Long stateId) {
+    public void unsidelineState(String stateMachineId, Long stateId) throws UnknownStateMachine, IllegalStateException {
         State askedState = null;
         StateMachine stateMachine = retrieveStateMachine(stateMachineId);
         if (stateMachine == null)
@@ -411,19 +427,23 @@ public class WorkFlowExecutionController {
         }
 
         if (askedState == null) {
-            throw new IllegalStateException("State with the asked id: " + stateId + " not found in stateMachine with id: " + stateMachineId);
+            throw new IllegalStateException("State with the asked id: " + stateId +
+                    " not found in stateMachine with id: " + stateMachineId);
         }
 
-        if (askedState.getStatus() == Status.sidelined || askedState.getStatus() == Status.errored) {
+        Set<State> checkExecutableState = new HashSet<>();
+        checkExecutableState.add(askedState);
+        if (getExecutableStates(checkExecutableState, stateMachineId).isEmpty()) {
+            logger.error("Cannot unsideline state: {}, at least one of the dependent events is in pending status.",
+                    askedState.getName());
+            return;
+        } else if (askedState.getStatus() == Status.initialized || askedState.getStatus() == Status.sidelined
+                || askedState.getStatus() == Status.errored) {
             askedState.setStatus(Status.unsidelined);
             askedState.setAttemptedNoOfRetries(0L);
-
-            this.statesDAO.updateState(stateMachineId, askedState);
-
-            this.executeStates(stateMachine, Sets.newHashSet(Arrays.asList(askedState)));
+            statesDAO.updateState(stateMachineId, askedState);
+            executeStates(stateMachine, Sets.newHashSet(Arrays.asList(askedState)));
         }
-
-
     }
 
     /**
@@ -570,7 +590,8 @@ public class WorkFlowExecutionController {
      */
     public void cancelWorkflow(StateMachine stateMachine) {
         stateMachinesDAO.updateStatus(stateMachine.getId(), StateMachineStatus.cancelled);
-        stateMachine.getStates().stream().filter(state -> state.getStatus() == Status.initialized).forEach(state -> {
+        stateMachine.getStates().stream().filter(state -> state.getStatus() == Status.initialized ||
+                state.getStatus() == Status.errored || state.getStatus() == Status.sidelined).forEach(state -> {
             this.statesDAO.updateStatus(stateMachine.getId(), state.getId(), Status.cancelled);
             this.auditDAO.create(stateMachine.getId(), new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNoOfRetries(), Status.cancelled, null, null));
         });
