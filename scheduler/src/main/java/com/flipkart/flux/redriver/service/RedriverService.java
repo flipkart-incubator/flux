@@ -44,7 +44,7 @@ public class RedriverService {
 
     private Integer batchReadInterval;
     private Integer batchSize;
-    private Long initialDelay = 10000L;
+    private Long initialDelay = 100000000L;
     private MessageManagerService messageService;
     private ScheduledFuture scheduledFuture;
     private final RedriverRegistry redriverRegistry;

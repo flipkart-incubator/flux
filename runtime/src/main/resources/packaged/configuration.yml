@@ -39,7 +39,7 @@ flux_scheduler.Hibernate:
   hibernate.current_session_context_class: "managed"
   connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
   hibernate.c3p0.min_size: 3
-  hibernate.c3p0.max_size: 5
+  hibernate.c3p0.max_size: 20
 
 Dashboard:
   service.port: 9999
@@ -61,7 +61,7 @@ redriver:
   batchRead:
     batchSize: 1000
     intervalms: 2500
-  noOfPersistenceWorkers: 3
+  noOfPersistenceWorkers: 20
 
 eventScheduler:
   batchRead:

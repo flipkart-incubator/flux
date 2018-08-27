@@ -81,7 +81,6 @@ public class MessageDao {
      */
     @Transactional
     @SelectDataSource(storage = Storage.SCHEDULER)
-
     public int deleteInBatch(List<SmIdAndTaskIdPair> messageIdsToDelete) {
         StringBuilder queryBuilder = new StringBuilder();
         queryBuilder.append("delete from ScheduledMessage where (stateMachineId,taskId) in (");
@@ -94,6 +93,15 @@ public class MessageDao {
         queryBuilder.setCharAt(queryBuilder.length() - 1, ')');
         final Query deleteQuery = currentSession().createQuery(queryBuilder.toString());
         return deleteQuery.executeUpdate();
+    }
+
+    @Transactional
+    @SelectDataSource(storage = Storage.SCHEDULER)
+    public void delete(SmIdAndTaskIdPair smIdAndTaskIdPair) {
+        Query query = currentSession().createQuery("delete from ScheduledMessage where stateMachineId = :smId and taskId = :taskId");
+        query.setString("smId", smIdAndTaskIdPair.getSmId());
+        query.setLong("taskId", smIdAndTaskIdPair.getTaskId());
+        query.executeUpdate();
     }
 
     /**
