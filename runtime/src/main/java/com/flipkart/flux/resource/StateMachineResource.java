@@ -316,7 +316,7 @@ public class StateMachineResource {
         StateMachine stateMachine = stateMachinesDAO.findById(machineId);
         if (stateMachine == null) {
             logger.error("State Machine with input machineId {} doesn't exist.", machineId);
-            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
+            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(
                     "State Machine with input machineId doesn't exist.").build();
         }
         try {
@@ -328,7 +328,7 @@ public class StateMachineResource {
             Event event = eventsDAO.findBySMIdAndName(machineId, eventData.getName());
             if (event == null) {
                 logger.error("Event with input event Name {} doesn't exist.", eventData.getName());
-                return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
+                return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(
                         "Event with input event Name doesn't exist.").build();
             }
             if (eventsDAO.findBySMIdAndName(machineId, eventData.getName()).getStatus() != Event.EventStatus.triggered) {
