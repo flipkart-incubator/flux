@@ -53,6 +53,8 @@ import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.flipkart.flux.constant.RuntimeConstants.DEFAULT_ELB_ID;
+
 /**
  * <code>StateMachineResource</code> exposes APIs to perform state machine related operations. Ex: Creating SM, receiving event for a SM
  *
@@ -145,6 +147,10 @@ public class StateMachineResource {
             stateMachineInstanceId = stateMachineDefinition.getCorrelationId();
         } else {
             stateMachineInstanceId = UUID.randomUUID().toString();
+        }
+
+        if (stateMachineDefinition.getClientElbId() == null) {
+            stateMachineDefinition.setClientElbId(DEFAULT_ELB_ID);
         }
 
         try {
