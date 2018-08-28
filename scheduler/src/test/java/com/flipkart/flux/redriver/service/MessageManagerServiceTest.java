@@ -39,7 +39,7 @@ public class MessageManagerServiceTest {
 
     @Test
     public void testRemoval_shouldDeferRemoval() throws Exception {
-        messageManagerService = new MessageManagerService(messageDao, 2, 500, 10);
+        messageManagerService = new MessageManagerService(messageDao, 2, 500, 10, 500, 10);
         messageManagerService.initialize(); // Will be called by polyguice in the production env
 
         messageManagerService.scheduleForRemoval(sampleMachineId, 123l);
@@ -60,7 +60,7 @@ public class MessageManagerServiceTest {
 
     @Test
     public void testRemoval_shouldDeleteInBatches() throws Exception {
-        messageManagerService = new MessageManagerService(messageDao, 2, 500, 2);
+        messageManagerService = new MessageManagerService(messageDao, 2, 500, 2, 500, 10);
         messageManagerService.initialize(); // Will be called by polyguice in the production env
 
         messageManagerService.scheduleForRemoval(sampleMachineId, 121l);

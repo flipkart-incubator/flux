@@ -58,6 +58,9 @@ redriver:
   batchDelete:
     batchSize: 1000
     intervalms: 2500
+  batchInsert:
+    batchSize: 200
+    intervalms: 200
   batchRead:
     batchSize: 1000
     intervalms: 2500
