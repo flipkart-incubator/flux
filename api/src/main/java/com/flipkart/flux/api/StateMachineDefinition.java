@@ -50,7 +50,7 @@ public class StateMachineDefinition {
     /* For Jackson */
     StateMachineDefinition() {
         this(null,null,null, Collections.emptySet(),Collections.emptySet(),
-                null, null);
+                null, "defaultElbId");
     }
 
     /** Constructor */
