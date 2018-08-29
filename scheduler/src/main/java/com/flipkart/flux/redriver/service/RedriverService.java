@@ -114,13 +114,13 @@ public class RedriverService {
             messages = messageService.retrieveOldest(offset, batchSize);
             logger.info("Retrieved {} messages to redrive", messages.size());
             messages.forEach(e -> {
-                asyncRedriveService.submit(() -> {
+             //   asyncRedriveService.submit(() -> {
                     try {
                         redriverRegistry.redriveTask(e.getStateMachineId(), e.getTaskId());
                     } catch (Exception ex) {
                         logger.error("Something went wrong in redriving task:{} smId:{}", e.getTaskId(), e.getStateMachineId());
                     }
-                });
+             //   });
             });
             offset += batchSize;
             // get next batch if we found batchSize tasks and all were redriven
