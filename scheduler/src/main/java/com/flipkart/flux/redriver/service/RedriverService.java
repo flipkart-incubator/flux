@@ -79,7 +79,7 @@ public class RedriverService {
             if (scheduledFuture == null || scheduledFuture.isDone()) {
                 scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
                     try {
-                            redrive();
+                        redrive();
                     } catch (Throwable e) {
                         logger.error("Error while running redrive {}", e);
                     }
@@ -93,7 +93,7 @@ public class RedriverService {
         synchronized (this) {
             scheduledFuture.cancel(false);
             try {
-                asyncRedriveService.awaitTermination(1000, TimeUnit.MILLISECONDS);
+                asyncRedriveService.awaitTermination(10000, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 logger.error("Forcefully terminated redrive jobs {}", e);
             }
@@ -109,20 +109,38 @@ public class RedriverService {
     private void redrive() {
         int offset = 0;
         List<ScheduledMessage> messages;
-        long now = System.currentTimeMillis();
+        ArrayList<Future<?>> tasksRedrived = new ArrayList<>();
         do {
             messages = messageService.retrieveOldest(offset, batchSize);
             logger.info("Retrieved {} messages to redrive", messages.size());
             messages.forEach(e -> {
-             //   asyncRedriveService.submit(() -> {
-                    try {
-                        redriverRegistry.redriveTask(e.getStateMachineId(), e.getTaskId());
-                    } catch (Exception ex) {
-                        logger.error("Something went wrong in redriving task:{} smId:{}", e.getTaskId(), e.getStateMachineId());
-                    }
-             //   });
+                tasksRedrived.add(
+                        asyncRedriveService.submit(() -> {
+                            try {
+                                redriverRegistry.redriveTask(e.getStateMachineId(), e.getTaskId());
+                            } catch (Exception ex) {
+                                logger.error("Something went wrong in redriving task:{} smId:{}", e.getTaskId(), e.getStateMachineId());
+                            }
+                        }));
             });
             offset += batchSize;
+            boolean allCompleted = false;
+            while (!allCompleted) {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    logger.warn("Error while sleeping before checking async redrive callbacks {}", e.getStackTrace());
+                }
+                allCompleted = true;
+                for (int i = 0; i < tasksRedrived.size(); i++)
+                    if (tasksRedrived.get(i).isDone() || tasksRedrived.get(i).isCancelled())
+                        continue;
+                    else {
+                        allCompleted = false;
+                        break;
+                    }
+            }
+            tasksRedrived.clear();
             // get next batch if we found batchSize tasks and all were redriven
         } while (messages.size() > 0);
     }
