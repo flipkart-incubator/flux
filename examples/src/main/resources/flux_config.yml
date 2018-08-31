@@ -17,4 +17,5 @@ workflowClasses: ["com.flipkart.flux.examples.decision.NotificationService",
                   "com.flipkart.flux.examples.benchmark.BenchmarkWorkflowLatentSimulation",
                   "com.flipkart.flux.examples.benchmark.LatentArithmeticOperations",
                   "com.flipkart.flux.examples.benchmark.PaymentGatewayTasks",
-                  "com.flipkart.flux.examples.benchmark.PaymentGatewayWF"]
+                  "com.flipkart.flux.examples.benchmark.PaymentGatewayWF",
+                  "com.flipkart.flux.examples.eventupdate.EventUpdateWorkflow"]
