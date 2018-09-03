@@ -50,8 +50,8 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
 
     private static Logger logger = LoggerFactory.getLogger(FluxRuntimeConnectorHttpImpl.class);
 
-    public static final int MAX_TOTAL = 200;
-    public static final int MAX_PER_ROUTE = 20;
+    public static final int MAX_TOTAL = 400;
+    public static final int MAX_PER_ROUTE = 50;
     public static final String EXTERNAL = "external";
     private final CloseableHttpClient closeableHttpClient;
     private final String fluxEndpoint;
