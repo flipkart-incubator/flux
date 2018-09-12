@@ -32,14 +32,17 @@ import javax.inject.Singleton;
 public class ExecutionOrderedComponentBooter implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(ExecutionOrderedComponentBooter.class);
     private final Server executionApiServer;
+    private final Server executionDashboardServer;
     private final ActorSystemManager actorSystemManager;
     private final RouterRegistry routerRegistry;
 
     @Inject
     public ExecutionOrderedComponentBooter(RouterRegistry routerRegistry,
                                            @Named("ExecutionAPIJettyServer") Server executionApiServer,
+                                           @Named("ExecutionDashboardJettyServer") Server executionDashboardServer,
                                            ActorSystemManager actorSystemManager) {
         this.executionApiServer = executionApiServer;
+        this.executionDashboardServer =  executionDashboardServer;
         this.actorSystemManager = actorSystemManager;
         this.routerRegistry = routerRegistry;
     }
@@ -56,6 +59,10 @@ public class ExecutionOrderedComponentBooter implements Initializable {
             logger.info("loading Execution API server");
             executionApiServer.start();
             logger.info("API server started. Say Hello!");
+            /* Bring up the Dashboard server */
+            logger.info("Loading Execution Dashboard Server");
+            executionDashboardServer.start();
+            logger.info("Execution Dashboard server has started. Say Hello!");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
