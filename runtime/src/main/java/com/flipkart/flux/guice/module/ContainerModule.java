@@ -49,11 +49,11 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
 import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
-import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
+import static com.flipkart.flux.constant.RuntimeConstants.FSM_VIEW;
 
 /**
  * <code>ContainerModule</code> is a Guice {@link AbstractModule} implementation used for wiring Flux Orchestration container components.
- * 
+ *
  * @author regunath.balasubramanian
  * @author kartik.bommepally
  *
@@ -84,9 +84,9 @@ public class ContainerModule extends AbstractModule {
 	@Singleton
 	WebAppContext getDashboardWebAppContext() {
 		String path = null;
-        File[] files = FileLocator.findDirectories("packaged/webapps/dashboard/WEB-INF", null);
+        File[] files = FileLocator.findDirectories("packaged/webapps/fsmview/WEB-INF", null);
         for (File file : files) {
-			// we need only WEB-INF from runtime project 
+			// we need only WEB-INF from runtime project
 			String fileToString = file.toString();
 			if (fileToString.contains(".jar!") && fileToString.startsWith("file:/")) {
 				fileToString = fileToString.replace("file:/","jar:file:/");
@@ -95,7 +95,7 @@ public class ContainerModule extends AbstractModule {
 					break;
 				}
 			} else {
-				if (fileToString.contains(DASHBOARD_VIEW)) {
+				if (fileToString.contains(FSM_VIEW) ) {
 					path = fileToString;
 					break;
 				}
@@ -108,7 +108,7 @@ public class ContainerModule extends AbstractModule {
 		WebAppContext webAppContext = new WebAppContext(path, RuntimeConstants.DASHBOARD_CONTEXT_PATH);
 		return webAppContext;
 	}
-	
+
 	/**
 	 * Creates the Jetty server instance for the admin Dashboard and configures it with the @Named("DashboardContext").
 	 * @param port where the service is available

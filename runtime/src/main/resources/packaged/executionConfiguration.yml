@@ -1,8 +1,8 @@
 ExecutionDashboard:
   service.port: 9996
-  service.acceptors: 5
-  service.selectors: 10
-  service.workers: 30
+  service.acceptors: 4
+  service.selectors: 4
+  service.workers: 25
 
 Execution.Node.Api:
   service.port: 9997
