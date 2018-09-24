@@ -38,10 +38,12 @@ import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import com.netflix.hystrix.exception.HystrixRuntimeException.FailureType;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import scala.concurrent.duration.FiniteDuration;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,88 +123,91 @@ public class AkkaTask extends UntypedActor {
                 }
                 AbstractTask task = AkkaTask.taskRegistry.retrieveTask(taskAndEvent.getTaskIdentifier());
                 if (task != null) {
+                    CloseableHttpResponse response;
                     try {
                         // update the Flux runtime with status of the Task as running
-                        updateExecutionStatus(taskAndEvent, Status.running, null, false);
+                        response = updateExecutionStatus(taskAndEvent, Status.running, null, false);
                     } catch (RuntimeCommunicationException e) {
                         logger.error("Error occurred while updating task: {} status to running. Error: {}", taskAndEvent.getTaskId(), e.getMessage());
                         throw new FluxError(FluxError.ErrorType.retriable, e.getMessage(), e, false,
                                 new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(),
                                         taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
                     }
-                    // Execute any pre-exec HookS
-//                    this.executeHooks(AkkaTask.taskRegistry.getPreExecHooks(task), taskAndEvent.getEvents());
-                    final String outputEventName = getOutputEventName(taskAndEvent);
-                    final TaskExecutor taskExecutor = new TaskExecutor(task, taskAndEvent.getEvents(), taskAndEvent.getStateMachineId(), outputEventName);
-                    Event outputEvent = null;
+                    if (response.getStatusLine().getStatusCode() != Response.Status.FORBIDDEN.getStatusCode()) {
+                            // Execute any pre-exec HookS
+    //                    this.executeHooks(AkkaTask.taskRegistry.getPreExecHooks(task), taskAndEvent.getEvents());
+                        final String outputEventName = getOutputEventName(taskAndEvent);
+                        final TaskExecutor taskExecutor = new TaskExecutor(task, taskAndEvent.getEvents(), taskAndEvent.getStateMachineId(), outputEventName);
+                        Event outputEvent = null;
 
-                    try {
-                        long startTime = System.currentTimeMillis();
-                        outputEvent = taskExecutor.execute();
-                        long endTime = System.currentTimeMillis();
+                        try {
+                            long startTime = System.currentTimeMillis();
+                            outputEvent = taskExecutor.execute();
+                            long endTime = System.currentTimeMillis();
 
-                        if (outputEvent != null) {
-                            // after successful task execution, post the generated output event for further processing, also update status as part of same call
-                            fluxRuntimeConnector.submitEventAndUpdateStatus(
-                                    new EventData(outputEvent.getName(), outputEvent.getType(), outputEvent.getEventData(), outputEvent.getEventSource(), outputEvent.getStatus() == Event.EventStatus.cancelled),
-                                    outputEvent.getStateMachineInstanceId(),
-                                    new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(), Status.completed, taskAndEvent.getRetryCount(),
-                                            taskAndEvent.getCurrentRetryCount(), null, true));
-                        } else {
-                            // update the Flux runtime with status of the Task as completed
-                            updateExecutionStatus(taskAndEvent, Status.completed, null, true);
-                        }
-                        logger.info("State machine: {} task: {} execution time: {}ms event/status submission time: {}ms", taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), (endTime - startTime), (System.currentTimeMillis() - endTime));
-
-                    } catch (HystrixRuntimeException hre) {
-                        FailureType ft = hre.getFailureType();
-                        // we signal a timeout for any of Timeout, ThreadPool Rejection or Short-Circuit - all of these may go through with time and retry
-                        if (ft.equals(FailureType.REJECTED_THREAD_EXECUTION) || ft.equals(FailureType.SHORTCIRCUIT) || ft.equals(FailureType.TIMEOUT)) {
-                            // update flux runtime with task outcome as timeout
-                            updateExecutionStatus(taskAndEvent, Status.errored, ft.toString().toLowerCase(), false);
-
-                            throw new FluxError(FluxError.ErrorType.timeout, ft.toString().toLowerCase(),
-                                    null, false,
-                                    new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(),
-                                            taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
-                        } else {
-                            //check if the exception hierarchy has FluxRetriableException, if yes trigger retry
-                            boolean isFluxRetriableException = false;
-                            Throwable cause = hre;
-                            while (cause.getCause() != null || cause.getClass().getName().equals(FluxRetriableException.class.getName())) {
-                                if (cause.getClass().getName().equals(FluxRetriableException.class.getName())) {
-                                    isFluxRetriableException = true;
-                                    break;
-                                }
-                                cause = cause.getCause();
+                            if (outputEvent != null) {
+                                // after successful task execution, post the generated output event for further processing, also update status as part of same call
+                                fluxRuntimeConnector.submitEventAndUpdateStatus(
+                                        new EventData(outputEvent.getName(), outputEvent.getType(), outputEvent.getEventData(), outputEvent.getEventSource(), outputEvent.getStatus() == Event.EventStatus.cancelled),
+                                        outputEvent.getStateMachineInstanceId(),
+                                        new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(), Status.completed, taskAndEvent.getRetryCount(),
+                                                taskAndEvent.getCurrentRetryCount(), null, true));
+                            } else {
+                                // update the Flux runtime with status of the Task as completed
+                                updateExecutionStatus(taskAndEvent, Status.completed, null, true);
                             }
-                            if (isFluxRetriableException) {
-                                // mark the task outcome as execution failure, and the task is retriable
-                                updateExecutionStatus(taskAndEvent, Status.errored, cause.getClass().getName() + " : " + cause.getMessage(), false);
+                            logger.info("State machine: {} task: {} execution time: {}ms event/status submission time: {}ms", taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), (endTime - startTime), (System.currentTimeMillis() - endTime));
 
-                                throw new FluxError(FluxError.ErrorType.retriable, cause.getClass().getName() + " : " + cause.getMessage(), null, false,
+                        } catch (HystrixRuntimeException hre) {
+                            FailureType ft = hre.getFailureType();
+                            // we signal a timeout for any of Timeout, ThreadPool Rejection or Short-Circuit - all of these may go through with time and retry
+                            if (ft.equals(FailureType.REJECTED_THREAD_EXECUTION) || ft.equals(FailureType.SHORTCIRCUIT) || ft.equals(FailureType.TIMEOUT)) {
+                                // update flux runtime with task outcome as timeout
+                                updateExecutionStatus(taskAndEvent, Status.errored, ft.toString().toLowerCase(), false);
+
+                                throw new FluxError(FluxError.ErrorType.timeout, ft.toString().toLowerCase(),
+                                        null, false,
                                         new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(),
                                                 taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
                             } else {
-                                // mark the task outcome as execution failure, and the task won't retried
-                                updateExecutionStatus(taskAndEvent, Status.errored, cause.getClass().getName() + " : " + cause.getMessage(), true);
+                                //check if the exception hierarchy has FluxRetriableException, if yes trigger retry
+                                boolean isFluxRetriableException = false;
+                                Throwable cause = hre;
+                                while (cause.getCause() != null || cause.getClass().getName().equals(FluxRetriableException.class.getName())) {
+                                    if (cause.getClass().getName().equals(FluxRetriableException.class.getName())) {
+                                        isFluxRetriableException = true;
+                                        break;
+                                    }
+                                    cause = cause.getCause();
+                                }
+                                if (isFluxRetriableException) {
+                                    // mark the task outcome as execution failure, and the task is retriable
+                                    updateExecutionStatus(taskAndEvent, Status.errored, cause.getClass().getName() + " : " + cause.getMessage(), false);
+
+                                    throw new FluxError(FluxError.ErrorType.retriable, cause.getClass().getName() + " : " + cause.getMessage(), null, false,
+                                            new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(),
+                                                    taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
+                                } else {
+                                    // mark the task outcome as execution failure, and the task won't retried
+                                    updateExecutionStatus(taskAndEvent, Status.errored, cause.getClass().getName() + " : " + cause.getMessage(), true);
+                                }
                             }
+                        } catch (RuntimeCommunicationException e) {
+                            logger.error("Task completed but updateStatus/submit failed. State machine: {} task: {} ErrorMsg: {}", taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), e.getMessage());
+                            // mark the task outcome as execution failure and throw retriable error
+                            updateExecutionStatus(taskAndEvent, Status.errored, e.getMessage(), false);
+
+                            throw new FluxError(FluxError.ErrorType.retriable, e.getMessage(), e, false,
+                                    new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(),
+                                            taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
+                        } catch (Exception e) {
+                            // mark the task outcome as execution failure
+                            updateExecutionStatus(taskAndEvent, Status.errored, e.getMessage(), true);
                         }
-                    } catch (RuntimeCommunicationException e) {
-                        logger.error("Task completed but updateStatus/submit failed. State machine: {} task: {} ErrorMsg: {}", taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), e.getMessage());
-                        // mark the task outcome as execution failure and throw retriable error
-                        updateExecutionStatus(taskAndEvent, Status.errored, e.getMessage(), false);
 
-                        throw new FluxError(FluxError.ErrorType.retriable, e.getMessage(), e, false,
-                                new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(),
-                                        taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
-                    } catch (Exception e) {
-                        // mark the task outcome as execution failure
-                        updateExecutionStatus(taskAndEvent, Status.errored, e.getMessage(), true);
+                        // Execute any post-exec HookS
+    //                    this.executeHooks(AkkaTask.taskRegistry.getPostExecHooks(task), taskAndEvent.getEvents());
                     }
-
-                    // Execute any post-exec HookS
-//                    this.executeHooks(AkkaTask.taskRegistry.getPostExecHooks(task), taskAndEvent.getEvents());
                 } else {
                     logger.error("Task received EventS that it cannot process. State machine: {} task: {} Events received are : {}",
                             taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), TaskRegistry.getEventsKey(taskAndEvent.getEvents()));
@@ -276,8 +281,8 @@ public class AkkaTask extends UntypedActor {
     /**
      * Helper method to update execution status through flux runtime connector
      */
-    private void updateExecutionStatus(TaskAndEvents taskAndEvent, Status status, String errorMsg, boolean deleteFromRedriver) {
-        fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(
+    private CloseableHttpResponse updateExecutionStatus(TaskAndEvents taskAndEvent, Status status, String errorMsg, boolean deleteFromRedriver) {
+        return fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(
                 taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(), status, taskAndEvent.getRetryCount(),
                 taskAndEvent.getCurrentRetryCount(), errorMsg, deleteFromRedriver));
     }

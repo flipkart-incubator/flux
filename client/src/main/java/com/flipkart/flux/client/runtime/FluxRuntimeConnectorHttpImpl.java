@@ -190,10 +190,11 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
 	 * Interface method implementation. Updates the status in persistence store by invoking suitable Flux runtime API
 	 * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#updateExecutionStatus(ExecutionUpdateData)
 	 */
-	public void updateExecutionStatus(ExecutionUpdateData executionUpdateData) {
+	public CloseableHttpResponse updateExecutionStatus(ExecutionUpdateData executionUpdateData) {
 		CloseableHttpResponse httpResponse = null;
         httpResponse = postOverHttp(executionUpdateData,  "/" + executionUpdateData.getStateMachineId() + "/" + executionUpdateData.getTaskId() + "/status");
         HttpClientUtils.closeQuietly(httpResponse);
+        return httpResponse;
 	}
 
 	/**

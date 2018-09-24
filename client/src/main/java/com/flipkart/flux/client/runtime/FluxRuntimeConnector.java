@@ -17,6 +17,7 @@ package com.flipkart.flux.client.runtime;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.StateMachineDefinition;
+import org.apache.http.client.methods.CloseableHttpResponse;
 
 /**
  * Used to connect with the core Flux Runtime
@@ -71,8 +72,9 @@ public interface FluxRuntimeConnector {
     /**
      * Updates the status of the Task identified by the specified Task ID 
      * @param executionUpdateData the execution update data
+     * @return CloseableHttpResponse
      */
-    void updateExecutionStatus(ExecutionUpdateData executionUpdateData);
+    CloseableHttpResponse updateExecutionStatus(ExecutionUpdateData executionUpdateData);
     
     /**
      * Increments the attempted retries count for the Task identified by the specified task Id

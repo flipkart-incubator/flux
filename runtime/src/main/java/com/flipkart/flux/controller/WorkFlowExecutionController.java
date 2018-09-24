@@ -344,7 +344,7 @@ public class WorkFlowExecutionController {
 
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public void updateTaskStatus(String machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
+    public void updateTaskStatus(String machineId, Long stateId, ExecutionUpdateData executionUpdateData) throws ForbiddenException {
         com.flipkart.flux.domain.Status updateStatus = null;
         switch (executionUpdateData.getStatus()) {
             case initialized:
@@ -388,7 +388,13 @@ public class WorkFlowExecutionController {
      * @param currentRetryCount current retry count for the task
      * @param errorMessage      the error message in case task has failed
      */
-    public void updateExecutionStatus(String stateMachineId, Long taskId, Status status, long retryCount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver) {
+    public void updateExecutionStatus(String stateMachineId, Long taskId, Status status, long retryCount, long currentRetryCount,
+                                      String errorMessage, boolean deleteFromRedriver) throws ForbiddenException {
+        Status currentStatus = statesDAO.findById(stateMachineId, taskId).getStatus();
+        if(currentStatus == Status.completed || currentStatus == Status.cancelled) {
+            logger.info("task status update forbidden from current status of cancelled/completed.");
+            throw new ForbiddenException("task status update forbidden from current status of cancelled/completed.");
+        }
         this.statesDAO.updateStatus(stateMachineId, taskId, status);
         this.auditDAO.create(stateMachineId, new AuditRecord(stateMachineId, taskId, currentRetryCount, status, null, errorMessage));
         if (deleteFromRedriver) {

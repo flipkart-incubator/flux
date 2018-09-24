@@ -395,7 +395,11 @@ public class StateMachineResource {
                                  @PathParam("stateId") Long stateId,
                                  ExecutionUpdateData executionUpdateData
     ) throws Exception {
-        this.workFlowExecutionController.updateTaskStatus(machineId, stateId, executionUpdateData);
+        try {
+            this.workFlowExecutionController.updateTaskStatus(machineId, stateId, executionUpdateData);
+        } catch (ForbiddenException exception) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
