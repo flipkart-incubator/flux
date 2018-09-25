@@ -399,6 +399,8 @@ public class StateMachineResource {
             this.workFlowExecutionController.updateTaskStatus(machineId, stateId, executionUpdateData);
         } catch (ForbiddenException exception) {
             return Response.status(Response.Status.FORBIDDEN).build();
+        } catch (Exception ex) {
+            throw new Exception(ex);
         }
         return Response.status(Response.Status.ACCEPTED).build();
     }

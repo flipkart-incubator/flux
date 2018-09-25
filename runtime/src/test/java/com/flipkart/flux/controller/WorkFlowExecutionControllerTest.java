@@ -308,6 +308,10 @@ public class WorkFlowExecutionControllerTest {
 
     @Test
     public void testUpdateTaskStatusBehaviourWhenTaskStatusIsUpdatedToRunning() {
+        State task = new State(1L, "someTask", null, null, null, null,
+                new ArrayList<String>() {{add("someEvent");}}, 0L, 1000L, null,
+                Status.initialized, null, 0L,"random-state-machine", 1L);
+        when(statesDAO.findById("random-state-machine", 1L)).thenReturn(task);
         workFlowExecutionController.updateTaskStatus("random-state-machine", 1L,
                 new ExecutionUpdateData("random-state-machine", "someStateMachine",
                         "someTask", 1L, com.flipkart.flux.api.Status.running,
@@ -319,6 +323,10 @@ public class WorkFlowExecutionControllerTest {
 
     @Test
     public void testUpdateTaskStatusBehaviourWhenTaskStatusIsUpdatedToCompleted() {
+        State task = new State(1L, "someTask", null, null, null, null,
+                new ArrayList<String>() {{add("someEvent");}}, 0L, 1000L, null,
+                Status.initialized, null, 0L,"random-state-machine", 1L);
+        when(statesDAO.findById("random-state-machine", 1L)).thenReturn(task);
         workFlowExecutionController.updateTaskStatus("random-state-machine", 1L,
                 new ExecutionUpdateData("random-state-machine", "someStateMachine",
                         "someTask", 1L, com.flipkart.flux.api.Status.completed,

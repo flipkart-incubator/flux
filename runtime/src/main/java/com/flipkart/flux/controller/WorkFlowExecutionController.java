@@ -390,15 +390,20 @@ public class WorkFlowExecutionController {
      */
     public void updateExecutionStatus(String stateMachineId, Long taskId, Status status, long retryCount, long currentRetryCount,
                                       String errorMessage, boolean deleteFromRedriver) throws ForbiddenException {
-        Status currentStatus = statesDAO.findById(stateMachineId, taskId).getStatus();
-        if(currentStatus == Status.completed || currentStatus == Status.cancelled) {
-            logger.info("task status update forbidden from current status of cancelled/completed.");
-            throw new ForbiddenException("task status update forbidden from current status of cancelled/completed.");
-        }
-        this.statesDAO.updateStatus(stateMachineId, taskId, status);
-        this.auditDAO.create(stateMachineId, new AuditRecord(stateMachineId, taskId, currentRetryCount, status, null, errorMessage));
-        if (deleteFromRedriver) {
-            this.redriverRegistry.deRegisterTask(stateMachineId, taskId);
+        State task = statesDAO.findById(stateMachineId, taskId);
+        if(task != null) {
+            Status currentStatus = task.getStatus();
+            if(currentStatus == Status.completed || currentStatus == Status.cancelled) {
+                logger.info("task status update forbidden from current status of cancelled/completed for taskId: {} and " +
+                        "stateMachineId: {}.", taskId, stateMachineId);
+                throw new ForbiddenException("task status update forbidden from current status of cancelled/completed.");
+            }
+            this.statesDAO.updateStatus(stateMachineId, taskId, status);
+            this.auditDAO.create(stateMachineId, new AuditRecord(stateMachineId, taskId, currentRetryCount, status,
+                    null, errorMessage));
+            if (deleteFromRedriver) {
+                this.redriverRegistry.deRegisterTask(stateMachineId, taskId);
+            }
         }
     }
 
