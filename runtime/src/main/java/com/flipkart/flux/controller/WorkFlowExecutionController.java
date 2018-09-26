@@ -370,6 +370,7 @@ public class WorkFlowExecutionController {
        public void updateExecutionStatus(String stateMachineId, Long taskId, Status status, long retryCount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver) {
         this.statesDAO.updateStatus(stateMachineId, taskId, status);
         this.auditDAO.create(stateMachineId, new AuditRecord(stateMachineId, taskId, currentRetryCount, status, null, errorMessage));
+        if(deleteFromRedriver)
         this.redriverRegistry.deRegisterTask(stateMachineId, taskId);
     }
 
