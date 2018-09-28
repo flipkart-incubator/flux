@@ -19,6 +19,7 @@ import com.flipkart.flux.api.EventAndExecutionData;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.ExecutionUpdateData;
+import com.flipkart.flux.client.exception.DuplicateRequestException;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
@@ -92,10 +93,14 @@ public class WorkFlowExecutionController {
      */
     private MetricsClient metricsClient;
 
-    /** ObjectMapper instance to be used for all purposes in this class */
+    /**
+     * ObjectMapper instance to be used for all purposes in this class
+     */
     private ObjectMapper objectMapper;
 
-    /** Constructor for this class */
+    /**
+     * Constructor for this class
+     */
     @Inject
     public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO,
                                        StatesDAO statesDAO, AuditDAO auditDAO, RouterRegistry routerRegistry,
@@ -129,29 +134,8 @@ public class WorkFlowExecutionController {
     }
 
     /**
-     * Updates task status and retrieves the states which are dependant on this event and starts the execution of eligible states (whose all dependencies are met).
-     * @param stateMachine
-     * @param eventAndExecutionData
-     */
-    public void updateTaskStatusAndPostEvent(StateMachine stateMachine, EventAndExecutionData eventAndExecutionData) {
-        Event event = updateTaskStatusAndPersistEvent(stateMachine, eventAndExecutionData);
-        processEvent(event, stateMachine.getId());
-    }
-
-    /**
-     * Updates task status and persists the event in a single transaction. Keeping this method as protected so that guice can intercept it.
-     * @param stateMachine
-     * @param eventAndExecutionData
-     */
-    @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    protected Event updateTaskStatusAndPersistEvent(StateMachine stateMachine, EventAndExecutionData eventAndExecutionData) {
-        updateTaskStatus(stateMachine.getId(), eventAndExecutionData.getExecutionUpdateData().getTaskId(), eventAndExecutionData.getExecutionUpdateData());
-        return persistEvent(stateMachine.getId(), eventAndExecutionData.getEventData());
-    }
-
-    /**
      * Updates task status and cancels paths which are dependant on the current event. After the cancellation of path, executes the states which can be executed.
+     *
      * @param stateMachineId
      * @param eventAndExecutionData
      */
@@ -159,12 +143,13 @@ public class WorkFlowExecutionController {
         Set<State> executableStates = updateTaskStatusAndCancelPath(stateMachineId, eventAndExecutionData);
         logger.info("Path cancellation is done for state machine: {} event: {} which has come from task: {}",
                 stateMachineId, eventAndExecutionData.getEventData().getName(), eventAndExecutionData.getExecutionUpdateData().getTaskId());
-        StateMachine stateMachine  = stateMachinesDAO.findById(stateMachineId);
+        StateMachine stateMachine = stateMachinesDAO.findById(stateMachineId);
         executeStates(stateMachine, executableStates);
     }
 
     /**
      * Updates task status and cancels paths which are dependant on the current event
+     *
      * @param stateMachineId
      * @param eventAndExecutionData
      * @return executable states after cancellation
@@ -178,6 +163,7 @@ public class WorkFlowExecutionController {
 
     /**
      * Cancels paths which are dependant on the current event, and returns set of states which can be executed after the cancellation.
+     *
      * @param stateMachineId
      * @param eventData
      * @return executable states after cancellation
@@ -200,7 +186,7 @@ public class WorkFlowExecutionController {
         cancelledEvents.add(eventData.getName());
 
         // until the cancelled events is empty
-        while(!cancelledEvents.isEmpty()) {
+        while (!cancelledEvents.isEmpty()) {
 
             // get event from queue
             String eventName = cancelledEvents.poll();
@@ -213,28 +199,28 @@ public class WorkFlowExecutionController {
             final Set<State> dependantStates = context.getDependantStates(eventName);
 
             // for each state
-            for(State state : dependantStates) {
+            for (State state : dependantStates) {
 
                 // fetch all event names this state is dependant on
                 List<String> dependencies = state.getDependencies();
 
                 boolean allCancelled = true;
                 boolean allMet = true;
-                for(String dependency : dependencies) {
-                    if(eventStatusMap.get(dependency) != Event.EventStatus.cancelled) {
+                for (String dependency : dependencies) {
+                    if (eventStatusMap.get(dependency) != Event.EventStatus.cancelled) {
                         allCancelled = false;
                     }
-                    if(!(eventStatusMap.get(dependency) == Event.EventStatus.cancelled || eventStatusMap.get(dependency) == Event.EventStatus.triggered)) {
+                    if (!(eventStatusMap.get(dependency) == Event.EventStatus.cancelled || eventStatusMap.get(dependency) == Event.EventStatus.triggered)) {
                         allMet = false;
                     }
                 }
 
                 // if all dependencies are in cancelled state, then add the output event of the state to cancelled events and mark state as cancelled
-                if(allCancelled) {
+                if (allCancelled) {
                     statesDAO.updateStatus(state.getStateMachineId(), state.getId(), Status.cancelled);
                     auditDAO.create(state.getStateMachineId(), new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNoOfRetries(), Status.cancelled, null, null));
                     EventDefinition eventDefinition = null;
-                    if(state.getOutputEvent() != null) {
+                    if (state.getOutputEvent() != null) {
                         try {
                             eventDefinition = objectMapper.readValue(state.getOutputEvent(), EventDefinition.class);
                         } catch (IOException ex) {
@@ -242,7 +228,7 @@ public class WorkFlowExecutionController {
                         }
                         cancelledEvents.add(eventDefinition.getName());
                     }
-                } else if(allMet) {
+                } else if (allMet) {
                     // if all dependencies are in cancelled or triggered state, then execute the state
                     executableStates.add(state);
                 }
@@ -253,6 +239,7 @@ public class WorkFlowExecutionController {
 
     /**
      * This is called when an event is received with cancelled status. This cancels the particular path in state machine DAG.
+     *
      * @param stateMachineId
      * @param eventData
      */
@@ -269,24 +256,27 @@ public class WorkFlowExecutionController {
      * @param eventData
      * @param stateMachineInstanceId
      */
-    public Set<State> postEvent(EventData eventData, String stateMachineInstanceId) {
-       Event event = persistEvent(stateMachineInstanceId, eventData);
-       return processEvent(event, stateMachineInstanceId);
+    public Set<State> postEvent(EventData eventData, String stateMachineInstanceId) throws Exception {
+        Event event = persistEvent(stateMachineInstanceId, eventData);
+        return processEvent(event, stateMachineInstanceId);
     }
 
     /**
      * Persists Event data and changes event status
+     *
      * @param stateMachineInstanceId
      * @param eventData
      * @return
      */
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public Event persistEvent(String stateMachineInstanceId, EventData eventData) {
+    public Event persistEvent(String stateMachineInstanceId, EventData eventData) throws Exception {
         //update event's data and status
         Event event = eventsDAO.findBySMIdAndName(stateMachineInstanceId, eventData.getName());
-        if(event == null)
-            throw new IllegalEventException("Event with stateMachineId: "+ stateMachineInstanceId+", event name: "+ eventData.getName()+" not found");
+        if (event == null)
+            throw new IllegalEventException("Event with stateMachineId: " + stateMachineInstanceId + ", event name: " + eventData.getName() + " not found");
+        if (event.getStatus().equals(Event.EventStatus.triggered))
+            throw new DuplicateRequestException("Event is already received and marked as triggered");
         event.setStatus(eventData.getCancelled() != null && eventData.getCancelled() ? Event.EventStatus.cancelled : Event.EventStatus.triggered);
         event.setEventData(eventData.getData());
         event.setEventSource(eventData.getEventSource());
@@ -296,15 +286,16 @@ public class WorkFlowExecutionController {
 
     /**
      * Checks and triggers the states which are dependant on the current event
+     *
      * @param event
      * @param stateMachineInstanceId
      * @return
      */
     public Set<State> processEvent(Event event, String stateMachineInstanceId) {
         //create context and dependency graph
-        StateMachine stateMachine = null ;
+        StateMachine stateMachine = null;
         stateMachine = stateMachinesDAO.findById(stateMachineInstanceId);
-        if(stateMachine == null){
+        if (stateMachine == null) {
             logger.error("stateMachine with id not found while processing event {} ", stateMachineInstanceId, event.getName());
             throw new RuntimeException("StateMachine with id " + stateMachineInstanceId + " not found while processing event " + event.getName());
         }
@@ -323,8 +314,16 @@ public class WorkFlowExecutionController {
 
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public void updateTaskStatus(String machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
+    public void updateTaskStatus(String machineId, Long stateId, ExecutionUpdateData executionUpdateData) throws
+            IllegalStateException {
         com.flipkart.flux.domain.Status updateStatus = null;
+        State state = statesDAO.findById(machineId, stateId);
+        if (state.getStatus().equals(Status.completed) || state.getStatus().equals(Status.cancelled)) {
+            logger.warn("State {} from smid: {} is already completed/cancelled. Rejected the updateState request",
+                    stateId, machineId);
+            throw new IllegalStateException("Task is already completed, rejecting any further updates on it.");
+
+        }
         switch (executionUpdateData.getStatus()) {
             case initialized:
                 updateStatus = com.flipkart.flux.domain.Status.initialized;
@@ -367,11 +366,11 @@ public class WorkFlowExecutionController {
      * @param currentRetryCount current retry count for the task
      * @param errorMessage      the error message in case task has failed
      */
-       public void updateExecutionStatus(String stateMachineId, Long taskId, Status status, long retryCount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver) {
+    public void updateExecutionStatus(String stateMachineId, Long taskId, Status status, long retryCount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver) {
         this.statesDAO.updateStatus(stateMachineId, taskId, status);
         this.auditDAO.create(stateMachineId, new AuditRecord(stateMachineId, taskId, currentRetryCount, status, null, errorMessage));
-        if(deleteFromRedriver)
-        this.redriverRegistry.deRegisterTask(stateMachineId, taskId);
+        if (deleteFromRedriver)
+            this.redriverRegistry.deRegisterTask(stateMachineId, taskId);
     }
 
     /**

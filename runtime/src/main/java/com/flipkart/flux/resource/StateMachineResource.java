@@ -17,6 +17,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.*;
+import com.flipkart.flux.client.exception.DuplicateRequestException;
 import com.flipkart.flux.client.runtime.EventProxyConnector;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
 import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
@@ -246,7 +247,11 @@ public class StateMachineResource {
                 return Response.status(Response.Status.ACCEPTED).build();
             } catch (IllegalEventException ex) {
                 return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
+            } catch (DuplicateRequestException ex) {
+                return Response.status(Response.Status.CONFLICT).entity(ex.getMessage()).build();
             }
+
+
         } else {
             logger.info("Received event: {} for state machine: {} with triggerTime: {}", eventData.getName(), machineId, triggerTime);
             if (searchField == null || !searchField.equals(CORRELATION_ID))
@@ -287,11 +292,16 @@ public class StateMachineResource {
             if (eventData.getCancelled() != null && eventData.getCancelled()) {
                 workFlowExecutionController.updateTaskStatusAndHandlePathCancellation(machineId, eventAndExecutionData);
             } else {
+
                 workFlowExecutionController.updateTaskStatus(machineId, executionUpdateData.getTaskId(), executionUpdateData);
                 workFlowExecutionController.postEvent(eventData, stateMachine.getId());
             }
         } catch (IllegalEventException ex) {
             return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
+        } catch (IllegalStateException ex) {
+            return Response.status(Response.Status.FORBIDDEN).entity(ex.getMessage()).build();
+        } catch (DuplicateRequestException ex) {
+            return Response.status(Response.Status.CONFLICT).entity(ex.getMessage()).build();
         }
 
         return Response.status(Response.Status.ACCEPTED).build();
