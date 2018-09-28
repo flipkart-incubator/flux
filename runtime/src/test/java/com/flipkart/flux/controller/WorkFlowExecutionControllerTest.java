@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.MockActorRef;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.client.exception.DuplicateRequestException;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
@@ -36,6 +37,7 @@ import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.util.TestUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -83,7 +85,7 @@ public class WorkFlowExecutionControllerTest {
         Thread.sleep(1000);
         workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, auditDAO, routerRegistry, redriverRegistry, metricsClient);
         when(stateMachinesDAO.findById(anyString())).thenReturn(TestUtils.getStandardTestMachineWithId());
-        actorSystem = ActorSystem.create("testActorSystem",ConfigFactory.load("testAkkaActorSystem"));
+        actorSystem = ActorSystem.create("testActorSystem", ConfigFactory.load("testAkkaActorSystem"));
         mockActor = TestActorRef.create(actorSystem, Props.create(MockActorRef.class));
         when(routerRegistry.getRouter(anyString())).thenReturn(mockActor);
         objectMapper = new ObjectMapper();
@@ -157,15 +159,17 @@ public class WorkFlowExecutionControllerTest {
         state.setStatus(Status.completed);
 
         //post the event again, this should not send msg to router for execution
-        workFlowExecutionController.postEvent(testEventData, "standard-machine");
-
-
+        try {
+            workFlowExecutionController.postEvent(testEventData, "standard-machine");
+        } catch (DuplicateRequestException ex) {
+        }
         verify(routerRegistry, times(1)).getRouter("com.flipkart.flux.dao.TestWorkflow_dummyTask"); // the router should receive only one execution request
         mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, "standard-machine", "test_state_machine", TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)), 2), 1);
         verifyNoMoreInteractions(routerRegistry);
     }
 
     @Test
+    @Ignore("Test ignored as duplicate events not allowed anymore.")
     public void testEventPost_shouldExecuteTaskIfItIsNotCompleted() throws Exception {
         final EventData testEventData = new EventData("event0", "java.lang.String", "42", "runtime");
 
@@ -200,8 +204,10 @@ public class WorkFlowExecutionControllerTest {
         state.setStatus(Status.cancelled);
 
         //post the event again, this should not send msg to router for execution
-        workFlowExecutionController.postEvent(testEventData, "standard-machine");
-
+        try {
+            workFlowExecutionController.postEvent(testEventData, "standard-machine");
+        } catch (DuplicateRequestException ex) {
+        }
         verify(routerRegistry, times(1)).getRouter("com.flipkart.flux.dao.TestWorkflow_dummyTask"); // the router should receive only one execution request
         mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, "standard-machine", "test_state_machine", TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)), 2), 1);
         verifyNoMoreInteractions(routerRegistry);
