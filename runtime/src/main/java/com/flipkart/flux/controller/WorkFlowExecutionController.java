@@ -321,7 +321,7 @@ public class WorkFlowExecutionController {
         if (state.getStatus().equals(Status.completed) || state.getStatus().equals(Status.cancelled)) {
             logger.warn("State {} from smid: {} is already completed/cancelled. Rejected the updateState request",
                     stateId, machineId);
-            throw new IllegalStateException("Task is already completed, rejecting any further updates on it.");
+            throw new IllegalStateException("Task is already completed/cancelled, rejecting any further updates on it.");
 
         }
         switch (executionUpdateData.getStatus()) {
