@@ -16,5 +16,6 @@
       "timeout": "100",
       "outputEvent": null
     }
-  ]
+  ],
+  "clientElbId" : "defaultElbId"
 }

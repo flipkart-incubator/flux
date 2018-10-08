@@ -36,4 +36,7 @@ public class RuntimeConstants {
 
     /** default timeout for a task */ //todo: move it to configuration file
     public static final Long defaultTaskTimeout = 1000l;
+
+    /** default value for clientElbId in StateMachineDefinition */
+    public static final String DEFAULT_ELB_ID = "defaultElbId";
 }

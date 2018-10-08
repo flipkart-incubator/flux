@@ -22,6 +22,7 @@ flux.Hibernate:
 fluxReadOnly.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
+  hibernate.connection.url: "jdbc:mysql://localhost:3306/flux"
   hibernate.connection.username: "root"
   hibernate.connection.password: ""
   hibernate.current_session_context_class: "managed"
@@ -38,7 +39,7 @@ flux_scheduler.Hibernate:
   hibernate.current_session_context_class: "managed"
   connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
   hibernate.c3p0.min_size: 3
-  hibernate.c3p0.max_size: 5
+  hibernate.c3p0.max_size: 20
 
 Dashboard:
   service.port: 9999
@@ -52,37 +53,43 @@ Api:
   service.selectors: 4
   service.workers: 100
 
-routers:
-  default:
-    instancesPerNode: 5
-
-task:
-  maxTaskRetryCount: 10
-
-runtime:
-  actorsystem:
-    metrics: false
-    name: FluxSystem
-    configname: application.conf
-    maxTaskActorCreateRetries : -1
 
 redriver:
   batchDelete:
     batchSize: 1000
     intervalms: 2500
+  batchInsert:
+    batchSize: 200
+    intervalms: 200
   batchRead:
     batchSize: 1000
     intervalms: 2500
-  noOfPersistenceWorkers: 3
+  noOfPersistenceWorkers: 20
 
 eventScheduler:
   batchRead:
     batchSize: 50
     intervalms: 1000
 
+runtime:
+  actorsystem:
+    metrics: false
+    name: FluxOrchestrationSystem
+    configname: application.conf
+
+task:
+  maxTaskRetryCount: 10
+
+elbCache:
+  maxSize: 50
+
 eventProxyForMigration:
-  enabled: "yes"
+  enabled: "no"
   endpoint: "http://localhost:9998/api/machines"
 
-deploymentType: directory
-deploymentUnitsPath: "/tmp/workflows/"
+connector:
+  max.connections: 100
+  max.connections.per.route: 25
+  connection.timeout: 10000
+  socket.timeout: 10000
+

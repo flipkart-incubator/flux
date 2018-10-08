@@ -14,6 +14,7 @@
 
 package com.flipkart.flux.client;
 
+import com.codahale.metrics.SharedMetricRegistries;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.client.guice.annotation.IsolatedEnv;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest;
@@ -48,6 +49,7 @@ public class FluxClientSpyModuleForTests extends AbstractModule {
     @Provides
     @Singleton
     public FluxRuntimeConnector provideFluxRuntimeConnector( ){
-        return Mockito.spy(new FluxRuntimeConnectorHttpImpl(1000l,1000l,"http://localhost:9091/flux/machines", new ObjectMapper()));
+        return Mockito.spy(new FluxRuntimeConnectorHttpImpl(1000l,1000l,"http://localhost:9091/flux/machines", new ObjectMapper(),
+                SharedMetricRegistries.getOrCreate("mainMetricRegistry")));
     }
 }

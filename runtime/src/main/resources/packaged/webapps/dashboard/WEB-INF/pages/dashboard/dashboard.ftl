@@ -1,4 +1,4 @@
-<#include "./../header.ftl"> 
+<#include "header.ftl">
 
 	<!-- Setup base for everything -->
 	<link rel="stylesheet" type="text/css" href="/admin/hystrix-dashboard/css/global.css" />

@@ -4,7 +4,7 @@ import com.flipkart.flux.client.model.Task;
 
 public class PaymentGatewayTasks {
 
-    @Task(version = 4,retries = 3,timeout = 1000000)
+    @Task(version = 4,retries = 3,timeout = 1000)
     public  EventTypeInteger paymentInit(EventTypeInteger a) {
         /*
         Even value: Bank0 "SBI"
@@ -16,7 +16,7 @@ public class PaymentGatewayTasks {
             return new EventTypeInteger(1);
     }
 
-    @Task(version = 4,retries = 3,timeout = 1000000)
+    @Task(version = 4,retries = 3,timeout = 1000)
     public  EventTypeInteger SBIAuth(EventTypeInteger a, EventTypeInteger b) {
         /*
         Random computation to increase task compute usage
@@ -30,7 +30,7 @@ public class PaymentGatewayTasks {
 
     }
 
-    @Task(version = 4,retries = 3,timeout = 1000000)
+    @Task(version = 4,retries = 3,timeout = 1000)
     public  EventTypeInteger HDFCAuth(EventTypeInteger a, EventTypeInteger b) {
         /*
         Random computation to increase task compute usage
@@ -44,7 +44,7 @@ public class PaymentGatewayTasks {
 
     }
 
-    @Task(version = 4,retries = 3,timeout = 1000000)
+    @Task(version = 4,retries = 3,timeout = 1000)
     public  EventTypeInteger SBIOTPVerify(EventTypeInteger a) {
         /*
         Random computation to increase task compute usage
@@ -58,7 +58,7 @@ public class PaymentGatewayTasks {
 
     }
 
-    @Task(version = 4,retries = 3,timeout = 1000000)
+    @Task(version = 4,retries = 3,timeout = 1000)
     public  EventTypeInteger HDFCOTPVerify(EventTypeInteger a) {
         /*
         Random computation to increase task compute usage
@@ -72,26 +72,26 @@ public class PaymentGatewayTasks {
 
     }
 
-    @Task(version = 4,retries = 3,timeout = 1000000)
+    @Task(version = 4,retries = 3,timeout = 1000)
     public  EventTypeInteger SBIPaymentSuccess(EventTypeInteger a) {
         return new EventTypeInteger(a.getValue()*(int)Math.random());
 
     }
 
-    @Task(version = 4,retries = 3,timeout = 1000000)
+    @Task(version = 4,retries = 3,timeout = 1000)
     public  EventTypeInteger HDFCPaymentSuccess(EventTypeInteger a) {
         return new EventTypeInteger(a.getValue()*(int)Math.random());
 
     }
 
 
-    @Task(version = 4,retries = 3,timeout = 1000000)
+    @Task(version = 4,retries = 3,timeout = 1000)
     public  EventTypeInteger SBIPaymentFailed(EventTypeInteger a) {
         return new EventTypeInteger(0);
 
     }
 
-    @Task(version = 4,retries = 3,timeout = 1000000)
+    @Task(version = 4,retries = 3,timeout = 1000)
     public  EventTypeInteger HDFCPaymentFailed(EventTypeInteger a) {
         return new EventTypeInteger(0);
 

@@ -12,40 +12,36 @@
  *
  */
 
-package com.flipkart.flux.impl.boot;
+package com.flipkart.flux.guice.module;
 
 import com.flipkart.flux.client.FluxClientComponentModule;
-import com.flipkart.flux.client.registry.ExecutableRegistry;
-import com.flipkart.flux.guice.annotation.ManagedEnv;
 import com.flipkart.flux.impl.eventscheduler.EventSchedulerRegistryImpl;
 import com.flipkart.flux.impl.redriver.RedriverRegistryImpl;
-import com.flipkart.flux.impl.task.AkkaTask;
-import com.flipkart.flux.impl.task.registry.EagerInitRouterRegistryImpl;
-import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.flipkart.flux.module.SchedulerModule;
-import com.flipkart.flux.registry.TaskExecutableRegistryImpl;
 import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
+import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
+import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcherImpl;
 import com.google.inject.AbstractModule;
+import com.google.inject.Singleton;
 
 /**
  * Guice module for the Task Runtime
+ *
  * @author yogesh.nachnani
  * @author shyam.akirala
  */
-public class TaskModule extends AbstractModule {
+public class OrchestrationTaskModule extends AbstractModule {
 
-    public TaskModule() {
+    public OrchestrationTaskModule() {
     }
 
     @Override
     protected void configure() {
-        bind(RouterRegistry.class).to(EagerInitRouterRegistryImpl.class);
-        bind(ExecutableRegistry.class).annotatedWith(ManagedEnv.class).to(TaskExecutableRegistryImpl.class);
+        bind(ExecutionNodeTaskDispatcher.class).to(ExecutionNodeTaskDispatcherImpl.class).in(Singleton.class);
         bind(RedriverRegistry.class).to(RedriverRegistryImpl.class);
         bind(EventSchedulerRegistry.class).to(EventSchedulerRegistryImpl.class);
-        install(new FluxClientComponentModule());
         install(new SchedulerModule());
-        requestStaticInjection(AkkaTask.class);
+        install(new FluxClientComponentModule());
     }
 }

@@ -14,6 +14,8 @@
 package com.flipkart.flux.resource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.FluxRuntimeRole;
+import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.constant.RuntimeConstants;
@@ -25,11 +27,9 @@ import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.*;
 import com.flipkart.flux.eventscheduler.dao.EventSchedulerDao;
 import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
-import com.flipkart.flux.guice.module.AkkaModule;
-import com.flipkart.flux.guice.module.ContainerModule;
-import com.flipkart.flux.guice.module.ShardModule;
-import com.flipkart.flux.impl.boot.TaskModule;
-import com.flipkart.flux.initializer.OrderedComponentBooter;
+import com.flipkart.flux.guice.module.*;
+import com.flipkart.flux.initializer.ExecutionOrderedComponentBooter;
+import com.flipkart.flux.initializer.OrchestrationOrderedComponentBooter;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
 import com.flipkart.flux.module.RuntimeTestModule;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
@@ -39,12 +39,12 @@ import com.flipkart.flux.runner.Modules;
 import com.flipkart.flux.util.TestUtils;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.junit.*;
 import org.junit.runner.RunWith;
 
-import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
 import java.util.HashSet;
@@ -53,34 +53,42 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(GuiceJunit4Runner.class)
-@Modules({DeploymentUnitTestModule.class, ShardModule.class, RuntimeTestModule.class, ContainerModule.class, AkkaModule.class, TaskModule.class, FluxClientInterceptorModule.class})
+@Modules(orchestrationModules = {OrchestrationTaskModule.class, ShardModule.class,
+        RuntimeTestModule.class, ContainerModule.class, FluxClientInterceptorModule.class}, executionModules = {
+        DeploymentUnitTestModule.class, AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class, FluxClientInterceptorModule.class})
 public class StateMachineResourceTest {
 
-    @Inject
     @Rule
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     public DbClearRule dbClearRule;
 
-    @Inject
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     private StateMachinesDAO stateMachinesDAO;
 
-    @Inject
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     private ParallelScatterGatherQueryHelper parallelScatterGatherQueryHelper;
 
-    @Inject
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     private StatesDAO statesDAO;
 
-    @Inject
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     private EventsDAO eventsDAO;
 
-    @Inject
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     private EventSchedulerDao eventSchedulerDao;
 
-    @Inject
-    OrderedComponentBooter orderedComponentBooter;
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
+    OrchestrationOrderedComponentBooter orchestrationOrderedComponentBooter;
 
-    @Inject
+
+    @InjectFromRole(value = FluxRuntimeRole.EXECUTION)
+    ExecutionApiResource executionApiResource;
+
+    @InjectFromRole(value = FluxRuntimeRole.EXECUTION)
+    ExecutionOrderedComponentBooter executionOrderedComponentBooter;
+
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     StateMachinePersistenceService stateMachinePersistenceService;
-
 
     public static final String STATE_MACHINE_RESOURCE_URL = "http://localhost:9998" + RuntimeConstants.API_CONTEXT_PATH + RuntimeConstants.STATE_MACHINE_RESOURCE_RELATIVE_PATH;
     private static final String SLASH = "/";
@@ -92,14 +100,28 @@ public class StateMachineResourceTest {
     public void setUp() throws Exception {
         objectMapper = new ObjectMapper();
         dbClearRule.explicitClearTables();
+    }
 
+    @BeforeClass
+    public static void beforeClass() {
+        try {
+            Unirest.post("http://localhost:9998/api/client-elb/create")
+                    .queryString("clientId", "defaultElbId").queryString("clientElbUrl",
+                    "http://localhost:9997").asString();
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
     }
 
     @AfterClass
     public static void afterClass() {
         try {
+            Unirest.post("http://localhost:9998/api/client-elb/delete")
+                    .queryString("clientId", "defaultElbId").asString();
             Thread.sleep(3000);
         } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (UnirestException e) {
             e.printStackTrace();
         }
     }
@@ -128,7 +150,7 @@ public class StateMachineResourceTest {
             String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
             final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events").header("Content-Type", "application/json").body(eventJson).asString();
             assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
-            // give some time to execute
+            //  give some time to execute
             Thread.sleep(6000);
 
             //status of state should be sidelined
@@ -164,11 +186,12 @@ public class StateMachineResourceTest {
 
     @Test
     public void testPostEvent() throws Exception {
+        //  doReturn(202).when(spyTaskDispatcher).forwardExecutionMessage(anyString(), anyObject());
+        //when(spyTaskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(202);
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
         final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
         Event event = eventsDAO.findBySMIdAndName(smCreationResponse.getBody(), "event0");
         assertThat(event.getStatus()).isEqualTo(Event.EventStatus.pending);
-
         String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
         final HttpResponse<String> eventPostResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events").header("Content-Type", "application/json").body(eventJson).asString();
         assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
@@ -214,7 +237,6 @@ public class StateMachineResourceTest {
     }
 
     @Test
-    @Ignore("ignore as if smid is missing it will try to forward to older ip, this feature will be removed in few weeks")
     public void testPostEvent_againstNonExistingCorrelationId() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
         final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
@@ -444,8 +466,9 @@ public class StateMachineResourceTest {
         Set<State> states = new HashSet<>();
         states.addAll(sm.getStates());
         /* persist */
-        Timestamp now =  new Timestamp( System.currentTimeMillis() - 10*1000 );
-        final StateMachine firstSM = stateMachinesDAO.create(firstSmId, new StateMachine(firstSmId, sm.getVersion(), sm.getName(), sm.getDescription(), states));
+        Timestamp now = new Timestamp(System.currentTimeMillis() - 10 * 1000);
+        final StateMachine firstSM = stateMachinesDAO.create(firstSmId, new StateMachine(firstSmId, sm.getVersion(),
+                sm.getName(), sm.getDescription(), states, sm.getClientElbId()));
         /* change name and persist as 2nd statemachine */
         final String differentSMName = "state-machine-2";
         sm.getStates().stream().forEach(state -> {
@@ -454,16 +477,17 @@ public class StateMachineResourceTest {
         states.clear();
         states.addAll(sm.getStates());
 
-        final StateMachine secondSM = stateMachinesDAO.create(differentSMName, new StateMachine(differentSMName, sm.getVersion(), sm.getName(), sm.getDescription(), states));
-        Timestamp future = new Timestamp( System.currentTimeMillis() + 3*1000);
+        final StateMachine secondSM = stateMachinesDAO.create(differentSMName, new StateMachine(
+                differentSMName, sm.getVersion(), sm.getName(), sm.getDescription(), states, sm.getClientElbId()));
+        Timestamp future = new Timestamp(System.currentTimeMillis() + 3 * 1000);
         /* fetch errored states with name "differentStateMachine" */
         final HttpResponse<String> stringHttpResponse = Unirest.get(
-                STATE_MACHINE_RESOURCE_URL + "/" + "test_state_machine" + "/states/errored?fromTime=" +  now.toString().replace(' ' , '+') + "&toTime=" +  future.toString().replace(' ' , '+')).header("Content-Type", "application/json").asString();
+                STATE_MACHINE_RESOURCE_URL + "/" + "test_state_machine" + "/states/errored?fromTime=" + now.toString().replace(' ', '+') + "&toTime=" + future.toString().replace(' ', '+')).header("Content-Type", "application/json").asString();
 
         assertThat(stringHttpResponse.getStatus()).isEqualTo(200);
         assertThat(stringHttpResponse.getBody()).isEqualTo("[[\"" + firstSM.getId() + "\"," +
                 firstSM.getStates().stream().filter(e -> Status.errored.equals(e.getStatus())).findFirst().get().getId() + "," +
-                "\"errored\"]," +  "[\"" + secondSM.getId() + "\"," +
+                "\"errored\"]," + "[\"" + secondSM.getId() + "\"," +
                 secondSM.getStates().stream().filter(e -> Status.errored.equals(e.getStatus())).findFirst().get().getId() + "," +
                 "\"errored\"]" + "]");
     }
@@ -507,18 +531,20 @@ public class StateMachineResourceTest {
     }
 
     @Test
-    public void shouldProxyEventToOldCluster() throws Exception{
+    @Ignore("Feature no longer in use")
+    public void shouldProxyEventToOldCluster() throws Exception {
         final String stateMachineId = "some_random_machine_do_not_exist";
         final String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
-        final HttpResponse<String> httpResponse =  Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH +  stateMachineId + "/context/events").header("Content-Type", "application/json").body(eventJson).asString();
+        final HttpResponse<String> httpResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + stateMachineId + "/context/events").header("Content-Type", "application/json").body(eventJson).asString();
         assertThat(httpResponse.getStatus()).isEqualTo(HttpStatus.SC_ACCEPTED);
     }
 
     @Test
-    public void shouldProxyScheduledEventToOldCluster() throws Exception{
+    @Ignore("Feature no longer in use")
+    public void shouldProxyScheduledEventToOldCluster() throws Exception {
         final String stateMachineId = "some_random_machine_do_not_exist";
         final String eventJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
-        final HttpResponse<String> httpResponse =  Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH +  stateMachineId + "/context/events?triggerTime=0").header("Content-Type", "application/json").body(eventJson).asString();
+        final HttpResponse<String> httpResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + stateMachineId + "/context/events?triggerTime=0").header("Content-Type", "application/json").body(eventJson).asString();
         assertThat(httpResponse.getStatus()).isEqualTo(HttpStatus.SC_ACCEPTED);
     }
 

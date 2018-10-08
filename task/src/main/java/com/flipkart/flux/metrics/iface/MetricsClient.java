@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.metrics.iface;
 
+import com.codahale.metrics.MetricRegistry;
+
 /**
  * <code>MetricsClient</code> provides metrics related functionality, like rate meters or counters.
  * @author kaushal.hooda

@@ -1,0 +1,103 @@
+shard.Pair.Model.List:
+            -  shardId: 1
+               masterIp: "localhost:3306"
+               slaveIp:  "localhost:3306"
+               startKey: "00"
+               endKey:   "ff"
+
+
+
+flux.Hibernate:
+  hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
+  hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
+  hibernate.connection.url: "jdbc:mysql://localhost:3306/flux"
+  hibernate.connection.username: "root"
+  hibernate.connection.password: ""
+  hibernate.current_session_context_class: "managed"
+  connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
+  hibernate.c3p0.min_size: 3
+  hibernate.c3p0.max_size: 10
+
+
+fluxReadOnly.Hibernate:
+  hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
+  hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
+  hibernate.connection.url: "jdbc:mysql://localhost:3306/flux"
+  hibernate.connection.username: "root"
+  hibernate.connection.password: ""
+  hibernate.current_session_context_class: "managed"
+  connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
+  hibernate.c3p0.min_size: 3
+  hibernate.c3p0.max_size: 5
+
+flux_scheduler.Hibernate:
+  hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
+  hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
+  hibernate.connection.url: "jdbc:mysql://localhost:3306/flux_scheduler"
+  hibernate.connection.username: "root"
+  hibernate.connection.password: ""
+  hibernate.current_session_context_class: "managed"
+  connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
+  hibernate.c3p0.min_size: 3
+  hibernate.c3p0.max_size: 5
+
+Dashboard:
+  service.port: 9999
+  service.acceptors: 5
+  service.selectors: 10
+  service.workers: 30
+
+Api:
+  service.port: 9998
+  service.acceptors: 4
+  service.selectors: 4
+  service.workers: 100
+
+
+redriver:
+  batchDelete:
+    batchSize: 1000
+    intervalms: 2500
+  batchRead:
+    batchSize: 1000
+    intervalms: 2500
+  noOfPersistenceWorkers: 3
+
+eventScheduler:
+  batchRead:
+    batchSize: 50
+    intervalms: 1000
+
+runtime:
+  actorsystem:
+    metrics: false
+    name: FluxOrchestrationSystem
+    configname: application.conf
+
+task:
+  maxTaskRetryCount: 10
+
+eventProxyForMigration:
+  enabled: "no"
+  endpoint: "http://localhost:9998/api/machines"
+
+Execution.Node.Api:
+  service.port: 9997
+  service.acceptors: 4
+  service.selectors: 4
+  service.workers: 20
+
+routers:
+  default:
+    instancesPerNode: 5
+
+runtime:
+  actorsystem:
+    metrics: false
+    name: FluxExecutionSystem
+    configname: execution_akka.conf
+    maxTaskActorCreateRetries : -1
+
+flux.Orchestration.URL: "http://localhost:9998"
+deploymentType: directory
+deploymentUnitsPath: "/tmp/workflows/"

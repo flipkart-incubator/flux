@@ -1,0 +1,540 @@
+/* main.css 2008/04/22 nicolekonicki */
+
+/*
+ * MAIN CSS
+ *
+ * All css for the screen, other than color-specific styles,
+ * should be included here.  Color styles should be included
+ * in colors.css.
+ *
+ */
+
+/*
+ * COMMON STYLES
+ */
+
+  body
+  {
+    font: 12px Arial, Helvetica, "Bitstream Vera Sans", sans-serif;
+  }
+
+  #page
+  {
+    margin:8px;
+  }
+
+  
+
+
+/*
+ * HEADER STYLES
+ */
+
+  #header
+  {
+    background: #6c940b url(../images/header-stretch-green.png);
+    width: 100%;
+    height:	36px;
+    margin-bottom: -1px;
+  }
+
+  #name-and-company
+  {
+    background: #6c940b url(../images/header-stretch.png) top left no-repeat;
+    width: 100%;
+    height: 36px;
+    position:relative;
+    top:0px;
+    left:0px;
+  }
+
+  #site-name
+  {
+    margin: 0;
+    display: inline;
+    font-size: 150%;
+  }
+
+  #site-name a, #site-name a:hover
+  {
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    position:absolute;
+    top:13px;
+    left:18px;
+    text-decoration:none;
+  }
+
+  #company-name a
+  {
+    position:absolute;
+    right:0px;
+    background: url(../images/header-right.png) top right no-repeat;
+    height:72px;
+    width:190px;
+    font-size:8px;
+    text-align: center;
+  }
+
+
+/*
+ * TEXT FORMATTING STYLES
+ */
+
+h1 {
+	font-size: 1.4em;
+	padding:12px 0 5px 0;
+	line-height:125%;
+}
+
+h2 {
+	font-size: 1.2em;
+	padding:10px 0 2px 0;
+}
+
+h3 {
+	font-size: 1em;
+	padding:8px 0 5px 0;
+}
+
+h4 {
+	font-size: 1em;
+	padding-top:8px;
+}
+
+
+
+/*
+ * MENU STYLES
+ */
+
+  #primary-navigation
+  {
+  	padding: 0;
+    background: url(../images/primary-menu-stretch.png) repeat-x;
+    height:23px;
+    position:relative;
+    margin: 0px 0 0 0;
+  }
+  
+  #primary-left
+  {
+    background-repeat:no-repeat;
+    background-position:top left;
+    font-size: 93%;
+    line-height: normal;
+    padding: 0 0 0 0px;
+    height:23px;
+    position:relative;
+    float:left;
+  }
+  
+  #primary-right
+  {
+  	background-image: url(../images/primary-wrapper-right.png);
+    background-repeat:no-repeat;
+    background-position:top right;
+    font-size: 93%;
+    line-height: normal;
+    padding: 0 8px 0 0;
+    height:23px;
+    position:relative;
+    float:right;
+  }
+
+  #primary-left ul, #primary-right ul
+  {
+    padding: 0 0 0 5px;
+    margin: 0;
+    list-style: none;
+  }
+  
+  #primary-left li, #primary-right li
+  {
+    display:inline;
+  }
+
+
+  #primary-left a, #primary-right a
+  {
+    font-weight: normal;
+    display: block;
+    float: left;
+    padding: 5px 14px 5px 14px;
+    margin: 0px 1px 0 0;
+    background-position: 0% 0;
+    background-image: url(../images/primary-item-background.png);
+    background-repeat: repeat-x;
+  }
+
+  #primary-left a:hover, #primary-right a:hover
+  {
+    background-image:none;
+  }
+
+
+  #secondary-navigation
+  {
+    width:212px;
+    height:100%;
+    margin-left:16px;
+    float:left;
+  }
+
+  #secondary-navigation ul
+  {
+    margin: 0;
+    padding: 12px 0 0 0;
+    list-style: none;
+  }
+
+  #secondary-navigation li a
+  {
+    display: block;
+    text-decoration: none;
+    padding: 6px 5px;
+  }
+  
+  #secondary-navigation ul ul
+  {
+    margin: 0;
+    padding: 0 0 0 12px;
+    list-style: none;
+  }
+ 
+  #content 
+  {
+  	display:block;
+  	margin:10px 0;
+  	padding-bottom:20px;
+  }
+ 
+  #content.no-side-nav 
+  {
+  	margin-left: 19px;
+  }
+  
+/*
+ * CONTAINER STYLES
+ */  
+ 
+  #container
+  {
+    margin: 0;
+    padding-bottom:20px;
+    overflow:hidden;
+  }
+  
+/*
+ * TABLE STYLES
+ */    
+ 
+ table 
+ {
+ 	border-spacing:0;
+ 	margin:0;
+ 	border-collapse:collapse;
+ }
+ 
+ th 
+ {
+ 	height:19px;
+ 	text-align:left;
+ 	font-weight:bold;
+ 	margin:0;
+ 	padding:3px 6px 0 6px;
+ 	line-height:19px;
+ }
+ 
+ .bordered-table th
+ {
+ 	background-image: url(../images/table-header-background.png);
+    background-repeat: no-repeat;
+	background-size:100% 100%;
+	text-align:center;
+ }
+
+ td
+ {
+ 	margin:0;
+ 	padding:8px 8px;
+ 	vertical-align:top;
+ 	border-bottom: 1px
+ }
+ 
+ th.table-meta-data
+ {
+ 	text-align: right;
+ 	vertical-align: center;
+ }
+ 
+.name-sublevel1-odd 
+ {
+ 	padding-left:20px;
+ 	font-weight:bold;
+ }
+ 
+ .name-sublevel1-even 
+  {
+ 	padding-left:20px;
+ 	font-weight:bold;
+ } 
+ 
+ .two-tables
+ {
+ 	width:100%;
+ }
+ 
+ .two-tables .left
+ {
+ 	float:left;
+ }
+ 
+ .two-tables .right 
+ {
+ 	float:right;
+ }
+
+.controlLinks {
+	line-height: 1em;
+	list-style-image: none;
+	list-style-position: outside;
+	list-style-type: none;
+	margin: 0 0 1.5em;
+	padding: 0;
+	width: 100%;
+}
+
+.controlLinks li {
+	display: inline;
+	line-height: 1em;
+	list-style-image: none;
+	list-style-position: outside;
+	list-style-type: none;
+	margin: 0;
+	padding: 10px 10px 10px 0;
+}
+
+/*
+ * FORM STYLES
+ */
+
+  input, textarea, textfield
+  {
+    margin: 0;
+    font-family: Arial, Helvetica, "Bitstream Vera Sans", sans-serif;
+    padding: 1px;
+    font-size: 100%;
+  }
+  
+  input.small
+  {
+  	font-size: 80%;
+  	width: 3em;
+  	padding: 0px;
+  }
+
+  input.form-checkbox, input.form-radio
+  {
+    border: none;
+  }
+
+#search .form-text, #user-login-form .form-text
+  {
+    padding: 2px;
+  }
+
+  .form-submit, .button
+  {
+    padding: 1px;
+  }
+
+  #user-login-form
+  {
+    text-align: left;
+  }
+
+  #user-login-form .item-list ul
+  {
+    margin-top: 10px;
+  }
+
+/*
+ * ALERTS, STATUS, HELP MESSAGE STYLES
+ */
+
+  .messages
+  {
+    padding: 1.3em 1em .3em 52px;
+    margin: 10px 0;
+  }
+
+  .messages ul
+  {
+    padding: 0 0 0 20px;
+    margin: 0;
+  }
+
+/*
+ * FOOTER STYLES
+ */
+
+  #footer-wrapper
+  {
+  	clear:both;
+    margin: 0;
+    background-image: url(../images/footer-stretch.png);
+    background-repeat:repeat-x;
+    height: 29px;
+    width:100%;
+  }
+
+  #footer-left, #footer-right
+  {
+    margin: 0;
+    font-size: 85%;
+    padding: 1em;
+    height:29px;
+  }
+
+
+  #footer-left
+  {
+    text-align:left;
+    background-image: url(../images/footer-left.png);
+    background-repeat:no-repeat;
+    position:relative;
+    left:0;
+    float:left;
+  }
+  
+  #footer-right
+  {
+  	text-align:right;
+  	background-image: url(../images/footer-right.png);
+  	background-repeat:no-repeat;
+  	background-position:top right;
+  	position:relative;
+  	right:0;
+  	float:right;
+  }
+
+/* BUTTON STYLES
+*/
+
+.submit-button {
+   border: 1px solid #447314;
+   background: #6aa436;
+   background: -webkit-gradient(linear, left top, left bottom, from(#8dc059), to(#6aa436));
+   background: -webkit-linear-gradient(top, #8dc059, #6aa436);
+   background: -moz-linear-gradient(top, #8dc059, #6aa436);
+   background: -ms-linear-gradient(top, #8dc059, #6aa436);
+   background: -o-linear-gradient(top, #8dc059, #6aa436);
+   background-image: -ms-linear-gradient(top, #8dc059 0%, #6aa436 100%);
+   -webkit-border-radius: 4px;
+   -moz-border-radius: 4px;
+   border-radius: 4px;
+   -webkit-box-shadow: rgba(255,255,255,0.4) 0 1px 0, inset rgba(255,255,255,0.4) 0 1px 0;
+   -moz-box-shadow: rgba(255,255,255,0.4) 0 1px 0, inset rgba(255,255,255,0.4) 0 1px 0;
+   box-shadow: rgba(255,255,255,0.4) 0 1px 0, inset rgba(255,255,255,0.4) 0 1px 0;
+   text-shadow: #addc7e 0 1px 0;
+   color: #31540c;
+   font-family: helvetica, serif;
+   padding: 8.5px 18px;
+   font-size: 14px;
+   text-decoration: none;
+   vertical-align: middle;
+   }
+.submit-button:hover {
+   border: 1px solid #447314;
+   text-shadow: #31540c 0 1px 0;
+   background: #6aa436;
+   background: -webkit-gradient(linear, left top, left bottom, from(#8dc059), to(#6aa436));
+   background: -webkit-linear-gradient(top, #8dc059, #6aa436);
+   background: -moz-linear-gradient(top, #8dc059, #6aa436);
+   background: -ms-linear-gradient(top, #8dc059, #6aa436);
+   background: -o-linear-gradient(top, #8dc059, #6aa436);
+   background-image: -ms-linear-gradient(top, #8dc059 0%, #6aa436 100%);
+   color: #fff;
+   }
+.submit-button:active {
+   text-shadow: #31540c 0 1px 0;
+   border: 1px solid #447314;
+   background: #8dc059;
+   background: -webkit-gradient(linear, left top, left bottom, from(#6aa436), to(#6aa436));
+   background: -webkit-linear-gradient(top, #6aa436, #8dc059);
+   background: -moz-linear-gradient(top, #6aa436, #8dc059);
+   background: -ms-linear-gradient(top, #6aa436, #8dc059);
+   background: -o-linear-gradient(top, #6aa436, #8dc059);
+   background-image: -ms-linear-gradient(top, #6aa436 0%, #8dc059 100%);
+   color: #fff;
+   }
+   
+   /**
+   Dependency table style
+   */
+.dept {
+	border-collapse: separate;
+}
+tr.depr {
+	display: table-row;
+	border-color: #666;
+}
+tr.dep > td {
+  background-color: #d4ffaa;
+  width: 33%;
+}
+.Table
+{
+    display: table;
+}
+.Title
+{
+    display: table-caption;
+    text-align: center;
+    font-weight: bold;
+    font-size: larger;
+}
+.Heading
+{
+    display: table-row;
+    font-weight: bold;
+    text-align: center;
+}
+.Row
+{
+    display: table-row;
+}
+.Cell
+{
+    display: table-cell;
+    padding-left: 5px;
+    padding-right: 10px;
+    vertical-align: middle;
+    font-size: small;
+}
+.Legend div{
+    margin-left:15px;
+    width:16px;
+    border:1px solid #808080;
+    display:inline-block;
+}
+.initialized {background-color:#33ccff; width: 10px; height: 10px; float: right;}
+.running {background-color:#cc99ff;width: 10px; height: 10px; float: right;}
+.completed {background-color:#33cc33;width: 10px; height: 10px; float: right;}
+.cancelled {background-color:#993333;width: 10px; height: 10px; float: right;}
+.errored {background-color:#ff0000;width: 10px; height: 10px; float: right;}
+.sidelined {background-color:#FE854F;width: 10px; height: 10px;  float: right;}
+
+/*
+This css classes are written for customizing bootstrap modal used in the application
+*/
+.modal-header {
+    background-color: #3276b1;
+    color:white !important;
+    text-align: center;
+    font-size: 30px;
+}
+.modal-footer {
+    background-color: #f9f9f9;
+}

@@ -13,12 +13,12 @@
 
 package com.flipkart.flux.controller;
 
-import akka.actor.ActorRef;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventAndExecutionData;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.ExecutionUpdateData;
+import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
@@ -28,12 +28,13 @@ import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.impl.message.TaskAndEvents;
-import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.Storage;
+import com.flipkart.flux.representation.ClientElbPersistenceService;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
+import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.utils.LoggingUtils;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
@@ -76,12 +77,10 @@ public class WorkFlowExecutionController {
      * The DAO for AuditRecord related DB operations
      */
     private AuditDAO auditDAO;
-
-    /**
-     * The Router registry
+    /*
+     * Connector to forward the TaskAndEvents akka Message to client Remote Machine For Execution
      */
-    private RouterRegistry routerRegistry;
-
+    private ExecutionNodeTaskDispatcher executionNodeTaskDispatcher;
     /**
      * The Redriver Registry for driving stalled Tasks
      */
@@ -98,20 +97,30 @@ public class WorkFlowExecutionController {
     private ObjectMapper objectMapper;
 
     /**
+     * ClientElbPersistenceService to retrieve ClientElb URL from ClientElbDAO.
+     * This service searches in in-memory cache first, in case of miss hits DAO/DB layer.
+     * ClientElbUrl is the one where a particular state machines states is supposed to be executed.
+     */
+    private ClientElbPersistenceService clientElbPersistenceService;
+
+
+    /**
      * Constructor for this class
      */
     @Inject
     public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO,
-                                       StatesDAO statesDAO, AuditDAO auditDAO, RouterRegistry routerRegistry,
-                                       RedriverRegistry redriverRegistry, MetricsClient metricsClient) {
+                                       StatesDAO statesDAO, AuditDAO auditDAO, ExecutionNodeTaskDispatcher executionNodeTaskDispatcher,
+                                       RedriverRegistry redriverRegistry, MetricsClient metricsClient,
+                                       ClientElbPersistenceService clientElbPersistenceService) {
         this.eventsDAO = eventsDAO;
         this.stateMachinesDAO = stateMachinesDAO;
         this.statesDAO = statesDAO;
         this.auditDAO = auditDAO;
-        this.routerRegistry = routerRegistry;
+        this.executionNodeTaskDispatcher = executionNodeTaskDispatcher;
         this.redriverRegistry = redriverRegistry;
         this.metricsClient = metricsClient;
         this.objectMapper = new ObjectMapper();
+        this.clientElbPersistenceService = clientElbPersistenceService;
     }
 
     /**
@@ -127,7 +136,7 @@ public class WorkFlowExecutionController {
 
         final List<String> triggeredEvents = eventsDAO.findTriggeredOrCancelledEventsNamesBySMId(stateMachine.getId());
         Set<State> initialStates = context.getInitialStates(new HashSet<>(triggeredEvents));
-        executeStates(stateMachine, initialStates);
+        executeStates(stateMachine, initialStates, false);
 
         return initialStates;
     }
@@ -167,7 +176,7 @@ public class WorkFlowExecutionController {
         logger.info("Path cancellation is done for state machine: {} event: {} which has come from task: {}",
                 stateMachineId, eventAndExecutionData.getEventData().getName(), eventAndExecutionData.getExecutionUpdateData().getTaskId());
         StateMachine stateMachine = stateMachinesDAO.findById(stateMachineId);
-        executeStates(stateMachine, executableStates);
+        executeStates(stateMachine, executableStates, false);
     }
 
     /**
@@ -270,7 +279,7 @@ public class WorkFlowExecutionController {
         Set<State> executableStates = cancelPath(stateMachineId, eventData);
         logger.info("Path cancellation is done for state machine: {} event: {}",
                 stateMachineId, eventData.getName());
-        executeStates(stateMachinesDAO.findById(stateMachineId), executableStates);
+        executeStates(stateMachinesDAO.findById(stateMachineId), executableStates, false);
     }
 
     /**
@@ -328,7 +337,7 @@ public class WorkFlowExecutionController {
         Set<State> executableStates = getExecutableStates(dependantStates, stateMachine.getId());
         logger.debug("These states {} are now unblocked after event {}", executableStates, event.getName());
         //start execution of the above states
-        executeStates(stateMachine, executableStates, event);
+        executeStates(stateMachine, executableStates, event, false);
 
         return executableStates;
     }
@@ -436,7 +445,7 @@ public class WorkFlowExecutionController {
             askedState.setStatus(Status.unsidelined);
             askedState.setAttemptedNoOfRetries(0L);
             statesDAO.updateState(stateMachineId, askedState);
-            executeStates(stateMachine, Sets.newHashSet(Arrays.asList(askedState)));
+            executeStates(stateMachine, Sets.newHashSet(Arrays.asList(askedState)), false);
         }
     }
 
@@ -451,10 +460,10 @@ public class WorkFlowExecutionController {
     }
 
     /**
-     * Wrapper function on {@link #executeStates(StateMachine, Set, Event)} which triggers the execution of executableStates using Akka router.
+     * Wrapper function on {@link #executeStates(StateMachine, Set, Event, boolean)} which triggers the execution of executableStates using Akka router.
      */
-    private void executeStates(StateMachine stateMachine, Set<State> executableStates) {
-        executeStates(stateMachine, executableStates, null);
+    private void executeStates(StateMachine stateMachine, Set<State> executableStates, boolean redriverTriggered) {
+        executeStates(stateMachine, executableStates, null, redriverTriggered);
     }
 
     /**
@@ -463,7 +472,7 @@ public class WorkFlowExecutionController {
      * @param stateMachine     the state machine
      * @param executableStates states whose all dependencies are met
      */
-    private void executeStates(StateMachine stateMachine, Set<State> executableStates, Event currentEvent) {
+    private void executeStates(StateMachine stateMachine, Set<State> executableStates, Event currentEvent, boolean redriverTriggered) {
         try {
             LoggingUtils.registerStateMachineIdForLogging(stateMachine.getId().toString());
             executableStates.forEach((state -> {
@@ -483,26 +492,44 @@ public class WorkFlowExecutionController {
                     if (state.getStatus().equals(Status.initialized) || state.getStatus().equals(Status.unsidelined)) {
                         msg.setFirstTimeExecution(true);
                     }
+
                     // register the Task with the redriver
-                    if (state.getRetryCount() > 0) {
-                        // Delay between retires is exponential (2, 4, 8, 16, 32.... seconds) as seen in AkkaTask.
-                        // Redriver interval is set as 2 x ( 2^(retryCount+1) x 1s + (retryCount+1) x timeout)
-                        long redriverInterval = 2 * ((int) Math.pow(2, state.getRetryCount() + 1) * 1000 + (state.getRetryCount() + 1) * state.getTimeout());
-                        this.redriverRegistry.registerTask(state.getId(), state.getStateMachineId(), redriverInterval);
+                    // Delay between retires is exponential (2, 4, 8, 16, 32.... seconds) as seen in AkkaTask.
+                    // Redriver interval is set as 2 x ( 2^(retryCount+1) x 1s + (retryCount+1) x timeout)
+                    long redriverInterval;
+                    if (redriverTriggered && state.getStatus() == Status.initialized) {
+                        redriverInterval = 2 * ((int) Math.pow(2, 7) * 1000);
                     }
-                    //send the message to the Router
+                    else {
+                        redriverInterval = 2 * ((int) Math.pow(2, state.getRetryCount() + 1) * 1000 + (state.getRetryCount() + 1) * state.getTimeout());
+                    }
+                    this.redriverRegistry.registerTask(state.getId(), state.getStateMachineId(), redriverInterval);
+
+                    //send t=dhe message to the Router
                     String taskName = state.getTask();
-                    int secondUnderscorePosition = taskName.indexOf('_', taskName.indexOf('_') + 1);
-                    String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition); //the name of router would be classFQN_taskMethodName
-                    ActorRef router = this.routerRegistry.getRouter(routerName);
-                    router.tell(msg, ActorRef.noSender());
-                    metricsClient.incCounter(new StringBuilder().
-                            append("stateMachine.").
-                            append(msg.getStateMachineName()).
-                            append(".task.").
-                            append(msg.getTaskName()).
-                            append(".queueSize").toString());
-                    logger.info("Sending msg to router: {} to execute state machine: {} task: {}", router.path(), stateMachine.getId(), msg.getTaskId());
+                    String routerName = getRouterName(taskName);
+                    /*
+                     *  sending message to remote Execution Node for execution
+                     *  Endpoint to be fetched from Cache or DB
+                     * */
+                    TaskExecutionMessage taskExecutionMessage = new TaskExecutionMessage(routerName, msg);
+
+                    String clientElbUrl = clientElbPersistenceService.findByIdClientElb(stateMachine.getClientElbId());
+                    String endPoint = clientElbUrl + "/api/execution";
+                    long startTime = System.currentTimeMillis();
+                    int statusCode = executionNodeTaskDispatcher.forwardExecutionMessage(endPoint, taskExecutionMessage);
+                    long finishTime = System.currentTimeMillis();
+                    if (statusCode == 202) {
+                        logger.info("Successfully forwarded the taskExecutionMsg for smId:{} taskId:{} for" +
+                                        " remoteExecution to host {} took {}ms", msg.getStateMachineId(),
+                                msg.getTaskId(), endPoint, finishTime - startTime);
+                    } else {
+                        logger.error("Failed to succesfully send task for Execution smId:{} taskId:{}," +
+                                        " should be retried by Redriver after {} ms.",
+                                msg.getStateMachineId(), msg.getTaskId(), redriverInterval);
+
+                    }
+
                 } else {
                     logger.info("State machine: {} Task: {} execution request got discarded as the task is {}", state.getStateMachineId(), state.getId(), state.getStatus());
                 }
@@ -544,11 +571,11 @@ public class WorkFlowExecutionController {
         try {
             State state = statesDAO.findById(machineId, taskId);
 
-            if (state != null && isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() < state.getRetryCount()) {
+            if (state != null && isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() <= state.getRetryCount()) {
                 StateMachine stateMachine = retrieveStateMachine(state.getStateMachineId());
                 LoggingUtils.registerStateMachineIdForLogging(stateMachine.getId().toString());
                 logger.info("Redriving a task with Id: {} for state machine: {}", state.getId(), state.getStateMachineId());
-                executeStates(stateMachine, Collections.singleton(state));
+                executeStates(stateMachine, Collections.singleton(state), true);
             } else {
                 //cleanup the tasks which can't be redrived from redriver db
                 this.redriverRegistry.deRegisterTask(machineId, taskId);
@@ -577,5 +604,15 @@ public class WorkFlowExecutionController {
             this.statesDAO.updateStatus(stateMachine.getId(), state.getId(), Status.cancelled);
             this.auditDAO.create(stateMachine.getId(), new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNoOfRetries(), Status.cancelled, null, null));
         });
+    }
+
+    /*
+     * Returns a routerName for the task, given TaskName
+     *
+     * */
+    public static String getRouterName(String taskName) {
+        int secondUnderscorePosition = taskName.indexOf('_', taskName.indexOf('_') + 1);
+        String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition);
+        return routerName;
     }
 }

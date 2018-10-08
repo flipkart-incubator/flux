@@ -17,6 +17,7 @@ package com.flipkart.flux.client.intercept;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.client.config.FluxClientConfiguration;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.IntegerEvent;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEvent;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEventWithContext;
@@ -51,6 +52,9 @@ public class WorkflowInterceptorTest {
     @Mock
     FluxRuntimeConnector fluxRuntimeConnector;
 
+    @Mock
+    FluxClientConfiguration fluxClientConfiguration;
+
     WorkflowInterceptor workflowInterceptor;
     private ObjectMapper objectMapper;
 
@@ -58,7 +62,7 @@ public class WorkflowInterceptorTest {
     public void setUp() throws Exception {
         objectMapper = new ObjectMapper();
         workflowInterceptor = new WorkflowInterceptor(localContext,() -> fluxRuntimeConnector,
-                                                      () -> objectMapper);
+                                                      () -> objectMapper, () -> fluxClientConfiguration);
     }
 
     @Test
@@ -66,7 +70,8 @@ public class WorkflowInterceptorTest {
         final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("simpleDummyWorkflow", StringEvent.class, IntegerEvent.class);
         workflowInterceptor.invoke(dummyInvocation(invokedMethod));
         final String expectedWorkflowIdentifer = new MethodId(invokedMethod).toString() + _VERSION + "1";
-        Mockito.verify(localContext, times(1)).registerNew(expectedWorkflowIdentifer, 1, "",null);
+        Mockito.verify(localContext, times(1)).registerNew(expectedWorkflowIdentifer, 1,
+                "",null, null);
     }
 
     @Test
@@ -124,7 +129,9 @@ public class WorkflowInterceptorTest {
         /* invoke method */
         workflowInterceptor.invoke(dummyInvocation(invokedMethod,new Object[]{testStringEvent,testIntegerEvent}));
         /* verifications */
-        verify(localContext,times(1)).registerNew(new MethodId(invokedMethod).toString()+_VERSION+"1",1,"","aContextId");
+        verify(localContext,times(1)).registerNew(
+                new MethodId(invokedMethod).toString()+_VERSION+"1",1,"",
+                "aContextId", null);
     }
 
     @Test(expected = IllegalSignatureException.class)
@@ -145,7 +152,9 @@ public class WorkflowInterceptorTest {
         final StringEvent wfParam2 = new StringEvent("foobar2");
         final MethodInvocation invocation = dummyInvocation(SimpleWorkflowForTest.class.getDeclaredMethod("simpleDummyWorkflow", StringEvent[].class), new Object[]{new StringEvent[]{wfParam1,wfParam2}});
         workflowInterceptor.invoke(invocation);
-        verify(localContext,times(1)).registerNew(new MethodId(invocation.getMethod()).toString()+_VERSION+"1", 1l, "",null);
+        verify(localContext,times(1)).registerNew(
+                new MethodId(invocation.getMethod()).toString()+_VERSION+"1", 1l, "",
+                null, null);
         final EventData expectedData1 = new EventData("someName" /*cuz were using mock localContext */, "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent", objectMapper.writeValueAsString(wfParam1), CLIENT);
         final EventData expectedData2 = new EventData("someName", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent", objectMapper.writeValueAsString(wfParam2), CLIENT);
         verify(localContext,times(1)).addEvents(expectedData1,expectedData2);

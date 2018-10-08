@@ -15,6 +15,7 @@ package com.flipkart.flux.redriver.service;
 
 import com.codahale.metrics.InstrumentedExecutorService;
 import com.codahale.metrics.InstrumentedScheduledExecutorService;
+import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SharedMetricRegistries;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
@@ -48,24 +49,35 @@ public class MessageManagerService implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(MessageManagerService.class);
     private static final String scheduledDeletionSvcName = "redriver-batch-delete-executor-svc";
     private static final String taskRegisterSvcName = "redriver-task-register-executor-svc";
+    private static final String scheduledInsertionSvcName = "redriver-batch-insertion-executer-svc";
     private static final String scheduledDeletionSvcFailureCounter = "scheduled.deletion.failure.counter";
     private final MessageDao messageDao;
     private final Integer batchDeleteInterval;
-    private final Integer batchSize;
+    private final Integer batchDeleteSize;
+    private final Integer batchInsertInterval;
+    private final Integer batchInsertSize;
     private final ConcurrentLinkedQueue<SmIdAndTaskIdPair> messagesToDelete;
+    private final ConcurrentLinkedQueue<ScheduledMessage> messagesToInsertOrUpdate;
     private final InstrumentedScheduledExecutorService scheduledDeletionService;
+    private final InstrumentedScheduledExecutorService scheduledInsertionService;
     private final InstrumentedExecutorService persistenceExecutorService;
-
 
     @Inject
     public MessageManagerService(MessageDao messageDao,
                                  @Named("redriver.noOfPersistenceWorkers") int noOfPersistenceWorkers,
                                  @Named("redriver.batchDelete.intervalms") Integer batchDeleteInterval,
-                                 @Named("redriver.batchDelete.batchSize") Integer batchSize) {
+                                 @Named("redriver.batchDelete.batchSize") Integer batchDeleteSize,
+                                 @Named("redriver.batchInsert.batchSize") Integer batchInsertSize,
+                                 @Named("redriver.batchInsert.intervalms") Integer batchInsertInterval) {
         this.messageDao = messageDao;
         this.batchDeleteInterval = batchDeleteInterval;
-        this.batchSize = batchSize;
+        this.batchDeleteSize = batchDeleteSize;
+        this.batchInsertInterval = batchInsertInterval;
+        this.batchInsertSize = batchInsertSize;
+        this.messagesToInsertOrUpdate = new ConcurrentLinkedQueue<>();
         this.messagesToDelete = new ConcurrentLinkedQueue<>();
+        scheduledInsertionService = new InstrumentedScheduledExecutorService(Executors.newScheduledThreadPool(3),
+                SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME), scheduledInsertionSvcName);
         scheduledDeletionService =
                 new InstrumentedScheduledExecutorService(Executors.newScheduledThreadPool(2), SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME), scheduledDeletionSvcName);
         persistenceExecutorService =
@@ -78,10 +90,12 @@ public class MessageManagerService implements Initializable {
     }
 
     public void saveMessage(ScheduledMessage message) {
-        persistenceExecutorService.execute(() -> messageDao.save(message));
+        messagesToInsertOrUpdate.add(message);
+        // persistenceExecutorService.execute(() -> messageDao.save(message));
     }
 
     public void scheduleForRemoval(String stateMachine, Long taskId) {
+        // persistenceExecutorService.execute(() -> messageDao.delete(new SmIdAndTaskIdPair(stateMachine, taskId)));
         messagesToDelete.add(new SmIdAndTaskIdPair(stateMachine, taskId));
     }
 
@@ -89,21 +103,38 @@ public class MessageManagerService implements Initializable {
     public void initialize() {
         scheduledDeletionService.scheduleAtFixedRate(() -> {
             try {
-                logger.info("Running Deletion job, trying deleting {} messages", Math.min(batchSize, messagesToDelete.size()));
                 SmIdAndTaskIdPair currentMessageIdToDelete = null;
-                List messageIdsToDelete = new ArrayList<SmIdAndTaskIdPair>(batchSize);
-                while (messageIdsToDelete.size() < batchSize && (currentMessageIdToDelete = messagesToDelete.poll()) != null) {
+                List messageIdsToDelete = new ArrayList<SmIdAndTaskIdPair>(batchDeleteSize);
+                while (messageIdsToDelete.size() < batchDeleteSize && (currentMessageIdToDelete = messagesToDelete.poll()) != null) {
                     messageIdsToDelete.add(currentMessageIdToDelete);
                 }
                 if (!messageIdsToDelete.isEmpty()) {
-                   int rowsAffected =  messageDao.deleteInBatch(messageIdsToDelete);
-                   logger.info("Actually Deleted {} rows", rowsAffected);
+                    logger.info("Running Deletion job, trying deleting {} messages", messageIdsToDelete.size());
+                    int rowsAffected = messageDao.deleteInBatch(messageIdsToDelete);
+                    logger.info("Actually Deleted {} rows", rowsAffected);
                 }
             } catch (Throwable throwable) {
                 logger.error("ScheduledDeletion Job failed for Redriver Messages.", throwable);
             }
         }, 0l, batchDeleteInterval, TimeUnit.MILLISECONDS);
 
+        scheduledInsertionService.scheduleAtFixedRate(() -> {
+            try {
+                ScheduledMessage currentMessageIdToInsert = null;
+                List messagesToInsert = new ArrayList<ScheduledMessage>(batchInsertSize);
+                while (messagesToInsert.size() < batchInsertSize && (currentMessageIdToInsert = messagesToInsertOrUpdate.poll()) != null) {
+                    messagesToInsert.add(currentMessageIdToInsert);
+                }
+                if (!messagesToInsert.isEmpty()) {
+                    logger.info("Running Insertion job, trying inserting {} messages", messagesToInsert.size());
+                    int rowsAffected = messageDao.bulkInsertOrUpdate(messagesToInsert);
+                    logger.info("Actually Inserted/Updated {} rows", rowsAffected);
+                }
+            } catch (Throwable throwable) {
+                logger.error("ScheduledInsertion Job failed for Redriver Messages.", throwable);
+            }
+        }, 0l, batchInsertInterval, TimeUnit.MILLISECONDS);
+        registerShutdownHook(scheduledInsertionService, 10, "Could not shutdown executorService " + scheduledInsertionService);
         registerShutdownHook(scheduledDeletionService, 2, "Could not shutdown executorService " + scheduledDeletionSvcName);
         registerShutdownHook(persistenceExecutorService, 5, "Error occurred while terminating Redriver's persistence executor service");
     }

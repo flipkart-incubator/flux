@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.module;
 
+import com.flipkart.flux.clientelb.dao.ClientElbDAOImpl;
+import com.flipkart.flux.domain.ClientElb;
 import com.flipkart.flux.eventscheduler.dao.EventSchedulerDao;
 import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
@@ -57,6 +59,7 @@ public class SchedulerModule extends AbstractModule {
         final TransactionInterceptor transactionInterceptor = new TransactionInterceptor(provider);
         bindInterceptor(Matchers.inPackage(MessageDao.class.getPackage()), Matchers.annotatedWith(Transactional.class), transactionInterceptor);
         bindInterceptor(Matchers.inPackage(EventSchedulerDao.class.getPackage()), Matchers.annotatedWith(Transactional.class), transactionInterceptor);
+        bindInterceptor(Matchers.inPackage(ClientElbDAOImpl.class.getPackage()), Matchers.annotatedWith(Transactional.class), transactionInterceptor);
     }
 
     /**
@@ -100,6 +103,7 @@ public class SchedulerModule extends AbstractModule {
 
         configuration.addAnnotatedClass(ScheduledMessage.class);
         configuration.addAnnotatedClass(ScheduledEvent.class);
+        configuration.addAnnotatedClass(ClientElb.class);
     }
 
     @Provides

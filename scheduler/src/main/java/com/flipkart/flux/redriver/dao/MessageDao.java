@@ -50,10 +50,29 @@ public class MessageDao {
         currentSession().saveOrUpdate(scheduledMessage);
     }
 
+
+    @Transactional
+    @SelectDataSource(storage = Storage.SCHEDULER)
+    public int bulkInsertOrUpdate(List<ScheduledMessage> messages) {
+        StringBuilder query = new StringBuilder("insert into ScheduledMessages ( stateMachineId , taskId , " +
+                "scheduledTime )  values ");
+        messages.forEach(scheduledMessage -> {
+            query.append("( \'").append(scheduledMessage.getStateMachineId()).append("\' , ");
+            query.append(scheduledMessage.getTaskId()).append(" , ");
+            query.append(scheduledMessage.getScheduledTime()).append("), ");
+        });
+        query.deleteCharAt(query.length()-1);
+        query.setCharAt(query.length() - 1, ' ');
+        query.append("on duplicate key update scheduledTime = values(scheduledTime)");
+        // created native SQL query, required full table name.
+        final Query insertOrUpdateQuery = currentSession().createSQLQuery(query.toString());
+        return insertOrUpdateQuery.executeUpdate();
+    }
+
     @Transactional
     @SelectDataSource(storage = Storage.SCHEDULER)
     public Long redriverCount() {
-      return  ((Long)currentSession().createQuery("select count(*) from ScheduledMessage").iterate().next());
+        return ((Long) currentSession().createQuery("select count(*) from ScheduledMessage").iterate().next());
     }
 
     /**
@@ -93,6 +112,15 @@ public class MessageDao {
         queryBuilder.setCharAt(queryBuilder.length() - 1, ')');
         final Query deleteQuery = currentSession().createQuery(queryBuilder.toString());
         return deleteQuery.executeUpdate();
+    }
+
+    @Transactional
+    @SelectDataSource(storage = Storage.SCHEDULER)
+    public void delete(SmIdAndTaskIdPair smIdAndTaskIdPair) {
+        Query query = currentSession().createQuery("delete from ScheduledMessage where stateMachineId = :smId and taskId = :taskId");
+        query.setString("smId", smIdAndTaskIdPair.getSmId());
+        query.setLong("taskId", smIdAndTaskIdPair.getTaskId());
+        query.executeUpdate();
     }
 
     /**

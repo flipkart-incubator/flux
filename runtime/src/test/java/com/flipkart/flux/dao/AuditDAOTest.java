@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.dao;
 
+import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
@@ -21,8 +22,8 @@ import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.guice.module.AkkaModule;
 import com.flipkart.flux.guice.module.ContainerModule;
+import com.flipkart.flux.guice.module.OrchestrationTaskModule;
 import com.flipkart.flux.guice.module.ShardModule;
-import com.flipkart.flux.impl.boot.TaskModule;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
 import com.flipkart.flux.module.RuntimeTestModule;
 import com.flipkart.flux.rule.DbClearWithTestSMRule;
@@ -44,13 +45,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author kartik.bommepally
  */
 @RunWith(GuiceJunit4Runner.class)
-@Modules({DeploymentUnitTestModule.class, ShardModule.class, RuntimeTestModule.class, ContainerModule.class, AkkaModule.class, TaskModule.class, FluxClientInterceptorModule.class})
+@Modules(orchestrationModules = {ShardModule.class, RuntimeTestModule.class, ContainerModule.class, OrchestrationTaskModule.class, FluxClientInterceptorModule.class})
 public class AuditDAOTest {
 
-    @Inject
+    @InjectFromRole
     AuditDAO auditDAO;
 
-    @Inject
+    @InjectFromRole
     @Rule
     public DbClearWithTestSMRule dbClearWithTestSMRule;
 

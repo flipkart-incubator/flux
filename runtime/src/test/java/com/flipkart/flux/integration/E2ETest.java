@@ -14,28 +14,31 @@
 
 package com.flipkart.flux.integration;
 
+import com.flipkart.flux.FluxRuntimeRole;
+import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.client.registry.Executable;
-import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.guice.annotation.ManagedEnv;
-import com.flipkart.flux.guice.module.AkkaModule;
-import com.flipkart.flux.guice.module.ContainerModule;
-import com.flipkart.flux.guice.module.ShardModule;
-import com.flipkart.flux.impl.boot.TaskModule;
-import com.flipkart.flux.initializer.OrderedComponentBooter;
+import com.flipkart.flux.guice.module.*;
+import com.flipkart.flux.initializer.ExecutionOrderedComponentBooter;
+import com.flipkart.flux.initializer.OrchestrationOrderedComponentBooter;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
 import com.flipkart.flux.module.RuntimeTestModule;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.registry.TaskExecutableImpl;
+import com.flipkart.flux.registry.TaskExecutableRegistryImpl;
 import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,43 +49,70 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(GuiceJunit4Runner.class)
-@Modules({DeploymentUnitTestModule.class,ShardModule.class,RuntimeTestModule.class,ContainerModule.class,AkkaModule.class,TaskModule.class,FluxClientInterceptorModule.class})
+@Modules(orchestrationModules = {ShardModule.class, RuntimeTestModule.class, ContainerModule.class,
+        OrchestrationTaskModule.class, FluxClientInterceptorModule.class},
+        executionModules = { DeploymentUnitTestModule.class, AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class, FluxClientInterceptorModule.class})
 public class E2ETest {
 
-    @Inject
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     StateMachinesDAO stateMachinesDAO;
 
-    @Inject
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     ParallelScatterGatherQueryHelper parallelScatterGatherQueryHelper;
 
-    @Inject
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     EventsDAO eventsDAO;
 
     @Rule
-    @Inject
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     public DbClearRule dbClearRule;
 
-    @Inject
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     SimpleWorkflow simpleWorkflow;
 
-    @Inject
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
+    OrchestrationOrderedComponentBooter orchestrationOrderedComponentBooter;
+
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     TestCancelPathWorkflow testCancelPathWorkflow;
 
-    @Inject
-    OrderedComponentBooter orderedComponentBooter;
-
-    /** Needed to populate deployment units before beginning the test */
-    @Inject
+    /**
+     * Needed to populate deployment units before beginning the test
+     */
+    @InjectFromRole(value = FluxRuntimeRole.EXECUTION)
     DeploymentUnitsManager deploymentUnitManager;
 
-    @Inject
-    @ManagedEnv
-    ExecutableRegistry registry;
+    @InjectFromRole(value = FluxRuntimeRole.EXECUTION)
+    TaskExecutableRegistryImpl registry;
 
-    @Inject
+    @InjectFromRole(value = FluxRuntimeRole.EXECUTION)
+    ExecutionOrderedComponentBooter executionOrderedComponentBooter;
+
+    @Before
+    public void setUp() {
+        try {
+            Unirest.post("http://localhost:9998/api/client-elb/create")
+                    .queryString("clientId", "defaultElbId").queryString("clientElbUrl",
+                    "http://localhost:9997").asString();
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @After
+    public void tearDown() {
+        try {
+            Unirest.post("http://localhost:9998/api/client-elb/delete")
+                    .queryString("clientId", "defaultElbId").asString();
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     RedriverRegistry redriverRegistry;
 
-    @Inject
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     MessageDao messageDao;
 
     @Test
@@ -93,7 +123,7 @@ public class E2ETest {
         Thread.sleep(2000L);
 
         /* Asserts*/
-        final Set<StateMachine> smInDb =  parallelScatterGatherQueryHelper.findStateMachinesByNameAndVersion("com.flipkart.flux.integration.SimpleWorkflow_simpleDummyWorkflow_void_com.flipkart.flux.integration.StringEvent_version1", 1l);
+        final Set<StateMachine> smInDb = parallelScatterGatherQueryHelper.findStateMachinesByNameAndVersion("com.flipkart.flux.integration.SimpleWorkflow_simpleDummyWorkflow_void_com.flipkart.flux.integration.StringEvent_version1", 1l);
         final String smId = smInDb.stream().findFirst().get().getId();
         assertThat(smInDb).hasSize(1);
         assertThat(eventsDAO.findBySMInstanceId(smId)).hasSize(3);
@@ -129,24 +159,25 @@ public class E2ETest {
     @Test
     public void testExecConcurrencyValueOfTask() {
         Executable executable = registry.getTask("com.flipkart.flux.integration.SimpleWorkflow_simpleStringReturningTask_com.flipkart.flux.integration.StringEvent_com.flipkart.flux.integration.StringEvent_version1");
-
         assertThat(executable).isInstanceOf(TaskExecutableImpl.class);
-        TaskExecutableImpl taskExecutable = (TaskExecutableImpl)executable;
+        TaskExecutableImpl taskExecutable = (TaskExecutableImpl) executable;
         assertThat(taskExecutable.getExecutionConcurrency()).isEqualTo(5);
     }
 
     @Test
     public void verifyRedriverPolling(){
         dbClearRule.explicitClearTables();
-        for(int i = 0 ; i < 1000; i++)
+        for(int i = 0 ; i < 100; i++)
             redriverRegistry.registerTask(i * 1L, "smId", 0);
-        for(int i = 1; i <= 1000 ; i++)
+        for(int i = 1; i <= 100 ; i++)
             redriverRegistry.registerTask( 1000L + i, "smId",  (i*10000000L));
+        Long total  = messageDao.redriverCount();
         try {
-            Thread.sleep(13000);
-            assertThat(messageDao.redriverCount()).isEqualTo(1000L);
+            Thread.sleep(12000);
         }
         catch (InterruptedException ex){
         }
+        assertThat(messageDao.redriverCount()).isEqualTo(100L);
+        dbClearRule.explicitClearTables();
     }
 }

@@ -13,8 +13,6 @@
 
 package com.flipkart.flux.initializer;
 
-import com.flipkart.flux.impl.boot.ActorSystemManager;
-import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.flipkart.polyguice.core.Initializable;
 import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
@@ -25,28 +23,23 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 /**
- *  <code>OrderedComponentBooter</code> boots various components one after the other. This is makeshift - till we get something equivalent to trooper
- *  (https://github.com/regunathb/Trooper)
- *  @author yogesh.nachnani
+ * <code>OrchestrationOrderedComponentBooter</code> boots various components one after the other. This is makeshift - till we get something equivalent to trooper
+ * (https://github.com/regunathb/Trooper)
+ *
+ * @author yogesh.nachnani
  */
 @Singleton
-public class OrderedComponentBooter implements Initializable {
-    private static final Logger logger = LoggerFactory.getLogger(OrderedComponentBooter.class);
+public class OrchestrationOrderedComponentBooter implements Initializable {
+
+    private static final Logger logger = LoggerFactory.getLogger(OrchestrationOrderedComponentBooter.class);
     private final Server apiServer;
     private final Server dashboardServer;
-    private final ActorSystemManager actorSystemManager;
-    private final RouterRegistry routerRegistry;
 
     @Inject
-    public OrderedComponentBooter(RouterRegistry routerRegistry,
-                                  @Named("APIJettyServer") Server apiServer,
-                                  @Named("DashboardJettyServer") Server dashboardServer,
-                                  ActorSystemManager actorSystemManager
-    ) {
-        this.routerRegistry = routerRegistry;
+    public OrchestrationOrderedComponentBooter(@Named("APIJettyServer") Server apiServer,
+                                               @Named("DashboardJettyServer") Server dashboardServer) {
         this.apiServer = apiServer;
         this.dashboardServer = dashboardServer;
-        this.actorSystemManager = actorSystemManager;
     }
 
     @Override
@@ -56,17 +49,12 @@ public class OrderedComponentBooter implements Initializable {
             We're just making do for now
          */
 
-        /** The akka run time should have booted up by now , check that */
-        if (!this.actorSystemManager.isInitialised()) {
-            throw new RuntimeException("Actor System should have been initialised by now. WTF!!");
-        }
-
         try {
-             /* Bring up the API server */
+            /* Bring up the API server */
             logger.info("loading API server");
             apiServer.start();
             logger.info("API server started. Say Hello!");
-        /* Bring up the Dashboard server */
+            /* Bring up the Dashboard server */
             logger.info("Loading Dashboard Server");
             dashboardServer.start();
             logger.info("Dashboard server has started. Say Hello!");

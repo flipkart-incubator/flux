@@ -17,6 +17,7 @@ package com.flipkart.flux.client.intercept;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.client.config.FluxClientConfiguration;
 import com.flipkart.flux.client.model.CorrelationId;
 import com.flipkart.flux.client.model.Event;
 import com.flipkart.flux.client.model.Workflow;
@@ -54,15 +55,20 @@ public class WorkflowInterceptor implements MethodInterceptor {
     @Inject
     private Provider<ObjectMapper> objectMapperProvider;
 
+    @Inject
+    private Provider<FluxClientConfiguration> fluxClientConfigurationProvider;
+
     public WorkflowInterceptor() {
     }
 
     @VisibleForTesting
-    public WorkflowInterceptor(LocalContext localContext, Provider<FluxRuntimeConnector> connectorProvider, Provider<ObjectMapper> objectMapperProvider) {
+    public WorkflowInterceptor(LocalContext localContext, Provider<FluxRuntimeConnector> connectorProvider,
+                               Provider<ObjectMapper> objectMapperProvider, Provider<FluxClientConfiguration> fluxClientConfigurationProvider) {
         this();
         this.localContext = localContext;
         this.connectorProvider = connectorProvider;
         this.objectMapperProvider = objectMapperProvider;
+        this.fluxClientConfigurationProvider = fluxClientConfigurationProvider;
     }
 
     @Override
@@ -73,7 +79,8 @@ public class WorkflowInterceptor implements MethodInterceptor {
             checkForBadSignatures(invocation);
             final String correlationId = checkForCorrelationId(invocation.getArguments());
             Workflow workflow = workFlowAnnotations[0];
-            localContext.registerNew(generateWorkflowIdentifier(method, workflow), workflow.version(), workflow.description(),correlationId);
+            localContext.registerNew(generateWorkflowIdentifier(method, workflow), workflow.version(),
+                    workflow.description(),correlationId, fluxClientConfigurationProvider.get().getClientElbId());
             registerEventsForArguments(invocation.getArguments());
             invocation.proceed();
             connectorProvider.get().submitNewWorkflow(localContext.getStateMachineDef());

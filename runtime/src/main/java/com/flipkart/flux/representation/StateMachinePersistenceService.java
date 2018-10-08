@@ -22,8 +22,8 @@ import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.*;
 import com.flipkart.flux.persistence.DataSourceType;
-import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.persistence.SelectDataSource;
+import com.flipkart.flux.persistence.Storage;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -83,10 +83,9 @@ public class StateMachinePersistenceService {
         StateMachine stateMachine = new StateMachine(stateMachineId, stateMachineDefinition.getVersion(),
                 stateMachineDefinition.getName(),
                 stateMachineDefinition.getDescription(),
-                states);
+                states, stateMachineDefinition.getClientElbId());
 
         stateMachinesDAO.create(stateMachineId, stateMachine);
-
         for (Event event : allEvents) {
             event.setStateMachineInstanceId(stateMachine.getId());
             eventPersistenceService.persistEvent(event);

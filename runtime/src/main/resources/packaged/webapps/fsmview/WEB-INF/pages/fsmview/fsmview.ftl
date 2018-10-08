@@ -1,4 +1,4 @@
-<#include "./../header.ftl">
+<#include "header.ftl">
 
     <!-- The JoinJS CSS -->
     <link rel="stylesheet" type="text/css" href="/admin/fsm-dashboard/css/joint.css" />

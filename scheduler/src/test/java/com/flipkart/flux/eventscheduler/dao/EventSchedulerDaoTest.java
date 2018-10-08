@@ -13,13 +13,13 @@
 
 package com.flipkart.flux.eventscheduler.dao;
 
+import com.flipkart.flux.FluxRuntimeRole;
+import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.boot.SchedulerTestModule;
 import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
-import com.flipkart.flux.guice.module.ConfigModule;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
-import com.google.inject.Inject;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.context.internal.ManagedSessionContext;
@@ -27,22 +27,19 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.inject.Named;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author shyam.akirala
  */
 @RunWith(GuiceJunit4Runner.class)
-@Modules({ConfigModule.class, SchedulerTestModule.class})
+@Modules(orchestrationModules = {SchedulerTestModule.class}, executionModules = {})
 public class EventSchedulerDaoTest {
 
-    @Inject
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     EventSchedulerDao eventSchedulerDao;
 
-    @Inject
-    @Named("schedulerSessionFactoriesContext")
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION, name = "schedulerSessionFactoriesContext")
     SessionFactoryContext sessionFactory;
 
     @Before

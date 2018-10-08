@@ -26,5 +26,6 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Documented
 public @interface Modules {
-    Class<? extends AbstractModule>[] value();
+    Class<? extends AbstractModule>[] orchestrationModules() default {};
+    Class<? extends AbstractModule>[] executionModules() default {};
 }

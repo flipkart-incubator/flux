@@ -17,24 +17,21 @@ http://www.springframework.org/schema/context/spring-context-3.0.xsd">
  	
  	<!-- freemarker config -->
     <bean id="freemarkerConfig" class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
-      <property name="templateLoaderPath" value="/WEB-INF/pages/"/>
+      <property name="templateLoaderPath" value="/WEB-INF/pages/fsmview"/>
     </bean>
      
     <!-- 
       View resolvers can also be configured with ResourceBundles or XML files. If you need
       different view resolving based on Locale, you have to use the resource bundle resolver.
     -->
-    <bean id="viewResolver" class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver">
-      <property name="cache" value="true"/>
-      <property name="prefix" value=""/>
-      <property name="suffix" value=".ftl"/>
-    </bean>
+	<bean id="viewResolverFsmView" class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver">
+		<property name="cache" value="true"/>
+		<property name="prefix" value=""/>
+		<property name="suffix" value=".ftl"/>
+	</bean>
  
     <!-- Static resources -->
 	<mvc:resources location="WEB-INF/pages/resources/" mapping="resources/**" /> <!-- Resources for Web Console -->
-	<mvc:resources location="WEB-INF/hystrix-dashboard/" mapping="dashboard/**" /> <!-- Hystrix dashboard -->
- 	<mvc:resources location="WEB-INF/hystrix-dashboard/" mapping="hystrix-dashboard/**" /> <!--  Hystrix dashboard -->
-	<mvc:resources location="WEB-INF/hystrix-dashboard/components/" mapping="components/**" /> <!--Hystrix dashboard  -->
 	<mvc:resources location="WEB-INF/fsm-dashboard/" mapping="fsm-dashboard/**" /> <!-- FSM dashboard -->
 	<mvc:resources location="WEB-INF/fsm-dashboard/" mapping="fsmview/**" /> <!-- FSM dashboard -->
 	<mvc:resources mapping="/favicon.ico" location="/WEB-INF/pages/resources/images/favicon.ico" />

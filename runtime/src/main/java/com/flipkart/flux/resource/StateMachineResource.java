@@ -17,7 +17,6 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.*;
-import com.flipkart.flux.utils.LoggingUtils;
 import com.flipkart.flux.client.runtime.EventProxyConnector;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
 import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
@@ -36,6 +35,7 @@ import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
+import com.flipkart.flux.utils.LoggingUtils;
 import com.google.inject.Inject;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
@@ -52,6 +52,8 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.flipkart.flux.constant.RuntimeConstants.DEFAULT_ELB_ID;
 
 /**
  * <code>StateMachineResource</code> exposes APIs to perform state machine related operations. Ex: Creating SM, receiving event for a SM
@@ -147,6 +149,10 @@ public class StateMachineResource {
             stateMachineInstanceId = UUID.randomUUID().toString();
         }
 
+        if (stateMachineDefinition.getClientElbId() == null) {
+            stateMachineDefinition.setClientElbId(DEFAULT_ELB_ID);
+        }
+
         try {
             stateMachine = createAndInitStateMachine(stateMachineInstanceId, stateMachineDefinition);
             metricsClient.markMeter(new StringBuilder().
@@ -177,7 +183,8 @@ public class StateMachineResource {
             // 2. initialize and start State Machine
             workFlowExecutionController.initAndStart(stateMachine);
             return stateMachine;
-        } finally {
+        }
+        finally {
             LoggingUtils.deRegisterStateMachineIdForLogging();
         }
     }

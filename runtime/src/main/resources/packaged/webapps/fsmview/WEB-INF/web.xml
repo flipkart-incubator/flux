@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+			http://java.sun.com/xml/ns/j2ee
+			http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+	version="2.4">
+
+	<context-param> 
+	    <param-name>contextConfigLocation</param-name> 
+	    <param-value>WEB-INF/webapp-config.xml</param-value> 
+	</context-param>
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	<!--  
+		  Three servlets are created, as an event stream can only be accessed by one client at a time.
+		  Two servlets are for local streams (one for command, and one for Thread pool graphs)
+		  One servlet is for Global (for Turbine)
+	 -->
+
+	<!-- Spring MVC servlet for Dashboard Web Console -->
+	<servlet>
+		<servlet-name>FSMServlet</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>WEB-INF/servlet-config.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	
+	<servlet-mapping>
+		<servlet-name>FSMServlet</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+
+	
+</web-app>

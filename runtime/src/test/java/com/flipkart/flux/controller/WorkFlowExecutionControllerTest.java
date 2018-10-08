@@ -22,6 +22,7 @@ import com.flipkart.flux.MockActorRef;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.ExecutionUpdateData;
+import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
@@ -30,7 +31,9 @@ import com.flipkart.flux.domain.*;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.flipkart.flux.metrics.iface.MetricsClient;
+import com.flipkart.flux.representation.ClientElbPersistenceService;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
+import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.util.TestUtils;
 import com.typesafe.config.ConfigFactory;
 import org.junit.After;
@@ -39,8 +42,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import com.typesafe.config.ConfigFactory;
 
+import javax.ws.rs.core.Response;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,24 +68,33 @@ public class WorkFlowExecutionControllerTest {
     private RouterRegistry routerRegistry;
 
     @Mock
+    private ExecutionNodeTaskDispatcher executionNodeTaskDispatcher;
+
+    @Mock
     private RedriverRegistry redriverRegistry;
 
     @Mock
     private MetricsClient metricsClient;
+
+    @Mock
+    private ClientElbPersistenceService clientElbPersistenceService;
+
     TestActorRef<MockActorRef> mockActor;
 
     private WorkFlowExecutionController workFlowExecutionController;
-    private ActorSystem actorSystem;
     private ObjectMapper objectMapper;
+    ActorSystem actorSystem;
+
 
 
     @Before
     public void setUp() throws Exception {
         Thread.sleep(1000);
-        workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, auditDAO, routerRegistry, redriverRegistry, metricsClient);
+        workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, auditDAO,
+                executionNodeTaskDispatcher, redriverRegistry, metricsClient, clientElbPersistenceService);
         when(stateMachinesDAO.findById(anyString())).thenReturn(TestUtils.getStandardTestMachineWithId());
-
-        actorSystem = ActorSystem.create("testActorSystem", ConfigFactory.load("testAkkaActorSystem"));
+        when(clientElbPersistenceService.findByIdClientElb(anyString())).thenReturn("http://localhost:9997");
+        actorSystem = ActorSystem.create("testActorSystem",ConfigFactory.load("testAkkaActorSystem"));
         mockActor = TestActorRef.create(actorSystem, Props.create(MockActorRef.class));
         when(routerRegistry.getRouter(anyString())).thenReturn(mockActor);
         objectMapper = new ObjectMapper();
@@ -90,22 +102,25 @@ public class WorkFlowExecutionControllerTest {
 
     @After
     public void tearDown() throws Exception {
-        mockActor.stop();
         actorSystem.terminate();
     }
 
     @Test
-    public void testEventPost_shouldLookupRouterAndSendMessage() throws Exception {
+    public void testEventPost_shouldForwardToTaskDispatcher() throws Exception {
         final EventData testEventData = new EventData("event0", "java.lang.String", "42", "runtime");
 
-        when(eventsDAO.findBySMIdAndName("standard-machine", "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, "1", null, null));
+        when(eventsDAO.findBySMIdAndName("standard-machine", "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, "standard-machine", null, null));
         EventData[] expectedEvents = new EventData[]{new EventData("event0", "java.lang.String", "42", "runtime")};
         when(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId("standard-machine")).thenReturn(Collections.singletonList("event0"));
+        when(executionNodeTaskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(Response.Status.ACCEPTED.getStatusCode());
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
+        State state = stateMachinesDAO.findById("standard-machine").getStates().stream().filter((s) -> s.getId() == 4L).findFirst().orElse(null);
 
-        verify(routerRegistry, times(1)).getRouter("com.flipkart.flux.dao.TestWorkflow_dummyTask"); // For 1 unblocked states
-        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, "standard-machine", "test_state_machine", TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)), 2), 1);
-        verifyNoMoreInteractions(routerRegistry);
+        TaskExecutionMessage msg = new TaskExecutionMessage();
+        msg.setRouterName(WorkFlowExecutionController.getRouterName(state.getTask()));
+        msg.setAkkaMessage(new TaskAndEvents(state.getName(), state.getTask(), state.getId(), expectedEvents, state.getStateMachineId(), "test_state_machine", state.getOutputEvent(), state.getRetryCount()));
+        verify(executionNodeTaskDispatcher, times(1)).forwardExecutionMessage("http://localhost:9997" + "/api/execution", msg);
+        verifyNoMoreInteractions(executionNodeTaskDispatcher);
     }
 
     @Test
@@ -144,33 +159,32 @@ public class WorkFlowExecutionControllerTest {
     }
 
     @Test
-    public void testEventPost_shouldNotExecuteTaskIfItIsAlreadyCompleted() throws Exception {
+    public void testEventPost_shouldNotSendExecuteTaskIfItIsAlreadyCompleted() throws Exception {
         final EventData testEventData = new EventData("event0", "java.lang.String", "42", "runtime");
 
         when(eventsDAO.findBySMIdAndName("standard-machine", "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, "1", null, null));
         EventData[] expectedEvents = new EventData[]{new EventData("event0", "java.lang.String", "42", "runtime")};
         when(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId("standard-machine")).thenReturn(Collections.singletonList("event0"));
+        when(executionNodeTaskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(Response.Status.ACCEPTED.getStatusCode());
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
         State state = stateMachinesDAO.findById("standard-machine").getStates().stream().filter((s) -> s.getId() == 4L).findFirst().orElse(null);
-
         state.setStatus(Status.completed);
 
         //post the event again, this should not send msg to router for execution
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
 
-
-        verify(routerRegistry, times(1)).getRouter("com.flipkart.flux.dao.TestWorkflow_dummyTask"); // the router should receive only one execution request
-        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, "standard-machine", "test_state_machine", TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)), 2), 1);
-        verifyNoMoreInteractions(routerRegistry);
+        verify(executionNodeTaskDispatcher, times(1)).forwardExecutionMessage(anyString(), anyObject());
+        verifyNoMoreInteractions(executionNodeTaskDispatcher);
     }
 
     @Test
-    public void testEventPost_shouldExecuteTaskIfItIsNotCompleted() throws Exception {
+    public void testEventPost_shouldSendExecuteTaskIfItIsNotCompleted() throws Exception {
         final EventData testEventData = new EventData("event0", "java.lang.String", "42", "runtime");
 
         when(eventsDAO.findBySMIdAndName("standard-machine", "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, "1", null, null));
         EventData[] expectedEvents = new EventData[]{new EventData("event0", "java.lang.String", "42", "runtime")};
         when(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId("standard-machine")).thenReturn(Collections.singletonList("event0"));
+        when(executionNodeTaskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(Response.Status.ACCEPTED.getStatusCode());
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
         StateMachine stateMachine = stateMachinesDAO.findById("standard-machine");
         State state = stateMachinesDAO.findById("standard-machine").getStates().stream().filter((s) -> s.getId() == 4L).findFirst().orElse(null);
@@ -179,31 +193,26 @@ public class WorkFlowExecutionControllerTest {
 
         //post the event again, this should send msg to router again for execution
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
-
-
-        verify(routerRegistry, times(2)).getRouter("com.flipkart.flux.dao.TestWorkflow_dummyTask"); // the router should receive two execution requests
-        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, "standard-machine", "test_state_machine", TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)), 2), 2);
-        verifyNoMoreInteractions(routerRegistry);
+        verify(executionNodeTaskDispatcher, times(2)).forwardExecutionMessage(anyString(), anyObject());
+        verifyNoMoreInteractions(executionNodeTaskDispatcher);
     }
 
     @Test
-    public void testEventPost_shouldNotExecuteTaskIfItIsCancelled() throws Exception {
+    public void testEventPost_shouldNotSendExecuteTaskIfItIsCancelled() throws Exception {
         final EventData testEventData = new EventData("event0", "java.lang.String", "42", "runtime");
 
         when(eventsDAO.findBySMIdAndName("standard-machine", "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, "1", null, null));
-        EventData[] expectedEvents = new EventData[]{new EventData("event0", "java.lang.String", "42", "runtime")};
+        EventData[] expectedEvents = new EventData[]{testEventData};
         when(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId("standard-machine")).thenReturn(Collections.singletonList("event0"));
+        when(executionNodeTaskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(Response.Status.ACCEPTED.getStatusCode());
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
         StateMachine stateMachine = stateMachinesDAO.findById("standard-machine");
         State state = stateMachine.getStates().stream().filter((s) -> s.getId() == 4L).findFirst().orElse(null);
         state.setStatus(Status.cancelled);
-
         //post the event again, this should not send msg to router for execution
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
-
-        verify(routerRegistry, times(1)).getRouter("com.flipkart.flux.dao.TestWorkflow_dummyTask"); // the router should receive only one execution request
-        mockActor.underlyingActor().assertMessageReceived(new TaskAndEvents("dummyTask", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", 4L, expectedEvents, "standard-machine", "test_state_machine", TestUtils.toStr(TestUtils.getOutputEvent("event3", Integer.class)), 2), 1);
-        verifyNoMoreInteractions(routerRegistry);
+        // Dispatcher Thread should only forward the task for Execution only once.
+        verify(executionNodeTaskDispatcher, times(1)).forwardExecutionMessage(anyString(), anyObject());
     }
 
     @Test
@@ -275,7 +284,8 @@ public class WorkFlowExecutionControllerTest {
             add(state6);
             add(state7);
         }};
-        StateMachine stateMachine = new StateMachine("state-machine-cancel-path", 1L, "state_machine_1", null, states);
+        StateMachine stateMachine = new StateMachine("state-machine-cancel-path", 1L, "state_machine_1",
+                null, states, "client_elb_id_1");
         EventData testEventData = new EventData("event3", null, null, "runtime", true);
         when(eventsDAO.getAllEventsNameAndStatus("state-machine-cancel-path", true)).thenReturn(eventStatusHashMap);
         when(stateMachinesDAO.findById("state-machine-cancel-path")).thenReturn(stateMachine);

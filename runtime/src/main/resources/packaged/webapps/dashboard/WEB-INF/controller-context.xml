@@ -7,20 +7,8 @@
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
-	<context:annotation-config />
-
-    <!--todo: find a way to inject spring beans using guice, so that the below injector creation would be avoided.-->
-    <bean id="configInjector" class="com.google.inject.Guice" factory-method="createInjector">
-        <constructor-arg>
-            <bean class="com.flipkart.flux.guice.module.ConfigModule" />
-        </constructor-arg>
-    </bean>
+    <context:annotation-config/>
 
     <bean class="com.flipkart.flux.controller.DashboardController">
     </bean>
-
-	<bean class="com.flipkart.flux.controller.FSMVisualizationController">
-        <constructor-arg ref="configInjector"/>
-    </bean>
-	
 </beans>
