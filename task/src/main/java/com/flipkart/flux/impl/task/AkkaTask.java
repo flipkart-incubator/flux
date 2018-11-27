@@ -21,6 +21,7 @@ import akka.event.DiagnosticLoggingAdapter;
 import akka.event.Logging;
 import akka.routing.ActorRefRoutee;
 import akka.routing.Router;
+import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
@@ -102,12 +103,12 @@ public class AkkaTask extends UntypedActor {
         if (TaskAndEvents.class.isAssignableFrom(message.getClass())) {
             try {
                 TaskAndEvents taskAndEvent = (TaskAndEvents) message;
-                metricsClient.decCounter(new StringBuilder().
+                StringBuilder metricPrefix  = new StringBuilder().
                         append("stateMachine.").
                         append(taskAndEvent.getStateMachineName()).
                         append(".task.").
-                        append(taskAndEvent.getTaskName()).
-                        append(".queueSize").toString());
+                        append(taskAndEvent.getTaskName());
+                metricsClient.decCounter(new StringBuilder(metricPrefix).append(".queueSize").toString());
                 Map<String, Object> mdc = new HashMap<String, Object>();
                 mdc.put(STATE_MACHINE_ID, "smId:"+taskAndEvent.getStateMachineId());
                 mdc.put(TASK_ID, taskAndEvent.getTaskId());
@@ -119,6 +120,7 @@ public class AkkaTask extends UntypedActor {
                     // update the Flux runtime incrementing the retry count for the Task
                     fluxRuntimeConnector.incrementExecutionRetries(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId());
                 }
+                final Timer timer = metricsClient.getTimer(new StringBuilder(metricPrefix).append(".executionTime").toString());
                 AbstractTask task = AkkaTask.taskRegistry.retrieveTask(taskAndEvent.getTaskIdentifier());
                 if (task != null) {
                     try {
@@ -135,12 +137,12 @@ public class AkkaTask extends UntypedActor {
                     final String outputEventName = getOutputEventName(taskAndEvent);
                     final TaskExecutor taskExecutor = new TaskExecutor(task, taskAndEvent.getEvents(), taskAndEvent.getStateMachineId(), outputEventName);
                     Event outputEvent = null;
-
+                    final Timer.Context context = timer.time();
                     try {
                         long startTime = System.currentTimeMillis();
                         outputEvent = taskExecutor.execute();
                         long endTime = System.currentTimeMillis();
-
+                        context.close();
                         if (outputEvent != null) {
                             // after successful task execution, post the generated output event for further processing, also update status as part of same call
                             fluxRuntimeConnector.submitEventAndUpdateStatus(
@@ -155,6 +157,7 @@ public class AkkaTask extends UntypedActor {
                         logger.info("State machine: {} task: {} execution time: {}ms event/status submission time: {}ms", taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), (endTime - startTime), (System.currentTimeMillis() - endTime));
 
                     } catch (HystrixRuntimeException hre) {
+                        context.close();
                         FailureType ft = hre.getFailureType();
                         // we signal a timeout for any of Timeout, ThreadPool Rejection or Short-Circuit - all of these may go through with time and retry
                         if (ft.equals(FailureType.REJECTED_THREAD_EXECUTION) || ft.equals(FailureType.SHORTCIRCUIT) || ft.equals(FailureType.TIMEOUT)) {
@@ -189,6 +192,7 @@ public class AkkaTask extends UntypedActor {
                             }
                         }
                     } catch (RuntimeCommunicationException e) {
+                        context.close();
                         logger.error("Task completed but updateStatus/submit failed. State machine: {} task: {} ErrorMsg: {}", taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), e.getMessage());
                         // mark the task outcome as execution failure and throw retriable error
                         updateExecutionStatus(taskAndEvent, Status.errored, e.getMessage(), false);
@@ -197,6 +201,7 @@ public class AkkaTask extends UntypedActor {
                                 new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(),
                                         taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
                     } catch (Exception e) {
+                        context.close();
                         // mark the task outcome as execution failure
                         updateExecutionStatus(taskAndEvent, Status.errored, e.getMessage(), true);
                     }

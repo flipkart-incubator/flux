@@ -14,6 +14,7 @@
 package com.flipkart.flux.metrics;
 
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.google.inject.Inject;
 
@@ -51,5 +52,10 @@ public class MetricsClientImpl implements MetricsClient {
     @Override
     public void decCounter(String key) {
         metricRegistry.counter(key).dec();
+    }
+
+    @Override
+    public Timer getTimer(String key){
+        return metricRegistry.timer(key);
     }
 }

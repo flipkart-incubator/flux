@@ -14,6 +14,7 @@
 package com.flipkart.flux.metrics.iface;
 
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 
 /**
  * <code>MetricsClient</code> provides metrics related functionality, like rate meters or counters.
@@ -38,4 +39,9 @@ public interface MetricsClient {
      * @param key The name of the counter.
      */
     public void decCounter(String key);
+
+    /**
+     * Provides a timer with name, creates if absent
+     */
+    public Timer getTimer(String key);
 }
