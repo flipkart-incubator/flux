@@ -236,6 +236,11 @@
             <artifactId>spring-webmvc</artifactId>
             <version>${org.springframework.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.flipkart.kloud.authn</groupId>
+            <artifactId>dropwizard8-relying-party</artifactId>
+            <version>${authn.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.freemarker</groupId>

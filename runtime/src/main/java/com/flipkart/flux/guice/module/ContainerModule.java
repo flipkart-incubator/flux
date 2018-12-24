@@ -41,6 +41,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.hibernate.cfg.Environment;
 
 import javax.inject.Named;
 import javax.inject.Singleton;

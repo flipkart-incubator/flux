@@ -32,6 +32,17 @@
             <name>Clojars repository</name>
             <url>https://clojars.org/repo</url>
         </repository>
+        <repository>
+            <snapshots />
+            <id>snapshots1</id>
+            <name>libs-snapshot</name>
+            <url> http://repo1.maven.org/maven2</url>
+        </repository>
+        <repository>
+            <id>fk-art-release</id>
+            <name>Flipkart-Artifactory</name>
+            <url>http://10.85.59.116/artifactory/v1.0/artifacts/libs-release-local</url>
+        </repository>
     </repositories>
 
     <scm>
@@ -42,6 +53,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jdk.version>1.8</jdk.version>
+        <authn.version>17.09.15.1</authn.version>
         <maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
         <maven-jar-plugin.version>2.2</maven-jar-plugin.version>
         <junit.version>4.12</junit.version>
