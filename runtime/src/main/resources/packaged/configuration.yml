@@ -101,10 +101,11 @@ authConfig:
   redirectUri: http://<server:port>/login_callback # Should be exactly the same as what was used during registration
   authIgnoreUrls: "<some-regex>" # optional
 
-flux_authSession.Hibernate:
+
+authSession:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
-  hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
-  hibernate.connection.url: "jdbc:mysql://localhost:3306/flux_scheduler"
+  connection.driver_class: "com.mysql.jdbc.Driver"
+  connection.url: "jdbc:mysql://localhost:3306/flux_scheduler"
   hibernate.connection.username: "root"
   hibernate.connection.password: ""
   hibernate.current_session_context_class: "managed"

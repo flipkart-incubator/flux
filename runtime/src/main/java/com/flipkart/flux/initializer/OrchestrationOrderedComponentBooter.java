@@ -13,8 +13,13 @@
 
 package com.flipkart.flux.initializer;
 
+import com.flipkart.flux.guice.module.AuthNModule;
+import com.flipkart.flux.listeners.AuthLifeCycleListener;
+import com.flipkart.kloud.authn.filter.AuthConfig;
 import com.flipkart.polyguice.core.Initializable;
+import io.dropwizard.setup.Environment;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,12 +39,18 @@ public class OrchestrationOrderedComponentBooter implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(OrchestrationOrderedComponentBooter.class);
     private final Server apiServer;
     private final Server dashboardServer;
+    private final AuthConfig authConfig;
+
 
     @Inject
     public OrchestrationOrderedComponentBooter(@Named("APIJettyServer") Server apiServer,
-                                               @Named("DashboardJettyServer") Server dashboardServer) {
+                                               @Named("AuthnConfig")AuthConfig authConfig,
+                                               @Named("DashboardJettyServer") Server dashboardServer
+                                               ) {
         this.apiServer = apiServer;
         this.dashboardServer = dashboardServer;
+        this.authConfig = authConfig;
+
     }
 
     @Override
@@ -56,6 +67,9 @@ public class OrchestrationOrderedComponentBooter implements Initializable {
             logger.info("API server started. Say Hello!");
             /* Bring up the Dashboard server */
             logger.info("Loading Dashboard Server");
+            if(authConfig.isAuthEnabled()){
+                AuthNModule.configureUIApp();
+            }
             dashboardServer.start();
             logger.info("Dashboard server has started. Say Hello!");
         } catch (Exception e) {

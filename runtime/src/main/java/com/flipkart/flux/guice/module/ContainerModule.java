@@ -35,6 +35,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.session.*;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -46,6 +47,7 @@ import org.hibernate.cfg.Environment;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.io.File;
+import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
@@ -57,147 +59,183 @@ import static com.flipkart.flux.constant.RuntimeConstants.FSM_VIEW;
  *
  * @author regunath.balasubramanian
  * @author kartik.bommepally
- *
  */
 public class ContainerModule extends AbstractModule {
 
-	/**
-	 * Performs concrete bindings for interfaces
-	 * @see com.google.inject.AbstractModule#configure()
-	 */
-	@Override
-	protected void configure() {
-		bind(MetricsClient.class).to(MetricsClientImpl.class).in(Singleton.class);
-	}
+    /**
+     * Performs concrete bindings for interfaces
+     *
+     * @see com.google.inject.AbstractModule#configure()
+     */
+    @Override
+    protected void configure() {
+        bind(MetricsClient.class).to(MetricsClientImpl.class).in(Singleton.class);
+    }
 
 
-	@Provides
-	public MetricRegistry metricRegistry() {
-		return SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME);
-	}
+    @Provides
+    public MetricRegistry metricRegistry() {
+        return SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME);
+    }
 
-	/**
-	 * Creates a Jetty {@link WebAppContext} for the Flux dashboard
-	 * @return Jetty WebAppContext
-	 */
-	@Named("DashboardContext")
-	@Provides
-	@Singleton
-	WebAppContext getDashboardWebAppContext() {
-		String path = null;
+    /**
+     * Creates a Jetty {@link WebAppContext} for the Flux dashboard
+     *
+     * @return Jetty WebAppContext
+     */
+    @Named("DashboardContext")
+    @Provides
+    @Singleton
+    WebAppContext getDashboardWebAppContext(@Named("dashboardSqlSessionHandler") SessionHandler sessionHandler) {
+        String path = null;
         File[] files = FileLocator.findDirectories("packaged/webapps/fsmview/WEB-INF", null);
         for (File file : files) {
-			// we need only WEB-INF from runtime project
-			String fileToString = file.toString();
-			if (fileToString.contains(".jar!") && fileToString.startsWith("file:/")) {
-				fileToString = fileToString.replace("file:/","jar:file:/");
-				if (fileToString.contains("runtime-")) {
-					path = fileToString;
-					break;
-				}
-			} else {
-				if (fileToString.contains(FSM_VIEW) ) {
-					path = fileToString;
-					break;
-				}
-			}
-		}
-		// trim off the "WEB-INF" part as the WebAppContext path should refer to the parent directory
-		if (path.endsWith("WEB-INF")) {
-			path = path.replace("WEB-INF", "");
-		}
-		WebAppContext webAppContext = new WebAppContext(path, RuntimeConstants.DASHBOARD_CONTEXT_PATH);
-		return webAppContext;
-	}
+            // we need only WEB-INF from runtime project
+            String fileToString = file.toString();
+            if (fileToString.contains(".jar!") && fileToString.startsWith("file:/")) {
+                fileToString = fileToString.replace("file:/", "jar:file:/");
+                if (fileToString.contains("runtime-")) {
+                    path = fileToString;
+                    break;
+                }
+            } else {
+                if (fileToString.contains(FSM_VIEW)) {
+                    path = fileToString;
+                    break;
+                }
+            }
+        }
+        // trim off the "WEB-INF" part as the WebAppContext path should refer to the parent directory
+        if (path.endsWith("WEB-INF")) {
+            path = path.replace("WEB-INF", "");
+        }
+        WebAppContext webAppContext = new WebAppContext(path, RuntimeConstants.DASHBOARD_CONTEXT_PATH);
+        webAppContext.setSessionHandler(sessionHandler);
+        return webAppContext;
+    }
 
-	/**
-	 * Creates the Jetty server instance for the admin Dashboard and configures it with the @Named("DashboardContext").
-	 * @param port where the service is available
-	 * @param acceptorThreads no. of acceptors
-	 * @param maxWorkerThreads max no. of worker threads
-	 * @return Jetty Server instance
-	 */
-	@Named("DashboardJettyServer")
-	@Provides
-	@Singleton
-	Server getDashboardJettyServer(@Named("Dashboard.service.port") int port,
-			@Named("Dashboard.service.acceptors") int acceptorThreads,
-			@Named("Dashboard.service.selectors") int selectorThreads,
-			@Named("Dashboard.service.workers") int maxWorkerThreads,
-			@Named("DashboardContext") WebAppContext webappContext) {
-		QueuedThreadPool threadPool = new QueuedThreadPool();
+    /**
+     * Creates the Jetty server instance for the admin Dashboard and configures it with the @Named("DashboardContext").
+     *
+     * @param port             where the service is available
+     * @param acceptorThreads  no. of acceptors
+     * @param maxWorkerThreads max no. of worker threads
+     * @return Jetty Server instance
+     */
+    @Named("DashboardJettyServer")
+    @Provides
+    @Singleton
+    Server getDashboardJettyServer(@Named("Dashboard.service.port") int port,
+                                   @Named("Dashboard.service.acceptors") int acceptorThreads,
+                                   @Named("Dashboard.service.selectors") int selectorThreads,
+                                   @Named("Dashboard.service.workers") int maxWorkerThreads,
+                                   @Named("DashboardContext") WebAppContext webappContext) {
+        QueuedThreadPool threadPool = new QueuedThreadPool();
         threadPool.setMaxThreads(maxWorkerThreads);
-		Server server = new Server(threadPool);
-		ServerConnector http = new ServerConnector(server, acceptorThreads, selectorThreads);
-		http.setPort(port);
-		server.addConnector(http);
-		server.setHandler(webappContext);
-		server.setStopAtShutdown(true);
-		return server;
-	}
+        Server server = new Server(threadPool);
+        ServerConnector http = new ServerConnector(server, acceptorThreads, selectorThreads);
+        http.setPort(port);
+        server.addConnector(http);
+        server.setHandler(webappContext);
+        server.setSessionIdManager(getSessionIdManager(server));
+        server.setStopAtShutdown(true);
+        return server;
+    }
 
-	/**
-	 * Creates the Jetty server instance for the Flux API endpoint.
-	 * @param port where the service is available.
-	 * @return Jetty Server instance
-	 */
-	@Named("APIJettyServer")
-	@Provides
-	@Singleton
-	Server getAPIJettyServer(@Named("Api.service.port") int port,
-							 @Named("APIResourceConfig")ResourceConfig resourceConfig,
-							 @Named("Api.service.acceptors") int acceptorThreads,
-							 @Named("Api.service.selectors") int selectorThreads,
-							 @Named("Api.service.workers") int maxWorkerThreads,
-							 ObjectMapper objectMapper, MetricRegistry metricRegistry) throws URISyntaxException, UnknownHostException {
-		JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
-		provider.setMapper(objectMapper);
-		resourceConfig.register(provider);
-		QueuedThreadPool threadPool = new QueuedThreadPool();
-		threadPool.setMaxThreads(maxWorkerThreads);
-		Server server = new Server(threadPool);
-		ServerConnector http = new ServerConnector(server, acceptorThreads, selectorThreads);
-		http.setPort(port);
-		server.addConnector(http);
-		ServletContextHandler context = new ServletContextHandler(server, "/*");
-		ServletHolder servlet = new ServletHolder(new ServletContainer(resourceConfig));
-		context.addServlet(servlet, "/*");
+    /**
+     * Creates the Jetty server instance for the Flux API endpoint.
+     *
+     * @param port where the service is available.
+     * @return Jetty Server instance
+     */
+    @Named("APIJettyServer")
+    @Provides
+    @Singleton
+    Server getAPIJettyServer(@Named("Api.service.port") int port,
+                             @Named("APIResourceConfig") ResourceConfig resourceConfig,
+                             @Named("Api.service.acceptors") int acceptorThreads,
+                             @Named("Api.service.selectors") int selectorThreads,
+                             @Named("Api.service.workers") int maxWorkerThreads,
+                             ObjectMapper objectMapper, MetricRegistry metricRegistry) throws URISyntaxException, UnknownHostException {
+        JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
+        provider.setMapper(objectMapper);
+        resourceConfig.register(provider);
+        QueuedThreadPool threadPool = new QueuedThreadPool();
+        threadPool.setMaxThreads(maxWorkerThreads);
+        Server server = new Server(threadPool);
+        ServerConnector http = new ServerConnector(server, acceptorThreads, selectorThreads);
+        http.setPort(port);
+        server.addConnector(http);
+        ServletContextHandler context = new ServletContextHandler(server, "/*");
+        ServletHolder servlet = new ServletHolder(new ServletContainer(resourceConfig));
+        context.addServlet(servlet, "/*");
 
-		final InstrumentedHandler handler = new InstrumentedHandler(metricRegistry);
-		handler.setHandler(context);
-		server.setHandler(handler);
+        final InstrumentedHandler handler = new InstrumentedHandler(metricRegistry);
+        handler.setHandler(context);
+        server.setHandler(handler);
 
-		server.setStopAtShutdown(true);
-		return server;
-	}
+        server.setStopAtShutdown(true);
+        return server;
+    }
 
-	@Named("APIResourceConfig")
-	@Singleton
-	@Provides
-	public ResourceConfig getAPIResourceConfig(StateMachineResource stateMachineResource,
-											   StatusResource statusResource, ClientElbResource clientElbResource,
-											   MetricRegistry metricRegistry) {
-		ResourceConfig resourceConfig = new ResourceConfig();
+    @Named("APIResourceConfig")
+    @Singleton
+    @Provides
+    public ResourceConfig getAPIResourceConfig(StateMachineResource stateMachineResource,
+                                               StatusResource statusResource, ClientElbResource clientElbResource,
+                                               MetricRegistry metricRegistry) {
+        ResourceConfig resourceConfig = new ResourceConfig();
 
-		//Register codahale metrics and publish to jmx
-		resourceConfig.register(new InstrumentedResourceMethodApplicationListener(metricRegistry));
-		JmxReporter jmxReporter = JmxReporter.forRegistry(metricRegistry).build();
+        //Register codahale metrics and publish to jmx
+        resourceConfig.register(new InstrumentedResourceMethodApplicationListener(metricRegistry));
+        JmxReporter jmxReporter = JmxReporter.forRegistry(metricRegistry).build();
 
-		//register resources
-		resourceConfig.register(stateMachineResource);
-		resourceConfig.register(statusResource);
-		resourceConfig.register(clientElbResource);
+        //register resources
+        resourceConfig.register(stateMachineResource);
+        resourceConfig.register(statusResource);
+        resourceConfig.register(clientElbResource);
 
-		resourceConfig.register(CORSFilter.class);
-		jmxReporter.start();
-		return resourceConfig;
-	}
+        resourceConfig.register(CORSFilter.class);
+        jmxReporter.start();
+        return resourceConfig;
+    }
 
-	//may not be the right module class for this. may need to be moved later.
-	@Provides
-	@Singleton
-	ObjectMapper getObjectMapper() {
-		return new ObjectMapper();
-	}
+    //may not be the right module class for this. may need to be moved later.
+    @Provides
+    @Singleton
+    ObjectMapper getObjectMapper() {
+        return new ObjectMapper();
+    }
+
+    @Named("dashboardSqlSessionHandler")
+    @Provides
+    @Singleton
+    public SessionHandler sqlSessionHandler(@Named("authSession.connection.driver_class") String driver,
+                                     @Named("authSession.connection.url") String url) {
+        SessionHandler sessionHandler = new SessionHandler();
+        SessionCache sessionCache = new DefaultSessionCache(sessionHandler);
+        sessionCache.setSessionDataStore(jdbcSessionDataStoreFactory(driver, url).getSessionDataStore(sessionHandler));
+        sessionHandler.setSessionCache(sessionCache);
+        return sessionHandler;
+    }
+
+    private JDBCSessionDataStoreFactory jdbcSessionDataStoreFactory(String driver, String url) {
+        DatabaseAdaptor databaseAdaptor = new DatabaseAdaptor();
+        databaseAdaptor.setDriverInfo(driver, url);
+        JDBCSessionDataStoreFactory jdbcSessionDataStoreFactory = new JDBCSessionDataStoreFactory();
+        jdbcSessionDataStoreFactory.setDatabaseAdaptor(databaseAdaptor);
+        return jdbcSessionDataStoreFactory;
+    }
+
+
+    public DefaultSessionIdManager getSessionIdManager(Server server) {
+        DefaultSessionIdManager defaultSessionIdManager = new DefaultSessionIdManager(server);
+        try {
+            defaultSessionIdManager.setWorkerName(InetAddress.getLocalHost().getHostAddress().replace(".", "-"));
+        } catch (UnknownHostException ex) {
+            defaultSessionIdManager.setWorkerName("");
+        }
+        return defaultSessionIdManager;
+    }
 
 }
