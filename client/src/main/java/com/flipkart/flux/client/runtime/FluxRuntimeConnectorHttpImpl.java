@@ -22,6 +22,7 @@ import com.flipkart.flux.api.EventAndExecutionData;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.kloud.authn.AuthTokenService;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -57,6 +58,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     private final String fluxEndpoint;
     private final ObjectMapper objectMapper;
     private final MetricRegistry metricRegistry;
+    private AuthTokenService authTokenService;
 
     @VisibleForTesting
     public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint) {

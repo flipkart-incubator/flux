@@ -140,6 +140,11 @@
             <artifactId>metrics-core</artifactId>
             <version>3.0.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.flipkart.kloud.authn</groupId>
+            <artifactId>client</artifactId>
+            <version>${authn.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
