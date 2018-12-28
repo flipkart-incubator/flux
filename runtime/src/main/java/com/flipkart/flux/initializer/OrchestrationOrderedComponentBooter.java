@@ -40,16 +40,19 @@ public class OrchestrationOrderedComponentBooter implements Initializable {
     private final Server apiServer;
     private final Server dashboardServer;
     private final AuthConfig authConfig;
+    private final WebAppContext webAppContext;
 
 
     @Inject
     public OrchestrationOrderedComponentBooter(@Named("APIJettyServer") Server apiServer,
-                                               @Named("AuthnConfig")AuthConfig authConfig,
-                                               @Named("DashboardJettyServer") Server dashboardServer
-                                               ) {
+                                               @Named("AuthnConfig") AuthConfig authConfig,
+                                               @Named("DashboardJettyServer") Server dashboardServer,
+                                               @Named("DashboardContext") WebAppContext webAppContext
+    ) {
         this.apiServer = apiServer;
         this.dashboardServer = dashboardServer;
         this.authConfig = authConfig;
+        this.webAppContext = webAppContext;
 
     }
 
@@ -67,8 +70,8 @@ public class OrchestrationOrderedComponentBooter implements Initializable {
             logger.info("API server started. Say Hello!");
             /* Bring up the Dashboard server */
             logger.info("Loading Dashboard Server");
-            if(authConfig.isAuthEnabled()){
-                AuthNModule.configureUIApp();
+            if (authConfig.isAuthEnabled()) {
+                AuthNModule.configureUIApp(webAppContext, authConfig);
             }
             dashboardServer.start();
             logger.info("Dashboard server has started. Say Hello!");

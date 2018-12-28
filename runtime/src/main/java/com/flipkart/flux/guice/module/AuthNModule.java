@@ -17,6 +17,7 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.DispatcherType;
+import java.util.ArrayList;
 import java.util.EnumSet;
 
 public class AuthNModule extends AbstractModule {
@@ -29,16 +30,17 @@ public class AuthNModule extends AbstractModule {
     @Singleton
     @Named("AuthnConfig")
     AuthConfig getAuthNConfig(@Named("authConfig.authEnabled") boolean authEnabled,
-                              @Named("authConfig.authnUrls") String[] urls,
+                              @Named("authConfig.authnUrl") String url,
                               @Named("authConfig.clientId") String clientId,
                               @Named("authConfig.clientSecret") String clientSecret,
                               @Named("authConfig.redirectUri") String redirectUrl,
                               @Named("authConfig.authIgnoreUrls") String authIgnoreUrls
     ) {
-
+        String[] authnUrls = new String[1];
+        authnUrls[0] = url;
         AuthConfig authConfig = new AuthConfig();
         authConfig.setAuthEnabled(authEnabled);
-        authConfig.setAuthnUrls(urls);
+        authConfig.setAuthnUrls(authnUrls);
         authConfig.setClientId(clientId);
         authConfig.setClientSecret(clientSecret);
         authConfig.setRedirectUri(redirectUrl);
@@ -47,8 +49,8 @@ public class AuthNModule extends AbstractModule {
     }
 
     public static void configureUIApp(//Environment environment,
-                                      @Named("DashboardContext") WebAppContext webAppContext,
-                                      AuthConfig config) throws Exception {
+                                      WebAppContext webAppContext,
+                                      AuthConfig config) {
         if (!config.isAuthEnabled()) {
             return;
         }
@@ -62,7 +64,7 @@ public class AuthNModule extends AbstractModule {
 
         SecurityContextPersistenceFilter securityContextFilter = new SecurityContextPersistenceFilter();
 
-        ServletEnvironment servlets = environment.servlets();
+     //   ServletEnvironment servlets = environment.servlets();
 
         loginUrlFilter.setLoginUrl(config.getLoginUrl());
         callbackUrlFilter.setRedirectUrl(config.getLoginUrl() + "_callback");
@@ -94,13 +96,13 @@ public class AuthNModule extends AbstractModule {
 
         EnsureAuthenticationFilter ensureAuthenticationFilter = new EnsureAuthenticationFilter(config.getLoginUrl(), config.getAuthIgnoreUrls());
         webAppContext.addFilter(new FilterHolder(ensureAuthenticationFilter), "/*", EnumSet.of(DispatcherType.REQUEST));
-     //   servlets.addFilter(EnsureAuthenticationFilter.class.getName(), ensureAuthenticationFilter)
-       //         .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*");
+        //   servlets.addFilter(EnsureAuthenticationFilter.class.getName(), ensureAuthenticationFilter)
+        //         .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*");
         ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(new AuthValueFactoryProvider.Binder<User>(User.class));
-     //   resourceConfig.register(RequestLoggingFilter.class);
+        //   resourceConfig.register(RequestLoggingFilter.class);
         webAppContext.addServlet(new ServletHolder(new ServletContainer(resourceConfig)), "/*");
-    //    environment.jersey().register(new AuthValueFactoryProvider.Binder<User>(User.class));
+        //    environment.jersey().register(new AuthValueFactoryProvider.Binder<User>(User.class));
     }
 
 }

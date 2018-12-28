@@ -138,6 +138,7 @@ public class FluxInitializer {
                         configModule,
                         new ShardModule(),
                         new OrchestrationTaskModule(),
+                        new AuthNModule(),
                         new ContainerModule());
                 break;
             case EXECUTION:

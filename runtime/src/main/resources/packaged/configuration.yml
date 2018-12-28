@@ -95,21 +95,14 @@ connector:
 
 authConfig:
   authEnabled: True
-  authnUrls: ["https://authn.ch.flipkart.com"]
+  authnUrl: "https://authn.ch.flipkart.com"
   clientId: "<service-url>" # Should be exactly the same as what was used during registration
   clientSecret: "YST0+bh+ma0VyR+KbdiAEdMG9dOGOT7OTxjdzI+yT21OcNIs"
   redirectUri: http://<server:port>/login_callback # Should be exactly the same as what was used during registration
   authIgnoreUrls: "<some-regex>" # optional
 
-
 authSession:
-  hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   connection.driver_class: "com.mysql.jdbc.Driver"
-  connection.url: "jdbc:mysql://localhost:3306/flux_scheduler"
-  hibernate.connection.username: "root"
-  hibernate.connection.password: ""
-  hibernate.current_session_context_class: "managed"
-  connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
-  hibernate.c3p0.min_size: 3
-  hibernate.c3p0.max_size: 20
+  connection.url: "jdbc:mysql://localhost:3306/sessions?user=root&password="
+
 

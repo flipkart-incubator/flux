@@ -13,6 +13,6 @@ import javax.inject.Named;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-public class AuthLifeCycleListener implements {
+public class AuthLifeCycleListener {
 
 }

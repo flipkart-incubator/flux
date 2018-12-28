@@ -33,6 +33,10 @@ import com.flipkart.flux.resource.StateMachineResource;
 import com.flipkart.flux.resource.StatusResource;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.mchange.v2.c3p0.DataSources;
+import com.mchange.v2.c3p0.PoolBackedDataSource;
+import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
+import com.mysql.jdbc.jdbc2.optional.MysqlDataSourceFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.session.*;
@@ -42,10 +46,12 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Environment;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.sql.DataSource;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URISyntaxException;
@@ -211,7 +217,7 @@ public class ContainerModule extends AbstractModule {
     @Provides
     @Singleton
     public SessionHandler sqlSessionHandler(@Named("authSession.connection.driver_class") String driver,
-                                     @Named("authSession.connection.url") String url) {
+                                            @Named("authSession.connection.url") String url) {
         SessionHandler sessionHandler = new SessionHandler();
         SessionCache sessionCache = new DefaultSessionCache(sessionHandler);
         sessionCache.setSessionDataStore(jdbcSessionDataStoreFactory(driver, url).getSessionDataStore(sessionHandler));
@@ -235,6 +241,7 @@ public class ContainerModule extends AbstractModule {
         } catch (UnknownHostException ex) {
             defaultSessionIdManager.setWorkerName("");
         }
+
         return defaultSessionIdManager;
     }
 
