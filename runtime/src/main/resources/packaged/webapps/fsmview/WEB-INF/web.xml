@@ -12,13 +12,8 @@
 	<listener>
 		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
 	</listener>
-	<!--  
-		  Three servlets are created, as an event stream can only be accessed by one client at a time.
-		  Two servlets are for local streams (one for command, and one for Thread pool graphs)
-		  One servlet is for Global (for Turbine)
-	 -->
 
-	<!-- Spring MVC servlet for Dashboard Web Console -->
+	<!-- Spring MVC servlet for FSMView Web Console -->
 	<servlet>
 		<servlet-name>FSMServlet</servlet-name>
 		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>

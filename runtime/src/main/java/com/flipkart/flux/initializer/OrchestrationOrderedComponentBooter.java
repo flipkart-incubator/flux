@@ -14,10 +14,8 @@
 package com.flipkart.flux.initializer;
 
 import com.flipkart.flux.guice.module.AuthNModule;
-import com.flipkart.flux.listeners.AuthLifeCycleListener;
 import com.flipkart.kloud.authn.filter.AuthConfig;
 import com.flipkart.polyguice.core.Initializable;
-import io.dropwizard.setup.Environment;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;

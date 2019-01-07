@@ -95,11 +95,11 @@ connector:
 
 authConfig:
   authEnabled: True
-  authnUrl: "https://authn.ch.flipkart.com"
-  clientId: "<service-url>" # Should be exactly the same as what was used during registration
-  clientSecret: "YST0+bh+ma0VyR+KbdiAEdMG9dOGOT7OTxjdzI+yT21OcNIs"
-  redirectUri: http://<server:port>/login_callback # Should be exactly the same as what was used during registration
-  authIgnoreUrls: "<some-regex>" # optional
+  authnUrl: "https://authn-preprod.nm.flipkart.com"
+  clientId: "http://localhost:9999/" # Should be exactly the same as what was used during registration
+  clientSecret: "a46gTcoJ3ZKgPvINwzx6xnU4/3oIIEDlTRSDRDSgg6+PdWs5"
+  redirectUri: "http://localhost:9999/login_callback" # Should be exactly the same as what was used during registration
+  authIgnoreUrls: "" # optional
 
 authSession:
   connection.driver_class: "com.mysql.jdbc.Driver"

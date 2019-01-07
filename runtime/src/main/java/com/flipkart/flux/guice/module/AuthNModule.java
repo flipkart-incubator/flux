@@ -1,23 +1,15 @@
 package com.flipkart.flux.guice.module;
 
 import com.flipkart.kloud.authn.filter.AuthConfig;
-import com.flipkart.kloud.authn.filter.AuthValueFactoryProvider;
 import com.flipkart.kloud.filter.*;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import io.dropwizard.jetty.setup.ServletEnvironment;
-import io.dropwizard.setup.Environment;
-import org.eclipse.jetty.security.Authenticator;
 import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.DispatcherType;
-import java.util.ArrayList;
 import java.util.EnumSet;
 
 public class AuthNModule extends AbstractModule {
@@ -64,8 +56,6 @@ public class AuthNModule extends AbstractModule {
 
         SecurityContextPersistenceFilter securityContextFilter = new SecurityContextPersistenceFilter();
 
-     //   ServletEnvironment servlets = environment.servlets();
-
         loginUrlFilter.setLoginUrl(config.getLoginUrl());
         callbackUrlFilter.setRedirectUrl(config.getLoginUrl() + "_callback");
 
@@ -73,36 +63,14 @@ public class AuthNModule extends AbstractModule {
             loginUrlFilter.setRedirectUri(config.getRedirectUri());
             callbackUrlFilter.setRedirectUri(config.getRedirectUri());
         }
-        // webAppContext.addFilter(SecurityContextPersistenceFilter.class.getName(), securityContextFilter);
-        // webAppContext.
+
         webAppContext.addFilter(new FilterHolder(securityContextFilter), "/*", EnumSet.of(DispatcherType.REQUEST));
         webAppContext.addFilter(new FilterHolder(loginUrlFilter), "/*", EnumSet.of(DispatcherType.REQUEST));
         webAppContext.addFilter(new FilterHolder(callbackUrlFilter), "/*", EnumSet.of(DispatcherType.REQUEST));
         webAppContext.addFilter(new FilterHolder(logoutUrlFilter), "/*", EnumSet.of(DispatcherType.REQUEST));
 
-
-       /* servlets.addFilter(SecurityContextPersistenceFilter.class.getName(), securityContextFilter)
-                .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*");
-
-        servlets.addFilter(LoginUrlFilter.class.getName(), loginUrlFilter)
-                .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*");
-
-        servlets.addFilter(CallbackUrlFilter.class.getName(), callbackUrlFilter)
-                .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*");
-
-        servlets.addFilter(LogoutUrlFilter.class.getName(), logoutUrlFilter)
-                .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*");
-*/
-
-        EnsureAuthenticationFilter ensureAuthenticationFilter = new EnsureAuthenticationFilter(config.getLoginUrl(), config.getAuthIgnoreUrls());
+        EnsureAuthenticationFilter ensureAuthenticationFilter = new EnsureAuthenticationFilter(config.getLoginUrl(), null   );
         webAppContext.addFilter(new FilterHolder(ensureAuthenticationFilter), "/*", EnumSet.of(DispatcherType.REQUEST));
-        //   servlets.addFilter(EnsureAuthenticationFilter.class.getName(), ensureAuthenticationFilter)
-        //         .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*");
-        ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(new AuthValueFactoryProvider.Binder<User>(User.class));
-        //   resourceConfig.register(RequestLoggingFilter.class);
-        webAppContext.addServlet(new ServletHolder(new ServletContainer(resourceConfig)), "/*");
-        //    environment.jersey().register(new AuthValueFactoryProvider.Binder<User>(User.class));
     }
 
 }
