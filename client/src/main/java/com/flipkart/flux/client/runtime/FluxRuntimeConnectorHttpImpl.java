@@ -37,6 +37,7 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -58,18 +59,21 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     private final String fluxEndpoint;
     private final ObjectMapper objectMapper;
     private final MetricRegistry metricRegistry;
+    @Inject
     private AuthTokenService authTokenService;
+    private String authnClientId;
 
     @VisibleForTesting
-    public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint) {
+    public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint, String authnClientId) {
         this(connectionTimeout, socketTimeout, fluxEndpoint, new ObjectMapper(),
-                SharedMetricRegistries.getOrCreate("mainMetricRegistry"));
+                SharedMetricRegistries.getOrCreate("mainMetricRegistry"), authnClientId);
     }
 
     public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint, ObjectMapper objectMapper,
-                                        MetricRegistry metricRegistry) {
+                                        MetricRegistry metricRegistry, String authnClientId) {
         this.fluxEndpoint = fluxEndpoint;
         this.objectMapper = objectMapper;
+        this.authnClientId = authnClientId;
         RequestConfig clientConfig = RequestConfig.custom()
             .setConnectTimeout((connectionTimeout).intValue())
             .setSocketTimeout((socketTimeout).intValue())
@@ -225,10 +229,12 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         HttpPost httpPostRequest;
         httpPostRequest = new HttpPost(fluxEndpoint + pathSuffix);
         try {
+            String header = authTokenService.fetchToken(authnClientId).toAuthorizationHeader();
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             objectMapper.writeValue(byteArrayOutputStream, dataToPost);
 
             httpPostRequest.setEntity(new ByteArrayEntity(byteArrayOutputStream.toByteArray(), ContentType.APPLICATION_JSON));
+            httpPostRequest.setHeader("AuthorizationHeader",header);
             httpResponse = closeableHttpClient.execute(httpPostRequest);
             final int statusCode = httpResponse.getStatusLine().getStatusCode();
             if (statusCode >= Response.Status.OK.getStatusCode() && statusCode < Response.Status.MOVED_PERMANENTLY.getStatusCode() ) {

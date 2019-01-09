@@ -34,16 +34,21 @@ public class FluxClientConfiguration {
     private String clientElbId = "defaultElbId";
     private long socketTimeout = 10000;
     private long connectionTimeout = 10000;
+    private String authnUrl = "https://authn.ch.flipkart.com";
+    private String authnClientId;
+    private String authnClientSecret;
 
     /** Constructors*/
     public FluxClientConfiguration() {}
 
     public FluxClientConfiguration(String fluxRuntimeUrl, String clientElbId, long socketTimeout,
-                                   long connectionTimeout) {
+                                   long connectionTimeout, String authnClientId, String authnClientSecret) {
         this.fluxRuntimeUrl = fluxRuntimeUrl;
         this.clientElbId = clientElbId;
         this.socketTimeout = socketTimeout;
         this.connectionTimeout = connectionTimeout;
+        this.authnClientId = authnClientId;
+        this.authnClientSecret =  authnClientSecret;
 
     }
 
@@ -68,5 +73,14 @@ public class FluxClientConfiguration {
     }
     public String getClientElbId() {
         return clientElbId;
+    }
+    public String getAuthnUrl() {
+        return authnUrl;
+    }
+    public String getAuthnClientId() {
+        return authnClientId;
+    }
+    public String getAuthnClientSecret() {
+        return authnClientSecret;
     }
 }
