@@ -37,21 +37,23 @@ public class OrchestrationOrderedComponentBooter implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(OrchestrationOrderedComponentBooter.class);
     private final Server apiServer;
     private final Server dashboardServer;
-    private final AuthConfig authConfig;
+    private final AuthConfig uiAuthConfig;
+    private final AuthConfig apiAuthConfig;
     private final WebAppContext webAppContext;
 
 
     @Inject
     public OrchestrationOrderedComponentBooter(@Named("APIJettyServer") Server apiServer,
-                                               @Named("AuthnConfig") AuthConfig authConfig,
+                                               @Named("UiAuthnConfig") AuthConfig uiAuthConfig,
                                                @Named("DashboardJettyServer") Server dashboardServer,
-                                               @Named("DashboardContext") WebAppContext webAppContext
+                                               @Named("DashboardContext") WebAppContext webAppContext,
+                                               @Named("ApiAuthnConfig") AuthConfig apiAuthConfig
     ) {
         this.apiServer = apiServer;
         this.dashboardServer = dashboardServer;
-        this.authConfig = authConfig;
+        this.uiAuthConfig = uiAuthConfig;
         this.webAppContext = webAppContext;
-
+        this.apiAuthConfig = apiAuthConfig;
     }
 
     @Override
@@ -68,8 +70,11 @@ public class OrchestrationOrderedComponentBooter implements Initializable {
             logger.info("API server started. Say Hello!");
             /* Bring up the Dashboard server */
             logger.info("Loading Dashboard Server");
-            if (authConfig.isAuthEnabled()) {
-                AuthNModule.configureUIApp(webAppContext, authConfig);
+            if (uiAuthConfig.isAuthEnabled()) {
+                AuthNModule.configureUIApp(webAppContext, uiAuthConfig);
+            }
+            if(apiAuthConfig.isAuthEnabled()){
+                AuthNModule.configureApiApp(dashboardServer, apiAuthConfig);
             }
             dashboardServer.start();
             logger.info("Dashboard server has started. Say Hello!");

@@ -4,7 +4,9 @@ import com.flipkart.kloud.authn.filter.AuthConfig;
 import com.flipkart.kloud.filter.*;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.FilterMapping;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import javax.inject.Named;
@@ -20,13 +22,13 @@ public class AuthNModule extends AbstractModule {
 
     @Provides
     @Singleton
-    @Named("AuthnConfig")
-    AuthConfig getAuthNConfig(@Named("authConfig.authEnabled") boolean authEnabled,
-                              @Named("authConfig.authnUrl") String url,
-                              @Named("authConfig.clientId") String clientId,
-                              @Named("authConfig.clientSecret") String clientSecret,
-                              @Named("authConfig.redirectUri") String redirectUrl,
-                              @Named("authConfig.authIgnoreUrls") String authIgnoreUrls
+    @Named("UiAuthnConfig")
+    AuthConfig getUIAuthNConfig(@Named("uiAuthConfig.authEnabled") boolean authEnabled,
+                              @Named("uiAuthConfig.authnUrl") String url,
+                              @Named("uiAuthConfig.clientId") String clientId,
+                              @Named("uiAuthConfig.clientSecret") String clientSecret,
+                              @Named("uiAuthConfig.redirectUri") String redirectUrl,
+                              @Named("uiAuthConfig.authIgnoreUrls") String authIgnoreUrls
     ) {
         String[] authnUrls = new String[1];
         authnUrls[0] = url;
@@ -40,9 +42,27 @@ public class AuthNModule extends AbstractModule {
         return authConfig;
     }
 
-    public static void configureUIApp(//Environment environment,
-                                      WebAppContext webAppContext,
-                                      AuthConfig config) {
+    @Provides
+    @Singleton
+    @Named("ApiAuthnConfig")
+    AuthConfig getAuthNConfig(@Named("apiAuthConfig.authEnabled") boolean authEnabled,
+                              @Named("apiAuthConfig.authnUrl") String url,
+                              @Named("apiAuthConfig.clientId") String clientId,
+                              @Named("apiAuthConfig.clientSecret") String clientSecret
+
+    ) {
+        String[] authnUrls = new String[1];
+        authnUrls[0] = url;
+        AuthConfig authConfig = new AuthConfig();
+        authConfig.setAuthEnabled(authEnabled);
+        authConfig.setAuthnUrls(authnUrls);
+        authConfig.setClientId(clientId);
+        authConfig.setClientSecret(clientSecret);
+        return authConfig;
+    }
+
+
+    public static void configureUIApp(WebAppContext webAppContext, AuthConfig config) {
         if (!config.isAuthEnabled()) {
             return;
         }
@@ -69,8 +89,22 @@ public class AuthNModule extends AbstractModule {
         webAppContext.addFilter(new FilterHolder(callbackUrlFilter), "/*", EnumSet.of(DispatcherType.REQUEST));
         webAppContext.addFilter(new FilterHolder(logoutUrlFilter), "/*", EnumSet.of(DispatcherType.REQUEST));
 
-        EnsureAuthenticationFilter ensureAuthenticationFilter = new EnsureAuthenticationFilter(config.getLoginUrl(), null   );
+        EnsureAuthenticationFilter ensureAuthenticationFilter = new EnsureAuthenticationFilter(config.getLoginUrl(), null);
         webAppContext.addFilter(new FilterHolder(ensureAuthenticationFilter), "/*", EnumSet.of(DispatcherType.REQUEST));
     }
 
+    public static void configureApiApp(Server server, AuthConfig apiAuthConfig){
+        final WebAppContext context = (WebAppContext) server.getHandler();
+        SecurityContextPersistenceFilter securityContextPersistenceFilter = new SecurityContextPersistenceFilter();
+        FilterMapping apiFilterMapping = new FilterMapping();
+        apiFilterMapping.setPathSpec("/*");
+        apiFilterMapping.setDispatcherTypes(EnumSet.of(DispatcherType.REQUEST));
+        context.addFilter(new FilterHolder(securityContextPersistenceFilter), "/*", EnumSet.of(DispatcherType.REQUEST));
+        SystemUserAuthenticationFilter systemAuthFilter =
+                new SystemUserAuthenticationFilter(apiAuthConfig.getAuthnUrls(), apiAuthConfig.getClientId());
+        context.addFilter(new FilterHolder(systemAuthFilter), "/*", EnumSet.of(DispatcherType.REQUEST));
+
+        EnsureAuthenticationFilter ensureAuthenticationFilter = new EnsureAuthenticationFilter(apiAuthConfig.getLoginUrl(), null);
+        context.addFilter(new FilterHolder(ensureAuthenticationFilter), "/*", EnumSet.of(DispatcherType.REQUEST));
+    }
 }

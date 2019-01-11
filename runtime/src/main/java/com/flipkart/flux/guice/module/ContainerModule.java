@@ -26,11 +26,14 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.flipkart.flux.config.FileLocator;
 import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.filter.CORSFilter;
+import com.flipkart.flux.filter.RequestLoggingFilter;
 import com.flipkart.flux.metrics.MetricsClientImpl;
 import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.resource.ClientElbResource;
 import com.flipkart.flux.resource.StateMachineResource;
 import com.flipkart.flux.resource.StatusResource;
+import com.flipkart.kloud.authn.filter.AuthValueFactoryProvider;
+import com.flipkart.kloud.filter.User;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import org.eclipse.jetty.server.Server;
@@ -195,6 +198,8 @@ public class ContainerModule extends AbstractModule {
         resourceConfig.register(clientElbResource);
 
         resourceConfig.register(CORSFilter.class);
+        resourceConfig.register(RequestLoggingFilter.class);
+        resourceConfig.register(new AuthValueFactoryProvider.Binder<>(User.class));
         jmxReporter.start();
         return resourceConfig;
     }
