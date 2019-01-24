@@ -55,11 +55,11 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     public static final int MAX_TOTAL = 400;
     public static final int MAX_PER_ROUTE = 50;
     public static final String EXTERNAL = "external";
-    private  CloseableHttpClient closeableHttpClient;
-    private  String fluxEndpoint;
-    private  ObjectMapper objectMapper;
-    private  MetricRegistry metricRegistry;
-    private AuthTokenService authTokenService;
+    private final CloseableHttpClient closeableHttpClient;
+    private final String fluxEndpoint;
+    private final ObjectMapper objectMapper;
+    private final MetricRegistry metricRegistry;
+    private final AuthTokenService authTokenService;
     private String authnTargetClientId;
 
     @VisibleForTesting
@@ -88,13 +88,12 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
 
     }
 
-    public FluxRuntimeConnectorHttpImpl(){}
-
     public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint, ObjectMapper objectMapper,
-                                        MetricRegistry metricRegistry, String targetClientId) {
+                                        MetricRegistry metricRegistry, String targetClientId, AuthTokenService authTokenService) {
         this.fluxEndpoint = fluxEndpoint;
         this.objectMapper = objectMapper;
         this.authnTargetClientId = targetClientId;
+        this.authTokenService = authTokenService;
         RequestConfig clientConfig = RequestConfig.custom()
                 .setConnectTimeout((connectionTimeout).intValue())
                 .setSocketTimeout((socketTimeout).intValue())

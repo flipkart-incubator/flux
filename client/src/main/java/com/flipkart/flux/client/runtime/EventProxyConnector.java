@@ -4,6 +4,7 @@ import com.codahale.metrics.SharedMetricRegistries;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.client.config.FluxClientConfiguration;
+import com.flipkart.kloud.authn.AuthTokenService;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -17,9 +18,9 @@ public class EventProxyConnector extends FluxRuntimeConnectorHttpImpl {
     public static Logger logger = LoggerFactory.getLogger(EventProxyConnector.class);
 
     @Inject
-    public EventProxyConnector(@Named("eventProxyForMigration.endpoint") String endpoint, FluxClientConfiguration fluxClientConfiguration) {
+    public EventProxyConnector(@Named("eventProxyForMigration.endpoint") String endpoint, FluxClientConfiguration fluxClientConfiguration, AuthTokenService authTokenService) {
         super(fluxClientConfiguration.getConnectionTimeout(), fluxClientConfiguration.getSocketTimeout(),
-                endpoint, new ObjectMapper(), SharedMetricRegistries.getOrCreate("mainMetricRegistry"), endpoint);
+                endpoint, new ObjectMapper(), SharedMetricRegistries.getOrCreate("mainMetricRegistry"), endpoint, authTokenService);
     }
 
     @Override

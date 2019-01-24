@@ -14,9 +14,6 @@
 
 package com.flipkart.flux.guice.module;
 
-import com.flipkart.flux.client.AuthTokenServiceProvider;
-import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
-import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
 import com.flipkart.flux.impl.eventscheduler.EventSchedulerRegistryImpl;
 import com.flipkart.flux.impl.redriver.RedriverRegistryImpl;
 import com.flipkart.flux.module.SchedulerModule;
@@ -24,7 +21,6 @@ import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcherImpl;
-import com.flipkart.kloud.authn.AuthTokenService;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 
@@ -41,8 +37,8 @@ public class OrchestrationTaskModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(AuthTokenService.class).toProvider(AuthTokenServiceProvider.class).in(Singleton.class);
-        bind(FluxRuntimeConnector.class).to(FluxRuntimeConnectorHttpImpl.class).in(Singleton.class);
+    //    bind(AuthTokenService.class).toProvider(AuthTokenServiceProvider.class).in(Singleton.class);
+    //    bind(FluxRuntimeConnector.class).to(FluxRuntimeConnectorHttpImpl.class).in(Singleton.class);
         bind(ExecutionNodeTaskDispatcher.class).to(ExecutionNodeTaskDispatcherImpl.class).in(Singleton.class);
         bind(RedriverRegistry.class).to(RedriverRegistryImpl.class);
         bind(EventSchedulerRegistry.class).to(EventSchedulerRegistryImpl.class);

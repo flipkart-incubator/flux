@@ -11,18 +11,15 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import javax.inject.Named;
-import javax.inject.Singleton;
 import javax.servlet.DispatcherType;
 import java.util.EnumSet;
 
 public class AuthNModule extends AbstractModule {
     @Override
     protected void configure() {
-
     }
 
     @Provides
-    @Singleton
     @Named("UiAuthnConfig")
     AuthConfig getUIAuthNConfig(@Named("uiAuthConfig.authEnabled") boolean authEnabled,
                               @Named("uiAuthConfig.authnUrl") String url,
@@ -44,7 +41,6 @@ public class AuthNModule extends AbstractModule {
     }
 
     @Provides
-    @Singleton
     @Named("ApiAuthnConfig")
     AuthConfig getAuthNConfig(@Named("apiAuthConfig.authEnabled") boolean authEnabled,
                               @Named("apiAuthConfig.authnUrl") String url,

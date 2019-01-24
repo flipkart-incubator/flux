@@ -15,7 +15,7 @@ package com.flipkart.flux.examples.externalevents;
 
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
-import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
+import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -30,7 +30,7 @@ public class RunManualSellerVerificationWorkflow {
         /* Lets invoke our workflow */
 
         String randomCorrelationId = "my-correlation-id-23";
-        manualSellerVerificationFlow.verifySeller(new SellerId(1l, randomCorrelationId));
+     //   manualSellerVerificationFlow.verifySeller(new SellerId(1l, randomCorrelationId));
 
         /* Since we've initialised flux, the process will continue to run till you explicitly kill it */
         /* The workflow is currently waiting for the seller to post  the external event*/
@@ -50,9 +50,7 @@ public class RunManualSellerVerificationWorkflow {
 
         System.out.println("[Main] Sleeping for 2 seconds before posting data to flux runtime");
         Thread.sleep(2000l); // Just a 2 second wait to ensure that the state machine has been created in flux
-        injector.getInstance(FluxRuntimeConnectorHttpImpl.class).submitEvent("sellerVerification", new SellerVerificationStatus(new SellerId(1l), true), randomCorrelationId, "Manual Trigger From Customer Support");
-//        new FluxRuntimeConnectorHttpImpl(10000l, 10000l, "http://localhost:9998/api/machines", null).
-//                submitEvent("sellerVerification", new SellerVerificationStatus(new SellerId(1l), true), randomCorrelationId, "Manual Trigger From Customer Support");
+        injector.getInstance(FluxRuntimeConnector.class).submitEvent("sellerVerification", new SellerVerificationStatus(new SellerId(1l), true), randomCorrelationId, "Manual Trigger From Customer Support");
         System.out.println("[Main] Posted data to flux runtime, the workflow should have continued");
 
     }

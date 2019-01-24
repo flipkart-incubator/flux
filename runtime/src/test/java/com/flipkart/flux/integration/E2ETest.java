@@ -16,6 +16,7 @@ package com.flipkart.flux.integration;
 
 import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.InjectFromRole;
+import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
@@ -35,6 +36,7 @@ import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
+import com.flipkart.kloud.authn.AuthTokenService;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import org.junit.After;
@@ -43,15 +45,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.inject.Inject;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(GuiceJunit4Runner.class)
-@Modules(orchestrationModules = {ShardModule.class, RuntimeTestModule.class, ContainerModule.class,
+@Modules(orchestrationModules = {FluxClientComponentModule.class, ShardModule.class, RuntimeTestModule.class, ContainerModule.class, AuthNModule.class,
         OrchestrationTaskModule.class, FluxClientInterceptorModule.class},
-        executionModules = { DeploymentUnitTestModule.class, AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class, FluxClientInterceptorModule.class})
+        executionModules = {FluxClientComponentModule.class, DeploymentUnitTestModule.class, AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class, FluxClientInterceptorModule.class})
 public class E2ETest {
 
     @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
@@ -88,10 +89,15 @@ public class E2ETest {
     @InjectFromRole(value = FluxRuntimeRole.EXECUTION)
     ExecutionOrderedComponentBooter executionOrderedComponentBooter;
 
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
+    AuthTokenService authTokenService;
+
     @Before
     public void setUp() {
         try {
             Unirest.post("http://localhost:9998/api/client-elb/create")
+                    .header("Authorization",
+                            authTokenService.fetchToken("http://localhost:9998/").toAuthorizationHeader())
                     .queryString("clientId", "defaultElbId").queryString("clientElbUrl",
                     "http://localhost:9997").asString();
         } catch (UnirestException e) {
@@ -103,6 +109,8 @@ public class E2ETest {
     public void tearDown() {
         try {
             Unirest.post("http://localhost:9998/api/client-elb/delete")
+                    .header("Authorization",
+                            authTokenService.fetchToken("http://localhost:9998/").toAuthorizationHeader())
                     .queryString("clientId", "defaultElbId").asString();
         } catch (UnirestException e) {
             e.printStackTrace();
@@ -140,7 +148,7 @@ public class E2ETest {
         Thread.sleep(2000L);
 
         /* Asserts*/
-        final Set<StateMachine> smInDb =  parallelScatterGatherQueryHelper.findStateMachinesByNameAndVersion("com.flipkart.flux.integration.TestCancelPathWorkflow_create_void_com.flipkart.flux.integration.StartEvent_version1", 1l);
+        final Set<StateMachine> smInDb = parallelScatterGatherQueryHelper.findStateMachinesByNameAndVersion("com.flipkart.flux.integration.TestCancelPathWorkflow_create_void_com.flipkart.flux.integration.StartEvent_version1", 1l);
         final String smId = smInDb.stream().findFirst().get().getId();
         assertThat(smInDb).hasSize(1);
         assertThat(eventsDAO.findBySMInstanceId(smId)).hasSize(9);
@@ -165,17 +173,16 @@ public class E2ETest {
     }
 
     @Test
-    public void verifyRedriverPolling(){
+    public void verifyRedriverPolling() {
         dbClearRule.explicitClearTables();
-        for(int i = 0 ; i < 100; i++)
+        for (int i = 0; i < 100; i++)
             redriverRegistry.registerTask(i * 1L, "smId", 0);
-        for(int i = 1; i <= 100 ; i++)
-            redriverRegistry.registerTask( 1000L + i, "smId",  (i*10000000L));
-        Long total  = messageDao.redriverCount();
+        for (int i = 1; i <= 100; i++)
+            redriverRegistry.registerTask(1000L + i, "smId", (i * 10000000L));
+        Long total = messageDao.redriverCount();
         try {
             Thread.sleep(12000);
-        }
-        catch (InterruptedException ex){
+        } catch (InterruptedException ex) {
         }
         assertThat(messageDao.redriverCount()).isEqualTo(100L);
         dbClearRule.explicitClearTables();
