@@ -22,7 +22,7 @@ public class RequestLoggingFilter implements ContainerRequestFilter {
         sb.append(requestContext.getUriInfo().getPath())
                 .append(" by user : ")
                 .append(SecurityContextHolder.getSecurityContext().getUser() != null ?
-                        SecurityContextHolder.getSecurityContext().getUser() : "User not logged in.")
+                        SecurityContextHolder.getSecurityContext().getUser().getUserId() : "User not logged in.")
                 .append(" with payload : ")
                 .append(getRequestPayload(requestContext));
         logger.info("Request : " + sb.toString());

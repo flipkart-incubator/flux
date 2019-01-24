@@ -23,7 +23,6 @@ import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
 import com.flipkart.flux.client.runtime.LocalContext;
 import com.flipkart.kloud.authn.AuthTokenService;
-import com.flipkart.kloud.authn.OAuthClientCredentials;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 
@@ -53,44 +52,24 @@ public class FluxClientComponentModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(ExecutableRegistry.class).annotatedWith(IsolatedEnv.class).to(LocalExecutableRegistryImpl.class);
+        bind(AuthTokenService.class).toProvider(AuthTokenServiceProvider.class).in(Singleton.class);
     }
 
     @Provides
+    @Singleton
     public FluxRuntimeConnector provideFluxRuntimeConnector(FluxClientConfiguration configuration,
                                                             ObjectMapper objectMapper) {
         String fluxRuntimeUrl = System.getProperty("flux.runtimeUrl");
         if (fluxRuntimeUrl == null) {
             fluxRuntimeUrl = configuration.getFluxRuntimeUrl();
         }
-        String authnClientId = System.getProperty("flux.authnClientId");
-        if (authnClientId == null) {
-
-        }
         return new FluxRuntimeConnectorHttpImpl(configuration.getConnectionTimeout(),
                 configuration.getSocketTimeout(),
-                fluxRuntimeUrl + "/api/machines",
-                objectMapper, SharedMetricRegistries.getOrCreate("mainMetricRegistry"), authnClientId);
+                fluxRuntimeUrl + "api/machines",
+                objectMapper, SharedMetricRegistries.getOrCreate("mainMetricRegistry"),
+                configuration.getFluxRuntimeUrl()//, provideAuthTokenService(configuration)
+                 );
     }
-
-    @Provides
-    @Singleton
-    public AuthTokenService provideAuthTokenService(FluxClientConfiguration configuration) {
-        String authnUrl = System.getProperty("flux.authnUrl");
-        if (authnUrl == null) {
-            authnUrl = configuration.getAuthnUrl();
-        }
-        String authnClientId = System.getProperty("flux.authnClientId");
-        if (authnClientId == null) {
-
-        }
-        String authnClientSecret = System.getProperty("flux.authnClientSecret");
-        if (authnClientSecret == null) {
-
-        }
-        return new AuthTokenService(authnUrl, new OAuthClientCredentials(authnClientId, authnClientSecret));
-
-    }
-
     @Provides
     @Singleton
     public LocalContext getLocalContext() {

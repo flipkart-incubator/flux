@@ -29,7 +29,7 @@ public class RunManualSellerVerificationWorkflow {
         final ManualSellerVerificationFlow manualSellerVerificationFlow = injector.getInstance(ManualSellerVerificationFlow.class);
         /* Lets invoke our workflow */
 
-        String randomCorrelationId = "my-correlation-id-2";
+        String randomCorrelationId = "my-correlation-id-23";
         manualSellerVerificationFlow.verifySeller(new SellerId(1l, randomCorrelationId));
 
         /* Since we've initialised flux, the process will continue to run till you explicitly kill it */
@@ -50,8 +50,9 @@ public class RunManualSellerVerificationWorkflow {
 
         System.out.println("[Main] Sleeping for 2 seconds before posting data to flux runtime");
         Thread.sleep(2000l); // Just a 2 second wait to ensure that the state machine has been created in flux
-        new FluxRuntimeConnectorHttpImpl(10000l, 10000l, "http://localhost:9998/api/machines").
-                submitEvent("sellerVerification", new SellerVerificationStatus(new SellerId(1l), true), randomCorrelationId, "Manual Trigger From Customer Support");
+        injector.getInstance(FluxRuntimeConnectorHttpImpl.class).submitEvent("sellerVerification", new SellerVerificationStatus(new SellerId(1l), true), randomCorrelationId, "Manual Trigger From Customer Support");
+//        new FluxRuntimeConnectorHttpImpl(10000l, 10000l, "http://localhost:9998/api/machines", null).
+//                submitEvent("sellerVerification", new SellerVerificationStatus(new SellerId(1l), true), randomCorrelationId, "Manual Trigger From Customer Support");
         System.out.println("[Main] Posted data to flux runtime, the workflow should have continued");
 
     }

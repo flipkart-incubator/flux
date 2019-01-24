@@ -30,13 +30,13 @@ package com.flipkart.flux.client.config;
  */
 public class FluxClientConfiguration {
 
-    private String fluxRuntimeUrl = "http://localhost:9998";
+    private String fluxRuntimeUrl = "http://localhost:9998/";
     private String clientElbId = "defaultElbId";
     private long socketTimeout = 10000;
     private long connectionTimeout = 10000;
-    private String authnUrl = "https://authn.ch.flipkart.com";
-    private String authnClientId;
-    private String authnClientSecret;
+    private String authnUrl = "https://authn-preprod.nm.flipkart.com";
+    private String authnClientId = "http://localhost:9998/";
+    private String authnClientSecret = "admJWTjYAefdTBvcFgPOmE4Km1zDLzm7wESzkpOPkwhXlCXm";
 
     /** Constructors*/
     public FluxClientConfiguration() {}

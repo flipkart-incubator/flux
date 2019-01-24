@@ -66,7 +66,6 @@ public class OrchestrationOrderedComponentBooter implements Initializable {
         try {
             /* Bring up the API server */
             logger.info("loading API server");
-            apiServer.start();
             logger.info("API server started. Say Hello!");
             /* Bring up the Dashboard server */
             logger.info("Loading Dashboard Server");
@@ -74,9 +73,10 @@ public class OrchestrationOrderedComponentBooter implements Initializable {
                 AuthNModule.configureUIApp(webAppContext, uiAuthConfig);
             }
             if(apiAuthConfig.isAuthEnabled()){
-                AuthNModule.configureApiApp(dashboardServer, apiAuthConfig);
+                AuthNModule.configureApiApp(apiServer, apiAuthConfig);
             }
             dashboardServer.start();
+            apiServer.start();
             logger.info("Dashboard server has started. Say Hello!");
         } catch (Exception e) {
             throw new RuntimeException(e);

@@ -14,8 +14,6 @@
 
 package com.flipkart.flux.client;
 
-import com.codahale.metrics.SharedMetricRegistries;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.client.guice.annotation.IsolatedEnv;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
@@ -24,6 +22,8 @@ import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
 import com.flipkart.flux.client.runtime.LocalContext;
 import com.flipkart.flux.client.utils.TestResourceModule;
+import com.flipkart.kloud.authn.AuthTokenService;
+import com.flipkart.kloud.authn.OAuthClientCredentials;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import org.mockito.Mockito;
@@ -35,21 +35,26 @@ public class FluxClientSpyModuleForTests extends AbstractModule {
     @Override
     protected void configure() {
         install(new FluxClientInterceptorModule());
-        bind(ExecutableRegistry.class).annotatedWith(IsolatedEnv.class).to(LocalExecutableRegistryImpl.class);
         bind(SimpleWorkflowForTest.class);
         install(new TestResourceModule());
     }
 
     @Provides
     @Singleton
-    public LocalContext provideLocalContext( ) {
+    public LocalContext provideLocalContext() {
         return Mockito.spy(new LocalContext());
     }
 
+
+    public AuthTokenService testAuthTokenService(){
+        return  Mockito.spy(new  AuthTokenService("https://authn-preprod.nm.flipkart.com",
+                new OAuthClientCredentials("http://localhost:9998/", "admJWTjYAefdTBvcFgPOmE4Km1zDLzm7wESzkpOPkwhXlCXm")));
+    };
+
     @Provides
     @Singleton
-    public FluxRuntimeConnector provideFluxRuntimeConnector( ){
-        return Mockito.spy(new FluxRuntimeConnectorHttpImpl(1000l,1000l,"http://localhost:9091/flux/machines", new ObjectMapper(),
-                SharedMetricRegistries.getOrCreate("mainMetricRegistry")));
+    public FluxRuntimeConnector provideFluxRuntimeConnector() {
+        return Mockito.spy(new FluxRuntimeConnectorHttpImpl(1000l, 1000l,
+                "http://localhost:9091/flux/machines", testAuthTokenService()));
     }
 }

@@ -15,6 +15,7 @@ package com.flipkart.flux.initializer;
 
 import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.MigrationUtil.MigrationsRunner;
+import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.guice.module.*;
 import com.flipkart.polyguice.core.support.Polyguice;
@@ -136,6 +137,7 @@ public class FluxInitializer {
             case ORCHESTRATION:
                 fluxRuntimeContainer.modules(
                         configModule,
+                        new FluxClientComponentModule(),
                         new ShardModule(),
                         new OrchestrationTaskModule(),
                         new AuthNModule(),
@@ -145,11 +147,14 @@ public class FluxInitializer {
                 logger.info("here");
                 fluxRuntimeContainer.modules(
                         configModule,
+                        new FluxClientComponentModule(),
                         new ExecutionContainerModule(),
                         new DeploymentUnitModule(),
                         new AkkaModule(),
                         new ExecutionTaskModule(),
-                        new FluxClientInterceptorModule());
+                        new FluxClientInterceptorModule()
+
+                       );
                 break;
             default:
                 logger.error("Node running as wrong role, exiting");

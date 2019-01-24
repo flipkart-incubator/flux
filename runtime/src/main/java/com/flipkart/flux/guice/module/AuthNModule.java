@@ -1,12 +1,13 @@
 package com.flipkart.flux.guice.module;
 
+import com.codahale.metrics.jetty9.InstrumentedHandler;
 import com.flipkart.kloud.authn.filter.AuthConfig;
 import com.flipkart.kloud.filter.*;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.FilterMapping;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import javax.inject.Named;
@@ -48,7 +49,8 @@ public class AuthNModule extends AbstractModule {
     AuthConfig getAuthNConfig(@Named("apiAuthConfig.authEnabled") boolean authEnabled,
                               @Named("apiAuthConfig.authnUrl") String url,
                               @Named("apiAuthConfig.clientId") String clientId,
-                              @Named("apiAuthConfig.clientSecret") String clientSecret
+                              @Named("apiAuthConfig.clientSecret") String clientSecret,
+                              @Named("apiAuthConfig.authIgnoreUrls") String authIgnoreUrls
 
     ) {
         String[] authnUrls = new String[1];
@@ -58,6 +60,7 @@ public class AuthNModule extends AbstractModule {
         authConfig.setAuthnUrls(authnUrls);
         authConfig.setClientId(clientId);
         authConfig.setClientSecret(clientSecret);
+        authConfig.setAuthIgnoreUrls(authIgnoreUrls);
         return authConfig;
     }
 
@@ -94,17 +97,15 @@ public class AuthNModule extends AbstractModule {
     }
 
     public static void configureApiApp(Server server, AuthConfig apiAuthConfig){
-        final WebAppContext context = (WebAppContext) server.getHandler();
+        final InstrumentedHandler handler = (InstrumentedHandler) server.getHandler();
+        final ServletContextHandler context = (ServletContextHandler) handler.getHandler();
         SecurityContextPersistenceFilter securityContextPersistenceFilter = new SecurityContextPersistenceFilter();
-        FilterMapping apiFilterMapping = new FilterMapping();
-        apiFilterMapping.setPathSpec("/*");
-        apiFilterMapping.setDispatcherTypes(EnumSet.of(DispatcherType.REQUEST));
         context.addFilter(new FilterHolder(securityContextPersistenceFilter), "/*", EnumSet.of(DispatcherType.REQUEST));
         SystemUserAuthenticationFilter systemAuthFilter =
-                new SystemUserAuthenticationFilter(apiAuthConfig.getAuthnUrls(), apiAuthConfig.getClientId());
+                new SystemUserAuthenticationFilter(apiAuthConfig.getAuthnUrls(), apiAuthConfig.getClientId(), apiAuthConfig.getAuthIgnoreUrls());
         context.addFilter(new FilterHolder(systemAuthFilter), "/*", EnumSet.of(DispatcherType.REQUEST));
 
-        EnsureAuthenticationFilter ensureAuthenticationFilter = new EnsureAuthenticationFilter(apiAuthConfig.getLoginUrl(), null);
+        EnsureAuthenticationFilter ensureAuthenticationFilter = new EnsureAuthenticationFilter(null, apiAuthConfig.getAuthIgnoreUrls());
         context.addFilter(new FilterHolder(ensureAuthenticationFilter), "/*", EnumSet.of(DispatcherType.REQUEST));
     }
 }

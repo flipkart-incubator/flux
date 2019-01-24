@@ -3,23 +3,23 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:context="http://www.springframework.org/schema/context"
   xmlns:mvc="http://www.springframework.org/schema/mvc"
-  xsi:schemaLocation=" http://www.springframework.org/schema/mvc 
+  xsi:schemaLocation=" http://www.springframework.org/schema/mvc
 http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
 http://www.springframework.org/schema/beans 
 http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 http://www.springframework.org/schema/context 
 http://www.springframework.org/schema/context/spring-context-3.0.xsd">
-	
+
     <!-- Controllers for Web Console -->
-	<import resource="controller-context.xml" /> 	
-	
+	<import resource="controller-context.xml" />
+
 	<context:annotation-config />
- 	
+
  	<!-- freemarker config -->
     <bean id="freemarkerConfig" class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
       <property name="templateLoaderPath" value="/WEB-INF/pages/fsmview"/>
     </bean>
-     
+
     <!-- 
       View resolvers can also be configured with ResourceBundles or XML files. If you need
       different view resolving based on Locale, you have to use the resource bundle resolver.
@@ -29,12 +29,12 @@ http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 		<property name="prefix" value=""/>
 		<property name="suffix" value=".ftl"/>
 	</bean>
- 
+
     <!-- Static resources -->
 	<mvc:resources location="WEB-INF/pages/resources/" mapping="resources/**" /> <!-- Resources for Web Console -->
 	<mvc:resources location="WEB-INF/fsm-dashboard/" mapping="fsm-dashboard/**" /> <!-- FSM dashboard -->
 	<mvc:resources location="WEB-INF/fsm-dashboard/" mapping="fsmview/**" /> <!-- FSM dashboard -->
-	<mvc:resources mapping="/favicon.ico" location="/WEB-INF/pages/resources/images/favicon.ico" />
+	<mvc:resources location="/WEB-INF/pages/resources/images/favicon.ico" mapping="/favicon.ico" />
 	<mvc:annotation-driven />
-	
+
 </beans>

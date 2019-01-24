@@ -445,7 +445,7 @@
             document.getElementById("fsmName").innerHTML = fsmName;
         }
 
-        function getFSMData() {
+        // function getFSMData() {
             var fsmId = document.getElementById("fsm-id").value;
             if(!fsmId) {
                 fsmId = ('${fsm_id}' != 'null' ? '${fsm_id}' : null);

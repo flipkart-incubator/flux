@@ -1,5 +1,7 @@
 package com.flipkart.flux.client.runtime;
 
+import com.codahale.metrics.SharedMetricRegistries;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.client.config.FluxClientConfiguration;
 import com.google.inject.Inject;
@@ -17,7 +19,7 @@ public class EventProxyConnector extends FluxRuntimeConnectorHttpImpl {
     @Inject
     public EventProxyConnector(@Named("eventProxyForMigration.endpoint") String endpoint, FluxClientConfiguration fluxClientConfiguration) {
         super(fluxClientConfiguration.getConnectionTimeout(), fluxClientConfiguration.getSocketTimeout(),
-                endpoint);
+                endpoint, new ObjectMapper(), SharedMetricRegistries.getOrCreate("mainMetricRegistry"), endpoint);
     }
 
     @Override
@@ -38,7 +40,7 @@ public class EventProxyConnector extends FluxRuntimeConnectorHttpImpl {
     }
 
     @Override
-    public void submitScheduledEvent(String name, Object data, String correlationId,String eventSource, Long triggerTime) {
+    public void submitScheduledEvent(String name, Object data, String correlationId, String eventSource, Long triggerTime) {
         final String eventType = data.getClass().getName();
         if (eventSource == null) {
             eventSource = EXTERNAL;
@@ -46,7 +48,7 @@ public class EventProxyConnector extends FluxRuntimeConnectorHttpImpl {
         final EventData eventData = new EventData(name, eventType, (String) data, eventSource);
         CloseableHttpResponse httpResponse = null;
         try {
-            if(triggerTime != null) {
+            if (triggerTime != null) {
                 httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/events?searchField=correlationId&triggerTime=" + triggerTime);
             } else {
                 //this block is used by flux to trigger the event when the time has arrived, send the data as plain string without serializing,

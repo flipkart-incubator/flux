@@ -105,7 +105,8 @@ apiAuthConfig:
   authEnabled: True
   clientId: "http://localhost:9998/"
   authnUrl: "https://authn-preprod.nm.flipkart.com"
-  clientSecret: ""
+  clientSecret: "admJWTjYAefdTBvcFgPOmE4Km1zDLzm7wESzkpOPkwhXlCXm"
+  authIgnoreUrls: ".*fsmdata$" # optional
 
 authSession:
   connection.driver_class: "com.mysql.jdbc.Driver"
