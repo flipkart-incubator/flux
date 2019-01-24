@@ -66,7 +66,6 @@ public class ContainerModule extends AbstractModule {
 
     /**
      * Performs concrete bindings for interfaces
-     *
      * @see com.google.inject.AbstractModule#configure()
      */
     @Override
@@ -82,7 +81,6 @@ public class ContainerModule extends AbstractModule {
 
     /**
      * Creates a Jetty {@link WebAppContext} for the Flux dashboard
-     *
      * @return Jetty WebAppContext
      */
     @Named("DashboardContext")
@@ -118,7 +116,6 @@ public class ContainerModule extends AbstractModule {
 
     /**
      * Creates the Jetty server instance for the admin Dashboard and configures it with the @Named("DashboardContext").
-     *
      * @param port             where the service is available
      * @param acceptorThreads  no. of acceptors
      * @param maxWorkerThreads max no. of worker threads
@@ -146,7 +143,6 @@ public class ContainerModule extends AbstractModule {
 
     /**
      * Creates the Jetty server instance for the Flux API endpoint.
-     *
      * @param port where the service is available.
      * @return Jetty Server instance
      */

@@ -53,7 +53,6 @@ public class FluxClientComponentModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(ExecutableRegistry.class).annotatedWith(IsolatedEnv.class).to(LocalExecutableRegistryImpl.class);
-       // bind(AuthTokenService.class).toProvider(AuthTokenServiceProvider.class).in(Singleton.class);
     }
 
     @Provides

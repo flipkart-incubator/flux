@@ -65,27 +65,8 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     @VisibleForTesting
     public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint,
                                         AuthTokenService authTokenService) {
-        this.fluxEndpoint = fluxEndpoint;
-        this.objectMapper = new ObjectMapper();
-        this.authnTargetClientId = fluxEndpoint;
-        this.authTokenService = authTokenService;
-        RequestConfig clientConfig = RequestConfig.custom()
-                .setConnectTimeout((connectionTimeout).intValue())
-                .setSocketTimeout((socketTimeout).intValue())
-                .setConnectionRequestTimeout((socketTimeout).intValue())
-                .build();
-        PoolingHttpClientConnectionManager syncConnectionManager = new PoolingHttpClientConnectionManager();
-        syncConnectionManager.setMaxTotal(MAX_TOTAL);
-        syncConnectionManager.setDefaultMaxPerRoute(MAX_PER_ROUTE);
-
-        closeableHttpClient = HttpClientBuilder.create().setDefaultRequestConfig(clientConfig).setConnectionManager(syncConnectionManager)
-                .build();
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            HttpClientUtils.closeQuietly(closeableHttpClient);
-        }));
-        this.metricRegistry = SharedMetricRegistries.getOrCreate("mainMetricRegistry");
-
+        this(connectionTimeout, socketTimeout, fluxEndpoint, new ObjectMapper(), SharedMetricRegistries.getOrCreate("mainMetricRegistry")
+        , fluxEndpoint, authTokenService);
     }
 
     public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint, ObjectMapper objectMapper,

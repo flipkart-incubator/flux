@@ -153,7 +153,6 @@ public class FluxInitializer {
                         new AkkaModule(),
                         new ExecutionTaskModule(),
                         new FluxClientInterceptorModule()
-
                        );
                 break;
             default:

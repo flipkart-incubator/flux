@@ -23,8 +23,10 @@ public class RequestLoggingFilter implements ContainerRequestFilter {
                 .append(" by user : ")
                 .append(SecurityContextHolder.getSecurityContext().getUser() != null ?
                         SecurityContextHolder.getSecurityContext().getUser().getUserId() : "User not logged in.");
-//                .append(" with payload : ")
-//                .append(getRequestPayload(requestContext));
+/*             Not logging payload due to logging overhead
+               .append(" with payload : ")
+               .append(getRequestPayload(requestContext));
+*/
         logger.info("Request : " + sb.toString());
 
     }

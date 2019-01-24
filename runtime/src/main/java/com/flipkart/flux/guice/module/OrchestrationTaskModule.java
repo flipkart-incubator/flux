@@ -37,8 +37,6 @@ public class OrchestrationTaskModule extends AbstractModule {
 
     @Override
     protected void configure() {
-    //    bind(AuthTokenService.class).toProvider(AuthTokenServiceProvider.class).in(Singleton.class);
-    //    bind(FluxRuntimeConnector.class).to(FluxRuntimeConnectorHttpImpl.class).in(Singleton.class);
         bind(ExecutionNodeTaskDispatcher.class).to(ExecutionNodeTaskDispatcherImpl.class).in(Singleton.class);
         bind(RedriverRegistry.class).to(RedriverRegistryImpl.class);
         bind(EventSchedulerRegistry.class).to(EventSchedulerRegistryImpl.class);
