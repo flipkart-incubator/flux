@@ -6,7 +6,7 @@ CREATE TABLE `StatesMetaData` (
   `id` bigint(20) NOT NULL,
   `name` varchar(255) NOT NULL,
   `version` smallint(5) unsigned NOT NULL,
-  `description` varchar(10) DEFAULT NULL,
+  `description` varchar(100) DEFAULT NULL,
   `dependencies` varchar(1000) DEFAULT NULL,
   `stateMachineId` varchar(64) NOT NULL,
   `task` varchar(1000) DEFAULT NULL,

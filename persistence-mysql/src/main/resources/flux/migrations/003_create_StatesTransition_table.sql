@@ -10,7 +10,7 @@ CREATE TABLE `StatesTransition` (
   `stateMachineId` varchar(64) NOT NULL,
   `status` enum('initialized','running','completed','cancelled','errored','sidelined','unsidelined') DEFAULT NULL,
   `validity` enum('yes','no') DEFAULT NULL,
-  `outputEvent` varchar(500) DEFAULT NULL,
+  `outputEvent` varchar(1000) DEFAULT NULL,
   `rollbackStatus` varchar(50) DEFAULT NULL,
   `attemptedNoOfRetries` int(10) unsigned DEFAULT '0',
   `createdAt` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
