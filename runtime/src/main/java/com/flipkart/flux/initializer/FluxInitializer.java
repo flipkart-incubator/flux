@@ -144,7 +144,6 @@ public class FluxInitializer {
                         new ContainerModule());
                 break;
             case EXECUTION:
-                logger.info("here");
                 fluxRuntimeContainer.modules(
                         configModule,
                         new FluxClientComponentModule(),

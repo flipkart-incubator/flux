@@ -21,6 +21,5 @@
         <Logger name="com.flipkart.kloud.*" level="info" additivity="false">
             <AppenderRef ref="console-log"/>
         </Logger>
-
     </Loggers>
 </Configuration>
