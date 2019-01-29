@@ -19,7 +19,5 @@ public class RequestLoggingFilter implements ContainerRequestFilter {
                 .append(SecurityContextHolder.getSecurityContext().getUser() != null ?
                         SecurityContextHolder.getSecurityContext().getUser().getUserId() : "User not logged in.");
         logger.info("Request : " + sb.toString());
-
     }
-    
 }

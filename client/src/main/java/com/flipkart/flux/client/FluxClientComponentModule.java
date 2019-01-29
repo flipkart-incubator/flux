@@ -64,6 +64,8 @@ public class FluxClientComponentModule extends AbstractModule {
         if (fluxRuntimeUrl == null) {
             fluxRuntimeUrl = configuration.getFluxRuntimeUrl();
         }
+        if(!fluxRuntimeUrl.endsWith("/"))
+            fluxRuntimeUrl += "/" ;
         return new FluxRuntimeConnectorHttpImpl(configuration.getConnectionTimeout(),
                 configuration.getSocketTimeout(),
                 fluxRuntimeUrl + "api/machines",

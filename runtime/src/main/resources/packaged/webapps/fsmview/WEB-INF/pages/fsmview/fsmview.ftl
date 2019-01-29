@@ -4,7 +4,6 @@
     <link rel="stylesheet" type="text/css" href="/admin/fsm-dashboard/css/joint.css" />
 
     <!-- Keeping the Hystrix global stylesheet for some useful CSS types -->
-    <link rel="stylesheet" type="text/css" href="/admin/hystrix-dashboard/css/global.css" />
     <link rel="stylesheet" type="text/css" href="/admin/fsm-dashboard/css/bootstrap.min.css">
     <!-- JointJS and Diagre JS files and their dependencies -->
     <script type="text/javascript" src="/admin/fsm-dashboard/js/jquery.min.js"></script>
