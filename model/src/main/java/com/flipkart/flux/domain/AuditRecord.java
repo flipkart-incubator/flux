@@ -35,6 +35,9 @@ public class AuditRecord {
     /** The State identifier to which this audit belongs */
     private Long stateId;
 
+    /** Version to which current state execution belongs */
+    private Integer executionVersion;
+
     /** The State execution retry count */
     private Long retryAttempt;
 
@@ -55,13 +58,14 @@ public class AuditRecord {
     /** Constructors */
     protected AuditRecord(){}
     public AuditRecord(String stateMachineInstanceId, Long stateId, Long retryAttempt, Status stateStatus, Status stateRollbackStatus,
-                       String errors) {
+                       String errors, Integer executionVersion) {
         this.stateMachineInstanceId = stateMachineInstanceId;
         this.stateId = stateId;
         this.retryAttempt = retryAttempt;
         this.stateStatus = stateStatus;
         this.stateRollbackStatus = stateRollbackStatus;
         this.errors = errors;
+        this.executionVersion = executionVersion;
     }
 
     /** Accessor/Mutator methods*/
@@ -107,6 +111,12 @@ public class AuditRecord {
     public Timestamp getCreatedAt() {
         return createdAt;
     }
+    public void setExecutionVersion(Integer executionVersion) {
+        this.executionVersion = executionVersion;
+    }
+    public Integer getExecutionVersion() {
+        return executionVersion;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -121,6 +131,7 @@ public class AuditRecord {
             return false;
         if (stateRollbackStatus != that.stateRollbackStatus) return false;
         if (stateStatus != that.stateStatus) return false;
+        if (executionVersion != that.executionVersion) return false;
 
         return true;
     }
@@ -132,6 +143,7 @@ public class AuditRecord {
         result = 31 * result + (retryAttempt != null ? retryAttempt.hashCode() : 0);
         result = 31 * result + (stateStatus != null ? stateStatus.hashCode() : 0);
         result = 31 * result + (stateRollbackStatus != null ? stateRollbackStatus.hashCode() : 0);
+        result = 31 * result + (executionVersion != null ? executionVersion.hashCode() : 0);
         return result;
     }
 

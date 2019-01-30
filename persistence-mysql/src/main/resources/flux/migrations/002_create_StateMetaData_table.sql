@@ -2,7 +2,7 @@
 
 --changeset akif.khan:1 runOnChange:false
 
-CREATE TABLE `StatesMetaData` (
+CREATE TABLE `StateMetaData` (
   `id` bigint(20) NOT NULL,
   `name` varchar(255) NOT NULL,
   `version` smallint(5) unsigned NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE `StatesMetaData` (
   `createdAt` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`stateMachineId`,`id`),
   KEY `index_stateMachineId` (`stateMachineId`),
-  CONSTRAINT `FK_sm_statesMetaData` FOREIGN KEY (`stateMachineId`) REFERENCES `StateMachines` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `FK_sm_stateMetaData` FOREIGN KEY (`stateMachineId`) REFERENCES `StateMachines` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --rollback drop table StateMetaData;

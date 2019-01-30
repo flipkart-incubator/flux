@@ -2,7 +2,7 @@
 
 --changeset akif.khan:1 runOnChange:false
 
-CREATE TABLE `StatesTransition` (
+CREATE TABLE `StateTransition` (
   `id` bigint(20) NOT NULL,
   `name` varchar(255) NOT NULL,
   `executionVersion` smallint(5) unsigned NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE `StatesTransition` (
   `updatedAt` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`stateMachineId`,`id`,`executionVersion`),
   KEY `index_stateMachineId` (`stateMachineId`),
-  CONSTRAINT `FK_sm_statesTransition` FOREIGN KEY (`stateMachineId`) REFERENCES `StateMachines` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `FK_sm_stateTransition` FOREIGN KEY (`stateMachineId`) REFERENCES `StateMachines` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --rollback drop table StateTrasition;
