@@ -37,11 +37,9 @@ import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
 import com.flipkart.flux.utils.LoggingUtils;
 import com.google.inject.Inject;
-import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
