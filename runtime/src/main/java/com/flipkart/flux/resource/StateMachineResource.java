@@ -138,7 +138,7 @@ public class StateMachineResource {
         if (stateMachineDefinition == null)
             throw new IllegalRepresentationException("State machine definition is empty");
 
-        StateMachine stateMachine = null, stateMachine1 = null;
+        StateMachine stateMachine = null;
 
 
         final String stateMachineInstanceId;
