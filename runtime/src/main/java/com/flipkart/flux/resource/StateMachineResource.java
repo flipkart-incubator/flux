@@ -37,6 +37,7 @@ import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
 import com.flipkart.flux.utils.LoggingUtils;
 import com.google.inject.Inject;
+import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,7 +140,7 @@ public class StateMachineResource {
         if (stateMachineDefinition == null)
             throw new IllegalRepresentationException("State machine definition is empty");
 
-        StateMachine stateMachine = null;
+        StateMachine stateMachine = null, stateMachine1 = null;
 
 
         final String stateMachineInstanceId;
@@ -160,11 +161,22 @@ public class StateMachineResource {
                     append(stateMachine.getName()).
                     append(".started").toString());
         } catch (ConstraintViolationException ex) {
-            //in case of Duplicate correlation key, return http code 409 conflict
-            return Response.status(Response.Status.CONFLICT.getStatusCode()).entity(ex.getCause() != null ? ex.getCause().getMessage() : null).build();
+            //In case of Duplicate correlation key, return http code 409 conflict
+            stateMachine1 = stateMachinesDAO.findById(stateMachineInstanceId);
+            if (stateMachine1 != null) {
+                return Response.status(Response.Status.CONFLICT.getStatusCode()).entity(
+                        ex.getCause() != null ? ex.getCause().getMessage() : null).build();
+
+            }
+            logger.error("Constraint Violation during creating or initiating StateMachine" +
+                    " with id {} {}", stateMachineInstanceId, ex.getStackTrace());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).entity(
+                    ex.getCause() != null ? ex.getCause().getMessage() : null).build();
+
         } catch (Exception ex) {
             logger.error("Failed During Creating or Initiating StateMachine with id {} {}", stateMachineInstanceId, ex.getStackTrace());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).entity(ex.getCause() != null ? ex.getCause().getMessage() : null).build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).entity(
+                    ex.getCause() != null ? ex.getCause().getMessage() : null).build();
         }
 
         return Response.status(Response.Status.CREATED.getStatusCode()).entity(stateMachine.getId()).build();
