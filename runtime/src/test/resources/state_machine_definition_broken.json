@@ -4,7 +4,7 @@
   "description": "desc",
   "correlationId" : "magic_number_1",
   "states": [
-      {
+    {
       "version": 1,
       "name": null,
       "description": "desc1",
@@ -17,14 +17,6 @@
       "outputEvent": {
         "name": "event1",
         "type": "java.lang.String"
-        }
-      }
-      ],
-      "retryCount": "1",
-      "timeout": "100",
-      "outputEvent": {
-        "name": "event3",
-        "type": "java.lang.Integer"
       }
     }
   ],
