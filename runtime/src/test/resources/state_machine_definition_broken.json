@@ -1,0 +1,24 @@
+{
+  "name": "test_state_machine",
+  "version": 1,
+  "description": "desc",
+  "correlationId" : "magic_number_1",
+  "states": [
+    {
+      "version": 1,
+      "name": null,
+      "description": "desc1",
+      "onEntryHook": "com.flipkart.flux.dao.DummyOnEntryHook",
+      "task": "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_version1",
+      "onExitHook": "com.flipkart.flux.dao.DummyOnExitHook",
+      "dependencies": [],
+      "retryCount": "5",
+      "timeout": "100",
+      "outputEvent": {
+        "name": "event1",
+        "type": "java.lang.String"
+      }
+    }
+  ],
+  "clientElbId" : "defaultElbId"
+}

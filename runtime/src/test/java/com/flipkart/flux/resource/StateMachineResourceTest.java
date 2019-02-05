@@ -185,6 +185,13 @@ public class StateMachineResourceTest {
     }
 
     @Test
+    public void testCreateStateMachine_shouldReturn5xxForNonDuplicateIdConstraintViolation() throws Exception {
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition_broken.json"));
+        final HttpResponse<String> response = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
+        assertThat(response.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
     public void testPostEvent() throws Exception {
         //  doReturn(202).when(spyTaskDispatcher).forwardExecutionMessage(anyString(), anyObject());
         //when(spyTaskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(202);

@@ -40,7 +40,6 @@ import com.google.inject.Inject;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -160,11 +159,23 @@ public class StateMachineResource {
                     append(stateMachine.getName()).
                     append(".started").toString());
         } catch (ConstraintViolationException ex) {
-            //in case of Duplicate correlation key, return http code 409 conflict
-            return Response.status(Response.Status.CONFLICT.getStatusCode()).entity(ex.getCause() != null ? ex.getCause().getMessage() : null).build();
+            //In case of Duplicate correlation key, return http code 409 conflict
+            if(ex.getCause() != null) {
+                if (ex.getCause().getMessage().toLowerCase().contains("duplicate entry")) {
+                    return Response.status(Response.Status.CONFLICT.getStatusCode()).entity(
+                            ex.getCause().getMessage()).build();
+
+                }
+            }
+            logger.error("Constraint Violation during creating or initiating StateMachine" +
+                    " with id {} {} {}", stateMachineInstanceId, ex.getCause().getMessage(), ex.getStackTrace());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).entity(
+                    ex.getCause() != null ? ex.getCause().getMessage() : null).build();
+
         } catch (Exception ex) {
             logger.error("Failed During Creating or Initiating StateMachine with id {} {}", stateMachineInstanceId, ex.getStackTrace());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).entity(ex.getCause() != null ? ex.getCause().getMessage() : null).build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).entity(
+                    ex.getCause() != null ? ex.getCause().getMessage() : null).build();
         }
 
         return Response.status(Response.Status.CREATED.getStatusCode()).entity(stateMachine.getId()).build();
