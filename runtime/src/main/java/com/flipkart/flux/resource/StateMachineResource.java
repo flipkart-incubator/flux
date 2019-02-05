@@ -161,7 +161,7 @@ public class StateMachineResource {
         } catch (ConstraintViolationException ex) {
             //In case of Duplicate correlation key, return http code 409 conflict
             if(ex.getCause() != null) {
-                if (ex.getCause().getMessage().contains("Duplicate entry")) {
+                if (ex.getCause().getMessage().toLowerCase().contains("duplicate entry")) {
                     return Response.status(Response.Status.CONFLICT.getStatusCode()).entity(
                             ex.getCause() != null ? ex.getCause().getMessage() : null).build();
 
