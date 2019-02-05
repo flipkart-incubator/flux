@@ -163,7 +163,7 @@ public class StateMachineResource {
             if(ex.getCause() != null) {
                 if (ex.getCause().getMessage().toLowerCase().contains("duplicate entry")) {
                     return Response.status(Response.Status.CONFLICT.getStatusCode()).entity(
-                            ex.getCause() != null ? ex.getCause().getMessage() : null).build();
+                            ex.getCause().getMessage()).build();
 
                 }
             }
