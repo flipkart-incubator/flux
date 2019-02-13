@@ -17,7 +17,6 @@ import akka.actor.UntypedActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import com.flipkart.flux.api.core.Hook;
-import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.impl.message.HookAndEvents;
 import com.netflix.hystrix.HystrixCommand;
 

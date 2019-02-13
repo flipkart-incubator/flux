@@ -14,8 +14,6 @@
 package com.flipkart.flux.dao;
 
 import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.dao.iface.EventsDAO;
-import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.persistence.*;
 import com.google.inject.name.Named;
 import org.hibernate.*;

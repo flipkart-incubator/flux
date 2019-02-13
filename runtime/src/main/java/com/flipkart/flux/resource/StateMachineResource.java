@@ -21,9 +21,7 @@ import com.flipkart.flux.client.runtime.EventProxyConnector;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
 import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
 import com.flipkart.flux.dao.iface.AuditDAO;
-import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.*;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
@@ -40,7 +38,6 @@ import com.google.inject.Inject;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import javax.inject.Named;
 import javax.inject.Singleton;

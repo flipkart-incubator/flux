@@ -17,7 +17,6 @@ import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.api.core.Task;
 import com.flipkart.flux.client.exception.FluxCancelPathException;
-import com.flipkart.flux.domain.Event;
 import com.netflix.hystrix.*;
 import com.netflix.hystrix.HystrixCommandProperties.ExecutionIsolationStrategy;
 import javafx.util.Pair;

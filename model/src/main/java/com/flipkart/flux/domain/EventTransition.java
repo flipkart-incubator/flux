@@ -175,7 +175,7 @@ public class EventTransition implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Event)) return false;
+        if (!(o instanceof EventTransition)) return false;
 
         EventTransition eventTransition = (EventTransition) o;
 

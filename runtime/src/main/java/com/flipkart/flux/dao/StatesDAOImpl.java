@@ -13,8 +13,6 @@
 
 package com.flipkart.flux.dao;
 
-import com.flipkart.flux.dao.iface.StatesDAO;
-import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.persistence.*;
 import com.flipkart.flux.shard.ShardId;

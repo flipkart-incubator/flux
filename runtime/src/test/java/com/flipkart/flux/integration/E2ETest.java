@@ -19,7 +19,6 @@ import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
-import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import com.flipkart.flux.domain.StateMachine;
@@ -43,7 +42,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.inject.Inject;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;

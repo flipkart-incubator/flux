@@ -14,7 +14,6 @@
 package com.flipkart.flux.api.core;
 
 import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.domain.State;
 
 /**
  * <code>Hook</code> is user defined code that is executed asynchronously on entry or exit of a {@link State}

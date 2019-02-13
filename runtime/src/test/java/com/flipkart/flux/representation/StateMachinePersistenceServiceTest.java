@@ -18,7 +18,6 @@ import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
 import org.junit.Test;

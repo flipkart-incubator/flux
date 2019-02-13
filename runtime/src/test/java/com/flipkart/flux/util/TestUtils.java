@@ -6,8 +6,6 @@ import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.impl.message.TaskAndEvents;

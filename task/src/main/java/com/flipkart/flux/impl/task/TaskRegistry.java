@@ -16,7 +16,6 @@ import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.core.Task;
 import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
-import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.annotation.ManagedEnv;
 
 import javax.inject.Inject;

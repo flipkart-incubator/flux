@@ -13,7 +13,7 @@
 
 package com.flipkart.flux.dao.iface;
 
-import com.flipkart.flux.domain.State;
+import com.flipkart.flux.domain.StateTransition;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.shard.ShardId;
 
@@ -21,24 +21,24 @@ import java.sql.Timestamp;
 import java.util.List;
 
 /**
- * <code>StatesDAO</code> interface provides methods to perform CR operations on {@link State}
+ * <code>StateTransitionDAO</code> interface provides methods to perform CR operations on {@link StateTransition}
  *
- * @author shyam.akirala
+ * @author akif.khan
  */
-public interface StatesDAO {
+public interface StateTransitionDAO {
 
     /**
-     * Updates a state in db
+     * Updates a stateTransition in db
      */
-    void updateState(String stateMachineInstanceId, State state);
+    void updateStateTransition(String stateMachineInstanceId, StateTransition stateTransition);
 
     /**
-     * Updates status of a state
+     * Updates status of a stateTransition
      */
     void updateStatus(String stateMachineInstanceId, Long stateId, Status status);
 
     /**
-     * Updates rollback status of a state
+     * Updates rollback status of a stateTransition
      */
     public void updateRollbackStatus(String stateMachineInstanceId, Long stateId, Status rollbackStatus);
 
@@ -48,27 +48,27 @@ public interface StatesDAO {
     void incrementRetryCount(String stateMachineInstanceId, Long stateId);
 
     /**
-     * Retrieves a state by it's unique identifier
+     * Retrieves a stateTransition by it's unique identifier
      */
-    State findById(String stateMachineInstanceId, Long id);
+    StateTransition findById(String stateMachineInstanceId, Long id);
 
     /**
      * Scatter gather query for slaves
-     * Retrieves all errored states for a particular state machine name and the state machine creation time in
+     * Retrieves all errored stateTransitions for a particular state machine name and the state machine creation time in
      * the given range fromTime and toTime.
      */
     List findErroredStates(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime);
 
     /**
      * Scatter gather query for slave shards
-     * Retrieves all states having one of the given statuses for a particular state machine name and the state machine creation time in
+     * Retrieves all stateTransition having one of the given statuses for a particular state machine name and the state machine creation time in
      * the given range fromTime and toTime with optional taskName parameter.
      * If status list is empty/null, returns all tasks.
      */
-    List findStatesByStatus(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime, String taskName, List<Status> statuses);
+    List findStateTransitionByStatus(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime, String taskName, List<Status> statuses);
 
     /**
-     * Retrieves all states for a particular state-machine-id and like input dependent-event-name.
+     * Retrieves all stateTransition for a particular state-machine-id and like input dependent-event-name.
      */
-    List findStatesByDependentEvent(String stateMachineId, String eventName);
+    List findStateTransitionByDependentEvent(String stateMachineId, String eventName);
 }

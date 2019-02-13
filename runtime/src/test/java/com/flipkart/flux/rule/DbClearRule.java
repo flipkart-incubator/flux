@@ -14,8 +14,6 @@
 package com.flipkart.flux.rule;
 
 import com.flipkart.flux.domain.AuditRecord;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
 import com.flipkart.flux.persistence.SessionFactoryContext;

@@ -32,7 +32,6 @@ import com.flipkart.flux.api.core.Task;
 import com.flipkart.flux.client.exception.FluxRetriableException;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.RuntimeCommunicationException;
-import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.impl.message.HookAndEvents;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.metrics.iface.MetricsClient;

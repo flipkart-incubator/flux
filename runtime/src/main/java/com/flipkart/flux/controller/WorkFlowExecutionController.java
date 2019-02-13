@@ -20,9 +20,7 @@ import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.dao.iface.AuditDAO;
-import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.*;
 import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.exception.UnknownStateMachine;
@@ -43,8 +41,6 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
-import javax.ws.rs.ForbiddenException;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.*;
 

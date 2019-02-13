@@ -14,7 +14,6 @@ package com.flipkart.flux.impl.message;
 
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.core.Hook;
-import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.impl.task.AbstractHook;
 import com.flipkart.flux.impl.task.AkkaHook;
 

@@ -14,8 +14,6 @@
 package com.flipkart.flux.representation;
 
 import com.flipkart.flux.api.EventDefinition;
-import com.flipkart.flux.dao.iface.EventsDAO;
-import com.flipkart.flux.domain.Event;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;

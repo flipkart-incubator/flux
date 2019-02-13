@@ -14,7 +14,6 @@
 package com.flipkart.flux.rule;
 
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import org.junit.rules.ExternalResource;
 
