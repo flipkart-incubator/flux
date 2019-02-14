@@ -41,19 +41,23 @@ public class EventData implements Serializable {
     /** Indicates whether this event is cancelled, based on this value runtime decides to cancel the entire path in DAG */
     private Boolean isCancelled;
 
+    /** Indicating exeuction version of the current event */
+    private Integer executionVersion;
+
     /** Used by jackson */
     EventData() {}
 
     /** constructor */
-    public EventData(String name, String type, String data, String eventSource) {
+    public EventData(String name, String type, String data, String eventSource, Integer executionVersion) {
         this.name = name;
         this.type = type;
         this.data = data;
         this.eventSource = eventSource;
+        this.executionVersion = executionVersion;
     }
 
-    public EventData(String name, String type, String data, String eventSource, Boolean isCancelled) {
-        this(name, type, data, eventSource);
+    public EventData(String name, String type, String data, String eventSource, Boolean isCancelled, Integer executionVersion) {
+        this(name, type, data, eventSource, executionVersion);
         this.isCancelled = isCancelled;
     }
 
@@ -87,6 +91,12 @@ public class EventData implements Serializable {
     }
     public void setCancelled(Boolean cancelled) {
         isCancelled = cancelled;
+    }
+    public Integer getExecutionVersion() {
+        return executionVersion;
+    }
+    public void setExecutionVersion(Integer executionVersion) {
+        this.executionVersion = executionVersion;
     }
 
     @Override
