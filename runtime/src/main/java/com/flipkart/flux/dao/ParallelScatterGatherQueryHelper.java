@@ -40,7 +40,7 @@ import java.util.function.Function;
  */
 @Singleton
 public class ParallelScatterGatherQueryHelper {
-    private final StateTransitionDAO tateTransitionDAO;
+    private final StateTransitionDAO stateTransitionDAO;
     private final StateMachinesDAO stateMachinesDAO;
     private final Map<ShardId, ShardPairModel> fluxShardIdToShardPairModelMap;
     private final ExecutorService executorService;
@@ -48,9 +48,9 @@ public class ParallelScatterGatherQueryHelper {
     private static final Logger logger = LoggerFactory.getLogger(StateTransitionDAOImpl.class);
 
     @Inject
-    public ParallelScatterGatherQueryHelper(StateTransitionDAO tateTransitionDAO, StateMachinesDAO stateMachinesDAO,
+    public ParallelScatterGatherQueryHelper(StateTransitionDAO stateTransitionDAO, StateMachinesDAO stateMachinesDAO,
                                             @Named("fluxShardIdToShardPairMap") Map<ShardId, ShardPairModel> fluxShardKeyToShardIdMap) {
-        this.tateTransitionDAO = tateTransitionDAO;
+        this.stateTransitionDAO = stateTransitionDAO;
         this.stateMachinesDAO = stateMachinesDAO;
         this.fluxShardIdToShardPairModelMap = fluxShardKeyToShardIdMap;
         executorService = Executors.newFixedThreadPool(10);
@@ -60,7 +60,7 @@ public class ParallelScatterGatherQueryHelper {
     public List findErroredStates(String stateMachineName, Timestamp fromTime, Timestamp toTime) {
         List result = Collections.synchronizedList(new ArrayList<>());
         scatterGatherQueryHelper((shardId) ->
-                tateTransitionDAO.findErroredStates(shardId, stateMachineName, fromTime, toTime), result, "errored states");
+                stateTransitionDAO.findErroredStates(shardId, stateMachineName, fromTime, toTime), result, "errored states");
         return result;
     }
 
@@ -68,7 +68,7 @@ public class ParallelScatterGatherQueryHelper {
     public List findStatesByStatus(String stateMachineName, Timestamp fromTime, Timestamp toTime, String taskName, List<Status> statuses) {
         List result = Collections.synchronizedList(new ArrayList<>());
         scatterGatherQueryHelper((shardId) ->
-                tateTransitionDAO.findStateTransitionByStatus(shardId, stateMachineName, fromTime, toTime, taskName, statuses), result, "states by status");
+                stateTransitionDAO.findStateTransitionByStatus(shardId, stateMachineName, fromTime, toTime, taskName, statuses), result, "states by status");
         return result;
     }
 
