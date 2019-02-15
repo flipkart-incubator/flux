@@ -33,7 +33,4 @@ public interface EventMetaDataDAO {
 
     /** Retrieves EventMetaData by state machine instance id and event name */
     EventMetaData findBySMIdAndName(String stateMachineInstanceId, String eventName);
-
-    /** Retrieves list of eventMetaData by their names and state machine id */
-    List<EventMetaData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames );
 }

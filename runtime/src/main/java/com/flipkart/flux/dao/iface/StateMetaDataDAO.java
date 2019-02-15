@@ -31,9 +31,4 @@ public interface StateMetaDataDAO {
      * Retrieves a stateMetaData by it's unique identifier
      */
     StateMetaData findById(String stateMachineInstanceId, Long id);
-
-    /**
-     * Retrieves all stateMetaData for a particular state-machine-id and like input dependent-event-name.
-     */
-    List findStateMetaDataByDependentEvent(String stateMachineId, String eventName);
 }

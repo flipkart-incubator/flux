@@ -9,6 +9,7 @@ CREATE TABLE `EventTransition` (
   `eventData` mediumblob,
   `eventSource` varchar(100) DEFAULT NULL,
   `validity` enum('yes','no') DEFAULT NULL,
+  `status` enum('pending','triggered','cancelled'),
   `createdAt` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   `updatedAt` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`stateMachineId`,`name`,`executionVersion`),
