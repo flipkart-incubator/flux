@@ -14,6 +14,7 @@
 package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.dao.iface.StateTransitionDAO;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.shard.ShardId;
@@ -39,18 +40,17 @@ import java.util.function.Function;
  */
 @Singleton
 public class ParallelScatterGatherQueryHelper {
-    private final StatesDAO statesDAO;
+    private final StateTransitionDAO stateTransitionDAO;
     private final StateMachinesDAO stateMachinesDAO;
     private final Map<ShardId, ShardPairModel> fluxShardIdToShardPairModelMap;
     private final ExecutorService executorService;
 
-
-    private static final Logger logger = LoggerFactory.getLogger(StatesDAOImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(StateTransitionDAOImpl.class);
 
     @Inject
-    public ParallelScatterGatherQueryHelper(StatesDAO statesDAO, StateMachinesDAO stateMachinesDAO,
+    public ParallelScatterGatherQueryHelper(StateTransitionDAO stateTransitionDAO, StateMachinesDAO stateMachinesDAO,
                                             @Named("fluxShardIdToShardPairMap") Map<ShardId, ShardPairModel> fluxShardKeyToShardIdMap) {
-        this.statesDAO = statesDAO;
+        this.stateTransitionDAO = stateTransitionDAO;
         this.stateMachinesDAO = stateMachinesDAO;
         this.fluxShardIdToShardPairModelMap = fluxShardKeyToShardIdMap;
         executorService = Executors.newFixedThreadPool(10);
@@ -60,7 +60,7 @@ public class ParallelScatterGatherQueryHelper {
     public List findErroredStates(String stateMachineName, Timestamp fromTime, Timestamp toTime) {
         List result = Collections.synchronizedList(new ArrayList<>());
         scatterGatherQueryHelper((shardId) ->
-                statesDAO.findErroredStates(shardId, stateMachineName, fromTime, toTime), result, "errored states");
+                stateTransitionDAO.findErroredStates(shardId, stateMachineName, fromTime, toTime), result, "errored states");
         return result;
     }
 
@@ -68,7 +68,7 @@ public class ParallelScatterGatherQueryHelper {
     public List findStatesByStatus(String stateMachineName, Timestamp fromTime, Timestamp toTime, String taskName, List<Status> statuses) {
         List result = Collections.synchronizedList(new ArrayList<>());
         scatterGatherQueryHelper((shardId) ->
-                statesDAO.findStatesByStatus(shardId, stateMachineName, fromTime, toTime, taskName, statuses), result, "states by status");
+                stateTransitionDAO.findStateTransitionByStatus(shardId, stateMachineName, fromTime, toTime, taskName, statuses), result, "states by status");
         return result;
     }
 

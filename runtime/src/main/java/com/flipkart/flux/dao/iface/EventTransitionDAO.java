@@ -45,7 +45,7 @@ public interface EventTransitionDAO {
     List<EventTransition> findTriggeredEventsBySMId(String stateMachineInstanceId);
 
     /** Retrieves list of eventTransition by their names and state machine id */
-    List<EventTransition> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames );
+    List<EventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames );
 
 
     /** Retrieves all the events names and statuses. Selects for update if forUpdate is true */
