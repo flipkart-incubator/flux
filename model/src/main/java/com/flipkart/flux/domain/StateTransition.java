@@ -213,8 +213,8 @@ public class StateTransition {
     static class StateTransitionPK implements Serializable {
 
         private Long id;
-
         private String stateMachineId;
+        private Integer executionVersion;
 
         /**
          * for Hibernate
@@ -222,9 +222,10 @@ public class StateTransition {
         public StateTransitionPK() {
         }
 
-        public StateTransitionPK(Long id, String stateMachineId) {
+        public StateTransitionPK(Long id, String stateMachineId, Integer executionVersion) {
             this.id = id;
             this.stateMachineId = stateMachineId;
+            this.executionVersion = executionVersion;
         }
 
         public Long getId() {
@@ -247,6 +248,7 @@ public class StateTransition {
         public int hashCode() {
             int result = getId().hashCode();
             result = 31 * result + getStateMachineId().hashCode();
+            result = 31 * result + getExecutionVersion().hashCode();
             return result;
         }
 
@@ -261,5 +263,15 @@ public class StateTransition {
         public void setStateMachineId(String stateMachineId) {
             this.stateMachineId = stateMachineId;
         }
+
+        public Integer getExecutionVersion() {
+            return executionVersion;
+        }
+
+        public void setExecutionVersion(Integer executionVersion) {
+            this.executionVersion = executionVersion;
+        }
+
+
     }
 }
