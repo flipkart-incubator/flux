@@ -38,7 +38,7 @@ public abstract class Context {
      * A reverse dependency graph created across States based on Events.
      * Holds information on possible list of States waiting on an Event represented by its FQN.
      */
-    protected Map<String, Set<State>> eventToStateDependencyGraph;
+    protected Map<String, Set<StateTransition>> eventToStateDependencyGraph;
 
     /**
      * Attaches context to state machine and builds dependency graph for the state machine.
@@ -68,8 +68,8 @@ public abstract class Context {
      * @param eventName
      * @return
      */
-    public Set<State> getDependantStates(String eventName) {
-        final Set<State> dependentStates = eventToStateDependencyGraph.get(eventName);
+    public Set<StateTransition> getDependantStates(String eventName) {
+        final Set<StateTransition> dependentStates = eventToStateDependencyGraph.get(eventName);
         if (dependentStates == null) {
             return Collections.emptySet();
         }
@@ -81,14 +81,14 @@ public abstract class Context {
      * @return initial states
      * @param triggeredEventNames Names of events that have already been received during the state machine definition
      */
-    public Set<State> getInitialStates(Set<String> triggeredEventNames) {
-        final Set<State> initialStates = new HashSet<>();
-        final Set<State> startStates = eventToStateDependencyGraph.get(START);
+    public Set<StateTransition> getInitialStates(Set<String> triggeredEventNames) {
+        final Set<StateTransition> initialStates = new HashSet<>();
+        final Set<StateTransition> startStates = eventToStateDependencyGraph.get(START);
         if (startStates != null ) {
             initialStates.addAll(startStates);
         }
         for (String aTriggeredEventName : triggeredEventNames) {
-            final Set<State> statesDependentOnThisEvent = eventToStateDependencyGraph.get(aTriggeredEventName);
+            final Set<StateTransition> statesDependentOnThisEvent = eventToStateDependencyGraph.get(aTriggeredEventName);
             if (statesDependentOnThisEvent != null) {
                 statesDependentOnThisEvent.stream().filter(state1 -> state1.isDependencySatisfied(triggeredEventNames)).forEach(initialStates::add);
             }
@@ -99,18 +99,18 @@ public abstract class Context {
     /**
      * This builds dependency graph between event and states and keeps for later use. Currently dependency graph is created on every event arrival.
      */
-    public void buildDependencyMap(Set<State> states) {
+    public void buildDependencyMap(Set<StateTransition> states) {
         eventToStateDependencyGraph = new HashMap<>();
-        for(State state : states) {
+        for(StateTransition state : states) {
             if (!state.getDependencies().isEmpty()) {
                 for (String eventName : state.getDependencies()) {
                     if (!eventToStateDependencyGraph.containsKey(eventName))
-                        eventToStateDependencyGraph.put(eventName, new HashSet<State>());
+                        eventToStateDependencyGraph.put(eventName, new HashSet<StateTransition>());
                     eventToStateDependencyGraph.get(eventName).add(state);
                 }
             } else {
                 if (!eventToStateDependencyGraph.containsKey(START))
-                    eventToStateDependencyGraph.put(START, new HashSet<State>());
+                    eventToStateDependencyGraph.put(START, new HashSet<StateTransition>());
                 eventToStateDependencyGraph.get(START).add(state);
             }
         }
