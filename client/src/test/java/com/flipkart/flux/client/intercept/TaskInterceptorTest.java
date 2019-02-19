@@ -15,7 +15,6 @@
 package com.flipkart.flux.client.intercept;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.IntegerEvent;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEvent;
 import com.flipkart.flux.client.model.Event;
@@ -32,7 +31,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.omg.CORBA.OBJ_ADAPTER;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Method;

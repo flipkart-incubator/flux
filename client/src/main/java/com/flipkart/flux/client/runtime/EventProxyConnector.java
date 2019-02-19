@@ -1,6 +1,7 @@
 package com.flipkart.flux.client.runtime;
 
 import com.flipkart.flux.api.EventData;
+//import com.flipkart.flux.api.EventTransitionDefinition;
 import com.flipkart.flux.client.config.FluxClientConfiguration;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -8,6 +9,8 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.sql.Timestamp;
 
 
 public class EventProxyConnector extends FluxRuntimeConnectorHttpImpl {
@@ -21,14 +24,14 @@ public class EventProxyConnector extends FluxRuntimeConnectorHttpImpl {
     }
 
     @Override
-    public void submitEvent(String name, Object data, String correlationId, String eventSource) {
+    public void submitEvent(String name, String correlationId, Object data, String eventSource, Integer executionVersion) {
         final String eventType = data.getClass().getName();
         if (eventSource == null) {
             eventSource = EXTERNAL;
         }
         CloseableHttpResponse httpResponse = null;
         try {
-            final EventData eventData = new EventData(name, eventType, (String) data, eventSource);
+            final EventData eventData = new EventData(name, eventType, (String) data, eventSource, executionVersion);
             httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/events?searchField=correlationId");
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -38,12 +41,12 @@ public class EventProxyConnector extends FluxRuntimeConnectorHttpImpl {
     }
 
     @Override
-    public void submitScheduledEvent(String name, Object data, String correlationId,String eventSource, Long triggerTime) {
+    public void submitScheduledEvent(String name, Object data, String correlationId,String eventSource, Long triggerTime, Integer executionVersion) {
         final String eventType = data.getClass().getName();
         if (eventSource == null) {
             eventSource = EXTERNAL;
         }
-        final EventData eventData = new EventData(name, eventType, (String) data, eventSource);
+        final EventData eventData = new EventData(name, eventType, (String) data, eventSource, executionVersion);
         CloseableHttpResponse httpResponse = null;
         try {
             if(triggerTime != null) {

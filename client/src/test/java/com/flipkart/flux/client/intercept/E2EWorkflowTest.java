@@ -14,7 +14,6 @@
 
 package com.flipkart.flux.client.intercept;
 
-import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.guice.annotation.IsolatedEnv;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.IntegerEvent;

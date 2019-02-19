@@ -24,7 +24,6 @@ import akka.routing.Router;
 import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.Status;
 import com.flipkart.flux.api.core.FluxError;
@@ -32,6 +31,7 @@ import com.flipkart.flux.api.core.Task;
 import com.flipkart.flux.client.exception.FluxRetriableException;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.RuntimeCommunicationException;
+import com.flipkart.flux.domain.EventTransition;
 import com.flipkart.flux.impl.message.HookAndEvents;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.metrics.iface.MetricsClient;
@@ -135,7 +135,8 @@ public class AkkaTask extends UntypedActor {
 //                    this.executeHooks(AkkaTask.taskRegistry.getPreExecHooks(task), taskAndEvent.getEvents());
                     final String outputEventName = getOutputEventName(taskAndEvent);
                     final TaskExecutor taskExecutor = new TaskExecutor(task, taskAndEvent.getEvents(), taskAndEvent.getStateMachineId(), outputEventName);
-                    Event outputEvent = null;
+                    EventTransition outputEvent = null;
+
                     final Timer.Context context = timer.time();
                     try {
                         long startTime = System.currentTimeMillis();
@@ -145,7 +146,7 @@ public class AkkaTask extends UntypedActor {
                         if (outputEvent != null) {
                             // after successful task execution, post the generated output event for further processing, also update status as part of same call
                             fluxRuntimeConnector.submitEventAndUpdateStatus(
-                                    new EventData(outputEvent.getName(), outputEvent.getType(), outputEvent.getEventData(), outputEvent.getEventSource(), outputEvent.getStatus() == Event.EventStatus.cancelled),
+                                    new EventData(outputEvent.getName(), outputEvent.getType(), outputEvent.getData(), outputEvent.getEventSource(), outputEvent.getStatus() == Event.EventStatus.cancelled, outputEvent.getExecutionVersion()),
                                     outputEvent.getStateMachineInstanceId(),
                                     new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(), Status.completed, taskAndEvent.getRetryCount(),
                                             taskAndEvent.getCurrentRetryCount(), null, true));

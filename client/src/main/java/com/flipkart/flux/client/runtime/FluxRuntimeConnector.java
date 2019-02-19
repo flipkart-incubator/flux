@@ -18,6 +18,8 @@ import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.StateMachineDefinition;
 
+import java.sql.Timestamp;
+
 /**
  * Used to connect with the core Flux Runtime
  * This class hides the actual API call to the Flux runtime
@@ -39,7 +41,9 @@ public interface FluxRuntimeConnector {
      * @param correlationId the string used to identify a workflow instance (as passed using <code>CorrelationId</code> annotation
      * @param eventSource optional string to denote an event source
      */
-    void submitEvent(String name, Object data,String correlationId,String eventSource);
+        //void submitEvent(String name, String correlationId, Long executionVersion, Object data, String eventSource, Boolean validity, String status , Timestamp createdAt, Timestamp updatedAt);
+
+        void submitEvent(String name, String correlationId, Object data,String eventSource, Integer executionVersion);
 
     /**
      * Post an arbitrary event against a previously registered correlationId with future time, and the event would be triggered at that particular time
@@ -49,7 +53,7 @@ public interface FluxRuntimeConnector {
      * @param eventSource optional string to denote an event source
      * @param scheduledTime future time (epoch format Ex: 1490789434, till seconds) at which this event needs to be triggered.
      */
-    void submitScheduledEvent(String name, Object data, String correlationId, String eventSource, Long scheduledTime);
+    void submitScheduledEvent(String name, Object data, String correlationId, String eventSource, Long scheduledTime, Integer executionVersion);
 
     /**
      * Post an updated event against a previously registered correlationId and event for EventData update.
@@ -59,7 +63,7 @@ public interface FluxRuntimeConnector {
      * @param eventSource source who generated this event, optional parameter, set by default to 'externalUpdate' since it's
      *                    an external event update.
      */
-    void submitEventUpdate(String name, Object data, String correlationId, String eventSource);
+    void submitEventUpdate(String name, Object data, String correlationId, String eventSource, Integer executionVersion);
 
     /**
      * Cancels the event, which results cancellation of subsequent path in state machine DAG

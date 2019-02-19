@@ -51,10 +51,10 @@ public class StateDefinition {
     /** The timeout in millis for each attempt to execute the Task*/
     private Long timeout;
     
-    /** The list of EventDefinitionS that this state definition is dependent on for a transition into*/
-    private List<EventDefinition> dependencies;
+    /** The list of EventTransitionDefinitionS that this state definition is dependent on for a transition into*/
+    private List<EventTransitionDefinition> dependencies;
 
-	private EventDefinition outputEvent;
+	private EventTransitionDefinition outputEvent;
 
 	/* Used only by Jackson */
 	StateDefinition() {
@@ -64,7 +64,7 @@ public class StateDefinition {
 
 	/** Constructor*/
 	public StateDefinition(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
-						   Long retryCount, Long timeout, List<EventDefinition> dependencies, EventDefinition outputEvent) {
+						   Long retryCount, Long timeout, List<EventTransitionDefinition> dependencies, EventTransitionDefinition outputEvent) {
 		this();
 		this.version = version;
 		this.name = name;
@@ -127,18 +127,18 @@ public class StateDefinition {
 	public void setTimeout(Long timeout) {
 		this.timeout = timeout;
 	}
-	public List<EventDefinition> getDependencies() {
+	public List<EventTransitionDefinition> getDependencies() {
 		return dependencies;
 	}
-	public void setDependencies(List<EventDefinition> dependencies) {
+	public void setDependencies(List<EventTransitionDefinition> dependencies) {
 		this.dependencies = dependencies;
 	}
 
-	public EventDefinition getOutputEvent() {
+	public EventTransitionDefinition getOutputEvent() {
 		return outputEvent;
 	}
 
-	public void setOutputEvent(EventDefinition outputEvent) {
+	public void setOutputEvent(EventTransitionDefinition outputEvent) {
 		this.outputEvent = outputEvent;
 	}
 

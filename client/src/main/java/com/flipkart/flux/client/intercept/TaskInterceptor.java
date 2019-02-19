@@ -17,7 +17,6 @@ package com.flipkart.flux.client.intercept;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.client.guice.annotation.IsolatedEnv;
 import com.flipkart.flux.client.model.Event;
 import com.flipkart.flux.client.model.ExternalEvent;

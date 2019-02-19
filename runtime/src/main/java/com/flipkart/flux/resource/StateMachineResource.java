@@ -212,14 +212,14 @@ public class StateMachineResource {
                     logger.warn("StateMachine " + machineId + " not found in this cluster. Forwarding this event to the old cluster.");
                     if (triggerTime == null) {
                         try {
-                            eventProxyConnector.submitEvent(eventData.getName(), eventData.getData(), machineId, eventData.getEventSource());
+                            eventProxyConnector.submitEvent(eventData.getName(), machineId, eventData.getData(), eventData.getEventSource(), eventData.getExecutionVersion());
                         } catch (Exception ex) {
                             logger.error("Unable to forward event to old endpoint, error {}", ex.getStackTrace());
                         }
 
                     } else {
                         try {
-                            eventProxyConnector.submitScheduledEvent(eventData.getName(), eventData.getData(), machineId, eventData.getEventSource(), triggerTime);
+                            eventProxyConnector.submitScheduledEvent(eventData.getName(), eventData.getData(), machineId, eventData.getEventSource(), triggerTime, eventData.getExecutionVersion());
                         } catch (Exception ex) {
                             logger.error("Unable to forward scheduled event to old endpoint, error {}", ex.getStackTrace());
                         }
@@ -610,8 +610,8 @@ public class StateMachineResource {
         for (State state : stateMachine.getStates()) {
             final FsmGraphVertex vertex = new FsmGraphVertex(state.getId(), this.getStateDisplayName(state.getName()), state.getStatus().name());
             if (state.getOutputEvent() != null) {
-                EventDefinition eventDefinition = objectMapper.readValue(state.getOutputEvent(), EventDefinition.class);
-                final Event outputEvent = stateMachineEvents.get(eventDefinition.getName());
+                EventMetaDataDefinition eventMetaDataDefinition = objectMapper.readValue(state.getOutputEvent(), EventMetaDataDefinition.class);
+                final Event outputEvent = stateMachineEvents.get(eventMetaDataDefinition.getName());
                 fsmGraph.addVertex(vertex,
                         new FsmGraphEdge(getEventDisplayName(outputEvent.getName()), outputEvent.getStatus().name(), outputEvent.getEventSource(), outputEvent.getEventData(), outputEvent.getUpdatedAt()));
                 final Set<State> dependantStates = ramContext.getDependantStates(outputEvent.getName());

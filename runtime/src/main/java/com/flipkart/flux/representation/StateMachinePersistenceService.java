@@ -15,8 +15,7 @@ package com.flipkart.flux.representation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.EventDefinition;
-import com.flipkart.flux.api.StateDefinition;
+import com.flipkart.flux.api.EventMetaDataDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
@@ -68,7 +67,7 @@ public class StateMachinePersistenceService {
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public StateMachine createStateMachine(String stateMachineId, StateMachineDefinition stateMachineDefinition) {
 
-        final Map<EventDefinition, EventData> eventDataMap = stateMachineDefinition.getEventDataMap();
+        final Map<EventMetaDataDefinition, EventData> eventDataMap = stateMachineDefinition.getEventDataMap();
         Set<Event> allEvents = createAllEvents(eventDataMap);
         Set<StateDefinition> stateDefinitions = stateMachineDefinition.getStates();
         Set<State> states = new HashSet<>();

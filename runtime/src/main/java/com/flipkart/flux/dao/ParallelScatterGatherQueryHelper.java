@@ -44,6 +44,7 @@ public class ParallelScatterGatherQueryHelper {
     private final Map<ShardId, ShardPairModel> fluxShardIdToShardPairModelMap;
     private final ExecutorService executorService;
 
+
     private static final Logger logger = LoggerFactory.getLogger(StatesDAOImpl.class);
 
     @Inject

@@ -137,13 +137,13 @@ public class EventData implements Serializable {
 
     /**
      * This event data object validates if it is carrying data for the given event definition
-     * We should ideally change eventData objects to have eventDefinitions instead of redundant name & type.
+     * We should ideally change eventData objects to have eventMetaDataDefinitions instead of redundant name & type.
      * When we do, only the impl of this method changes
-     * @param eventDefinition the event definition we want to check for
+     * @param eventMetaDataDefinition the event definition we want to check for
      * @return true if this data is corresponding to the given definition, false if not
      */
     @JsonIgnore
-    public boolean isFor(EventDefinition eventDefinition) {
-        return this.name.equals(eventDefinition.getName()) && this.type.equals(eventDefinition.getType());
+    public boolean isFor(EventMetaDataDefinition eventMetaDataDefinition) {
+        return this.name.equals(eventMetaDataDefinition.getName()) && this.type.equals(eventMetaDataDefinition.getType());
     }
 }

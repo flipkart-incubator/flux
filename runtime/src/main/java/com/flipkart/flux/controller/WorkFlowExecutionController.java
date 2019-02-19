@@ -14,14 +14,12 @@
 package com.flipkart.flux.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.EventAndExecutionData;
-import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.EventDefinition;
-import com.flipkart.flux.api.ExecutionUpdateData;
+import com.flipkart.flux.api.*;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.*;
+import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
@@ -246,15 +244,15 @@ public class WorkFlowExecutionController {
                 // if all dependencies are in cancelled state, then add the output event of the state to cancelled events and mark state as cancelled
                 if (allCancelled) {
                     statesDAO.updateStatus(state.getStateMachineId(), state.getId(), Status.cancelled);
-                    auditDAO.create(state.getStateMachineId(), new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNoOfRetries(), Status.cancelled, null, null));
-                    EventDefinition eventDefinition = null;
+                    auditDAO.create(state.getStateMachineId(), new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNoOfRetries(), Status.cancelled, null, null, stateMachine.getVersion()));
+                    EventMetaDataDefinition eventMetaDataDefinition = null;
                     if (state.getOutputEvent() != null) {
                         try {
-                            eventDefinition = objectMapper.readValue(state.getOutputEvent(), EventDefinition.class);
+                            eventMetaDataDefinition = objectMapper.readValue(state.getOutputEvent(), EventMetaDataDefinition.class);
                         } catch (IOException ex) {
                             throw new RuntimeException("Error occurred while deserializing task outputEvent for stateMachineInstanceId: " + stateMachine.getId() + " taskId: " + state.getId());
                         }
-                        cancelledEvents.add(eventDefinition.getName());
+                        cancelledEvents.add(eventMetaDataDefinition.getName());
                     }
                 } else if (allMet) {
                     // if all dependencies are in cancelled or triggered state, then execute the state
@@ -386,7 +384,7 @@ public class WorkFlowExecutionController {
      */
     public void updateExecutionStatus(String stateMachineId, Long taskId, Status status, long retryCount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver) {
         this.statesDAO.updateStatus(stateMachineId, taskId, status);
-        this.auditDAO.create(stateMachineId, new AuditRecord(stateMachineId, taskId, currentRetryCount, status, null, errorMessage));
+        this.auditDAO.create(stateMachineId, new AuditRecord(stateMachineId, taskId, currentRetryCount, status, null, errorMessage, null));
         if (deleteFromRedriver) {
             this.redriverRegistry.deRegisterTask(stateMachineId, taskId);
         }
@@ -403,7 +401,7 @@ public class WorkFlowExecutionController {
         persistEvent(machineId, eventData);
         String EventUdpateAudit = "Event data updated for event: " + eventData.getName();
         this.auditDAO.create(machineId, new AuditRecord(machineId, Long.valueOf(0), Long.valueOf(0),
-                null, null, EventUdpateAudit));
+                null, null, EventUdpateAudit, null));
         logger.info("Updated event data persisted for event: {} and stateMachineId: {}", eventData.getName(), machineId);
     }
 
@@ -598,7 +596,7 @@ public class WorkFlowExecutionController {
         stateMachine.getStates().stream().filter(state -> state.getStatus() == Status.initialized ||
                 state.getStatus() == Status.errored || state.getStatus() == Status.sidelined).forEach(state -> {
             this.statesDAO.updateStatus(stateMachine.getId(), state.getId(), Status.cancelled);
-            this.auditDAO.create(stateMachine.getId(), new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNoOfRetries(), Status.cancelled, null, null));
+            this.auditDAO.create(stateMachine.getId(), new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNoOfRetries(), Status.cancelled, null, null,null));
         });
     }
 

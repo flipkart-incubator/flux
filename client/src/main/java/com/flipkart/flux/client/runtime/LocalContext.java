@@ -15,8 +15,6 @@
 package com.flipkart.flux.client.runtime;
 
 import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.EventDefinition;
-import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.intercept.IllegalInvocationException;
 import com.flipkart.flux.client.model.Event;

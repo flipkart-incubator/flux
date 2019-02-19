@@ -36,7 +36,7 @@ public class AuditRecord {
     private Long stateId;
 
     /** Version to which current state execution belongs */
-    private Integer executionVersion;
+    private Long executionVersion;
 
     /** The State execution retry count */
     private Long retryAttempt;
@@ -58,7 +58,7 @@ public class AuditRecord {
     /** Constructors */
     protected AuditRecord(){}
     public AuditRecord(String stateMachineInstanceId, Long stateId, Long retryAttempt, Status stateStatus, Status stateRollbackStatus,
-                       String errors, Integer executionVersion) {
+                       String errors, Long executionVersion) {
         this.stateMachineInstanceId = stateMachineInstanceId;
         this.stateId = stateId;
         this.retryAttempt = retryAttempt;
@@ -111,10 +111,10 @@ public class AuditRecord {
     public Timestamp getCreatedAt() {
         return createdAt;
     }
-    public void setExecutionVersion(Integer executionVersion) {
+    public void setExecutionVersion(Long executionVersion) {
         this.executionVersion = executionVersion;
     }
-    public Integer getExecutionVersion() {
+    public Long getExecutionVersion() {
         return executionVersion;
     }
 

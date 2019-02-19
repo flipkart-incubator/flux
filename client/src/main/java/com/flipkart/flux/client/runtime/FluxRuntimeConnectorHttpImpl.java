@@ -18,10 +18,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SharedMetricRegistries;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.EventAndExecutionData;
-import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.ExecutionUpdateData;
-import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.api.*;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -39,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.sql.Timestamp;
 
 /**
  * RuntimeConnector that connects to runtime over HTTP
@@ -115,14 +113,16 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     }
 
     @Override
-    public void submitEvent(String name, Object data, String correlationId, String eventSource) {
+    public void submitEvent(String name, String correlationId, Object data, String eventSource, Integer executionVersion) {
         final String eventType = data.getClass().getName();
         if (eventSource == null) {
             eventSource = EXTERNAL;
         }
         CloseableHttpResponse httpResponse = null;
         try {
-            final EventData eventData = new EventData(name, eventType, objectMapper.writeValueAsString(data), eventSource);
+
+            final EventData eventData = new EventData(name, eventType, objectMapper.writeValueAsString(data),  eventSource, executionVersion);
+
             httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/events?searchField=correlationId");
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -132,7 +132,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     }
 
     @Override
-    public void submitScheduledEvent(String name, Object data, String correlationId,String eventSource, Long triggerTime) {
+    public void submitScheduledEvent(String name, Object data, String correlationId,String eventSource, Long triggerTime, Integer executionVersion) {
         final String eventType = data.getClass().getName();
         if (eventSource == null) {
             eventSource = EXTERNAL;
@@ -140,12 +140,12 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         CloseableHttpResponse httpResponse = null;
         try {
             if(triggerTime != null) {
-                final EventData eventData = new EventData(name, eventType, objectMapper.writeValueAsString(data), eventSource);
+                final EventData eventData = new EventData(name, eventType, objectMapper.writeValueAsString(data), eventSource, executionVersion);
                 httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/events?searchField=correlationId&triggerTime=" + triggerTime);
             } else {
                 //this block is used by flux to trigger the event when the time has arrived, send the data as plain string without serializing,
                 // as the data is already in serialized form (in ScheduledEvents table the data stored in serialized form)
-                final EventData eventData = new EventData(name, eventType, (String) data, eventSource);
+                final EventData eventData = new EventData(name, eventType, (String) data, eventSource, executionVersion);
                 httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/events?searchField=correlationId");
             }
         } catch (JsonProcessingException e) {
@@ -156,14 +156,14 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     }
 
     @Override
-    public void submitEventUpdate(String name, Object data, String correlationId,String eventSource) {
+    public void submitEventUpdate(String name, Object data, String correlationId,String eventSource, Integer executionVersion) {
         final String eventType = data.getClass().getName();
         if (eventSource == null) {
             eventSource = EXTERNAL;
         }
         CloseableHttpResponse httpResponse = null;
         try {
-            final EventData eventData = new EventData(name, eventType, objectMapper.writeValueAsString(data), eventSource);
+            final EventData eventData = new EventData(name, eventType, objectMapper.writeValueAsString(data), eventSource, executionVersion);
             httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/eventupdate");
 
         } catch (JsonProcessingException e) {
@@ -177,7 +177,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     public void cancelEvent(String eventName, String correlationId) {
         CloseableHttpResponse httpResponse = null;
         try {
-            final EventData eventData = new EventData(eventName, null, null, null, true);
+            final EventData eventData = new EventData(eventName, null, null, null, true, null);
             httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/events?searchField=correlationId");
         } catch (Exception e) {
             throw new RuntimeException(e);

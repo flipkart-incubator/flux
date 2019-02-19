@@ -36,10 +36,11 @@ public class StateMachineDefinition {
     private String description;
 
     /** Possible states that this state machine can transition to*/
-    private Set<StateDefinition> states;
+    private Set<StateMetaDataDefinition> states;
 
     /* All Event Data that has been passed on as part of state machine execution */
     private Set<EventData> eventData;
+
 
     /* User supplied string for easy identification of a workflow instance */
     private String correlationId;
@@ -54,19 +55,19 @@ public class StateMachineDefinition {
     }
 
     /** Constructor */
-    public StateMachineDefinition(String description, String name, Long version, Set<StateDefinition> stateDefinitions,
+    public StateMachineDefinition(String description, String name, Long version, Set<StateMetaDataDefinition> stateMetaDataDefinitions,
                                   Set<EventData> eventData, String correlationId, String clientElbId) {
         this.description = description;
         this.name = name;
-        this.states = stateDefinitions;
+        this.states = stateMetaDataDefinitions;
         this.version = version;
         this.eventData = eventData;
         this.correlationId = correlationId;
         this.clientElbId = clientElbId;
     }
 
-    public void addState(StateDefinition stateDefinition) {
-        this.states.add(stateDefinition);
+    public void addState(StateMetaDataDefinition stateMetaDataDefinition) {
+        this.states.add(stateMetaDataDefinition);
     }
 
     /** Accessors/Mutators for member variables*/
@@ -94,10 +95,10 @@ public class StateMachineDefinition {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	public Set<StateDefinition> getStates() {
+	public Set<StateMetaDataDefinition> getStates() {
 		return states;
 	}
-	public void setStates(Set<StateDefinition> states) {
+	public void setStates(Set<StateMetaDataDefinition> states) {
 		this.states = states;
 	}
 
@@ -109,6 +110,7 @@ public class StateMachineDefinition {
         this.eventData = eventData;
     }
 
+
     public String getCorrelationId() {
         return correlationId;
     }
@@ -118,24 +120,24 @@ public class StateMachineDefinition {
     }
 
     @JsonIgnore
-    public Map<EventDefinition,EventData> getEventDataMap() {
-        Map<EventDefinition,EventData> eventDataMap = new HashMap<>();
-        for (StateDefinition aState : this.states) {
-            final List<EventDefinition> dependenciesForCurrentState = aState.getDependencies();
-            for (EventDefinition anEventDefinition : dependenciesForCurrentState) {
-                eventDataMap.putIfAbsent(anEventDefinition, retrieveEventDataFor(anEventDefinition));
+    public Map<EventMetaDataDefinition, EventData> getEventDataMap() {
+        Map<EventMetaDataDefinition, EventData> eventDataMap = new HashMap<>();
+        for (StateMetaDataDefinition aState : this.states) {
+            final List<EventMetaDataDefinition> dependenciesForCurrentState = aState.getDependencies();
+            for (EventMetaDataDefinition anEventMetaDefinition : dependenciesForCurrentState) {
+                eventDataMap.putIfAbsent(anEventMetaDefinition, retrieveEventDataFor(anEventMetaDefinition));
             }
-            final EventDefinition outputEventDefinition = aState.getOutputEvent();
-            if (outputEventDefinition  != null) {
-                eventDataMap.put(outputEventDefinition, retrieveEventDataFor(outputEventDefinition));
+            final EventMetaDataDefinition outputEventMetaDefiniton = aState.getOutputEvent();
+            if (outputEventMetaDefiniton  != null) {
+                eventDataMap.put(outputEventMetaDefiniton, retrieveEventDataFor(outputEventMetaDefiniton));
             }
         }
         return eventDataMap;
     }
 
-    private EventData retrieveEventDataFor(EventDefinition anEventDefinition) {
+    private EventData retrieveEventDataFor(EventMetaDataDefinition anEventMetaDefiniton) {
         for (EventData someData : this.eventData) {
-            if (someData.isFor(anEventDefinition)) {
+            if (someData.isFor(anEventMetaDefiniton)) {
                 return someData;
             }
         }

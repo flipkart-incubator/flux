@@ -14,7 +14,6 @@
 package com.flipkart.flux.representation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;

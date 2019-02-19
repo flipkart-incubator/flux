@@ -15,8 +15,6 @@
 package com.flipkart.flux.client.runtime;
 
 
-import com.flipkart.flux.api.EventDefinition;
-import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest;
 import org.apache.commons.lang3.mutable.MutableInt;

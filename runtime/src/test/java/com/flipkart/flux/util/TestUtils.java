@@ -3,7 +3,6 @@ package com.flipkart.flux.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
 import com.flipkart.flux.domain.StateMachine;

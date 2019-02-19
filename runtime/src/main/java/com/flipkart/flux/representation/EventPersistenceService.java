@@ -13,8 +13,6 @@
 
 package com.flipkart.flux.representation;
 
-import com.flipkart.flux.api.EventDefinition;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 

@@ -20,7 +20,6 @@ import akka.testkit.TestActorRef;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.MockActorRef;
 import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.dao.iface.AuditDAO;
