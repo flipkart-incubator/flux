@@ -53,9 +53,9 @@ public class StateMachine {
     /**
      * List of states that this machine has
      */
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = State.class)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = StateTransition.class)
     @JoinColumn(name = "stateMachineId")
-    private Set<State> states;
+    private Set<StateTransition> states;
 
     /**
      * Status of the state machine, denotes whether it is active or cancelled
@@ -68,7 +68,7 @@ public class StateMachine {
      * Current states of this state machine
      */
     @Transient
-    private Set<State> currentStates;
+    private Set<StateTransition> currentStates;
 
     /**
      * The Context for interacting with the Flux runtime
@@ -100,7 +100,7 @@ public class StateMachine {
     protected StateMachine() {
     }
 
-    public StateMachine(String id, Long version, String name, String description, Set<State> states, String clientElbId) {
+    public StateMachine(String id, Long version, String name, String description, Set<StateTransition> states, String clientElbId) {
         super();
         this.id = id;
         this.version = version;
@@ -126,11 +126,11 @@ public class StateMachine {
         this.context = context;
     }
 
-    public Set<State> getCurrentStates() {
+    public Set<StateTransition> getCurrentStates() {
         return currentStates;
     }
 
-    public void setCurrentStates(Set<State> currentStates) {
+    public void setCurrentStates(Set<StateTransition> currentStates) {
         this.currentStates = currentStates;
     }
 
@@ -146,7 +146,7 @@ public class StateMachine {
         return description;
     }
 
-    public Set<State> getStates() {
+    public Set<StateTransition> getStates() {
         return states;
     }
 
