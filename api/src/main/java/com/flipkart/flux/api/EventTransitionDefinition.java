@@ -13,7 +13,7 @@ public class EventTransitionDefinition implements Serializable {
 
     private String name;
     private String correlationId;
-    private Long executionVersion;
+    private Integer executionVersion;
     private String eventData;
     private String eventSource;
     private Boolean validity;
@@ -26,7 +26,7 @@ public class EventTransitionDefinition implements Serializable {
     EventTransitionDefinition(){
 
     }
-    public EventTransitionDefinition(String name, String correlationId, Long executionVersion, String eventData, String eventSource, Boolean validity, String status, Timestamp createdAt, Timestamp updatedAt) {
+    public EventTransitionDefinition(String name, String correlationId, Integer executionVersion, String eventData, String eventSource, Boolean validity, String status, Timestamp createdAt, Timestamp updatedAt) {
         this();
         this.name=name;
         this.correlationId=correlationId;
@@ -56,11 +56,11 @@ public class EventTransitionDefinition implements Serializable {
         this.correlationId = correlationId;
     }
 
-    public Long getExecutionVersion() {
+    public Integer getExecutionVersion() {
         return executionVersion;
     }
 
-    public void setExecutionVersion(Long executionVersion) {
+    public void setExecutionVersion(Integer executionVersion) {
         this.executionVersion = executionVersion;
     }
 

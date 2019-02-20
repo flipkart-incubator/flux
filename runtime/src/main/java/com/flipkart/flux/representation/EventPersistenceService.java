@@ -13,6 +13,14 @@
 
 package com.flipkart.flux.representation;
 
+import com.flipkart.flux.api.EventMetaDataDefinition;
+import com.flipkart.flux.api.EventTransitionDefinition;
+import com.flipkart.flux.dao.iface.EventMetaDataDAO;
+import com.flipkart.flux.dao.iface.EventTransitionDAO;
+import com.flipkart.flux.domain.EventMetaData;
+import com.flipkart.flux.domain.EventTransition;
+import com.flipkart.flux.domain.Validity;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -23,29 +31,35 @@ import javax.inject.Singleton;
 @Singleton
 public class EventPersistenceService {
 
-    private EventsDAO eventsDAO;
+    private EventTransitionDAO eventTransitionDAO;
+    private EventMetaDataDAO eventMetaDataDAO;
 
     @Inject
-    public EventPersistenceService(EventsDAO eventsDAO) {
-        this.eventsDAO = eventsDAO;
+    public EventPersistenceService(EventTransitionDAO eventTransitionDAO, EventMetaDataDAO eventMetaDataDAO) {
+        this.eventTransitionDAO = eventTransitionDAO;
+        this.eventMetaDataDAO = eventMetaDataDAO;
     }
 
-    /**
-     * Converts {@link EventDefinition} to domain object {@link Event}
-     * @param eventDefinition
-     * @return event domain object
-     */
-    public Event convertEventDefinitionToEvent(EventDefinition eventDefinition) {
-        return new Event(eventDefinition.getName(), eventDefinition.getType(), Event.EventStatus.pending, null, null, null);
+    public EventMetaData convertEventeMetaDataDefinitionToEventMetaData(
+            EventMetaDataDefinition eventMetaDataDefinition) {
+        return new EventMetaData(eventMetaDataDefinition.getName(), eventMetaDataDefinition.getType(),
+                eventMetaDataDefinition.getSmId(), eventMetaDataDefinition.getDependentStates());
     }
 
-    /**
-     * Persists the event in the DB.
-     * @param event
-     * @return created event
-     */
-    public Event persistEvent(Event event) {
-        return eventsDAO.create(event.getStateMachineInstanceId(), event);
+    public EventTransition convertEventTransitionDefinitionToEventTransition(
+            EventTransitionDefinition eventTransitionDefinition) {
+        return new EventTransition(eventTransitionDefinition.getName(), Validity.yes,
+                EventTransition.EventStatus.pending, eventTransitionDefinition.getcorrelationId(),
+                eventTransitionDefinition.getExecutionVersion(), eventTransitionDefinition.getEventData(),
+                eventTransitionDefinition.getEventSource());
+    }
+
+    public EventMetaData persistEventMetaData(EventMetaData eventMetaData) {
+        return eventMetaDataDAO.create(eventMetaData.getStateMachineInstanceId(), eventMetaData);
+    }
+
+    public EventTransition persistEvent(EventTransition eventTransition) {
+        return eventTransitionDAO.create(eventTransition.getStateMachineInstanceId(), eventTransition);
     }
 
 }

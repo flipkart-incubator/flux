@@ -11,7 +11,7 @@ public class EventMetaDataDefinition implements Serializable {
 
 
     private String name;
-    private Long smId;
+    private String smId;
     private String type;
     private String dependentStates;
     private Timestamp createdAt;
@@ -20,7 +20,7 @@ public class EventMetaDataDefinition implements Serializable {
     }
 
     /** Constructor*/
-    public EventMetaDataDefinition(String name, Long smId, String type, String dependentStates, Timestamp createdAt ) {
+    public EventMetaDataDefinition(String name, String smId, String type, String dependentStates, Timestamp createdAt ) {
         super();
         this.name = name;
         this.smId=smId;
@@ -36,7 +36,7 @@ public class EventMetaDataDefinition implements Serializable {
     public void setName(String name) {
         this.name = name;
     }
-    public Long getSmId() {
+    public String getSmId() {
         return smId;
     }
     public void setSmId(String type) {
