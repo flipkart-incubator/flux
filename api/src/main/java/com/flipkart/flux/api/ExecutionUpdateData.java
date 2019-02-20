@@ -33,12 +33,12 @@ public class ExecutionUpdateData implements Serializable {
     private long currentRetryCount = 0;
     private String errorMessage;
 	private boolean deleteFromRedriver;
-	
+	private Integer executionVersion;
 	/** Constructors*/
 	/* For use by Jackson for deserialization*/
 	public ExecutionUpdateData() {
 	}
-    public ExecutionUpdateData(String stateMachineId, String stateMachineName, String taskName, Long taskId, Status status, long retrycount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver) {
+    public ExecutionUpdateData(String stateMachineId, String stateMachineName, String taskName, Long taskId, Status status, long retrycount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver, Integer executionVersion) {
 		this.stateMachineId = stateMachineId;
 		this.stateMachineName = stateMachineName;
 		this.taskName = taskName;
@@ -48,6 +48,7 @@ public class ExecutionUpdateData implements Serializable {
 		this.currentRetryCount = currentRetryCount;
         this.errorMessage = errorMessage;
 		this.deleteFromRedriver = deleteFromRedriver;
+		this.executionVersion=executionVersion;
     }
 
     /** Accessors*/
@@ -73,5 +74,9 @@ public class ExecutionUpdateData implements Serializable {
     }
 	public boolean isDeleteFromRedriver() {
 		return deleteFromRedriver;
+	}
+
+	public Integer getExecutionVersion() {
+		return executionVersion;
 	}
 }

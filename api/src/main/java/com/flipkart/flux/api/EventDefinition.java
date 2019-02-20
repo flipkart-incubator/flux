@@ -23,8 +23,7 @@ package com.flipkart.flux.api;
  * @author kartik.bommepally
  */
 
-/* made a change*/
-/* made a change2*/
+
 
 public class EventDefinition {
 
