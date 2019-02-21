@@ -35,8 +35,9 @@ public class StateMachineDefinition {
 	/** Short description for this state machine definition*/
     private String description;
 
-    /** Possible states that this state machine can transition to*/
-    private Set<StateMetaDataDefinition> states;
+    private Set<StateMetaDataDefinition> stateMetaDataDefinition;
+
+    private Set<StateTransitionDefinition> stateTransitionDefinition;
 
     /* All Event Data that has been passed on as part of state machine execution */
     private Set<EventData> eventData;
@@ -50,24 +51,31 @@ public class StateMachineDefinition {
 
     /* For Jackson */
     StateMachineDefinition() {
-        this(null,null,null, Collections.emptySet(),Collections.emptySet(),
+        this(null,null,null, Collections.emptySet(),Collections.emptySet(), Collections.emptySet(),
                 null, null);
     }
 
     /** Constructor */
-    public StateMachineDefinition(String description, String name, Long version, Set<StateMetaDataDefinition> stateMetaDataDefinitions,
+    public StateMachineDefinition(String description, String name, Long version,
+                                  Set<StateTransitionDefinition> stateTransitionDefinition,
+                                  Set<StateMetaDataDefinition> stateMetaDataDefinition,
                                   Set<EventData> eventData, String correlationId, String clientElbId) {
         this.description = description;
         this.name = name;
-        this.states = stateMetaDataDefinitions;
+        this.stateMetaDataDefinition = stateMetaDataDefinition;
+        this.stateTransitionDefinition = stateTransitionDefinition;
         this.version = version;
         this.eventData = eventData;
         this.correlationId = correlationId;
         this.clientElbId = clientElbId;
     }
 
-    public void addState(StateMetaDataDefinition stateMetaDataDefinition) {
-        this.states.add(stateMetaDataDefinition);
+    public void addStateMetaData(StateMetaDataDefinition stateMetaDataDefinition) {
+        this.stateMetaDataDefinition.add(stateMetaDataDefinition);
+    }
+
+    public void addStateTransition(StateTransitionDefinition stateTransitionDefinition) {
+        this.stateTransitionDefinition.add(stateTransitionDefinition);
     }
 
     /** Accessors/Mutators for member variables*/
@@ -95,12 +103,19 @@ public class StateMachineDefinition {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	public Set<StateMetaDataDefinition> getStates() {
-		return states;
+	public Set<StateMetaDataDefinition> getStateMetaDataDefinition() {
+		return stateMetaDataDefinition;
 	}
-	public void setStates(Set<StateMetaDataDefinition> states) {
-		this.states = states;
+	public void setStateMetaDataDefinition(Set<StateMetaDataDefinition> stateMetaDataDefinition) {
+	    this.stateMetaDataDefinition = stateMetaDataDefinition;
 	}
+
+    public Set<StateTransitionDefinition> getStateTransitionDefinition() {
+        return stateTransitionDefinition;
+    }
+    public void setStateTransitionDefinition(Set<StateTransitionDefinition> stateTransitionDefinition) {
+        this.stateTransitionDefinition = stateTransitionDefinition;
+    }
 
     public Set<EventData> getEventData() {
         return eventData;
@@ -109,7 +124,6 @@ public class StateMachineDefinition {
     public void setEventData(Set<EventData> eventData) {
         this.eventData = eventData;
     }
-
 
     public String getCorrelationId() {
         return correlationId;
@@ -122,7 +136,7 @@ public class StateMachineDefinition {
     @JsonIgnore
     public Map<EventMetaDataDefinition, EventData> getEventDataMap() {
         Map<EventMetaDataDefinition, EventData> eventDataMap = new HashMap<>();
-        for (StateMetaDataDefinition aState : this.states) {
+        for (StateMetaDataDefinition aState : this.stateMetaDataDefinition) {
             final List<EventMetaDataDefinition> dependenciesForCurrentState = aState.getDependencies();
             for (EventMetaDataDefinition anEventMetaDefinition : dependenciesForCurrentState) {
                 eventDataMap.putIfAbsent(anEventMetaDefinition, retrieveEventDataFor(anEventMetaDefinition));
@@ -154,7 +168,6 @@ public class StateMachineDefinition {
         if (!name.equals(that.name)) return false;
         if (!version.equals(that.version)) return false;
         if (description != null ? !description.equals(that.description) : that.description != null) return false;
-        if (!states.equals(that.states)) return false;
         return eventData.equals(that.eventData);
 
     }
@@ -164,7 +177,6 @@ public class StateMachineDefinition {
         int result = name.hashCode();
         result = 31 * result + version.hashCode();
         result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + states.hashCode();
         result = 31 * result + eventData.hashCode();
         return result;
     }
@@ -175,7 +187,6 @@ public class StateMachineDefinition {
             "description='" + description + '\'' +
             ", name='" + name + '\'' +
             ", version=" + version +
-            ", states=" + states +
             ", eventData=" + eventData +
             '}';
     }

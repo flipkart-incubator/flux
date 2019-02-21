@@ -55,7 +55,14 @@ public class StateMachine {
      */
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = StateTransition.class)
     @JoinColumn(name = "stateMachineId")
-    private Set<StateTransition> states;
+    private Set<StateTransition> stateTransition;
+
+    /**
+     * List of states that this machine has
+     */
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, targetEntity = StateMetaData.class)
+    @JoinColumn(name = "stateMachineId")
+    private Set<StateMetaData> stateMetaData;
 
     /**
      * Status of the state machine, denotes whether it is active or cancelled
@@ -100,13 +107,15 @@ public class StateMachine {
     protected StateMachine() {
     }
 
-    public StateMachine(String id, Long version, String name, String description, Set<StateTransition> states, String clientElbId) {
+    public StateMachine(String id, Long version, String name, String description, Set<StateTransition> stateTransition,
+                        Set<StateMetaData> stateMetaData, String clientElbId) {
         super();
         this.id = id;
         this.version = version;
         this.name = name;
         this.description = description;
-        this.states = states;
+        this.stateTransition = stateTransition;
+        this.stateMetaData = stateMetaData;
         this.status = StateMachineStatus.active;
         this.clientElbId = clientElbId;
     }
@@ -146,8 +155,12 @@ public class StateMachine {
         return description;
     }
 
-    public Set<StateTransition> getStates() {
-        return states;
+    public Set<StateTransition> getStateTransition() {
+        return stateTransition;
+    }
+
+    public Set<StateMetaData> getStateMetaData() {
+        return stateMetaData;
     }
 
     public StateMachineStatus getStatus() {
@@ -183,7 +196,6 @@ public class StateMachine {
             return false;
         if (description != null ? !description.equals(that.description) : that.description != null) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (states != null ? !states.equals(that.states) : that.states != null) return false;
         if (updatedAt != null ? !updatedAt.equals(that.updatedAt) : that.updatedAt != null) return false;
         if (clientElbId != null ? !clientElbId.equals(that.clientElbId) : that.clientElbId != null) return false;
         if (version != null ? !version.equals(that.version) : that.version != null) return false;
@@ -196,7 +208,6 @@ public class StateMachine {
         int result = version != null ? version.hashCode() : 0;
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (states != null ? states.hashCode() : 0);
         result = 31 * result + (currentStates != null ? currentStates.hashCode() : 0);
         result = 31 * result + (context != null ? context.hashCode() : 0);
         result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
@@ -212,7 +223,6 @@ public class StateMachine {
                 ", version=" + version +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", states=" + states +
                 ", currentStates=" + currentStates +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
