@@ -149,7 +149,7 @@ public class AkkaTask extends UntypedActor {
                                     new EventData(outputEvent.getName(), outputEvent.getType(), outputEvent.getData(), outputEvent.getEventSource(), outputEvent.getStatus() == Event.EventStatus.cancelled, outputEvent.getExecutionVersion()),
                                     outputEvent.getStateMachineInstanceId(),
                                     new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(), Status.completed, taskAndEvent.getRetryCount(),
-                                            taskAndEvent.getCurrentRetryCount(), null, true));
+                                            taskAndEvent.getCurrentRetryCount(), null, true, taskAndEvent.getExecutionVersion()));
 
                         } else {
                             // update the Flux runtime with status of the Task as completed
@@ -238,7 +238,7 @@ public class AkkaTask extends UntypedActor {
                         // update the Flux runtime to mark the Task as sidelined
                         fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(fe.getExecutionContextMeta().getStateMachineId(), fe.getExecutionContextMeta().getStateMachineName(), fe.getExecutionContextMeta().getTaskName(),
                                 fe.getExecutionContextMeta().getTaskId(), Status.sidelined, fe.getExecutionContextMeta().getMaxRetries(),
-                                fe.getExecutionContextMeta().getAttemptedNoOfRetries(), fe.getMessage(), true));
+                                fe.getExecutionContextMeta().getAttemptedNoOfRetries(), fe.getMessage(), true, taskAndEvent.getExecutionVersion()));
                     }
                 }
             }
@@ -285,6 +285,6 @@ public class AkkaTask extends UntypedActor {
     private void updateExecutionStatus(TaskAndEvents taskAndEvent, Status status, String errorMsg, boolean deleteFromRedriver) {
         fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(
                 taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(), status, taskAndEvent.getRetryCount(),
-                taskAndEvent.getCurrentRetryCount(), errorMsg, deleteFromRedriver));
+                taskAndEvent.getCurrentRetryCount(), errorMsg, deleteFromRedriver,taskAndEvent.getExecutionVersion()));
     }
 }

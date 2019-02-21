@@ -51,10 +51,11 @@ public class TaskAndEvents implements Serializable {
     private long currentRetryCount;
     /* Indicates whether this task is getting executed for the first time, useful in incrementing attempted no. retries of task*/
     private boolean isFirstTimeExecution;
+    private Integer executionVersion;
 
     /** constructors*/
     public TaskAndEvents() {}
-    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, EventData[] events, String stateMachineId, String stateMachineName, String outputEvent, long retryCount) {
+    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, EventData[] events, String stateMachineId, String stateMachineName, String outputEvent, long retryCount, Integer executionVersion) {
     	this.taskName = taskName;
         this.taskIdentifier = taskIdentifier;
         this.taskId = taskId;
@@ -63,10 +64,11 @@ public class TaskAndEvents implements Serializable {
         this.stateMachineName = stateMachineName;
         this.outputEvent = outputEvent;
         this.retryCount = retryCount;
+        this.executionVersion=executionVersion;
     }
 
-    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, EventData[] events, String stateMachineId, String stateMachineName, String outputEvent, long retryCount, long currentRetryCount) {
-        this(taskName, taskIdentifier, taskId, events, stateMachineId, stateMachineName, outputEvent, retryCount);
+    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, EventData[] events, String stateMachineId, String stateMachineName, String outputEvent, long retryCount, long currentRetryCount, Integer executionVersion) {
+        this(taskName, taskIdentifier, taskId, events, stateMachineId, stateMachineName, outputEvent, retryCount, executionVersion);
         this.currentRetryCount = currentRetryCount;
     }
 
@@ -105,6 +107,10 @@ public class TaskAndEvents implements Serializable {
     }
     public void setFirstTimeExecution(boolean firstTimeExecution) {
         isFirstTimeExecution = firstTimeExecution;
+    }
+
+    public Integer getExecutionVersion() {
+        return executionVersion;
     }
 
     @Override
