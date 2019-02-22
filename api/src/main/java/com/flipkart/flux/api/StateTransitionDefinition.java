@@ -15,14 +15,14 @@ public class StateTransitionDefinition {
     private String smId;
     private Long id;
     private Integer executionVersion;
-    private List<EventMetaDataDefinition> dependencies;
+    private List<EventTransitionDefinition> dependencies;
 
    //@Enumerated(EnumType.STRING)
     private Status status;
 
     private String validity;
     private Long attemptedRetries;
-    private EventMetaDataDefinition outputEvent;
+    private EventTransitionDefinition outputEvent;
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
@@ -31,8 +31,8 @@ public class StateTransitionDefinition {
         super();
         this.dependencies = new LinkedList<>();
     }
-    public StateTransitionDefinition(Integer executionVersion, List<EventMetaDataDefinition> dependencies, String validity,
-                                     Long attemptedRetries, EventMetaDataDefinition outputEvent) {
+    public StateTransitionDefinition(Integer executionVersion, List<EventTransitionDefinition> dependencies, String validity,
+                                     Long attemptedRetries, EventTransitionDefinition outputEvent) {
         this();
 
         this.executionVersion=executionVersion;
@@ -60,8 +60,8 @@ public class StateTransitionDefinition {
     public Integer getExecutionVersion(){return executionVersion;}
     public void setExecutionVersion(Integer executionVersion){this.executionVersion=executionVersion;}
 
-    public List<EventMetaDataDefinition> getDependencies(){return dependencies;}
-    public void setDependencies(List<EventMetaDataDefinition> dependencies){this.dependencies=dependencies;}
+    public List<EventTransitionDefinition> getDependencies(){return dependencies;}
+    public void setDependencies(List<EventTransitionDefinition> dependencies){this.dependencies=dependencies;}
 
     public Status getStatus(){return status;}
     public void setStatus(Status status){this.status=status;}
@@ -73,10 +73,10 @@ public class StateTransitionDefinition {
     public void setAttemptedRetries(Long attemptedRetries){this.attemptedRetries=attemptedRetries;}
 
 
-    public EventMetaDataDefinition getOutputEvent() {
+    public EventTransitionDefinition getOutputEvent() {
         return outputEvent;
     }
-    public void setOutputEvent(EventMetaDataDefinition outputEvent) {
+    public void setOutputEvent(EventTransitionDefinition outputEvent) {
         this.outputEvent = outputEvent;
     }
 

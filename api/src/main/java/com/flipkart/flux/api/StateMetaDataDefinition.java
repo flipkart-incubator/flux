@@ -11,12 +11,12 @@ public class StateMetaDataDefinition {
     private Integer version;
     private String description;
     private String task;
-    private List<EventMetaDataDefinition> dependencies;
+    private List<EventTransitionDefinition> dependencies;
     private String onEntryHook;
     private String onExitHook;
     private Long retryCount;
     private Long timeout;
-    private EventMetaDataDefinition outputEvent;
+    private EventTransitionDefinition outputEvent;
     private Timestamp createdAt;
 
 
@@ -24,8 +24,8 @@ public class StateMetaDataDefinition {
         super();
         this.dependencies = new LinkedList<>();
     }
-    public StateMetaDataDefinition(Integer version, String description, String task, List<EventMetaDataDefinition> dependencies, String onEntryHook, String onExitHook,
-                                   Long retryCount, Long timeout,EventMetaDataDefinition outputEvent) {
+    public StateMetaDataDefinition(Integer version, String description, String task, List<EventTransitionDefinition> dependencies, String onEntryHook, String onExitHook,
+                                   Long retryCount, Long timeout,EventTransitionDefinition outputEvent) {
         this();
 
         this.version = version;
@@ -69,10 +69,10 @@ public class StateMetaDataDefinition {
     public void setTask(String task) {
         this.task = task;
     }
-    public List<EventMetaDataDefinition> getDependencies() {
+    public List<EventTransitionDefinition> getDependencies() {
         return dependencies;
     }
-    public void setDependencies(List<EventMetaDataDefinition> dependencies) {
+    public void setDependencies(List<EventTransitionDefinition> dependencies) {
         this.dependencies = dependencies;
     }
     public String getOnEntryHook() {
@@ -99,10 +99,10 @@ public class StateMetaDataDefinition {
     public void setTimeout(Long timeout) {
         this.timeout = timeout;
     }
-    public EventMetaDataDefinition getOutputEvent() {
+    public EventTransitionDefinition getOutputEvent() {
         return outputEvent;
     }
-    public void setOutputEvent(EventMetaDataDefinition outputEvent) {
+    public void setOutputEvent(EventTransitionDefinition outputEvent) {
         this.outputEvent = outputEvent;
     }
     public Timestamp getCreatedAt() {

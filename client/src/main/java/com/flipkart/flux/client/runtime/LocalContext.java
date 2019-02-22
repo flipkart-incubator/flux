@@ -64,7 +64,7 @@ public class LocalContext {
                                  String name, String description,
                                  String hookIdentifier, String taskIdentifier,
                                  Long retryCount, Long timeout,
-                                 List<EventMetaDataDefinition> dependencySet, EventMetaDataDefinition outputEvent
+                                 List<EventTransitionDefinition> dependencySet, EventTransitionDefinition outputEvent
     ) {
         /*final StateDefinition stateDefinition = new StateDefinition(version, name, description,
             hookIdentifier, taskIdentifier, hookIdentifier,
