@@ -9,7 +9,7 @@ public class StateTransitionDefinition {
 
     private String smId;
     private Long id;
-    private Long executionVersion;
+    private Integer executionVersion;
     private List<EventMetaDataDefinition> dependencies;
     private Boolean status;
     private String validity;
@@ -23,7 +23,7 @@ public class StateTransitionDefinition {
         super();
         this.dependencies = new LinkedList<>();
     }
-    public StateTransitionDefinition(String smId, Long id, Long executionVersion, List<EventMetaDataDefinition> dependencies, Boolean status, String validity,
+    public StateTransitionDefinition(String smId, Long id, Integer executionVersion, List<EventMetaDataDefinition> dependencies, Boolean status, String validity,
                                      Long attemptedRetries, String outputEvent, Timestamp createdAt, Timestamp updatedAt) {
         this();
         this.smId=smId;
@@ -51,8 +51,8 @@ public class StateTransitionDefinition {
     }
     public void setId(Long id) { this.id = id; }
 
-    public Long getExecutionVersion(){return executionVersion;}
-    public void setExecutionVersion(Long executionVersion){this.executionVersion=executionVersion;}
+    public Integer getExecutionVersion(){return executionVersion;}
+    public void setExecutionVersion(Integer executionVersion){this.executionVersion=executionVersion;}
 
     public List<EventMetaDataDefinition> getDependencies(){return dependencies;}
     public void setDependencies(List<EventMetaDataDefinition> dependencies){this.dependencies=dependencies;}

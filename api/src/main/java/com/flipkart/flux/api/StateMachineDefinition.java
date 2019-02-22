@@ -30,7 +30,7 @@ public class StateMachineDefinition {
     private String name;
 
     /** Version of this state machine definition*/
-    private Long version;
+    private Integer version;
 
 	/** Short description for this state machine definition*/
     private String description;
@@ -56,7 +56,7 @@ public class StateMachineDefinition {
     }
 
     /** Constructor */
-    public StateMachineDefinition(String description, String name, Long version,
+    public StateMachineDefinition(String description, String name, Integer version,
                                   Set<StateTransitionDefinition> stateTransitionDefinition,
                                   Set<StateMetaDataDefinition> stateMetaDataDefinition,
                                   Set<EventData> eventData, String correlationId, String clientElbId) {
@@ -91,10 +91,10 @@ public class StateMachineDefinition {
     public void setClientElbId(String clientElbId) {
         this.clientElbId = clientElbId;
     }
-    public Long getVersion() {
+    public Integer getVersion() {
         return version;
     }
-    public void setVersion(Long version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
     public String getDescription() {

@@ -14,8 +14,7 @@
 
 package com.flipkart.flux.client.runtime;
 
-import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.api.*;
 import com.flipkart.flux.client.intercept.IllegalInvocationException;
 import com.flipkart.flux.client.model.Event;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -56,7 +55,7 @@ public class LocalContext {
             throw new IllegalStateException("A single thread cannot execute more than one workflow");
         }
         stateMachineDefinition.set(new StateMachineDefinition(description,workflowIdentifier, version, new HashSet<>(),
-                new HashSet<>(), correlationId, clientElbId));
+                new HashSet<>(), new HashSet<>(),correlationId, clientElbId));
         tlUniqueEventCount.set(new MutableInt(0));
         this.eventNames.set(new IdentityHashMap<>());
     }
@@ -65,12 +64,17 @@ public class LocalContext {
                                  String name, String description,
                                  String hookIdentifier, String taskIdentifier,
                                  Long retryCount, Long timeout,
-                                 List<EventDefinition> dependencySet, EventDefinition outputEvent
+                                 List<EventMetaDataDefinition> dependencySet, EventMetaDataDefinition outputEvent
     ) {
-        final StateDefinition stateDefinition = new StateDefinition(version, name, description,
+        /*final StateDefinition stateDefinition = new StateDefinition(version, name, description,
             hookIdentifier, taskIdentifier, hookIdentifier,
-            retryCount, timeout, dependencySet, outputEvent);
-        this.stateMachineDefinition.get().addState(stateDefinition);
+            retryCount, timeout, dependencySet, outputEvent);*/
+        final StateTransitionDefinition stateTransitionDefinition=new StateTransitionDefinition(smId, id, 1, dependencySet, status, True,
+                attemptedRetries, outputEvent, createdAt, updatedAt );
+        final StateMetaDataDefinition stateMetaDataDefinition=new StateMetaDataDefinition(smId, id, 1, description, task, dependencySet,
+                hookIdentifier, hookIdentifier, retryCount, timeout, outputEvent, createdAt);
+        this.stateMachineDefinition.get().addStateMetaData(stateMetaDataDefinition);
+        this.stateMachineDefinition.get().addStateTransition(stateTransitionDefinition);
     }
 
     /**

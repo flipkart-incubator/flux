@@ -8,7 +8,7 @@ public class StateMetaDataDefinition {
 
     private String smId;
     private Long id;
-    private Long version;
+    private Integer version;
     private String description;
     private String task;
     private List<EventMetaDataDefinition> dependencies;
@@ -24,7 +24,7 @@ public class StateMetaDataDefinition {
         super();
         this.dependencies = new LinkedList<>();
     }
-    public StateMetaDataDefinition(String smId, Long id, Long version, String description, String task, List<EventMetaDataDefinition> dependencies, String onEntryHook, String onExitHook,
+    public StateMetaDataDefinition(String smId, Long id, Integer version, String description, String task, List<EventMetaDataDefinition> dependencies, String onEntryHook, String onExitHook,
                                    Long retryCount, Long timeout, EventMetaDataDefinition outputEvent, Timestamp createdAt) {
         this();
         this.smId=smId;
@@ -52,10 +52,10 @@ public class StateMetaDataDefinition {
         return id;
     }
     public void setId(Long id) { this.id = id; }
-    public Long getVersion() {
+    public Integer getVersion() {
         return version;
     }
-    public void setVersion(Long version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
     public String getDescription() {

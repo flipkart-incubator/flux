@@ -45,7 +45,7 @@ public class StateTransition {
     /**
      * executionVersion for this State
      */
-    private Long executionVersion;
+    private Integer executionVersion;
 
     /**
      * The name of this State
@@ -99,7 +99,7 @@ public class StateTransition {
         dependencies = new LinkedList<>();
     }
 
-    public StateTransition(Long executionVersion, String name, List<String> dependencies,
+    public StateTransition(Integer executionVersion, String name, List<String> dependencies,
                          String outputEvent, Status status, Status rollbackStatus,
                            Long attemptedNoOfRetries, Validity validity, String stateMachineId, Long id) {
         this();
@@ -132,11 +132,11 @@ public class StateTransition {
         return id;
     }
 
-    public Long getExecutionVersion() {
+    public Integer getExecutionVersion() {
         return executionVersion;
     }
 
-    public void setExecutionVersion(Long executionVersion) {
+    public void setExecutionVersion(Integer executionVersion) {
         this.executionVersion = executionVersion;
     }
 
