@@ -1,8 +1,13 @@
 package com.flipkart.flux.api;
 
+
 import java.sql.Timestamp;
 import java.util.LinkedList;
 import java.util.List;
+
+import com.flipkart.flux.domain.*;
+import javax.persistence.*;
+//import org.hibernate.annotations.Type;
 
 
 public class StateTransitionDefinition {
@@ -11,10 +16,13 @@ public class StateTransitionDefinition {
     private Long id;
     private Integer executionVersion;
     private List<EventMetaDataDefinition> dependencies;
-    private Boolean status;
+
+   //@Enumerated(EnumType.STRING)
+    private Status status;
+
     private String validity;
     private Long attemptedRetries;
-    private String outputEvent;
+    private EventMetaDataDefinition outputEvent;
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
@@ -23,19 +31,17 @@ public class StateTransitionDefinition {
         super();
         this.dependencies = new LinkedList<>();
     }
-    public StateTransitionDefinition(String smId, Long id, Integer executionVersion, List<EventMetaDataDefinition> dependencies, Boolean status, String validity,
-                                     Long attemptedRetries, String outputEvent, Timestamp createdAt, Timestamp updatedAt) {
+    public StateTransitionDefinition(Integer executionVersion, List<EventMetaDataDefinition> dependencies, String validity,
+                                     Long attemptedRetries, EventMetaDataDefinition outputEvent) {
         this();
-        this.smId=smId;
-        this.id=id;
+
         this.executionVersion=executionVersion;
         this.dependencies = dependencies;
-        this.status=status;
+        this.status =status;
         this.validity=validity;
         this.attemptedRetries=attemptedRetries;
         this.outputEvent = outputEvent;
-        this.createdAt = createdAt;
-        this.updatedAt=updatedAt;
+
     }
 
 
@@ -57,8 +63,8 @@ public class StateTransitionDefinition {
     public List<EventMetaDataDefinition> getDependencies(){return dependencies;}
     public void setDependencies(List<EventMetaDataDefinition> dependencies){this.dependencies=dependencies;}
 
-    public Boolean getStatus(){return status;}
-    public void setStatus(Boolean status){this.status=status;}
+    public Status getStatus(){return status;}
+    public void setStatus(Status status){this.status=status;}
 
     public String getValidity(){return validity;}
     public void setValidity(String validity){this.validity=validity;}
@@ -67,10 +73,10 @@ public class StateTransitionDefinition {
     public void setAttemptedRetries(Long attemptedRetries){this.attemptedRetries=attemptedRetries;}
 
 
-    public String getOutputEvent() {
+    public EventMetaDataDefinition getOutputEvent() {
         return outputEvent;
     }
-    public void setOutputEvent(String outputEvent) {
+    public void setOutputEvent(EventMetaDataDefinition outputEvent) {
         this.outputEvent = outputEvent;
     }
 

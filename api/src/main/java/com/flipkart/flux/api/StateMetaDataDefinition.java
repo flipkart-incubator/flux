@@ -24,11 +24,10 @@ public class StateMetaDataDefinition {
         super();
         this.dependencies = new LinkedList<>();
     }
-    public StateMetaDataDefinition(String smId, Long id, Integer version, String description, String task, List<EventMetaDataDefinition> dependencies, String onEntryHook, String onExitHook,
-                                   Long retryCount, Long timeout, EventMetaDataDefinition outputEvent, Timestamp createdAt) {
+    public StateMetaDataDefinition(Integer version, String description, String task, List<EventMetaDataDefinition> dependencies, String onEntryHook, String onExitHook,
+                                   Long retryCount, Long timeout,EventMetaDataDefinition outputEvent) {
         this();
-        this.smId=smId;
-        this.id=id;
+
         this.version = version;
         this.description = description;
         this.task=task;
@@ -36,9 +35,9 @@ public class StateMetaDataDefinition {
         this.onEntryHook = onEntryHook;
         this.onExitHook = onExitHook;
         this.retryCount = retryCount;
-        this.timeout = timeout;
+        this.timeout=timeout;
         this.outputEvent = outputEvent;
-        this.createdAt = createdAt;
+
     }
 
 

@@ -15,6 +15,7 @@
 package com.flipkart.flux.client.intercept;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventMetaDataDefinition;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.IntegerEvent;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEvent;
 import com.flipkart.flux.client.model.Event;
@@ -168,11 +169,11 @@ public class TaskInterceptorTest {
         taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod,new Object[]{null,new IntegerEvent(1)}));
 
         /* verification */
-        final List<EventDefinition> expectedDependency = new LinkedList<EventDefinition>() {{
-            add(new EventDefinition("someExternalEvent", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
-            add(new EventDefinition(INTEGER_EVENT_NAME + "0", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent"));
+        final List<EventMetaDataDefinition> expectedDependency = new LinkedList<EventMetaDataDefinition>() {{
+            add(new EventMetaDataDefinition("someExternalEvent", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
+            add(new EventMetaDataDefinition(INTEGER_EVENT_NAME + "0", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent"));
             }};
-        final EventDefinition expectedOutput = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent1","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
+        final EventMetaDataDefinition expectedOutput = new EventMetaDataDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent1","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
         verify(localContext, times(1)).
             registerNewState(1l, "waitForExternalEvent", null, null,
                 new MethodId(invokedMethod).toString()+_VERSION+"1", 2l, 2000l, expectedDependency, expectedOutput);
@@ -204,8 +205,8 @@ public class TaskInterceptorTest {
         /* Invocation 3 - the method is annotated with externalEvent with same name but different type, so it will fail if passed to the real context */
         final Method method3 = simpleWorkflowForTest.getClass().getDeclaredMethod("waitForExternalEvent", IntegerEvent.class);
         taskInterceptor.invoke(TestUtil.dummyInvocation(method3, new Object[]{null}));
-        verify(localContext,times(2)).checkExistingDefinition(new EventDefinition("someExternalEvent", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
-        verify(localContext,times(1)).checkExistingDefinition(new EventDefinition("someExternalEvent","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent"));
+        verify(localContext,times(2)).checkExistingDefinition(new EventMetaDataDefinition("someExternalEvent", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
+        verify(localContext,times(1)).checkExistingDefinition(new EventMetaDataDefinition("someExternalEvent","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent"));
     }
 
     private void setupMockLocalContext() {

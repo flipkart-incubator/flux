@@ -48,16 +48,16 @@ public class EventData implements Serializable {
     EventData() {}
 
     /** constructor */
-    public EventData(String name, String type, String data, String eventSource, Integer executionVersion) {
+    public EventData(String name, String type, String data, String eventSource) {
         this.name = name;
         this.type = type;
         this.data = data;
         this.eventSource = eventSource;
-        this.executionVersion = executionVersion;
+        //this.executionVersion = executionVersion;
     }
 
-    public EventData(String name, String type, String data, String eventSource, Boolean isCancelled, Integer executionVersion) {
-        this(name, type, data, eventSource, executionVersion);
+    public EventData(String name, String type, String data, String eventSource, Boolean isCancelled) {
+        this(name, type, data, eventSource);
         this.isCancelled = isCancelled;
     }
 

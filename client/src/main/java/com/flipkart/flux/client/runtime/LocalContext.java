@@ -48,7 +48,7 @@ public class LocalContext {
      * @param version
      * @param description
      */
-    public void registerNew(String workflowIdentifier, long version, String description,String correlationId,
+    public void registerNew(String workflowIdentifier, Integer version, String description,String correlationId,
                             String clientElbId) {
         if (this.stateMachineDefinition.get() != null) {
             /* This ensures we don't compose workflows within workflows */
@@ -69,10 +69,10 @@ public class LocalContext {
         /*final StateDefinition stateDefinition = new StateDefinition(version, name, description,
             hookIdentifier, taskIdentifier, hookIdentifier,
             retryCount, timeout, dependencySet, outputEvent);*/
-        final StateTransitionDefinition stateTransitionDefinition=new StateTransitionDefinition(smId, id, 1, dependencySet, status, True,
-                attemptedRetries, outputEvent, createdAt, updatedAt );
-        final StateMetaDataDefinition stateMetaDataDefinition=new StateMetaDataDefinition(smId, id, 1, description, task, dependencySet,
-                hookIdentifier, hookIdentifier, retryCount, timeout, outputEvent, createdAt);
+        final StateTransitionDefinition stateTransitionDefinition=new StateTransitionDefinition( 1, dependencySet, "Yes",
+                retryCount, outputEvent );
+        final StateMetaDataDefinition stateMetaDataDefinition=new StateMetaDataDefinition(1, description, taskIdentifier, dependencySet,
+                hookIdentifier, hookIdentifier, retryCount, timeout, outputEvent);
         this.stateMachineDefinition.get().addStateMetaData(stateMetaDataDefinition);
         this.stateMachineDefinition.get().addStateTransition(stateTransitionDefinition);
     }
@@ -129,22 +129,22 @@ public class LocalContext {
      * Also, throws an <code>IllegalInvocationException</code> when it encounters that the given definition's
      * name is already used by another definition with a different type
      */
-    public EventDefinition checkExistingDefinition(final EventDefinition givenDefinition) {
+    public EventMetaDataDefinition checkExistingDefinition(final EventMetaDataDefinition givenDefinition) {
         /* This may seem like an expensive operation, we can optimise if necessary */
         final StateMachineDefinition stateMachineDefinition = this.stateMachineDefinition.get();
-        Set<EventDefinition> allDefinitions = new HashSet<>();
-        stateMachineDefinition.getStates().stream().map(new Function<StateDefinition, Collection<EventDefinition>>() {
+        Set<EventMetaDataDefinition> allDefinitions = new HashSet<>();
+        stateMachineDefinition.getStates().stream().map(new Function<StateTransitionDefinition, Collection<EventMetaDataDefinition>>() {
             @Override
-            public Collection<EventDefinition> apply(StateDefinition stateDefinition) {
+            public Collection<EventMetaDataDefinition> apply(StateTransitionDefinition stateDefinition) {
                 return stateDefinition.getDependencies();
             }
         }).forEach(allDefinitions::addAll);
-        final Optional<EventDefinition> searchResult =
+        final Optional<EventMetaDataDefinition> searchResult =
             allDefinitions.stream().filter(eventDefinition -> givenDefinition.getName().equals(eventDefinition.getName())).findFirst();
         if (!searchResult.isPresent()) {
             return null;
         }
-        final EventDefinition eventDefinitionWithMatchingName = searchResult.get();
+        final EventMetaDataDefinition eventDefinitionWithMatchingName = searchResult.get();
         if (eventDefinitionWithMatchingName.getType().equals(givenDefinition.getType())) {
             return eventDefinitionWithMatchingName;
         }

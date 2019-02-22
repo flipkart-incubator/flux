@@ -20,13 +20,13 @@ public class EventMetaDataDefinition implements Serializable {
     }
 
     /** Constructor*/
-    public EventMetaDataDefinition(String name, String smId, String type, String dependentStates, Timestamp createdAt ) {
+    public EventMetaDataDefinition(String name, String type ) {
         super();
         this.name = name;
-        this.smId=smId;
+
         this.type = type;
-        this.dependentStates=dependentStates;
-        this.createdAt=createdAt;
+
+
     }
 
     /** Accessors/Mutators for member variables*/

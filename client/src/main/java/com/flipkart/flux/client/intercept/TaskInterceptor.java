@@ -17,6 +17,7 @@ package com.flipkart.flux.client.intercept;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.EventMetaDataDefinition;
 import com.flipkart.flux.client.guice.annotation.IsolatedEnv;
 import com.flipkart.flux.client.model.Event;
 import com.flipkart.flux.client.model.ExternalEvent;
@@ -74,9 +75,9 @@ public class TaskInterceptor implements MethodInterceptor {
         final Method method = invocation.getMethod();
         final Task taskAnnotation = method.getAnnotationsByType(Task.class)[0];
         final String taskIdentifier = generateTaskIdentifier(method, taskAnnotation);
-        final List<EventDefinition> dependencySet = generateDependencySet(invocation.getArguments(),method.getParameterAnnotations(),method.getParameterTypes());
+        final List<EventMetaDataDefinition> dependencySet = generateDependencySet(invocation.getArguments(),method.getParameterAnnotations(),method.getParameterTypes());
         final Object proxyReturnObject = createProxyReturnObject(method);
-        final EventDefinition outputEventDefintion = generateOutputEventDefintion(proxyReturnObject);
+        final EventMetaDataDefinition outputEventDefintion = generateOutputEventDefintion(proxyReturnObject);
 
         //throw exception if state machine and state versions doesn't match
         if(localContext.getStateMachineDef() != null && localContext.getStateMachineDef().getVersion() != taskAnnotation.version()) {
@@ -91,13 +92,13 @@ public class TaskInterceptor implements MethodInterceptor {
         return proxyReturnObject;
     }
 
-    private EventDefinition generateOutputEventDefintion(Object proxyReturnObject) {
+    private EventMetaDataDefinition generateOutputEventDefintion(Object proxyReturnObject) {
         if (proxyReturnObject == null) {
             return  null;
         }
         String eventName = ((Event) proxyReturnObject).name();
         String eventType = ((Intercepted) proxyReturnObject).getRealClassName();
-        return new EventDefinition(eventName,eventType);
+        return new EventMetaDataDefinition(eventName,eventType);
     }
 
     private Object createProxyReturnObject(final Method method) {
@@ -137,8 +138,8 @@ public class TaskInterceptor implements MethodInterceptor {
         }
     }
 
-    private List<EventDefinition> generateDependencySet(Object[] arguments, Annotation[][] parameterAnnotations, Class<?>[] parameterTypes) throws JsonProcessingException {
-        List<EventDefinition> eventDefinitions = new LinkedList<>();
+    private List<EventMetaDataDefinition> generateDependencySet(Object[] arguments, Annotation[][] parameterAnnotations, Class<?>[] parameterTypes) throws JsonProcessingException {
+        List<EventMetaDataDefinition> eventDefinitions = new LinkedList<>();
         for (int i = 0; i < arguments.length ; i++) {
             Object argument = arguments[i];
             ExternalEvent externalEventAnnotation = checkForExternalEventAnnotation(parameterAnnotations[i]);
@@ -146,8 +147,8 @@ public class TaskInterceptor implements MethodInterceptor {
                 if (argument != null) {
                     throw new IllegalInvocationException("cannot pass" + argument + " as the parameter is marked an external event");
                 }
-                final EventDefinition definition = new EventDefinition(externalEventAnnotation.value(), parameterTypes[i].getName());
-                EventDefinition existingDefinition = localContext.checkExistingDefinition(definition);
+                final EventMetaDataDefinition definition = new EventMetaDataDefinition(externalEventAnnotation.value(), parameterTypes[i].getName());
+                EventMetaDataDefinition existingDefinition = localContext.checkExistingDefinition(definition);
                 if (existingDefinition != null) {
                     eventDefinitions.add(existingDefinition);
                 } else {
@@ -156,10 +157,10 @@ public class TaskInterceptor implements MethodInterceptor {
                 continue;
             }
             if (argument instanceof Intercepted) {
-                eventDefinitions.add(new EventDefinition(((Event) argument).name(), ((Intercepted)argument).getRealClassName() ));
+                eventDefinitions.add(new EventMetaDataDefinition(((Event) argument).name(), ((Intercepted)argument).getRealClassName() ));
             } else {
                 String eventName = localContext.generateEventName((Event)argument);
-                eventDefinitions.add(new EventDefinition(eventName, argument.getClass().getName()));
+                eventDefinitions.add(new EventMetaDataDefinition(eventName, argument.getClass().getName()));
                 localContext.addEvents(new EventData(eventName, argument.getClass().getName(), objectMapperProvider.get().writeValueAsString(argument), CLIENT));
             }
         }

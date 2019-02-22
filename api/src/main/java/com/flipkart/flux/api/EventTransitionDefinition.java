@@ -26,7 +26,7 @@ public class EventTransitionDefinition implements Serializable {
     EventTransitionDefinition(){
 
     }
-    public EventTransitionDefinition(String name, String correlationId, Integer executionVersion, String eventData, String eventSource, Boolean validity, String status, Timestamp createdAt, Timestamp updatedAt) {
+    public EventTransitionDefinition(String name, String correlationId, Integer executionVersion, String eventData, String eventSource, Boolean validity, String status) {
         this();
         this.name=name;
         this.correlationId=correlationId;
@@ -35,8 +35,7 @@ public class EventTransitionDefinition implements Serializable {
         this.eventSource=eventSource;
         this.validity=validity;
         this.status=status;
-        this.createdAt = createdAt;
-        this.updatedAt=updatedAt;
+
         this.isCancelled=false;
     }
 
