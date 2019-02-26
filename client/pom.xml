@@ -7,12 +7,12 @@
     <parent>
         <groupId>com.flipkart</groupId>
         <artifactId>flux</artifactId>
-        <version>1.2.1</version>
+        <version>1.2.2</version>
     </parent>
     
     <groupId>com.flipkart.flux</groupId>
     <artifactId>client</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
     <name>client</name>
     <url>http://maven.apache.org</url>
 
@@ -24,13 +24,17 @@
     </licenses>
 
     <distributionManagement>
+        <snapshotRepository>
+            <id>fk-art-snapshot</id>
+            <name>libs-snapshot</name>
+            <url>http://artifactory.fkinternal.com/artifactory/v1.0/artifacts/libs-snapshots-local</url>
+        </snapshotRepository>
         <repository>
-            <id>clojars</id>
-            <name>Clojars repository</name>
-            <url>https://clojars.org/repo</url>
+            <id>fk-art-release</id>
+            <name>libs-rel</name>
+            <url>http://artifactory.fkinternal.com/artifactory/v1.0/artifacts/libs-release-local</url>
         </repository>
     </distributionManagement>
-
     <scm>
         <url>https://github.com/flipkart-incubator/flux</url>
         <connection>https://github.com/flipkart-incubator/flux.git</connection>
@@ -99,7 +103,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.7.3</version>
+            <version>2.9.8</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
@@ -139,6 +143,21 @@
             <groupId>com.codahale.metrics</groupId>
             <artifactId>metrics-core</artifactId>
             <version>3.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.flipkart.kloud.authn</groupId>
+            <artifactId>client</artifactId>
+            <version>${authn.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

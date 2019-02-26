@@ -17,17 +17,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.guice.module.AkkaModule;
 import com.flipkart.flux.guice.module.ContainerModule;
-import com.flipkart.flux.guice.module.ShardModule;
 import com.flipkart.flux.guice.module.OrchestrationTaskModule;
+import com.flipkart.flux.guice.module.ShardModule;
 import com.flipkart.flux.integration.StringEvent;
-import com.flipkart.flux.module.DeploymentUnitTestModule;
 import com.flipkart.flux.module.RuntimeTestModule;
 import com.flipkart.flux.rule.DbClearWithTestSMRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
@@ -38,7 +37,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.inject.Inject;
 import java.util.Collections;
 import java.util.LinkedList;
 
@@ -51,7 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author kartik.bommepally
  */
 @RunWith(GuiceJunit4Runner.class)
-@Modules(orchestrationModules = {ShardModule.class, RuntimeTestModule.class, ContainerModule.class,
+@Modules(orchestrationModules = {FluxClientComponentModule.class, ShardModule.class, RuntimeTestModule.class, ContainerModule.class,
         OrchestrationTaskModule.class, FluxClientInterceptorModule.class})
 public class EventsDAOTest {
 

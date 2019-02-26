@@ -93,3 +93,23 @@ connector:
   connection.timeout: 10000
   socket.timeout: 10000
 
+uiAuthConfig:
+  authEnabled: True
+  authnUrl: "https://authn-preprod.nm.flipkart.com"
+  clientId: "http://localhost:9999/admin/fsmview/" # Should be exactly the same as what was used during registration
+  clientSecret: "iyMGakS5EwNGGRynxoT9JbNU20JmYFHphR2u+cjid/+mvMMK"
+  redirectUri: "http://localhost:9999/admin/fsmview/login_callback" # Should be exactly the same as what was used during registration
+  authIgnoreUrls: "" # optional
+
+apiAuthConfig:
+  authEnabled: True
+  clientId: "http://localhost:9998/"
+  authnUrl: "https://authn-preprod.nm.flipkart.com"
+  clientSecret: "admJWTjYAefdTBvcFgPOmE4Km1zDLzm7wESzkpOPkwhXlCXm"
+  authIgnoreUrls: ".*fsmdata$" # optional
+
+authSession:
+  connection.driver_class: "com.mysql.jdbc.Driver"
+  connection.url: "jdbc:mysql://localhost:3306/sessions?user=root&password="
+
+

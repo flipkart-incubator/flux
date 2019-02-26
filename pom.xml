@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.flipkart</groupId>
     <artifactId>flux</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
     <packaging>pom</packaging>
 
     <name>flux</name>
@@ -19,18 +19,39 @@
     </licenses>
 
     <distributionManagement>
+        <snapshotRepository>
+            <id>fk-art-snapshot</id>
+            <name>libs-snapshot</name>
+            <url>http://artifactory.fkinternal.com/artifactory/v1.0/artifacts/libs-snapshots-local</url>
+        </snapshotRepository>
         <repository>
-            <id>clojars</id>
-            <name>Clojars repository</name>
-            <url>https://clojars.org/repo</url>
+            <id>fk-art-release</id>
+            <name>libs-rel</name>
+            <url>http://artifactory.fkinternal.com/artifactory/v1.0/artifacts/libs-release-local</url>
         </repository>
     </distributionManagement>
 
     <repositories>
         <repository>
+            <snapshots/>
+            <id>snapshots1</id>
+            <name>libs-snapshot</name>
+            <url>http://repo1.maven.org/maven2</url>
+        </repository>
+        <repository>
             <id>clojars</id>
             <name>Clojars repository</name>
             <url>https://clojars.org/repo</url>
+        </repository>
+        <repository>
+            <id>fk-art-snapshot</id>
+            <name>Flipkart-Artifactory</name>
+            <url>http://artifactory.fkinternal.com/artifactory/v1.0/artifacts/libs-snapshots-local</url>
+        </repository>
+        <repository>
+            <id>fk-art-release</id>
+            <name>Flipkart-Artifactory</name>
+            <url>http://artifactory.fkinternal.com/artifactory/v1.0/artifacts/libs-release-local</url>
         </repository>
     </repositories>
 
@@ -42,6 +63,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jdk.version>1.8</jdk.version>
+        <authn.version>17.09.15.1</authn.version>
         <maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
         <maven-jar-plugin.version>2.2</maven-jar-plugin.version>
         <junit.version>4.12</junit.version>
@@ -56,7 +78,7 @@
         <kamon.version>0.6.1</kamon.version>
         <log4j.version>2.5</log4j.version>
         <assertj-core.version>2.0.0</assertj-core.version>
-        <jackson.version>2.7.3</jackson.version>
+        <jackson.version>2.9.8</jackson.version>
         <mockito-all.version>1.9.0</mockito-all.version>
         <slf4j-api.version>1.7.12</slf4j-api.version>
         <codahale.metrics.version>3.1.2</codahale.metrics.version>

@@ -30,20 +30,25 @@ package com.flipkart.flux.client.config;
  */
 public class FluxClientConfiguration {
 
-    private String fluxRuntimeUrl = "http://localhost:9998";
+    private String fluxRuntimeUrl = "http://localhost:9998/";
     private String clientElbId = "defaultElbId";
     private long socketTimeout = 10000;
     private long connectionTimeout = 10000;
+    private String authnUrl = "https://authn-preprod.nm.flipkart.com";
+    private String authnClientId = "http://localhost:9998/";
+    private String authnClientSecret = "admJWTjYAefdTBvcFgPOmE4Km1zDLzm7wESzkpOPkwhXlCXm";
 
     /** Constructors*/
     public FluxClientConfiguration() {}
 
     public FluxClientConfiguration(String fluxRuntimeUrl, String clientElbId, long socketTimeout,
-                                   long connectionTimeout) {
+                                   long connectionTimeout, String authnClientId, String authnClientSecret) {
         this.fluxRuntimeUrl = fluxRuntimeUrl;
         this.clientElbId = clientElbId;
         this.socketTimeout = socketTimeout;
         this.connectionTimeout = connectionTimeout;
+        this.authnClientId = authnClientId;
+        this.authnClientSecret =  authnClientSecret;
 
     }
 
@@ -68,5 +73,14 @@ public class FluxClientConfiguration {
     }
     public String getClientElbId() {
         return clientElbId;
+    }
+    public String getAuthnUrl() {
+        return authnUrl;
+    }
+    public String getAuthnClientId() {
+        return authnClientId;
+    }
+    public String getAuthnClientSecret() {
+        return authnClientSecret;
     }
 }

@@ -13,8 +13,11 @@
 
 package com.flipkart.flux.initializer;
 
+import com.flipkart.flux.guice.module.AuthNModule;
+import com.flipkart.kloud.authn.filter.AuthConfig;
 import com.flipkart.polyguice.core.Initializable;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,12 +37,23 @@ public class OrchestrationOrderedComponentBooter implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(OrchestrationOrderedComponentBooter.class);
     private final Server apiServer;
     private final Server dashboardServer;
+    private final AuthConfig uiAuthConfig;
+    private final AuthConfig apiAuthConfig;
+    private final WebAppContext webAppContext;
+
 
     @Inject
     public OrchestrationOrderedComponentBooter(@Named("APIJettyServer") Server apiServer,
-                                               @Named("DashboardJettyServer") Server dashboardServer) {
+                                               @Named("UiAuthnConfig") AuthConfig uiAuthConfig,
+                                               @Named("DashboardJettyServer") Server dashboardServer,
+                                               @Named("DashboardContext") WebAppContext webAppContext,
+                                               @Named("ApiAuthnConfig") AuthConfig apiAuthConfig
+    ) {
         this.apiServer = apiServer;
         this.dashboardServer = dashboardServer;
+        this.uiAuthConfig = uiAuthConfig;
+        this.webAppContext = webAppContext;
+        this.apiAuthConfig = apiAuthConfig;
     }
 
     @Override
@@ -52,11 +66,17 @@ public class OrchestrationOrderedComponentBooter implements Initializable {
         try {
             /* Bring up the API server */
             logger.info("loading API server");
-            apiServer.start();
             logger.info("API server started. Say Hello!");
             /* Bring up the Dashboard server */
             logger.info("Loading Dashboard Server");
+            if (uiAuthConfig.isAuthEnabled()) {
+                AuthNModule.configureUIApp(webAppContext, uiAuthConfig);
+            }
+            if(apiAuthConfig.isAuthEnabled()){
+                AuthNModule.configureApiApp(apiServer, apiAuthConfig);
+            }
             dashboardServer.start();
+            apiServer.start();
             logger.info("Dashboard server has started. Say Hello!");
         } catch (Exception e) {
             throw new RuntimeException(e);

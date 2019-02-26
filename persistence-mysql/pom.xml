@@ -9,12 +9,12 @@
     <parent>
         <groupId>com.flipkart</groupId>
         <artifactId>flux</artifactId>
-        <version>1.2.1</version>
+        <version>1.2.2</version>
     </parent>
 
     <groupId>com.flipkart.flux</groupId>
     <artifactId>persistence-mysql</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
     <name>persistence-mysql</name>
     <url>http://maven.apache.org</url>
 

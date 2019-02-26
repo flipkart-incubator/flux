@@ -113,13 +113,15 @@ public class RedriverService {
         do {
             messages = messageService.retrieveOldest(offset, batchSize);
             logger.info("Retrieved {} messages to redrive", messages.size());
+
             messages.forEach(e -> {
                 tasksRedrived.add(
                         asyncRedriveService.submit(() -> {
                             try {
                                 redriverRegistry.redriveTask(e.getStateMachineId(), e.getTaskId());
                             } catch (Exception ex) {
-                                logger.error("Something went wrong in redriving task:{} smId:{}", e.getTaskId(), e.getStateMachineId());
+                                logger.error("Something went wrong in redriving task:{} smId:{} {}", e.getTaskId(),
+                                        e.getStateMachineId(), ex.getStackTrace());
                             }
                         }));
             });

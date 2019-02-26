@@ -2,6 +2,7 @@ package com.flipkart.flux.deploymentunit;
 
 import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.InjectFromRole;
+import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import com.flipkart.flux.guice.module.*;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
@@ -19,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author gaurav.ashok
  */
 @RunWith(GuiceJunit4Runner.class)
-@Modules(executionModules = {DeploymentUnitTestModule.class , ExecutionTaskModule.class, AkkaModule.class, ExecutionContainerModule.class})
+@Modules(executionModules = {FluxClientComponentModule.class, DeploymentUnitTestModule.class , ExecutionTaskModule.class, AkkaModule.class, ExecutionContainerModule.class})
 public class DynamicLoadUnloadTest {
 
     @InjectFromRole(value = FluxRuntimeRole.EXECUTION)

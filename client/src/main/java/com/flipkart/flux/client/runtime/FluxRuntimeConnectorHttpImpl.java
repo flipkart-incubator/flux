@@ -22,6 +22,7 @@ import com.flipkart.flux.api.EventAndExecutionData;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.kloud.authn.AuthTokenService;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -44,6 +45,7 @@ import java.io.IOException;
  * RuntimeConnector that connects to runtime over HTTP
  * Internally, this uses Unirest as of now. This makes it difficult to write unit tests for this class,
  * but it does very little so its okay
+ *
  * @author yogesh.nachnani
  */
 public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
@@ -57,28 +59,33 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     private final String fluxEndpoint;
     private final ObjectMapper objectMapper;
     private final MetricRegistry metricRegistry;
+    private final AuthTokenService authTokenService;
+    private String authnTargetClientId;
 
     @VisibleForTesting
-    public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint) {
-        this(connectionTimeout, socketTimeout, fluxEndpoint, new ObjectMapper(),
-                SharedMetricRegistries.getOrCreate("mainMetricRegistry"));
+    public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint,
+                                        AuthTokenService authTokenService) {
+        this(connectionTimeout, socketTimeout, fluxEndpoint, new ObjectMapper(), SharedMetricRegistries.getOrCreate("mainMetricRegistry")
+        , fluxEndpoint, authTokenService);
     }
 
     public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint, ObjectMapper objectMapper,
-                                        MetricRegistry metricRegistry) {
+                                        MetricRegistry metricRegistry, String targetClientId, AuthTokenService authTokenService) {
         this.fluxEndpoint = fluxEndpoint;
         this.objectMapper = objectMapper;
+        this.authnTargetClientId = targetClientId;
+        this.authTokenService = authTokenService;
         RequestConfig clientConfig = RequestConfig.custom()
-            .setConnectTimeout((connectionTimeout).intValue())
-            .setSocketTimeout((socketTimeout).intValue())
-            .setConnectionRequestTimeout((socketTimeout).intValue())
-            .build();
+                .setConnectTimeout((connectionTimeout).intValue())
+                .setSocketTimeout((socketTimeout).intValue())
+                .setConnectionRequestTimeout((socketTimeout).intValue())
+                .build();
         PoolingHttpClientConnectionManager syncConnectionManager = new PoolingHttpClientConnectionManager();
         syncConnectionManager.setMaxTotal(MAX_TOTAL);
         syncConnectionManager.setDefaultMaxPerRoute(MAX_PER_ROUTE);
 
         closeableHttpClient = HttpClientBuilder.create().setDefaultRequestConfig(clientConfig).setConnectionManager(syncConnectionManager)
-            .build();
+                .build();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             HttpClientUtils.closeQuietly(closeableHttpClient);
@@ -86,12 +93,13 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         this.metricRegistry = metricRegistry;
     }
 
+
     @Override
     public void submitNewWorkflow(StateMachineDefinition stateMachineDef) {
         CloseableHttpResponse httpResponse = null;
         try {
             httpResponse = postOverHttp(stateMachineDef, "");
-            if(logger.isDebugEnabled()) {
+            if (logger.isDebugEnabled()) {
                 try {
                     logger.debug("Flux returned response: {}", EntityUtils.toString(httpResponse.getEntity()));
                 } catch (IOException e) {
@@ -132,14 +140,14 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     }
 
     @Override
-    public void submitScheduledEvent(String name, Object data, String correlationId,String eventSource, Long triggerTime) {
+    public void submitScheduledEvent(String name, Object data, String correlationId, String eventSource, Long triggerTime) {
         final String eventType = data.getClass().getName();
         if (eventSource == null) {
             eventSource = EXTERNAL;
         }
         CloseableHttpResponse httpResponse = null;
         try {
-            if(triggerTime != null) {
+            if (triggerTime != null) {
                 final EventData eventData = new EventData(name, eventType, objectMapper.writeValueAsString(data), eventSource);
                 httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/events?searchField=correlationId&triggerTime=" + triggerTime);
             } else {
@@ -156,7 +164,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     }
 
     @Override
-    public void submitEventUpdate(String name, Object data, String correlationId,String eventSource) {
+    public void submitEventUpdate(String name, Object data, String correlationId, String eventSource) {
         final String eventType = data.getClass().getName();
         if (eventSource == null) {
             eventSource = EXTERNAL;
@@ -187,25 +195,27 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     }
 
     /**
-	 * Interface method implementation. Updates the status in persistence store by invoking suitable Flux runtime API
-	 * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#updateExecutionStatus(ExecutionUpdateData)
-	 */
-	public void updateExecutionStatus(ExecutionUpdateData executionUpdateData) {
-		CloseableHttpResponse httpResponse = null;
-        httpResponse = postOverHttp(executionUpdateData,  "/" + executionUpdateData.getStateMachineId() + "/" + executionUpdateData.getTaskId() + "/status");
+     * Interface method implementation. Updates the status in persistence store by invoking suitable Flux runtime API
+     *
+     * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#updateExecutionStatus(ExecutionUpdateData)
+     */
+    public void updateExecutionStatus(ExecutionUpdateData executionUpdateData) {
+        CloseableHttpResponse httpResponse = null;
+        httpResponse = postOverHttp(executionUpdateData, "/" + executionUpdateData.getStateMachineId() + "/" + executionUpdateData.getTaskId() + "/status");
         HttpClientUtils.closeQuietly(httpResponse);
-	}
+    }
 
-	/**
-	 * Interface method implementation. Increments the execution retries in persistence by invoking suitable Flux runtime API
-	 * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#incrementExecutionRetries(String, Long)
-	 */
-	@Override
-	public void incrementExecutionRetries(String stateMachineId, Long taskId) {
-		CloseableHttpResponse httpResponse = null;
-        httpResponse = postOverHttp(null,  "/" + stateMachineId + "/" + taskId + "/retries/inc");
+    /**
+     * Interface method implementation. Increments the execution retries in persistence by invoking suitable Flux runtime API
+     *
+     * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#incrementExecutionRetries(String, Long)
+     */
+    @Override
+    public void incrementExecutionRetries(String stateMachineId, Long taskId) {
+        CloseableHttpResponse httpResponse = null;
+        httpResponse = postOverHttp(null, "/" + stateMachineId + "/" + taskId + "/retries/inc");
         HttpClientUtils.closeQuietly(httpResponse);
-	}
+    }
 
     /**
      * Interface method implementation. Posts to Flux Runtime API to redrive a task.
@@ -213,39 +223,43 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     @Override
     public void redriveTask(String stateMachineId, Long taskId) {
         CloseableHttpResponse httpResponse = null;
-        httpResponse = postOverHttp(null,  "/redrivetask/" + stateMachineId + "/taskId/"+ taskId);
+        httpResponse = postOverHttp(null, "/redrivetask/" + stateMachineId + "/taskId/" + taskId);
         HttpClientUtils.closeQuietly(httpResponse);
     }
-	
-	/** Helper method to post data over Http */
-    protected CloseableHttpResponse postOverHttp(Object dataToPost, String pathSuffix)  {
+
+    /**
+     * Helper method to post data over Http
+     */
+    protected CloseableHttpResponse postOverHttp(Object dataToPost, String pathSuffix) {
         CloseableHttpResponse httpResponse = null;
         HttpPost httpPostRequest;
         httpPostRequest = new HttpPost(fluxEndpoint + pathSuffix);
         try {
+            String header = authTokenService.fetchToken(authnTargetClientId).toAuthorizationHeader();
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             objectMapper.writeValue(byteArrayOutputStream, dataToPost);
 
             httpPostRequest.setEntity(new ByteArrayEntity(byteArrayOutputStream.toByteArray(), ContentType.APPLICATION_JSON));
+            httpPostRequest.setHeader("Authorization", header);
             httpResponse = closeableHttpClient.execute(httpPostRequest);
             final int statusCode = httpResponse.getStatusLine().getStatusCode();
-            if (statusCode >= Response.Status.OK.getStatusCode() && statusCode < Response.Status.MOVED_PERMANENTLY.getStatusCode() ) {
+            if (statusCode >= Response.Status.OK.getStatusCode() && statusCode < Response.Status.MOVED_PERMANENTLY.getStatusCode()) {
                 logger.trace("Posting over http is successful. Status code: {}", statusCode);
                 metricRegistry.meter(new StringBuilder().
                         append("stateMachines.forwardToOrchestrator.2xx").toString()).mark();
             } else {
-               logger.error("Did not receive a valid response from Flux core. Status code: {}, message: {}", statusCode, EntityUtils.toString(httpResponse.getEntity()));
-               /* 400 <= defaultStatusCode < 500 */
-               if (statusCode >= Response.Status.BAD_REQUEST.getStatusCode()
+                logger.error("Did not receive a valid response from Flux core. Status code: {}, message: {}", statusCode, EntityUtils.toString(httpResponse.getEntity()));
+                /* 400 <= defaultStatusCode < 500 */
+                if (statusCode >= Response.Status.BAD_REQUEST.getStatusCode()
                         && statusCode < Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                   metricRegistry.meter(new StringBuilder().
-                           append("stateMachines.forwardToOrchestrator.4xx").toString()).mark();
+                    metricRegistry.meter(new StringBuilder().
+                            append("stateMachines.forwardToOrchestrator.4xx").toString()).mark();
                 }
                 /* 500 <= defaultStatusCode <= 505 */
                 else if (statusCode >= Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()
                         && statusCode < Response.Status.HTTP_VERSION_NOT_SUPPORTED.getStatusCode()) {
-                   metricRegistry.meter(new StringBuilder().
-                           append("stateMachines.forwardToOrchestrator.5xx").toString()).mark();
+                    metricRegistry.meter(new StringBuilder().
+                            append("stateMachines.forwardToOrchestrator.5xx").toString()).mark();
                 }
                 HttpClientUtils.closeQuietly(httpResponse);
                 throw new RuntimeCommunicationException("Did not receive a valid response from Flux core");

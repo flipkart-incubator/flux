@@ -7,12 +7,12 @@
     <parent>
         <groupId>com.flipkart</groupId>
         <artifactId>flux</artifactId>
-        <version>1.2.1</version>
+        <version>1.2.2</version>
     </parent>
 
     <groupId>com.flipkart.flux</groupId>
     <artifactId>runtime</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
     <name>runtime</name>
     <url>http://maven.apache.org</url>
 
@@ -24,10 +24,15 @@
     </licenses>
 
     <distributionManagement>
+        <snapshotRepository>
+            <id>fk-art-snapshot</id>
+            <name>libs-snapshot</name>
+            <url>http://artifactory.fkinternal.com/artifactory/v1.0/artifacts/libs-snapshots-local</url>
+        </snapshotRepository>
         <repository>
-            <id>clojars</id>
-            <name>Clojars repository</name>
-            <url>https://clojars.org/repo</url>
+            <id>fk-art-release</id>
+            <name>libs-rel</name>
+            <url>http://artifactory.fkinternal.com/artifactory/v1.0/artifacts/libs-release-local</url>
         </repository>
     </distributionManagement>
 
@@ -236,7 +241,21 @@
             <artifactId>spring-webmvc</artifactId>
             <version>${org.springframework.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.flipkart.kloud.authn</groupId>
+            <artifactId>dropwizard8-relying-party</artifactId>
+            <version>${authn.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
@@ -251,14 +270,7 @@
         <dependency>
             <groupId>com.mashape.unirest</groupId>
             <artifactId>unirest-java</artifactId>
-            <version>1.4.6</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.httpcomponents</groupId>
-                    <artifactId>httpclient</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>1.4.5</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
