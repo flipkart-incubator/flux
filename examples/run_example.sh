@@ -29,17 +29,25 @@ cp target/dependency/* $DEPLOYMENT_UNIT_PATH/$DEPLOYMENT_UNIT_NAME/lib
 cp src/main/resources/flux_config.yml $DEPLOYMENT_UNIT_PATH/$DEPLOYMENT_UNIT_NAME/
 
 if [[ $# -ge 2 && "debug" == $DEBUG ]]; then
-    echo "Starting flux runtime in debug mode. Debug port: $DEBUG_PORT"
-    java -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=$DEBUG_PORT,suspend=n -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" &
-    FLUX_PID=$!
+    echo "Starting flux runtime orchestrator"
+    java -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" start orchestration &
+    FLUX_ORCHESTRATOR_PID=$!
+    sleep 10
+    echo "Starting flux runtime executor in debug mode. Debug port: $DEBUG_PORT"
+    java -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=$DEBUG_PORT,suspend=n -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" start execution &
+    FLUX_EXECUTOR_PID=$!
 else
-    echo "Starting flux runtime"
-    java -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" &
-    FLUX_PID=$!
+    echo "Starting flux runtime orchestrator"
+    java -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" start orchestration &
+    FLUX_ORCHESTRATOR_PID=$!
+    sleep 10
+    echo "Starting flux runtime executor"
+    java -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" start execution &
+    FLUX_EXECUTOR_PID=$!
 fi
 
-# kill the flux process which is running in background on ctrl+c
-trap "kill -9 $FLUX_PID" 2
+# kill the flux processes which are running in background on ctrl+c
+trap "kill -9 $FLUX_ORCHESTRATOR_PID; kill -9 $FLUX_EXECUTOR_PID" 2
 
 sleep 15
 
@@ -52,7 +60,7 @@ echo "\033[33;0m"
 #wait for 3 seconds before displaying the below message so that it would be separated from the flux output
 sleep 3
 echo ""
-echo "(Press Ctrl+C to stop Flux process and exit)"
+echo "(Press Ctrl+C to stop Flux processes and exit)"
 
 #wait until user presses ctrl+c
 tail -f /dev/null
