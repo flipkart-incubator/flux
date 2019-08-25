@@ -21,11 +21,11 @@ user actions, messages passed between systems and data changes to business entit
 client SDK to build event-driven reactive apps. The runtime allows to run multiple state machine instances concurrently.
 
 ## Flux Visualization & Monitoring
-Flux allows you to monitor real-time execution of all running state machine tasks. Default path for dashboard is http://localhost:9999/admin/dashboard
+Flux allows you to monitor real-time execution of all running state machine tasks. Default path for dashboard is http://localhost:9996/admin/dashboard
 
 <img src="https://github.com/flipkart-incubator/flux/raw/master/docs/flux-cluster.png" width="800">
 
-Additionally, you can also inspect individual state machine execution DAGs and audit data:
+Additionally, you can also inspect individual state machine execution DAGs and audit data at http://localhost:9999/admin/fsmview
 
 <img src="https://github.com/flipkart-incubator/flux/raw/master/docs/Flux-serial-workflow.png" width="500">
 
