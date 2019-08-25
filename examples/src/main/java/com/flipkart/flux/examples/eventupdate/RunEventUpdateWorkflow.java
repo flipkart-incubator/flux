@@ -35,7 +35,9 @@ public class RunEventUpdateWorkflow {
 
         /* Lets invoke our workflow */
         System.out.println("[Main] Starting workflow execution");
-        eventUpdateWorkflow.create(new StartEvent("example_event_update_workflow"));
+        String exampleWorkflowId = "example_event_update_workflow";
+        eventUpdateWorkflow.create(new StartEvent(exampleWorkflowId));
+        System.out.println("[Main] Visit flux dashboard at http://localhost:9999/admin/fsmview and enter " + exampleWorkflowId + " to see workflow execution details");
 
         /* Since we've initialised flux, the process will continue to run till you explicitly kill it */
     }

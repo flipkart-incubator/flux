@@ -35,7 +35,9 @@ public class RunCancelPathWorkflow {
 
         /* Lets invoke our workflow */
         System.out.println("[Main] Starting workflow execution");
-        cancelPathWorkflow.create(new StartEvent("example_cancel_path_flow"));
+        String exampleWorkflowId = "example_cancel_path_flow";
+        cancelPathWorkflow.create(new StartEvent(exampleWorkflowId));
+        System.out.println("[Main] Visit flux dashboard at http://localhost:9999/admin/fsmview and enter " + exampleWorkflowId + " to see workflow execution details");
         /* Since we've initialised flux, the process will continue to run till you explicitly kill it */
     }
 }

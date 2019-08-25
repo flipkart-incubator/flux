@@ -53,6 +53,6 @@ public class RunManualSellerVerificationWorkflow {
         new FluxRuntimeConnectorHttpImpl(10000l, 10000l, "http://localhost:9998/api/machines").
                 submitEvent("sellerVerification", new SellerVerificationStatus(new SellerId(1l), true), randomCorrelationId, "Manual Trigger From Customer Support");
         System.out.println("[Main] Posted data to flux runtime, the workflow should have continued");
-
+        System.out.println("[Main] Visit flux dashboard at http://localhost:9999/admin/fsmview and enter " + randomCorrelationId + " to see workflow execution details");
     }
 }
