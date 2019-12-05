@@ -1,4 +1,4 @@
-## Disclaimer
+## Important Note
 Active contributions to Flux from Flipkart development team have shifted to Flipkart internal repository since December 2018  due to integration of security related Flipkart specific features.
 
 # Flux
