@@ -30,19 +30,19 @@ cp src/main/resources/flux_config.yml $DEPLOYMENT_UNIT_PATH/$DEPLOYMENT_UNIT_NAM
 
 if [[ $# -ge 2 && "debug" == $DEBUG ]]; then
     echo "Starting flux runtime orchestrator"
-    java -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" start orchestration &
+    java -Dlog4j.configurationFile=./target/classes/log4j2.xml -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" start orchestration &
     FLUX_ORCHESTRATOR_PID=$!
     sleep 10
     echo "Starting flux runtime executor in debug mode. Debug port: $DEBUG_PORT"
-    java -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=$DEBUG_PORT,suspend=n -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" start execution &
+    java -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=$DEBUG_PORT,suspend=n -Dlog4j.configurationFile=./target/classes/log4j2.xml -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" start execution &
     FLUX_EXECUTOR_PID=$!
 else
     echo "Starting flux runtime orchestrator"
-    java -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" start orchestration &
+    java -Dlog4j.configurationFile=./target/classes/log4j2.xml -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" start orchestration &
     FLUX_ORCHESTRATOR_PID=$!
     sleep 10
     echo "Starting flux runtime executor"
-    java -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" start execution &
+    java -Dlog4j.configurationFile=./target/classes/log4j2.xml -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" start execution &
     FLUX_EXECUTOR_PID=$!
 fi
 
@@ -53,7 +53,7 @@ sleep 15
 
 echo "Running $EXAMPLE_FQN for you "
 #The below code prints the lines in green color
-echo "\033[33;32m $(java -cp 'target/*:target/dependency/*' $EXAMPLE_FQN)"
+echo "\033[33;32m $(java -Dlog4j.configurationFile=./target/classes/log4j2.xml -cp 'target/*:target/dependency/*' $EXAMPLE_FQN)"
 #Reset the color
 echo "\033[33;0m"
 
