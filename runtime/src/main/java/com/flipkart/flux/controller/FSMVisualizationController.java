@@ -15,20 +15,18 @@
  */
 package com.flipkart.flux.controller;
 
-import com.google.inject.Injector;
-import com.google.inject.Key;
-import com.google.inject.name.Names;
+import static com.flipkart.flux.constant.RuntimeConstants.FSM_VIEW;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import javax.servlet.http.HttpServletRequest;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
-import static com.flipkart.flux.constant.RuntimeConstants.FSM_VIEW;
 
 /**
  * <code>FSMVisualizationController</code> is a Spring MVC Controller for FSM visualization

@@ -1,20 +1,20 @@
 <#include "header.ftl">
 
     <!-- The JoinJS CSS -->
-    <link rel="stylesheet" type="text/css" href="/admin/fsm-dashboard/css/joint.css" />
+    <link rel="stylesheet" type="text/css" href="/admin/resources/css/joint.css" />
 
     <!-- Keeping the Hystrix global stylesheet for some useful CSS types -->
-    <link rel="stylesheet" type="text/css" href="/admin/hystrix-dashboard/css/global.css" />
-    <link rel="stylesheet" type="text/css" href="/admin/fsm-dashboard/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/admin/resources/css/global.css" />
+    <link rel="stylesheet" type="text/css" href="/admin/resources/css/bootstrap.min.css">
     <!-- JointJS and Diagre JS files and their dependencies -->
-    <script type="text/javascript" src="/admin/fsm-dashboard/js/jquery.min.js"></script>
-    <script type="text/javascript" src="/admin/fsm-dashboard/js/lodash.min.js"></script>
-    <script type="text/javascript" src="/admin/fsm-dashboard/js/backbone-min.js"></script>
-    <script type="text/javascript" src="/admin/fsm-dashboard/js/joint.js"></script>
-    <script type="text/javascript" src="/admin/fsm-dashboard/js/graphlib.core.js"></script>
-    <script type="text/javascript" src="/admin/fsm-dashboard/js/dagre.core.js"></script>
-    <script type="text/javascript" src="/admin/fsm-dashboard/js/joint.layout.DirectedGraph.js"></script>
-    <script type="text/javascript" src="/admin/fsm-dashboard/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/admin/resources/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/admin/resources/js/lodash.min.js"></script>
+    <script type="text/javascript" src="/admin/resources/js/backbone-min.js"></script>
+    <script type="text/javascript" src="/admin/resources/js/joint.js"></script>
+    <script type="text/javascript" src="/admin/resources/js/graphlib.core.js"></script>
+    <script type="text/javascript" src="/admin/resources/js/dagre.core.js"></script>
+    <script type="text/javascript" src="/admin/resources/js/joint.layout.DirectedGraph.js"></script>
+    <script type="text/javascript" src="/admin/resources/js/bootstrap.min.js"></script>
 
     <div class="Table">
         <div class="Row">

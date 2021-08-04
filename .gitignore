@@ -10,3 +10,4 @@ target/
 .metadata/*
 .recommenders/*
 logs
+/.metadata/

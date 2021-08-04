@@ -5,10 +5,10 @@
 	<title> <#if appName?? > ${appName} <#else> Flux </#if> Admin </title>
 
 	<!-- all the css -->
-	<link rel="stylesheet" href="/admin/resources/styles/main.css" type="text/css"></link>
-	<link rel="stylesheet" href="/admin/resources/styles/colors.css" type="text/css"></link>
-	<link rel="stylesheet" href="/admin/resources/styles/local.css" type="text/css"></link>
-	<link rel="stylesheet" href="/admin/resources/styles/print.css" type="text/css" media="print"></link>
+	<link rel="stylesheet" href="/admin/resources/css/main.css" type="text/css"></link>
+	<link rel="stylesheet" href="/admin/resources/css/colors.css" type="text/css"></link>
+	<link rel="stylesheet" href="/admin/resources/css/local.css" type="text/css"></link>
+	<link rel="stylesheet" href="/admin/resources/css/print.css" type="text/css" media="print"></link>
 
 	<!-- jquery -->
 	<script src="/admin/resources/js/jquery-1.4.2.min.js" type="text/javascript"></script>
@@ -17,7 +17,7 @@
 	<!-- codemirror includes -->
 	<link rel="stylesheet" href="/admin/resources/codemirror/lib/codemirror.css">
 	<script src="/admin/resources/codemirror//lib/codemirror.js"></script>
-	<script src="/admin/resources/codemirror//mode/xml/xml.js"></script>
+	<script src="/admin/resources/codemirror/mode/xml/xml.js"></script>
 	<link rel="stylesheet" href="/admin/resources/codemirror/theme/neat.css">
 
 	<!-- codemirror extra css -->
@@ -37,7 +37,8 @@
                 </div>
                 <div class="Cell">
                     <div class="Row">
-                        <div class="Cell"><a href="/admin/dashboard" style="text-decoration: none; color: white;"">Dashboard</a></div>
+						<div class="Cell"><a href="/admin/dashboard" style="text-decoration: none; color: white;"">Dashboard</a></div>
+						<div class="Cell"><a href="/admin/fsmview" style="text-decoration: none; color: white;"">FSM Visualization</a></div>                        
                     </div>
                 </div>
             </div>

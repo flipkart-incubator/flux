@@ -16,6 +16,24 @@
 
 package com.flipkart.flux.guice.module;
 
+import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
+
+import java.io.File;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
+
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.webapp.WebAppContext;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
+
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SharedMetricRegistries;
@@ -33,23 +51,6 @@ import com.flipkart.flux.resource.StateMachineResource;
 import com.flipkart.flux.resource.StatusResource;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.eclipse.jetty.webapp.WebAppContext;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
-import java.io.File;
-import java.net.URISyntaxException;
-import java.net.UnknownHostException;
-
-import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
-import static com.flipkart.flux.constant.RuntimeConstants.FSM_VIEW;
 
 /**
  * <code>ContainerModule</code> is a Guice {@link AbstractModule} implementation used for wiring Flux Orchestration container components.
@@ -84,7 +85,7 @@ public class ContainerModule extends AbstractModule {
 	@Singleton
 	WebAppContext getDashboardWebAppContext() {
 		String path = null;
-        File[] files = FileLocator.findDirectories("packaged/webapps/fsmview/WEB-INF", null);
+        File[] files = FileLocator.findDirectories("packaged/webapps/dashboard/WEB-INF", null);
         for (File file : files) {
 			// we need only WEB-INF from runtime project
 			String fileToString = file.toString();
@@ -95,7 +96,7 @@ public class ContainerModule extends AbstractModule {
 					break;
 				}
 			} else {
-				if (fileToString.contains(FSM_VIEW) ) {
+				if (fileToString.contains("runtime") ) {
 					path = fileToString;
 					break;
 				}

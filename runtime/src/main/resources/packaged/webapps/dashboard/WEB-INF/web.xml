@@ -61,17 +61,17 @@
     <!-- Spring MVC servlet for Dashboard Web Console -->
 
     <servlet>
-        <servlet-name>HystrixServlet</servlet-name>
+        <servlet-name>DashboardServlet</servlet-name>
         <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
         <init-param>
             <param-name>contextConfigLocation</param-name>
-            <param-value>WEB-INF/hystrix-servlet-config.xml</param-value>
+            <param-value>WEB-INF/servlet-config.xml</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>HystrixServlet</servlet-name>
+        <servlet-name>DashboardServlet</servlet-name>
         <url-pattern>/</url-pattern>
     </servlet-mapping>
 

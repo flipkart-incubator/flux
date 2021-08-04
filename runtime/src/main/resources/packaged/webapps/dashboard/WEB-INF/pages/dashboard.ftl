@@ -1,26 +1,26 @@
 <#include "header.ftl">
 
 	<!-- Setup base for everything -->
-	<link rel="stylesheet" type="text/css" href="/admin/hystrix-dashboard/css/global.css" />
+	<link rel="stylesheet" type="text/css" href="/admin/resources/css/global.css" />
 	
 	<!-- Our custom CSS -->
-	<link rel="stylesheet" type="text/css" href="/admin/hystrix-dashboard/monitor/monitor.css" />
+	<link rel="stylesheet" type="text/css" href="/admin/resources/monitor/monitor.css" />
 
 	<!-- d3 -->
-	<script type="text/javascript" src="/admin/hystrix-dashboard/js/d3.v2.min.js"></script>
+	<script type="text/javascript" src="/admin/resources/js/d3.v2.min.js"></script>
 	
 	<!-- Javascript to monitor and display -->
-	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
-	<script type="text/javascript" src="/admin/hystrix-dashboard/js/jquery.tinysort.min.js"></script>
-	<script type="text/javascript" src="/admin/hystrix-dashboard/js/tmpl.js"></script>
+	<script type="text/javascript" src="/admin/resources/js/jquery.min.js"></script>
+	<script type="text/javascript" src="/admin/resources/js/jquery.tinysort.min.js"></script>
+	<script type="text/javascript" src="/admin/resources/js/tmpl.js"></script>
 	
 	<!-- HystrixCommand -->
-	<script type="text/javascript" src="/admin/hystrix-dashboard/components/hystrixCommand/hystrixCommand.js"></script>
-	<link rel="stylesheet" type="text/css" href="/admin/hystrix-dashboard/components/hystrixCommand/hystrixCommand.css" />
+	<script type="text/javascript" src="/admin/resources/components/hystrixCommand/hystrixCommand.js"></script>
+	<link rel="stylesheet" type="text/css" href="/admin/resources/components/hystrixCommand/hystrixCommand.css" />
 	
 	<!-- HystrixThreadPool -->
-	<script type="text/javascript" src="/admin/hystrix-dashboard/components/hystrixThreadPool/hystrixThreadPool.js"></script>
-	<link rel="stylesheet" type="text/css" href="/admin/hystrix-dashboard/components/hystrixThreadPool/hystrixThreadPool.css" />
+	<script type="text/javascript" src="/admin/resources/components/hystrixThreadPool/hystrixThreadPool.js"></script>
+	<link rel="stylesheet" type="text/css" href="/admin/resources/components/hystrixThreadPool/hystrixThreadPool.css" />
 
 	<div class="container">
 		<div class="row">

@@ -17,7 +17,7 @@ http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
     <!-- freemarker config -->
     <bean id="freemarkerConfig" class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
-        <property name="templateLoaderPath" value="/WEB-INF/pages/dashboard"/>
+        <property name="templateLoaderPath" value="/WEB-INF/pages"/>
     </bean>
 
     <!--
@@ -32,10 +32,9 @@ http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
     <!-- Static resources -->
     <mvc:resources location="WEB-INF/pages/resources/" mapping="resources/**" /> <!-- Resources for Web Console -->
-    <mvc:resources location="WEB-INF/hystrix-dashboard/" mapping="dashboard/**" /> <!-- Hystrix dashboard -->
-    <mvc:resources location="WEB-INF/hystrix-dashboard/" mapping="hystrix-dashboard/**" /> <!--  Hystrix dashboard -->
-    <mvc:resources location="WEB-INF/hystrix-dashboard/components/" mapping="components/**" /> <!--Hystrix dashboard  -->
-   <mvc:resources mapping="/favicon.ico" location="/WEB-INF/pages/resources/images/favicon.ico" />
+    <mvc:resources location="WEB-INF/" mapping="dashboard/**" /> <!-- Dashboard -->
+    <mvc:resources location="WEB-INF/pages/components/" mapping="components/**" /> <!--Dashboard  -->
+    <mvc:resources location="WEB-INF/pages/resources/images/favicon.ico" mapping="/favicon.ico"  />
     <mvc:annotation-driven />
 
 </beans>
