@@ -15,14 +15,19 @@
  */
 package com.flipkart.flux.controller;
 
+import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
+import static com.flipkart.flux.constant.RuntimeConstants.RESOURCE_NOT_AVAILABLE_VIEW;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import javax.servlet.http.HttpServletRequest;
-
-import static com.flipkart.flux.constant.RuntimeConstants.DASHBOARD_VIEW;
+import com.flipkart.flux.Constants;
+import com.flipkart.flux.FluxRuntimeRole;
+import com.flipkart.flux.initializer.FluxInitializer;
 
 /**
  * <code>DashboardController</code> is a Spring MVC Controller for the Dashboard
@@ -38,7 +43,12 @@ public class DashboardController {
      */
     @RequestMapping(value = {"/dashboard"}, method = RequestMethod.GET)
     public String dashboard(ModelMap model, HttpServletRequest request) {
+		model.addAttribute(Constants.MODE, FluxInitializer.fluxRole);
+    		if (FluxInitializer.fluxRole == FluxRuntimeRole.ORCHESTRATION) {
+    			model.addAttribute("resource_not_available_message", "'/dashboard' not available in Orchestration mode of Flux. Try '/fsmview'");
+    			return RESOURCE_NOT_AVAILABLE_VIEW;
+    		}
         return DASHBOARD_VIEW;
-    }
+    }        
     
 }

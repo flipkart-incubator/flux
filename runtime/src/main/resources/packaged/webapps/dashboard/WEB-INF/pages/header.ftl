@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 
-	<title> <#if appName?? > ${appName} <#else> Flux </#if> Admin </title>
+	<title>Flux</title>
 
 	<!-- all the css -->
 	<link rel="stylesheet" href="/admin/resources/css/main.css" type="text/css"></link>
@@ -37,8 +37,14 @@
                 </div>
                 <div class="Cell">
                     <div class="Row">
-						<div class="Cell"><a href="/admin/dashboard" style="text-decoration: none; color: white;"">Dashboard</a></div>
-						<div class="Cell"><a href="/admin/fsmview" style="text-decoration: none; color: white;"">FSM Visualization</a></div>                        
+                    		<#if '${mode}' == 'ORCHESTRATION'>
+							<div class="Cell"><a href="/admin/fsmview" style="text-decoration: none; color: white;"">FSM Visualization</a></div>
+						<#elseif '${mode}' == 'EXECUTION'>
+							<div class="Cell"><a href="/admin/dashboard" style="text-decoration: none; color: white;"">Dashboard</a></div>
+						<#else>
+							<div class="Cell"><a href="/admin/dashboard" style="text-decoration: none; color: white;"">Dashboard</a></div>
+							<div class="Cell"><a href="/admin/fsmview" style="text-decoration: none; color: white;"">FSM Visualization</a></div>
+						</#if>                        
                     </div>
                 </div>
             </div>

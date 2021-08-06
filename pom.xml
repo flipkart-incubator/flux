@@ -59,7 +59,7 @@
         <jackson.version>2.7.3</jackson.version>
         <mockito-all.version>1.9.0</mockito-all.version>
         <slf4j-api.version>1.7.12</slf4j-api.version>
-        <codahale.metrics.version>3.1.2</codahale.metrics.version>
+        <io.dropwizard.metrics.version>4.2.3</io.dropwizard.metrics.version>
         <javax.transaction-api.version>1.2</javax.transaction-api.version>
         <jersey.version>2.25.1</jersey.version>
         <jetty.version>9.4.34.v20201102</jetty.version>        

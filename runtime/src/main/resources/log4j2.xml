@@ -18,5 +18,11 @@
         <Logger name="com.flipkart.polyguice.*" level="info" additivity="false">
             <AppenderRef ref="console-log"/>
         </Logger>
+		<logger name="com.mchange.*" level="warn" additivity="false">
+		    <appender-ref ref="console-log" />
+		</logger>        
+		<logger name="org.springframework.*" level="warn" additivity="false">
+		    <appender-ref ref="console-log" />
+		</logger>        
     </Loggers>
 </Configuration>

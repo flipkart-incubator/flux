@@ -69,7 +69,7 @@
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-core</artifactId>
-            <version>${codahale.metrics.version}</version>
+            <version>${io.dropwizard.metrics.version}</version>
         </dependency>
         <dependency>
             <groupId>com.flipkart.flux</groupId>

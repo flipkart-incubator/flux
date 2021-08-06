@@ -14,7 +14,6 @@
 
 package com.flipkart.flux.guice.module;
 
-import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.impl.eventscheduler.EventSchedulerRegistryImpl;
 import com.flipkart.flux.impl.redriver.RedriverRegistryImpl;
 import com.flipkart.flux.module.SchedulerModule;
@@ -42,6 +41,5 @@ public class OrchestrationTaskModule extends AbstractModule {
         bind(RedriverRegistry.class).to(RedriverRegistryImpl.class);
         bind(EventSchedulerRegistry.class).to(EventSchedulerRegistryImpl.class);
         install(new SchedulerModule());
-        install(new FluxClientComponentModule());
     }
 }

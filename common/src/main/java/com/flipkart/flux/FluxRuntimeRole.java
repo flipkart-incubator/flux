@@ -18,4 +18,5 @@ package com.flipkart.flux;
 public enum FluxRuntimeRole {
     ORCHESTRATION,
     EXECUTION,
+    COMBINED,
 }

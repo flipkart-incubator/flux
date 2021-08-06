@@ -34,17 +34,15 @@ public class ExecutionOrderedComponentBooter implements Initializable {
     private final Server executionApiServer;
     private final Server executionDashboardServer;
     private final ActorSystemManager actorSystemManager;
-    private final RouterRegistry routerRegistry;
 
     @Inject
     public ExecutionOrderedComponentBooter(RouterRegistry routerRegistry,
                                            @Named("ExecutionAPIJettyServer") Server executionApiServer,
-                                           @Named("ExecutionDashboardJettyServer") Server executionDashboardServer,
+                                           @Named("DashboardJettyServer") Server executionDashboardServer,
                                            ActorSystemManager actorSystemManager) {
         this.executionApiServer = executionApiServer;
         this.executionDashboardServer =  executionDashboardServer;
         this.actorSystemManager = actorSystemManager;
-        this.routerRegistry = routerRegistry;
     }
 
     @Override
@@ -61,7 +59,9 @@ public class ExecutionOrderedComponentBooter implements Initializable {
             logger.info("API server started. Say Hello!");
             /* Bring up the Dashboard server */
             logger.info("Loading Execution Dashboard Server");
-            executionDashboardServer.start();
+            if (executionDashboardServer.isStopped()) { // it may have been started when Flux is run in COMBINED mode
+            		executionDashboardServer.start();
+            }
             logger.info("Execution Dashboard server has started. Say Hello!");
         } catch (Exception e) {
             throw new RuntimeException(e);

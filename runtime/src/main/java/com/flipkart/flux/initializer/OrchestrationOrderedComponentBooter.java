@@ -56,7 +56,9 @@ public class OrchestrationOrderedComponentBooter implements Initializable {
             logger.info("API server started. Say Hello!");
             /* Bring up the Dashboard server */
             logger.info("Loading Dashboard Server");
-            dashboardServer.start();
+            if (dashboardServer.isStopped()) { // it may have been started when Flux is run in COMBINED mode
+                dashboardServer.start();
+            }
             logger.info("Dashboard server has started. Say Hello!");
         } catch (Exception e) {
             throw new RuntimeException(e);

@@ -446,7 +446,7 @@ public class StateMachineResource {
     @Path("/{machineId}/fsmdata")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFsmGraphData(@PathParam("machineId") String machineId) throws IOException {
-        return Response.status(200).entity(getGraphData(machineId)).build();
+    		return Response.status(200).entity(getGraphData(machineId)).build();
     }
 
     /**

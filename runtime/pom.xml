@@ -176,12 +176,17 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>com.codahale.metrics</groupId>
-            <artifactId>metrics-servlets</artifactId>
-            <version>3.0.2</version>
-        </dependency>
-
+		<dependency>
+		    <groupId>io.dropwizard.metrics</groupId>
+		    <artifactId>metrics-servlets</artifactId>
+		    <version>${io.dropwizard.metrics.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>io.dropwizard.metrics</groupId>
+		    <artifactId>metrics-jmx</artifactId>
+		    <version>${io.dropwizard.metrics.version}</version>
+		</dependency>
+				
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-jetty-http</artifactId>
@@ -274,7 +279,7 @@
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-jersey2</artifactId>
-            <version>${codahale.metrics.version}</version>
+            <version>${io.dropwizard.metrics.version}</version>
         </dependency>
 
     </dependencies>

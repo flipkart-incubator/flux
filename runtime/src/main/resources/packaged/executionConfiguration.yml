@@ -1,8 +1,10 @@
-ExecutionDashboard:
-  service.port: 9996
-  service.acceptors: 4
-  service.selectors: 4
-  service.workers: 25
+# Execution mode runtime configurations
+
+Dashboard:
+  service.port: 9999
+  service.acceptors: 5
+  service.selectors: 10
+  service.workers: 30
 
 Execution.Node.Api:
   service.port: 9997
@@ -20,8 +22,6 @@ runtime:
     name: FluxExecutionSystem
     configname: execution_akka.conf
     maxTaskActorCreateRetries : -1
-
-
 
 flux.Orchestration.URL: "http://localhost:9998"
 deploymentType: directory

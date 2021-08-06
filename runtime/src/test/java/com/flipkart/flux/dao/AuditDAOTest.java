@@ -13,6 +13,13 @@
 
 package com.flipkart.flux.dao;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.dao.iface.AuditDAO;
@@ -20,23 +27,13 @@ import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
-import com.flipkart.flux.guice.module.AkkaModule;
-import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.OrchestrationTaskModule;
+import com.flipkart.flux.guice.module.OrchestratorContainerModule;
 import com.flipkart.flux.guice.module.ShardModule;
-import com.flipkart.flux.module.DeploymentUnitTestModule;
 import com.flipkart.flux.module.RuntimeTestModule;
 import com.flipkart.flux.rule.DbClearWithTestSMRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import javax.inject.Inject;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * <code>AuditDAOTest</code> class tests the functionality of {@link AuditDAO} using JUnit tests.
@@ -45,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author kartik.bommepally
  */
 @RunWith(GuiceJunit4Runner.class)
-@Modules(orchestrationModules = {ShardModule.class, RuntimeTestModule.class, ContainerModule.class, OrchestrationTaskModule.class, FluxClientInterceptorModule.class})
+@Modules(orchestrationModules = {ShardModule.class, RuntimeTestModule.class, OrchestratorContainerModule.class, OrchestrationTaskModule.class, FluxClientInterceptorModule.class})
 public class AuditDAOTest {
 
     @InjectFromRole

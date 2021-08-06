@@ -54,7 +54,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(GuiceJunit4Runner.class)
 @Modules(orchestrationModules = {OrchestrationTaskModule.class, ShardModule.class,
-        RuntimeTestModule.class, ContainerModule.class, FluxClientInterceptorModule.class}, executionModules = {
+        RuntimeTestModule.class, OrchestratorContainerModule.class, FluxClientInterceptorModule.class}, executionModules = {
         DeploymentUnitTestModule.class, AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class, FluxClientInterceptorModule.class})
 public class StateMachineResourceTest {
 

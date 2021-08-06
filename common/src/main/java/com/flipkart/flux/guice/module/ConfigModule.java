@@ -15,6 +15,7 @@ package com.flipkart.flux.guice.module;
 
 import static com.flipkart.flux.Constants.EXECUTION_NODE_CONFIGURATION_YML;
 import static com.flipkart.flux.Constants.ORCHESTRATION_NODE_CONFIGURATION_YML;
+import static com.flipkart.flux.Constants.CONFIGURATION_YML;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,10 +55,10 @@ public class ConfigModule extends AbstractModule {
                     }
                     break;
                 case EXECUTION:
-                    configUrl = loadExecutinNodeConfiguration(fluxConfigFile);
+                    configUrl = loadExecutionNodeConfiguration(fluxConfigFile);
                     break;
                 default:
-                    configUrl = loadExecutinNodeConfiguration(fluxConfigFile);
+                    configUrl = this.getClass().getClassLoader().getResource(CONFIGURATION_YML); // orchestration + execution
                     break;
 
             }
@@ -102,7 +103,7 @@ public class ConfigModule extends AbstractModule {
         return configProvider;
     }
 
-    private URL loadExecutinNodeConfiguration( String fluxConfigFile) throws MalformedURLException {
+    private URL loadExecutionNodeConfiguration( String fluxConfigFile) throws MalformedURLException {
         URL configUrl = null;
         fluxConfigFile = System.getProperty("flux.execution.configurationFile");
         if (fluxConfigFile != null) {

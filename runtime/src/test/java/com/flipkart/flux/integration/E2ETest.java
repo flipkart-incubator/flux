@@ -49,7 +49,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(GuiceJunit4Runner.class)
-@Modules(orchestrationModules = {ShardModule.class, RuntimeTestModule.class, ContainerModule.class,
+@Modules(orchestrationModules = {ShardModule.class, RuntimeTestModule.class, OrchestratorContainerModule.class,
         OrchestrationTaskModule.class, FluxClientInterceptorModule.class},
         executionModules = { DeploymentUnitTestModule.class, AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class, FluxClientInterceptorModule.class})
 public class E2ETest {

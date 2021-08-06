@@ -16,6 +16,7 @@
 package com.flipkart.flux.controller;
 
 import static com.flipkart.flux.constant.RuntimeConstants.FSM_VIEW;
+import static com.flipkart.flux.constant.RuntimeConstants.RESOURCE_NOT_AVAILABLE_VIEW;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -28,6 +29,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.flipkart.flux.Constants;
+import com.flipkart.flux.FluxRuntimeRole;
+import com.flipkart.flux.initializer.FluxInitializer;
+
 /**
  * <code>FSMVisualizationController</code> is a Spring MVC Controller for FSM visualization
  * 
@@ -37,10 +42,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class FSMVisualizationController {
 
-
-
     @RequestMapping(value = {"/fsmview"}, method = RequestMethod.GET)
     public String fsmview(@RequestParam(value = "fsmid", required = false) String fsmId, ModelMap modelMap, HttpServletRequest request) throws UnknownHostException {
+        modelMap.addAttribute(Constants.MODE, FluxInitializer.fluxRole);
+		if (FluxInitializer.fluxRole == FluxRuntimeRole.EXECUTION) {
+			modelMap.addAttribute("resource_not_available_message", "'/fsmview' not available in Execution mode of Flux. Try '/dashboard'");
+			return RESOURCE_NOT_AVAILABLE_VIEW;
+		}    		
         String fluxApiHost = InetAddress.getLocalHost().getHostAddress();
         String fluxApiUrl = System.getProperty("flux.runtimeUrl")== null ? "http://" + fluxApiHost   + ":" + 9998 : System.getProperty("flux.runtimeUrl");
         modelMap.addAttribute("flux_api_url", fluxApiUrl);

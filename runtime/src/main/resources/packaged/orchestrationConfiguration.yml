@@ -7,6 +7,8 @@ shard.Pair.Model.List:
                startKey: "00"
                endKey:   "ff"
 
+
+
 flux.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
   hibernate.connection.driver_class: "com.mysql.jdbc.Driver"
@@ -17,6 +19,7 @@ flux.Hibernate:
   connection.provider_class: "org.hibernate.c3p0.internal.C3P0ConnectionProvider"
   hibernate.c3p0.min_size: 3
   hibernate.c3p0.max_size: 10
+
 
 fluxReadOnly.Hibernate:
   hibernate.dialect: "org.hibernate.dialect.MySQLDialect"
@@ -92,26 +95,3 @@ connector:
   connection.timeout: 10000
   socket.timeout: 10000
 
-# Execution mode runtime configurations
-# No Config for dashboard as it is already there from Orchestration section above
-
-Execution.Node.Api:
-  service.port: 9997
-  service.acceptors: 4
-  service.selectors: 4
-  service.workers: 20
-
-routers:
-  default:
-    instancesPerNode: 5
-
-runtime:
-  actorsystem:
-    metrics: false
-    name: FluxExecutionSystem
-    configname: execution_akka.conf
-    maxTaskActorCreateRetries : -1
-
-flux.Orchestration.URL: "http://localhost:9998"
-deploymentType: directory
-deploymentUnitsPath: "/tmp/workflows/"
