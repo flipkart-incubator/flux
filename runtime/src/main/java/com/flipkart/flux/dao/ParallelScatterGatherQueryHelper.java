@@ -56,14 +56,12 @@ public class ParallelScatterGatherQueryHelper {
         executorService = Executors.newFixedThreadPool(10);
     }
 
-
     public List findErroredStates(String stateMachineName, Timestamp fromTime, Timestamp toTime) {
         List result = Collections.synchronizedList(new ArrayList<>());
         scatterGatherQueryHelper((shardId) ->
                 statesDAO.findErroredStates(shardId, stateMachineName, fromTime, toTime), result, "errored states");
         return result;
     }
-
 
     public List findStatesByStatus(String stateMachineName, Timestamp fromTime, Timestamp toTime, String taskName, List<Status> statuses) {
         List result = Collections.synchronizedList(new ArrayList<>());
@@ -104,16 +102,15 @@ public class ParallelScatterGatherQueryHelper {
             boolean allDone = false;
             while (!allDone) {
                 allDone = true;
-                for (int i = 0; i < fluxShardIdToShardPairModelMap.size(); i++)
+                for (int i = 0; i < fluxShardIdToShardPairModelMap.size(); i++) {
                     if (!tasksCompleted[i].isDone() && !tasksCompleted[i].isCancelled()) {
                         allDone = false;
                         break;
                     }
+                }
             }
         } catch (Exception e) {
             logger.error("Exception occured while getting {} from Slaves : {}", fetchOperation, e.getStackTrace());
         }
     }
-
-
 }

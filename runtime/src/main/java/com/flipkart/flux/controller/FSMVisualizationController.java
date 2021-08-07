@@ -35,7 +35,7 @@ import com.flipkart.flux.initializer.FluxInitializer;
 
 /**
  * <code>FSMVisualizationController</code> is a Spring MVC Controller for FSM visualization
- * 
+ *
  * @author regunath.balasubramanian
  * @author shyam.akirala
  */
@@ -45,15 +45,14 @@ public class FSMVisualizationController {
     @RequestMapping(value = {"/fsmview"}, method = RequestMethod.GET)
     public String fsmview(@RequestParam(value = "fsmid", required = false) String fsmId, ModelMap modelMap, HttpServletRequest request) throws UnknownHostException {
         modelMap.addAttribute(Constants.MODE, FluxInitializer.fluxRole);
-		if (FluxInitializer.fluxRole == FluxRuntimeRole.EXECUTION) {
-			modelMap.addAttribute("resource_not_available_message", "'/fsmview' not available in Execution mode of Flux. Try '/dashboard'");
-			return RESOURCE_NOT_AVAILABLE_VIEW;
-		}    		
+        if (FluxInitializer.fluxRole == FluxRuntimeRole.EXECUTION) {
+            modelMap.addAttribute("resource_not_available_message", "'/fsmview' not available in Execution mode of Flux. Try '/dashboard'");
+            return RESOURCE_NOT_AVAILABLE_VIEW;
+        }
         String fluxApiHost = InetAddress.getLocalHost().getHostAddress();
-        String fluxApiUrl = System.getProperty("flux.runtimeUrl")== null ? "http://" + fluxApiHost   + ":" + 9998 : System.getProperty("flux.runtimeUrl");
+        String fluxApiUrl = System.getProperty("flux.runtimeUrl") == null ? "http://" + fluxApiHost + ":" + 9998 : System.getProperty("flux.runtimeUrl");
         modelMap.addAttribute("flux_api_url", fluxApiUrl);
         modelMap.addAttribute("fsm_id", (fsmId != null ? fsmId : "null"));
         return FSM_VIEW;
     }
-
 }

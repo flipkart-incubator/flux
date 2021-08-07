@@ -78,7 +78,7 @@ public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializabl
 
     /**
      * Iterates over given list of configured router names and creates a cluster singleton router for each
-     * */
+     */
     @Override
     public void initialize() {
         for (Map.Entry<String, Integer> routerConfig : routerConfigMap.entrySet()) {

@@ -28,7 +28,6 @@ import javax.inject.Singleton;
  * 2. Observe how a decision is taken within a task.
  * 3. Going forward, all task invocations (from either a <code>Workflow</code> or another <code>Task</code>) will
  * be executed remotely. Presently <code>Task</code> invocations from within a <code>Task</code> are executed on the same thread.
- *
  */
 @Singleton
 public class UserVerificationWorkflow {
@@ -65,6 +64,7 @@ public class UserVerificationWorkflow {
     /**
      * Idempotent operation that would use the notificationService to notifyCustomerSupport about non-verified users
      * OR would send out a welcome email if the user is verified
+     *
      * @param userVerificationStatus
      */
     @Task(version = 1, timeout = 1000l, retries = 2)

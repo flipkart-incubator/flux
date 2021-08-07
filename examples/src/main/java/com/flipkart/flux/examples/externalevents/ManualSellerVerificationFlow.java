@@ -54,7 +54,6 @@ public class ManualSellerVerificationFlow {
     public void confirmVerificationStatus(SellerVerificationStatus sellerVerificationStatus) {
         if (sellerVerificationStatus.isVerifiedSeller()) {
             notificationService.sendWelcomeEmail(sellerVerificationStatus.getSellerId());
-
         }
     }
 }

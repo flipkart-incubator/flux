@@ -20,6 +20,7 @@ import org.hibernate.criterion.Restrictions;
 
 /**
  * <code>AbstractDAO</code> class provides methods to perform CRUD operations on an object using Hibernate.
+ *
  * @author shyam.akirala
  */
 public abstract class AbstractDAO<T> {
@@ -32,6 +33,7 @@ public abstract class AbstractDAO<T> {
 
     /**
      * Provides the session which is bound to current thread.
+     *
      * @return Session
      */
     public Session currentSession() {
@@ -40,6 +42,7 @@ public abstract class AbstractDAO<T> {
 
     /**
      * Retrieves object by it's unique identifier.
+     *
      * @param cls - Class type of the object
      * @param id
      * @return (T) Object
@@ -48,13 +51,15 @@ public abstract class AbstractDAO<T> {
         Criteria criteria = currentSession().createCriteria(cls).add(Restrictions.eq("id", id));
         Object object = criteria.uniqueResult();
         T castedObject = null;
-        if(object != null)
+        if (object != null) {
             castedObject = (T) object;
+        }
         return castedObject;
     }
 
     /**
      * Retrieves object by it's unique identifier.
+     *
      * @param cls - Class type of the object
      * @param id
      * @return (T) Object
@@ -63,15 +68,17 @@ public abstract class AbstractDAO<T> {
         Criteria criteria = currentSession().createCriteria(cls).add(Restrictions.eq("id", id));
         Object object = criteria.uniqueResult();
         T castedObject = null;
-        if(object != null)
+        if (object != null) {
             castedObject = (T) object;
+        }
         return castedObject;
     }
 
     /**
      * Retrieves object by it's unique identifier.
-     * @param cls - Class type of the object
-     * @param id - stateId
+     *
+     * @param cls  - Class type of the object
+     * @param id   - stateId
      * @param smId - stateMachineId
      * @return (T) Object
      */
@@ -81,14 +88,15 @@ public abstract class AbstractDAO<T> {
                 .add(Restrictions.eq("id", id));
         Object object = criteria.uniqueResult();
         T castedObject = null;
-        if(object != null)
+        if (object != null) {
             castedObject = (T) object;
+        }
         return castedObject;
     }
 
-
     /**
      * Saves the object in DB and returns the saved object.
+     *
      * @param object
      * @return saved object
      */
@@ -99,6 +107,7 @@ public abstract class AbstractDAO<T> {
 
     /**
      * Updates the object
+     *
      * @param object
      */
     public void update(T object) {
@@ -108,6 +117,7 @@ public abstract class AbstractDAO<T> {
     /**
      * Saves object in DB, and returns the saved object.
      * If the object already exists, updates it.
+     *
      * @param object
      * @return saved object
      */
@@ -118,6 +128,7 @@ public abstract class AbstractDAO<T> {
 
     /**
      * Deletes the object from DB.
+     *
      * @param object
      */
     public void delete(T object) {

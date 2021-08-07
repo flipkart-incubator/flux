@@ -80,8 +80,7 @@ public class EventSchedulerService {
                 scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
                     try {
                         triggerEvents();
-                    }
-                    catch(Exception e) {
+                    } catch (Exception e) {
                         logger.error("Error while running triggerEvents", e);
                     }
                 }, initialDelay, batchReadInterval, TimeUnit.MILLISECONDS);
@@ -104,7 +103,7 @@ public class EventSchedulerService {
     private void triggerEvents() {
         List<ScheduledEvent> events;
         //time in seconds
-        long now = System.currentTimeMillis()/1000;
+        long now = System.currentTimeMillis() / 1000;
         do {
             events = eventSchedulerDao.retrieveOldest(batchSize);
             events.stream().filter(e -> e.getScheduledTime() <= now).forEach(e -> {
@@ -112,7 +111,8 @@ public class EventSchedulerService {
                     EventData eventData = objectMapper.readValue(e.getEventData(), EventData.class);
                     eventSchedulerRegistry.triggerEvent(e.getEventName(), eventData.getData(), e.getCorrelationId(), eventData.getEventSource());
                     eventSchedulerRegistry.deregisterEvent(e.getCorrelationId(), e.getEventName());
-                } catch (Exception ex) {}
+                } catch (Exception ex) {
+                }
             });
             // get next batch if we found batchSize events and all were triggered
         } while (events.size() == batchSize && events.get(events.size() - 1).getScheduledTime() <= now);

@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This is used to retrieve executables stored locally in the same JVM
+ *
  * @author yogesh.nachnani
  */
 @Singleton
@@ -36,11 +37,11 @@ public class LocalExecutableRegistryImpl implements ExecutableRegistry {
 
     @Inject
     public LocalExecutableRegistryImpl(Injector injector) {
-        this(new ConcurrentHashMap<>(),injector);
+        this(new ConcurrentHashMap<>(), injector);
     }
 
     public LocalExecutableRegistryImpl(Map<String, Executable> identifierToMethodMap, Injector injector) {
-        this.identifierToMethodMap = identifierToMethodMap  ;
+        this.identifierToMethodMap = identifierToMethodMap;
         this.injector = injector;
     }
 
@@ -48,6 +49,7 @@ public class LocalExecutableRegistryImpl implements ExecutableRegistry {
      * The <code>LocalExecutableRegistryImpl</code> stores registered tasks in a concurrent map structure
      * If the given entry is not in the map strucuture, this implementation looks for the given class and tries to retrieve
      * it from the guice injector.
+     *
      * @param taskIdentifier- String that identifies a task to be executed
      * @return The executable method that can be invoked - either one that is previously registered or one that is loaded dynamically in the JVM
      */
@@ -78,7 +80,7 @@ public class LocalExecutableRegistryImpl implements ExecutableRegistry {
 
     @Override
     public void registerTask(String taskIdentifier, Executable method) {
-        this.identifierToMethodMap.put(taskIdentifier,method);
+        this.identifierToMethodMap.put(taskIdentifier, method);
     }
 
     @Override

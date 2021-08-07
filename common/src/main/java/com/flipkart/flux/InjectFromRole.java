@@ -9,5 +9,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface InjectFromRole {
     FluxRuntimeRole value() default FluxRuntimeRole.ORCHESTRATION;
+
     String name() default "";
 }

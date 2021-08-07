@@ -46,7 +46,6 @@ public class ExecutionApiResource {
         this.metricsClient = metricsClient;
     }
 
-
     @POST
     @Timed
     @Consumes(MediaType.APPLICATION_JSON)
@@ -76,5 +75,4 @@ public class ExecutionApiResource {
         }
         return Response.accepted().build();
     }
-
 }

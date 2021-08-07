@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 /**
  * Management APIs to load/unload deployment units
+ *
  * @author gaurav.ashok
  */
 @Path("/api/deployment")
@@ -57,7 +58,8 @@ public class DeploymentUnitResource {
 
     /**
      * API to load deploymentUnit in memory and to get it ready so that it can process tasks.
-     * @param name Name of the deplomyentUnit.
+     *
+     * @param name    Name of the deplomyentUnit.
      * @param version Version.
      * @return message for success or failure.
      */
@@ -67,7 +69,7 @@ public class DeploymentUnitResource {
     public Response loadDeploymentUnit(@QueryParam("name") String name, @QueryParam("version") Integer version,
                                        @QueryParam("replace") @DefaultValue("false") Boolean replaceOld) {
 
-        if(name == null || name.length() == 0 || version == null || version < 0) {
+        if (name == null || name.length() == 0 || version == null || version < 0) {
             throw new WebApplicationException(buildResponse(Response.Status.BAD_REQUEST, "deploymentUnit name or version is invalid"));
         }
 
@@ -90,10 +92,10 @@ public class DeploymentUnitResource {
             routerRegistry.createOrResize(routerName, taskRouterUtil.getConcurrency(loadedUnit, routerName));
         });
 
-        if(replaceOld) {
+        if (replaceOld) {
             logger.info("Unloading redundant deploymentUnits");
 
-            for(DeploymentUnit unit: getRedundantUnits(loadedUnit)) {
+            for (DeploymentUnit unit : getRedundantUnits(loadedUnit)) {
                 logger.info("Unloading deploymentUnit: " + unit.getName() + "/" + unit.getVersion());
                 deploymentUnitManager.unload(unit.getName(), unit.getVersion());
             }
@@ -104,7 +106,8 @@ public class DeploymentUnitResource {
 
     /**
      * Unloads a deploymentUnit identified by name and version releasing all acquired resources.
-     * @param name Name of deploymentUnit.
+     *
+     * @param name    Name of deploymentUnit.
      * @param version Version.
      */
     @POST
@@ -112,14 +115,14 @@ public class DeploymentUnitResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response unloadDeploymentUnit(@QueryParam("name") String name, @QueryParam("version") Integer version) {
 
-        if(name == null || name.length() == 0 || version == null || version < 0) {
+        if (name == null || name.length() == 0 || version == null || version < 0) {
             throw new WebApplicationException(buildResponse(Response.Status.BAD_REQUEST, "deploymentUnit name or version is invalid"));
         }
 
         DeploymentUnit unitToDelete = deploymentUnitManager.getAllDeploymentUnits().stream()
                 .filter(d -> d.getName().equals(name) && d.getVersion() == version).findFirst().orElse(null);
 
-        if(unitToDelete == null) {
+        if (unitToDelete == null) {
             throw new WebApplicationException((buildResponse(Response.Status.NOT_FOUND, "deploymentUnit not found")));
         }
 
@@ -140,7 +143,7 @@ public class DeploymentUnitResource {
         routersToDelete.removeAll(routersInUse);
 
         // TODO: again decide on the basis of current usage metrics.
-        for(String routerName: routersToDelete) {
+        for (String routerName : routersToDelete) {
             // shrink it to 0.
             routerRegistry.createOrResize(routerName, 0);
         }
@@ -150,6 +153,7 @@ public class DeploymentUnitResource {
 
     /**
      * Returns a list of previously loaded deploymentUnits which can be safely removed.
+     *
      * @param loadedUnit
      * @return
      */
@@ -165,8 +169,9 @@ public class DeploymentUnitResource {
 
     /**
      * Wrapper on {@link #buildResponse(Response.Status, String, Throwable)} which builds a response object from the status code, msg.
+     *
      * @param status Http response code.
-     * @param msg Accompanying message as a response.
+     * @param msg    Accompanying message as a response.
      * @return {@link Response}
      */
     private Response buildResponse(Response.Status status, String msg) {
@@ -175,15 +180,16 @@ public class DeploymentUnitResource {
 
     /**
      * Builds a response object from the status code, msg and an optional throwable in case of error.
+     *
      * @param status Http response code.
-     * @param msg Accompanying message as a response.
-     * @param e Optional throwable in case of error.
+     * @param msg    Accompanying message as a response.
+     * @param e      Optional throwable in case of error.
      * @return {@link Response}
      */
     private Response buildResponse(Response.Status status, String msg, Throwable e) {
         Map<String, String> response = new HashMap<>();
         response.put("msg", msg);
-        if(e != null) {
+        if (e != null) {
             response.put("error", e.getMessage());
         }
         return Response.status(status).entity(response).build();

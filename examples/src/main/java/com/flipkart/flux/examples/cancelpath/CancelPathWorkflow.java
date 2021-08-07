@@ -19,6 +19,7 @@ import com.flipkart.flux.client.model.*;
 
 /**
  * This class shows how to use {@link FluxCancelPathException} to cancel a path in state machine.
+ *
  * Created by shyam.akirala on 29/08/17.
  */
 public class CancelPathWorkflow {
@@ -45,7 +46,7 @@ public class CancelPathWorkflow {
     @Task(version = 1, retries = 0, timeout = 1000L)
     public ParamEvent task2(ParamEvent event) {
         // logic which decides whether to cancel the path
-        if(event.data.length() == 5) {
+        if (event.data.length() == 5) {
             throw new FluxCancelPathException();
         }
         return new ParamEvent(event.data + "_task2");
@@ -54,7 +55,7 @@ public class CancelPathWorkflow {
     @Task(version = 1, retries = 0, timeout = 1000L)
     public ParamEvent task3(ParamEvent event) {
         // logic which decides whether to cancel the path
-        if(event.data.length() < 5) {
+        if (event.data.length() < 5) {
             throw new FluxCancelPathException();
         }
         return new ParamEvent(event.data + "_task3");
@@ -122,5 +123,4 @@ class StartEvent implements Event {
     public StartEvent(String id) {
         this.id = id;
     }
-
 }

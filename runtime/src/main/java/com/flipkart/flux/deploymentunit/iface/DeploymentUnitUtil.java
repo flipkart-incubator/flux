@@ -23,15 +23,17 @@ import java.util.List;
  * <code>DeploymentUnitUtil</code> performs operations on deployment units.
  * The implementation for this class attached using configuration.yml's key deploymentType.
  * Ex:
- *      deploymentType: directory
- *
+ * deploymentType: directory
+ * <p>
  * the above binds DirectoryBasedDeploymentUnitUtil.
  *
  * @author shyam.akirala
  */
 public interface DeploymentUnitUtil {
 
-    /** Lists the paths of all deployment units available */
+    /**
+     * Lists the paths of all deployment units available
+     */
     List<Path> listAllDirectoryUnits() throws IOException;
 
     DeploymentUnit getDeploymentUnit(Path directory) throws Exception;

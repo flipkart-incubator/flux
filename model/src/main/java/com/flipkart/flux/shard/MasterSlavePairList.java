@@ -19,7 +19,7 @@ import java.util.List;
  * @author amitkumar.o
  */
 public class MasterSlavePairList {
-    private List<ShardPairModel>  shardPairModelList;
+    private List<ShardPairModel> shardPairModelList;
 
     public MasterSlavePairList(List<ShardPairModel> shardPairModelList) {
         this.shardPairModelList = shardPairModelList;

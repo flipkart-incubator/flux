@@ -20,6 +20,7 @@ import java.util.UUID;
 
 /**
  * API for CRUD operations on Client Cluster ELB details
+ *
  * @author akif.khan
  */
 @Singleton
@@ -35,13 +36,12 @@ public class ClientElbResource {
     public ClientElbResource(ClientElbPersistenceService clientElbPersistenceService
     ) {
         this.clientElbPersistenceService = clientElbPersistenceService;
-
     }
 
     /**
      * Create and persist new client's ELB details viz. ElbURL and ClientId
      *
-     * @param clientId Unique Id specific to a Client Cluster
+     * @param clientId     Unique Id specific to a Client Cluster
      * @param clientElbUrl Client ELB URL Address
      */
     @POST
@@ -49,32 +49,29 @@ public class ClientElbResource {
     @Timed
     @Produces(MediaType.APPLICATION_JSON)
     public Response createClientElb(@QueryParam("clientId") String clientId,
-                                @QueryParam("clientElbUrl") String clientElbUrl) {
-        if(clientElbUrl == null || clientId == null)
+                                    @QueryParam("clientElbUrl") String clientElbUrl) {
+        if (clientElbUrl == null || clientId == null) {
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
                     "ClientElbUrl or ClientId cannot be null").build();
-        else {
+        } else {
             try {
                 URL verifyingURL = new URL(clientElbUrl);
                 verifyingURL.toURI();
-                if(verifyingURL.getHost().length() < 1 || verifyingURL.getPath().length() > 0) {
+                if (verifyingURL.getHost().length() < 1 || verifyingURL.getPath().length() > 0) {
                     throw new MalformedURLException();
                 }
                 ClientElbDefinition clientElbDefinition = new ClientElbDefinition(clientId, clientElbUrl);
                 ClientElb clientElb = clientElbPersistenceService.persistClientElb(
                         clientElbDefinition.getId(), clientElbDefinition);
                 return Response.status(Response.Status.CREATED.getStatusCode()).entity(clientElb.getId()).build();
-            }
-            catch(MalformedURLException ex) {
+            } catch (MalformedURLException ex) {
                 logger.error("Malformed URL exception(no path allowed because Elb Url doesn't contain path) {} {} ",
                         ex.getMessage(), ex.getStackTrace());
                 return Response.status(Response.Status.BAD_REQUEST).entity("MalformedURLException").build();
-            }
-            catch(URISyntaxException ex) {
+            } catch (URISyntaxException ex) {
                 logger.error("URI Syntax Exception {} {} ", ex.getMessage(), ex.getStackTrace());
                 return Response.status(Response.Status.BAD_REQUEST).entity("URISyntaxException").build();
-            }
-            catch(Exception ex) {
+            } catch (Exception ex) {
                 logger.error("Exception occured in ClientElb create {} {} ", ex.getMessage(), ex.getStackTrace());
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
             }
@@ -85,7 +82,6 @@ public class ClientElbResource {
      * Query and returns ClientElbUrl identified by input @param clientId
      *
      * @param clientId Unique Id specific to a Client Cluster
-     *
      */
     @GET
     @Path("/findById")
@@ -93,7 +89,7 @@ public class ClientElbResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findByIdClientElb(@QueryParam("clientId") String clientId) {
 
-        if(clientId == null) {
+        if (clientId == null) {
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
                     "ClientId cannot be null").build();
         }
@@ -105,9 +101,8 @@ public class ClientElbResource {
                         .entity("ClientElb with Id: " + clientId + " not found").build();
             }
             return Response.status(Response.Status.FOUND.getStatusCode()).entity(clientElbUrl).build();
-        }
-        catch(Exception ex) {
-            logger.error("findById failed for input: "+ clientId + " {} {} ", ex.getMessage(), ex.getStackTrace());
+        } catch (Exception ex) {
+            logger.error("findById failed for input: " + clientId + " {} {} ", ex.getMessage(), ex.getStackTrace());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -115,7 +110,7 @@ public class ClientElbResource {
     /**
      * Update and persist existing client's ELB details viz. ElbURL and ClientId
      *
-     * @param clientId Unique Id specific to a Client Cluster
+     * @param clientId     Unique Id specific to a Client Cluster
      * @param clientElbUrl Elb Url that's supposed to be updated.
      */
     @POST
@@ -124,29 +119,26 @@ public class ClientElbResource {
     public Response updateClientElb(@QueryParam("clientId") String clientId,
                                     @QueryParam("clientElbUrl") String clientElbUrl) {
 
-        if(clientId == null || clientElbUrl == null) {
+        if (clientId == null || clientElbUrl == null) {
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
                     "ClientId OR ClientElbUrl cannot be null").build();
         }
         try {
             URL verifyingURL = new URL(clientElbUrl);
             verifyingURL.toURI();
-            if(verifyingURL.getHost().length() < 1 || verifyingURL.getPath().length() > 0) {
+            if (verifyingURL.getHost().length() < 1 || verifyingURL.getPath().length() > 0) {
                 throw new MalformedURLException();
             }
             clientElbPersistenceService.updateClientElb(clientId, clientElbUrl);
-        }
-        catch(MalformedURLException ex) {
+        } catch (MalformedURLException ex) {
             logger.error("Malformed URL exception(no path allowed because Elb Url doesn't contain path) {} {} ",
                     ex.getMessage(), ex.getStackTrace());
             return Response.status(Response.Status.BAD_REQUEST).entity("MalformedURLException").build();
-        }
-        catch(URISyntaxException ex) {
+        } catch (URISyntaxException ex) {
             logger.error("URI Syntax Exception {} {} ", ex.getMessage(), ex.getStackTrace());
             return Response.status(Response.Status.BAD_REQUEST).entity("URISyntaxException").build();
-        }
-        catch(Exception ex) {
-            logger.error("Update failed for input: "+ clientId + " " + clientElbUrl + " {} {} "
+        } catch (Exception ex) {
+            logger.error("Update failed for input: " + clientId + " " + clientElbUrl + " {} {} "
                     , ex.getMessage(), ex.getStackTrace());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -157,23 +149,21 @@ public class ClientElbResource {
      * Delete client's ELB details viz. ElbURL and ClientId
      *
      * @param clientId Unique Id specific to a Client Cluster
-     *
      */
     @POST
     @Path("/delete")
     @Timed
     public Response deleteClientElb(@QueryParam("clientId") String clientId) {
 
-        if(clientId == null) {
+        if (clientId == null) {
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
                     "ClientId cannot be null").build();
         }
 
         try {
             clientElbPersistenceService.deleteClientElb(clientId);
-        }
-        catch(Exception ex) {
-            logger.error("Deletion failed for input: "+ clientId + " {} {} ", ex.getMessage(), ex.getStackTrace());
+        } catch (Exception ex) {
+            logger.error("Deletion failed for input: " + clientId + " {} {} ", ex.getMessage(), ex.getStackTrace());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
         return Response.status(Response.Status.ACCEPTED).build();

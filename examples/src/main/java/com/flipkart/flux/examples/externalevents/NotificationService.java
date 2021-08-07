@@ -24,6 +24,7 @@ public class NotificationService {
         System.out.println("[Notification Service] Customer support has been notified about seller " + sellerData.getSellerId());
         System.out.println("[Notification Service] For this example, you are the CustomerSupport. Please post an event of type SellerVerificationStatus for seller " + sellerData.getSellerId());
     }
+
     @Task(version = 1, timeout = 1000l)
     public void sendWelcomeEmail(SellerId sellerId) {
         System.out.println("[NotificationService] Warm welcomes to you, " + sellerId);

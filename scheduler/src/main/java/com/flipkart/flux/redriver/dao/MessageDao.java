@@ -50,7 +50,6 @@ public class MessageDao {
         currentSession().saveOrUpdate(scheduledMessage);
     }
 
-
     @Transactional
     @SelectDataSource(storage = Storage.SCHEDULER)
     public int bulkInsertOrUpdate(List<ScheduledMessage> messages) {
@@ -61,7 +60,7 @@ public class MessageDao {
             query.append(scheduledMessage.getTaskId()).append(" , ");
             query.append(scheduledMessage.getScheduledTime()).append("), ");
         });
-        query.deleteCharAt(query.length()-1);
+        query.deleteCharAt(query.length() - 1);
         query.setCharAt(query.length() - 1, ' ');
         query.append("on duplicate key update scheduledTime = values(scheduledTime)");
         // created native SQL query, required full table name.

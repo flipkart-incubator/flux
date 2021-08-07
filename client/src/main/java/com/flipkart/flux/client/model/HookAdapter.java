@@ -20,10 +20,8 @@ package com.flipkart.flux.client.model;
  */
 public class HookAdapter implements Hook {
     public void preEntry(FluxContext context) {
-
     }
 
     public void postEntry(FluxContext context) {
-
     }
 }

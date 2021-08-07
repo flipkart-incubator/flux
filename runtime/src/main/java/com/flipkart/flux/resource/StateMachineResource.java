@@ -136,11 +136,11 @@ public class StateMachineResource {
     @Timed
     public Response createStateMachine(StateMachineDefinition stateMachineDefinition) throws Exception {
 
-        if (stateMachineDefinition == null)
+        if (stateMachineDefinition == null) {
             throw new IllegalRepresentationException("State machine definition is empty");
+        }
 
         StateMachine stateMachine = null;
-
 
         final String stateMachineInstanceId;
         if (stateMachineDefinition.getCorrelationId() != null && !stateMachineDefinition.getCorrelationId().isEmpty()) {
@@ -183,8 +183,7 @@ public class StateMachineResource {
             // 2. initialize and start State Machine
             workFlowExecutionController.initAndStart(stateMachine);
             return stateMachine;
-        }
-        finally {
+        } finally {
             LoggingUtils.deRegisterStateMachineIdForLogging();
         }
     }
@@ -219,7 +218,6 @@ public class StateMachineResource {
                         } catch (Exception ex) {
                             logger.error("Unable to forward event to old endpoint, error {}", ex.getStackTrace());
                         }
-
                     } else {
                         try {
                             eventProxyConnector.submitScheduledEvent(eventData.getName(), eventData.getData(), machineId, eventData.getEventSource(), triggerTime);
@@ -227,7 +225,8 @@ public class StateMachineResource {
                             logger.error("Unable to forward scheduled event to old endpoint, error {}", ex.getStackTrace());
                         }
                     }
-                    return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State Machine with Id: " + machineId + " not found on this cluster. Forwarding the event to the old cluster").build();
+                    return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity(
+                            "State Machine with Id: " + machineId + " not found on this cluster. Forwarding the event to the old cluster").build();
                 } else {
                     logger.error("StateMachine not found with id: {}, rejecting the event", machineId);
                     return Response.status(Response.Status.NOT_FOUND).entity("StateMachine not found with id: " + machineId + ", rejecting the event").build();
@@ -238,7 +237,6 @@ public class StateMachineResource {
                 logger.info("Discarding event: {} as State machine: {} is in cancelled state", eventData.getName(), stateMachine.getId());
                 return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + stateMachine.getId() + " is in 'cancelled' state. Discarding the event.").build();
             }
-
 
             if (triggerTime == null) {
                 logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
@@ -254,12 +252,14 @@ public class StateMachineResource {
                 }
             } else {
                 logger.info("Received event: {} for state machine: {} with triggerTime: {}", eventData.getName(), machineId, triggerTime);
-                if (searchField == null || !searchField.equals(CORRELATION_ID))
+                if (searchField == null || !searchField.equals(CORRELATION_ID)) {
                     return Response.status(Response.Status.BAD_REQUEST).entity("searchField=correlationId is missing in the request").build();
+                }
 
                 //if trigger time is more than below value, it means the value has been passed in milliseconds, convert it to seconds and register
-                if (triggerTime > 9999999999L)
+                if (triggerTime > 9999999999L) {
                     triggerTime = triggerTime / 1000;
+                }
                 eventSchedulerRegistry.registerEvent(machineId, eventData.getName(), objectMapper.writeValueAsString(eventData), triggerTime);
                 return Response.status(Response.Status.ACCEPTED).build();
             }
@@ -305,7 +305,6 @@ public class StateMachineResource {
         }
         return Response.status(Response.Status.ACCEPTED).build();
     }
-
 
     /**
      * Update EventData of the specified Event name under the specified State machine
@@ -399,7 +398,6 @@ public class StateMachineResource {
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
-
     /**
      * Increments the retry count for the specified Task under the specified State machine
      *
@@ -446,7 +444,7 @@ public class StateMachineResource {
     @Path("/{machineId}/fsmdata")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFsmGraphData(@PathParam("machineId") String machineId) throws IOException {
-    		return Response.status(200).entity(getGraphData(machineId)).build();
+        return Response.status(200).entity(getGraphData(machineId)).build();
     }
 
     /**
@@ -506,7 +504,8 @@ public class StateMachineResource {
                 try {
                     statuses.add(Status.valueOf(status));
                 } catch (IllegalArgumentException e) {
-                    return Response.status(Response.Status.BAD_REQUEST).entity("status: " + status + " must be one of initialized, running, completed, cancelled, errored, sidelined, unsidelined").build();
+                    return Response.status(Response.Status.BAD_REQUEST).entity(
+                            "status: " + status + " must be one of initialized, running, completed, cancelled, errored, sidelined, unsidelined").build();
                 }
             }
         }
@@ -640,7 +639,8 @@ public class StateMachineResource {
         eventsGivenOnWorkflowTrigger.removeAll(allOutputEventNames);
         eventsGivenOnWorkflowTrigger.forEach((workflowTriggeredEventName) -> {
             final Event correspondingEvent = stateMachineEvents.get(workflowTriggeredEventName);
-            final FsmGraphEdge initEdge = new FsmGraphEdge(this.getEventDisplayName(workflowTriggeredEventName), correspondingEvent.getStatus().name(), correspondingEvent.getEventSource(), correspondingEvent.getEventData(), correspondingEvent.getUpdatedAt());
+            final FsmGraphEdge initEdge =
+                    new FsmGraphEdge(this.getEventDisplayName(workflowTriggeredEventName), correspondingEvent.getStatus().name(), correspondingEvent.getEventSource(), correspondingEvent.getEventData(), correspondingEvent.getUpdatedAt());
             final Set<State> dependantStates = ramContext.getDependantStates(workflowTriggeredEventName);
             dependantStates.forEach((state) -> initEdge.addOutgoingVertex(state.getId()));
             fsmGraph.addInitStateEdge(initEdge);
@@ -681,7 +681,7 @@ public class StateMachineResource {
                         "(?<=[^A-Z])(?=[A-Z])",
                         "(?<=[A-Za-z])(?=[^A-Za-z])"
                 ), " ");
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (String s : words.split(" ")) {
             sb.append(Character.toUpperCase(s.charAt(0)));
             if (s.length() > 1) {
@@ -691,5 +691,4 @@ public class StateMachineResource {
         }
         return sb.toString().trim();
     }
-
 }

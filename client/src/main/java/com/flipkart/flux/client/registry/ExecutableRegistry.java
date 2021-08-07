@@ -23,14 +23,17 @@ import java.lang.reflect.Method;
  * core runtime for execution
  *
  * @author yogesh.nachnani
- * */
+ */
 public interface ExecutableRegistry {
     /* Retrieve an executable corresponding to a task given the taskIdentifier */
     Executable getTask(String taskIdentifier);
+
     /* Retrieve an executable hook given the hookIdentifier */
     Method getHook(String hookIdentifier);
+
     /* register a task executable against a given identifier. This operation must be idempotent and thread safe */
     void registerTask(String taskIdentifier, Executable method);
+
     /* unregister task executable. Must be thread safe */
     void unregisterTask(String taskIdentifier);
 }

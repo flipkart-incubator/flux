@@ -57,5 +57,4 @@ public class ClassLoaderInjector {
     public static Injector getInjector() {
         return injector;
     }
-
 }

@@ -11,10 +11,11 @@
  * limitations under the License.
  */
 
-
 package com.flipkart.flux;
 
-/*Enum which defines the runtime mode in which Flux should be started*/
+/**
+ * Enum which defines the runtime mode in which Flux should be started
+ */
 public enum FluxRuntimeRole {
     ORCHESTRATION,
     EXECUTION,

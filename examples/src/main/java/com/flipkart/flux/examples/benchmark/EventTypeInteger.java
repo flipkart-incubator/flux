@@ -6,15 +6,14 @@ public class EventTypeInteger implements com.flipkart.flux.client.model.Event {
     @JsonProperty
     Integer value;
 
-    EventTypeInteger(){
+    EventTypeInteger() {
     }
 
-    public EventTypeInteger (Integer x){
+    public EventTypeInteger(Integer x) {
         value = x;
     }
 
-    public Integer getValue(){
+    public Integer getValue() {
         return value;
     }
-
 }

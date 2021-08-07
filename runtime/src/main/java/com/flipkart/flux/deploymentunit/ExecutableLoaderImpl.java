@@ -53,14 +53,14 @@ public class ExecutableLoaderImpl implements ExecutableLoader {
             Map<String, Executable> registry = new HashMap<>();
 
             //for every task method found in the deployment unit create an executable and keep it in executable registry
-            for(String taskId : taskMethods.keySet()) {
+            for (String taskId : taskMethods.keySet()) {
                 Method method = taskMethods.get(taskId);
                 Annotation taskAnnotation = method.getAnnotationsByType(taskClass)[0];
                 Class<? extends Annotation> annotationType = taskAnnotation.annotationType();
                 long timeout = RuntimeConstants.defaultTaskTimeout;
                 for (Method annotationMethod : annotationType.getDeclaredMethods()) {
-                    Object value = annotationMethod.invoke(taskAnnotation, (Object[])null);
-                    if(annotationMethod.getName().equals("timeout")) { //todo: find a way to get Task.timeout() name
+                    Object value = annotationMethod.invoke(taskAnnotation, (Object[]) null);
+                    if (annotationMethod.getName().equals("timeout")) { //todo: find a way to get Task.timeout() name
                         timeout = (Long) value;
                     }
                 }
@@ -68,7 +68,7 @@ public class ExecutableLoaderImpl implements ExecutableLoader {
                 MethodId methodId = new MethodId(method);
 
                 /* get concurrency config for this task */
-                Integer taskExecConcurrency = Optional.ofNullable((Integer)taskConfigs.getProperty(methodId.getPrefix() + ".executionConcurrency"))
+                Integer taskExecConcurrency = Optional.ofNullable((Integer) taskConfigs.getProperty(methodId.getPrefix() + ".executionConcurrency"))
                         .orElse(defaultTaskExecutionConcurrency);
 
                 Object singletonMethodOwner = getInstanceMethod.invoke(injectorClassInstance, method.getDeclaringClass());
@@ -76,7 +76,6 @@ public class ExecutableLoaderImpl implements ExecutableLoader {
             }
 
             return registry;
-
         } catch (Exception e) {
             LOGGER.error("Unable to populate Executable Registry for deployment unit: {}. Exception: {}", deploymentUnit.getName(), e.getMessage());
             throw new FluxError(FluxError.ErrorType.runtime, "Unable to populate Executable Registry for deployment unit: " + deploymentUnit.getName(), e);

@@ -62,7 +62,6 @@ import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.utils.LoggingUtils;
 import com.google.common.collect.Sets;
 
-
 /**
  * <code>WorkFlowExecutionController</code> controls the execution flow of a given state machine
  *
@@ -116,7 +115,6 @@ public class WorkFlowExecutionController {
      * ClientElbUrl is the one where a particular state machines states is supposed to be executed.
      */
     private ClientElbPersistenceService clientElbPersistenceService;
-
 
     /**
      * Constructor for this class
@@ -319,8 +317,9 @@ public class WorkFlowExecutionController {
     public Event persistEvent(String stateMachineInstanceId, EventData eventData) {
         //update event's data and status
         Event event = eventsDAO.findBySMIdAndName(stateMachineInstanceId, eventData.getName());
-        if (event == null)
+        if (event == null) {
             throw new IllegalEventException("Event with stateMachineId: " + stateMachineInstanceId + ", event name: " + eventData.getName() + " not found");
+        }
         event.setStatus(eventData.getCancelled() != null && eventData.getCancelled() ? Event.EventStatus.cancelled : Event.EventStatus.triggered);
         event.setEventData(eventData.getData());
         event.setEventSource(eventData.getEventSource());
@@ -410,9 +409,8 @@ public class WorkFlowExecutionController {
         }
     }
 
-
     /*
-     *  Audit entry in AuditRecord.
+     * Audit entry in AuditRecord.
      * Default values: [{machineId}, 0, 0, null, null, {EventUpdateAudit} String]
      */
     @Transactional
@@ -434,8 +432,9 @@ public class WorkFlowExecutionController {
     public void unsidelineState(String stateMachineId, Long stateId) throws UnknownStateMachine, IllegalStateException {
         State askedState = null;
         StateMachine stateMachine = retrieveStateMachine(stateMachineId);
-        if (stateMachine == null)
+        if (stateMachine == null) {
             throw new UnknownStateMachine("State machine with id: " + stateMachineId + " not found");
+        }
         for (State state : stateMachine.getStates()) {
             if (Objects.equals(state.getId(), stateId)) {
                 askedState = state;
@@ -459,7 +458,7 @@ public class WorkFlowExecutionController {
             askedState.setStatus(Status.unsidelined);
             askedState.setAttemptedNoOfRetries(0L);
             statesDAO.updateState(stateMachineId, askedState);
-            executeStates(stateMachine, Sets.newHashSet(Arrays.asList(askedState)), false);
+            executeStates(stateMachine, Sets.newHashSet(askedState), false);
         }
     }
 
@@ -513,8 +512,7 @@ public class WorkFlowExecutionController {
                     long redriverInterval;
                     if (redriverTriggered && state.getStatus() == Status.initialized) {
                         redriverInterval = 2 * ((int) Math.pow(2, 7) * 1000);
-                    }
-                    else {
+                    } else {
                         redriverInterval = 2 * ((int) Math.pow(2, state.getRetryCount() + 1) * 1000 + (state.getRetryCount() + 1) * state.getTimeout());
                     }
                     this.redriverRegistry.registerTask(state.getId(), state.getStateMachineId(), redriverInterval);
@@ -541,9 +539,7 @@ public class WorkFlowExecutionController {
                         logger.error("Failed to succesfully send task for Execution smId:{} taskId:{}," +
                                         " should be retried by Redriver after {} ms.",
                                 msg.getStateMachineId(), msg.getTaskId(), redriverInterval);
-
                     }
-
                 } else {
                     logger.info("State machine: {} Task: {} execution request got discarded as the task is {}", state.getStateMachineId(), state.getId(), state.getStatus());
                 }
@@ -551,7 +547,6 @@ public class WorkFlowExecutionController {
         } finally {
             LoggingUtils.deRegisterStateMachineIdForLogging();
         }
-
     }
 
     private StateMachine retrieveStateMachine(String stateMachineInstanceId) {
@@ -620,13 +615,11 @@ public class WorkFlowExecutionController {
         });
     }
 
-    /*
+    /* *
      * Returns a routerName for the task, given TaskName
-     *
-     * */
+     */
     public static String getRouterName(String taskName) {
         int secondUnderscorePosition = taskName.indexOf('_', taskName.indexOf('_') + 1);
-        String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition);
-        return routerName;
+        return taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition);
     }
 }

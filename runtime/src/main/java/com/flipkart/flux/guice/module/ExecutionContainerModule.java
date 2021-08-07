@@ -41,29 +41,30 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 
 /*
-* ExecutionContainer Module prepares execution node FluxRuntime. It prepares api servers and resources at startup.
-* */
+ * ExecutionContainer Module prepares execution node FluxRuntime. It prepares api servers and resources at startup.
+ * */
 
 public class ExecutionContainerModule extends AbstractModule {
 
     @Override
-    public void configure(){
-    		// nothing to configure
+    public void configure() {
+        // nothing to configure
     }
-    
+
     /**
      * Creates the Jetty server instance for the Flux Execution API endpoint.
+     *
      * @return Jetty Server instance
      */
     @Named("ExecutionAPIJettyServer")
     @Provides
     @Singleton
     Server getExecutionAPIJettyServer(@Named("Execution.Node.Api.service.port") int port,
-                             @Named("ExecutionAPIResourceConfig")ResourceConfig resourceConfig,
-                             @Named("Execution.Node.Api.service.acceptors") int acceptorThreads,
-                             @Named("Execution.Node.Api.service.selectors") int selectorThreads,
-                             @Named("Execution.Node.Api.service.workers") int maxWorkerThreads,
-                             ObjectMapper objectMapper, MetricRegistry metricRegistry) throws URISyntaxException, UnknownHostException {
+                                      @Named("ExecutionAPIResourceConfig") ResourceConfig resourceConfig,
+                                      @Named("Execution.Node.Api.service.acceptors") int acceptorThreads,
+                                      @Named("Execution.Node.Api.service.selectors") int selectorThreads,
+                                      @Named("Execution.Node.Api.service.workers") int maxWorkerThreads,
+                                      ObjectMapper objectMapper, MetricRegistry metricRegistry) throws URISyntaxException, UnknownHostException {
         JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
         provider.setMapper(objectMapper);
         resourceConfig.register(provider);
@@ -104,5 +105,4 @@ public class ExecutionContainerModule extends AbstractModule {
         jmxReporter.start();
         return resourceConfig;
     }
-
 }

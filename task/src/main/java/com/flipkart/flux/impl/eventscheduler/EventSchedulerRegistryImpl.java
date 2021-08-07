@@ -98,5 +98,4 @@ public class EventSchedulerRegistryImpl implements EventSchedulerRegistry, Initi
         logger.info("Triggering event: {} for state machine: {}", eventName, correlationId);
         fluxRuntimeConnector.submitScheduledEvent(eventName, data, correlationId, eventSource, null);
     }
-
 }

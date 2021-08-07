@@ -17,25 +17,29 @@ import com.codahale.metrics.MetricRegistry;
 
 /**
  * <code>MetricsClient</code> provides metrics related functionality, like rate meters or counters.
+ *
  * @author kaushal.hooda
  */
 public interface MetricsClient {
 
     /**
      * Mark the occurence of an event, which is used to measure its rate.
+     *
      * @param key Specifies the type of event.
      */
-    public void markMeter(String key);
+    void markMeter(String key);
 
     /**
      * Increment a counter.
+     *
      * @param key The name of the counter.
      */
-    public void incCounter(String key);
+    void incCounter(String key);
 
     /**
      * Decrement a counter.
+     *
      * @param key The name of the counter.
      */
-    public void decCounter(String key);
+    void decCounter(String key);
 }

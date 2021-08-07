@@ -24,10 +24,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-/*
-* ExecutionOrderedComponentBooter boots startup components of runtime.
-* */
-
+/**
+ * ExecutionOrderedComponentBooter boots startup components of runtime.
+ */
 @Singleton
 public class ExecutionOrderedComponentBooter implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(ExecutionOrderedComponentBooter.class);
@@ -41,26 +40,26 @@ public class ExecutionOrderedComponentBooter implements Initializable {
                                            @Named("DashboardJettyServer") Server executionDashboardServer,
                                            ActorSystemManager actorSystemManager) {
         this.executionApiServer = executionApiServer;
-        this.executionDashboardServer =  executionDashboardServer;
+        this.executionDashboardServer = executionDashboardServer;
         this.actorSystemManager = actorSystemManager;
     }
 
     @Override
     public void initialize() {
-        /** The akka run time should have booted up by now , check that */
+        /* The akka run time should have booted up by now, check that */
         if (!this.actorSystemManager.isInitialised()) {
-            throw new RuntimeException("Actor System should have been initialised by now. WTF!!");
+            throw new RuntimeException("Actor System should have been initialised by now.");
         }
 
         try {
-             /* Bring up the Execution API server */
+            /* Bring up the Execution API server */
             logger.info("loading Execution API server");
             executionApiServer.start();
             logger.info("API server started. Say Hello!");
             /* Bring up the Dashboard server */
             logger.info("Loading Execution Dashboard Server");
             if (executionDashboardServer.isStopped()) { // it may have been started when Flux is run in COMBINED mode
-            		executionDashboardServer.start();
+                executionDashboardServer.start();
             }
             logger.info("Execution Dashboard server has started. Say Hello!");
         } catch (Exception e) {

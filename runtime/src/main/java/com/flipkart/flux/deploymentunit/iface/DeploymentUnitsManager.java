@@ -12,7 +12,8 @@ public interface DeploymentUnitsManager {
 
     /**
      * Load a deploymentUnit into the memory.
-     * @param name Name of the deploymentUnit.
+     *
+     * @param name    Name of the deploymentUnit.
      * @param version Version.
      * @return {@link DeploymentUnit} Loaded deploymentUnit.
      * @throws Exception Throws exception in case of any IOException and any fatal exceptions occurred during loading.
@@ -21,13 +22,15 @@ public interface DeploymentUnitsManager {
 
     /**
      * Unload a deploymentUnit.
-     * @param name Name of the deploymentUnit.
+     *
+     * @param name    Name of the deploymentUnit.
      * @param version Version.
      */
     void unload(String name, Integer version);
 
     /**
      * Returns a collection of all deploymentUnits that are loaded.
+     *
      * @return
      */
     Collection<DeploymentUnit> getAllDeploymentUnits();

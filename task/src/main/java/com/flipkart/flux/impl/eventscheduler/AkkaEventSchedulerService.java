@@ -29,7 +29,9 @@ import javax.inject.Inject;
  */
 public class AkkaEventSchedulerService extends UntypedActor {
 
-    /** Logger instance for this class*/
+    /**
+     * Logger instance for this class
+     */
     private final LoggingAdapter logger = Logging.getLogger(getContext().system(), this);
 
     private final EventSchedulerService eventSchedulerService;
@@ -42,7 +44,7 @@ public class AkkaEventSchedulerService extends UntypedActor {
     @Override
     public void preStart() throws Exception {
         logger.info("Starting Event scheduler service");
-        if(!eventSchedulerService.isRunning()) {
+        if (!eventSchedulerService.isRunning()) {
             eventSchedulerService.start();
         }
     }
@@ -60,7 +62,7 @@ public class AkkaEventSchedulerService extends UntypedActor {
     @Override
     public void postStop() throws Exception {
         logger.info("Stopping Event scheduler service");
-        if(eventSchedulerService.isRunning()) {
+        if (eventSchedulerService.isRunning()) {
             eventSchedulerService.stop();
         }
     }

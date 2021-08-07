@@ -55,12 +55,11 @@ public class ConfigModule extends AbstractModule {
                     }
                     break;
                 case EXECUTION:
-                    configUrl = loadExecutionNodeConfiguration(fluxConfigFile);
+                    configUrl = loadExecutionNodeConfiguration();
                     break;
                 default:
                     configUrl = this.getClass().getClassLoader().getResource(CONFIGURATION_YML); // orchestration + execution
                     break;
-
             }
             configProvider = new ApacheCommonsConfigProvider().location(configUrl);
             yamlConfiguration = new YamlConfiguration(configUrl);
@@ -103,9 +102,9 @@ public class ConfigModule extends AbstractModule {
         return configProvider;
     }
 
-    private URL loadExecutionNodeConfiguration( String fluxConfigFile) throws MalformedURLException {
+    private URL loadExecutionNodeConfiguration() throws MalformedURLException {
         URL configUrl = null;
-        fluxConfigFile = System.getProperty("flux.execution.configurationFile");
+        String fluxConfigFile = System.getProperty("flux.execution.configurationFile");
         if (fluxConfigFile != null) {
             configUrl = new File(fluxConfigFile).toURI().toURL();
         } else {

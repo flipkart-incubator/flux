@@ -20,6 +20,7 @@ package com.flipkart.flux.client.model;
  * @author yogesh.nachnani
  */
 public interface Hook {
-    public void preEntry(FluxContext context);
-    public void postEntry(FluxContext context);
+    void preEntry(FluxContext context);
+
+    void postEntry(FluxContext context);
 }

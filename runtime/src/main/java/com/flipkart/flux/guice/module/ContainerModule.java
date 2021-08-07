@@ -50,7 +50,7 @@ public  class ContainerModule extends AbstractModule {
     public MetricRegistry metricRegistry() {
         return SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME);
     }
-	
+
 	/**
 	 * Creates a Jetty {@link WebAppContext} for the Flux dashboard
 	 * @return Jetty WebAppContext
@@ -84,7 +84,7 @@ public  class ContainerModule extends AbstractModule {
 		WebAppContext webAppContext = new WebAppContext(path, RuntimeConstants.DASHBOARD_CONTEXT_PATH);
 		return webAppContext;
 	}
-    
+
 	/**
 	 * Creates the Jetty server instance for the admin Dashboard and configures it with the @Named("DashboardContext").
 	 * @param port where the service is available
@@ -117,5 +117,4 @@ public  class ContainerModule extends AbstractModule {
 	ObjectMapper getObjectMapper() {
 		return new ObjectMapper();
 	}
-	
 }

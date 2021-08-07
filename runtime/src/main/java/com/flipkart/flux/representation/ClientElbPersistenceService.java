@@ -132,8 +132,9 @@ public class ClientElbPersistenceService {
      */
     public void deleteClientElb(String clientId) {
         clientElbDAO.delete(clientId);
-        if (this.clientElbCache.asMap().containsKey(clientId))
+        if (this.clientElbCache.asMap().containsKey(clientId)) {
             this.clientElbCache.asMap().remove(clientId);
+        }
         logger.info("After ClientElb entry delete, cache contains: {}", clientElbCache.asMap());
     }
 }

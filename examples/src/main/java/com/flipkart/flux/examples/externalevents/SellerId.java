@@ -29,8 +29,9 @@ public class SellerId implements Event {
     /* For Jackson */
     SellerId() {
     }
+
     public SellerId(Long id) {
-        this(id,null);
+        this(id, null);
     }
 
     public SellerId(Long id, String correlationId) {
@@ -40,13 +41,16 @@ public class SellerId implements Event {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         SellerId sellerId = (SellerId) o;
 
         return id.equals(sellerId.id);
-
     }
 
     @Override
@@ -57,7 +61,7 @@ public class SellerId implements Event {
     @Override
     public String toString() {
         return "SellerId{" +
-            "id=" + id +
-            '}';
+                "id=" + id +
+                '}';
     }
 }

@@ -20,6 +20,7 @@ package com.flipkart.flux.client.model;
  * @author yogesh.nachnani
  */
 public interface FluxContext {
-    public String retrieveTaskToken();
-    public Long getStartTime();
+    String retrieveTaskToken();
+
+    Long getStartTime();
 }

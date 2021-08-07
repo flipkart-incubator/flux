@@ -31,7 +31,7 @@ import java.util.List;
 
 /**
  * <code>ClientElbDAOImpl</code> is an implementation of {@link ClientElbDAO} which uses Hibernate to perform
- *  CRUD operations.
+ * CRUD operations.
  *
  * @author akif.khan
  */
@@ -61,15 +61,14 @@ public class ClientElbDAOImpl implements ClientElbDAO {
     @Override
     @Transactional
     @SelectDataSource(storage = Storage.SCHEDULER)
-   public  ClientElb findById(String id) {
+    public ClientElb findById(String id) {
         Criteria criteria = currentSession().createCriteria(ClientElb.class)
                 .add(Restrictions.eq("id", id));
         Object object = criteria.uniqueResult();
         ClientElb castedObject = null;
-        if(object != null)
+        if (object != null) {
             castedObject = (ClientElb) object;
-        else
-            castedObject = null;
+        }
         return castedObject;
     }
 
@@ -101,10 +100,10 @@ public class ClientElbDAOImpl implements ClientElbDAO {
 
     /**
      * Provides the session which is bound to current thread.
+     *
      * @return Session
      */
     public Session currentSession() {
         return sessionFactoryContext.getThreadLocalSession();
     }
-
 }

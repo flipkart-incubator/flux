@@ -40,7 +40,7 @@ public interface SessionFactoryContext {
      * @return {@link SessionFactory}
      */
 
-     Session getThreadLocalSession();
+    Session getThreadLocalSession();
 
     /**
      * Set the sessionFactory for the current thread context to be used for the next transaction
@@ -63,7 +63,6 @@ public interface SessionFactoryContext {
      * @return
      */
     SessionFactory getROSessionFactory(ShardId shardId);
-
 
     /**
      * Clear the context.

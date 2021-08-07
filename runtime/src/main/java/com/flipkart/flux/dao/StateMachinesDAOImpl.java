@@ -78,7 +78,6 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
         return new HashSet<>(stateMachines);
     }
 
-
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
@@ -88,5 +87,4 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
         query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
-
 }

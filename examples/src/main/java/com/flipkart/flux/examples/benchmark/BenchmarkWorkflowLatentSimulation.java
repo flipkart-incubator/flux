@@ -22,7 +22,6 @@ public class BenchmarkWorkflowLatentSimulation {
         EventTypeInteger ninth = latentArithmeticOperations.rightShiftLatent(seventh);
         EventTypeInteger tenth = latentArithmeticOperations.addLatent(eighth, ninth);
 
-
         EventTypeInteger first_1 = latentArithmeticOperations.randomLatent(x);
         EventTypeInteger second_1 = latentArithmeticOperations.randomLatent(x);
         EventTypeInteger third_1 = latentArithmeticOperations.addLatent(first_1, second_1);
@@ -33,7 +32,5 @@ public class BenchmarkWorkflowLatentSimulation {
         EventTypeInteger eighth_1 = latentArithmeticOperations.leftShiftLatent(seventh_1);
         EventTypeInteger ninth_1 = latentArithmeticOperations.rightShiftLatent(seventh_1);
         EventTypeInteger tenth_1 = latentArithmeticOperations.addLatent(eighth_1, ninth_1);
-
     }
-
 }

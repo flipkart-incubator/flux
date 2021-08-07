@@ -23,6 +23,7 @@ import com.google.inject.matcher.Matchers;
 /**
  * <code>FluxClientInterceptorModule</code> is a Guice {@link AbstractModule} implementation
  * used for wiring workflow interceptor classes.
+ *
  * @author yogesh.nachnani
  */
 public class FluxClientInterceptorModule extends AbstractModule {
@@ -30,8 +31,7 @@ public class FluxClientInterceptorModule extends AbstractModule {
     protected void configure() {
         final WorkflowInterceptor workflowInterceptor = new WorkflowInterceptor();
         requestInjection(workflowInterceptor);
-        bindInterceptor(Matchers.any(), Matchers.annotatedWith(Workflow.class),
-            workflowInterceptor);
+        bindInterceptor(Matchers.any(), Matchers.annotatedWith(Workflow.class), workflowInterceptor);
         final TaskInterceptor taskInterceptor = new TaskInterceptor();
         requestInjection(taskInterceptor);
         bindInterceptor(Matchers.any(), Matchers.annotatedWith(Task.class), taskInterceptor);

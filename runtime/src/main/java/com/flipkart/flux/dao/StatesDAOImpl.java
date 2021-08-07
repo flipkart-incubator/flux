@@ -33,7 +33,6 @@ import java.util.*;
  */
 public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
-
     @Inject
     public StatesDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
         super(sessionFactoryContext);
@@ -88,9 +87,8 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public State findById(String stateMachineId, Long id) {
-        return super.findByCompositeIdFromStateTable(State.class, stateMachineId ,id);
+        return super.findByCompositeIdFromStateTable(State.class, stateMachineId, id);
     }
-
 
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
@@ -111,7 +109,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         if (statuses != null && !statuses.isEmpty()) {
             StringBuilder sb = new StringBuilder(" and state.status in (");
             for (Status status : statuses) {
-                sb.append("'" + status.toString() + "',");
+                sb.append("'").append(status.toString()).append("',");
             }
             sb.deleteCharAt(sb.length() - 1).append(")");
             String statusClause = sb.toString();
@@ -140,7 +138,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
                 " and dependencies like :eventName";
         query = currentSession().createQuery(queryString);
         query.setString("stateMachineId", stateMachineId);
-        query.setString("eventName", "%"+eventName+"%");
+        query.setString("eventName", "%" + eventName + "%");
         return query.list();
     }
 }

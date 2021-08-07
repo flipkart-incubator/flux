@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 /**
  * Utility class to bundle frequently used methods.
+ *
  * @author gaurav.ashok
  */
 @Singleton

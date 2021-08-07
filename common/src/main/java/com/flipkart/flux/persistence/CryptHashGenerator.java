@@ -20,6 +20,7 @@ import java.security.MessageDigest;
 
 /**
  * Generates a SHA-256 Hex Code of a given String and returns first two characters as shard String
+ *
  * @author amitkumar.o
  */
 public class CryptHashGenerator {
@@ -27,13 +28,12 @@ public class CryptHashGenerator {
     private static final String cryptHashAlgorithmPrefix = "SHA-256";
     private static final Logger logger = LoggerFactory.getLogger(CryptHashGenerator.class);
 
-
     public static String getUniformCryptHash(String stateMachineId) {
         try {
             MessageDigest md = MessageDigest.getInstance(cryptHashAlgorithmPrefix);
             md.update(stateMachineId.getBytes());
             String cryptHash = javax.xml.bind.DatatypeConverter.printHexBinary(md.digest()).toLowerCase();
-            return cryptHash.substring(0,2);
+            return cryptHash.substring(0, 2);
         } catch (Exception ex) {
             logger.error("Unable to generate Hash for the given stateMachine Id {} {}", stateMachineId, ex.getStackTrace());
             throw new RuntimeException("Exception in generating SHA-256 for the given key : " + stateMachineId);

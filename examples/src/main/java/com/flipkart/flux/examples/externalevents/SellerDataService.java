@@ -22,6 +22,6 @@ import com.flipkart.flux.client.model.Task;
 public class SellerDataService {
     @Task(version = 1, timeout = 1000l)
     public SellerData retrieveSellerData(SellerId sellerId) {
-        return new SellerData("someEmail@gmail.com","someName", sellerId);
+        return new SellerData("someEmail@gmail.com", "someName", sellerId);
     }
 }

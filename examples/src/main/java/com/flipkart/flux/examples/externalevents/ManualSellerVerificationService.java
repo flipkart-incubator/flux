@@ -21,7 +21,7 @@ import javax.inject.Singleton;
 @Singleton
 public class ManualSellerVerificationService {
     @Task(version = 1, timeout = 1000l)
-    public SellerVerificationStatus waitForVerification(@ExternalEvent("sellerVerification")SellerVerificationStatus verificationStatus) {
+    public SellerVerificationStatus waitForVerification(@ExternalEvent("sellerVerification") SellerVerificationStatus verificationStatus) {
         System.out.println("[ManualSellerVerificationService] Received verification status " + verificationStatus.isVerifiedSeller() + " for seller " + verificationStatus.getSellerId());
         return verificationStatus;
     }
