@@ -26,12 +26,13 @@ import java.sql.Types;
 
 /**
  * <code>StoreFQNType</code> is a Hibernate {@link UserType} implementation to store class FQN of an object in DB
+ *
  * @author shyam.akirala
  */
 public class StoreFQNType implements UserType, Serializable {
     @Override
     public int[] sqlTypes() {
-        return new int[] { Types.JAVA_OBJECT };
+        return new int[]{Types.JAVA_OBJECT};
     }
 
     @Override
@@ -41,7 +42,7 @@ public class StoreFQNType implements UserType, Serializable {
 
     @Override
     public boolean equals(Object x, Object y) throws HibernateException {
-        if(x == null)   {
+        if (x == null) {
             return (y == null);
         }
 
@@ -62,20 +63,14 @@ public class StoreFQNType implements UserType, Serializable {
     public Object nullSafeGet(ResultSet rs, String[] names, SessionImplementor session, Object owner) throws HibernateException, SQLException {
         String value = rs.getString(names[0]);
 
-        if(value == null)   {
+        if (value == null) {
             return null;
         }
 
         try {
             return constructObject(value);
-        } catch (IOException e) {
-            throw new SQLException("Cannot build object of class: "+value+". Exception " + e.getMessage());
-        } catch (ClassNotFoundException e) {
-            throw new SQLException("Cannot build object of class: "+value+". Exception " + e.getMessage());
-        } catch (InstantiationException e) {
-            throw new SQLException("Cannot build object of class: "+value+". Exception " + e.getMessage());
-        } catch (IllegalAccessException e) {
-            throw new SQLException("Cannot build object of class: "+value+". Exception " + e.getMessage());
+        } catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            throw new SQLException("Cannot build object of class: " + value + ". Exception " + e.getMessage());
         }
     }
 
@@ -106,6 +101,7 @@ public class StoreFQNType implements UserType, Serializable {
 
     /**
      * Builds class instance using reflection
+     *
      * @param value of type String
      * @return constructed object
      * @throws IOException
@@ -120,13 +116,15 @@ public class StoreFQNType implements UserType, Serializable {
 
     /**
      * Returns fully qualified class name of an object
+     *
      * @param value of type Object
      * @return class FQN of an object
      */
     public String getClassFQN(Object value) {
-        if(value != null)
+        if (value != null) {
             return value.getClass().getName();
-        else
+        } else {
             return null;
+        }
     }
 }

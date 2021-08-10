@@ -23,7 +23,7 @@ import java.util.Map;
  * <code>RAMContext</code> is a sub-type of {@link Context} that uses main memory as storage.
  * Data stored in this context is transient. This context is therefore only suitable for testing and not
  * production use.
- * 
+ *
  * @author regunath.balasubramanian
  *
  */
@@ -44,7 +44,7 @@ public class RAMContext extends Context {
         this.startTime = startTime;
 		this.contextId = contextId;
 	}
-	
+
 	/**
 	 * Abstract method implementation. Stores the data in JVM heap
 	 * @see com.flipkart.flux.domain.Context#storeData(java.lang.String, java.lang.Object)
@@ -61,5 +61,4 @@ public class RAMContext extends Context {
 	public Object retrieve(String key) {
 		return this.contextDataMap.get(key);
 	}
-
 }

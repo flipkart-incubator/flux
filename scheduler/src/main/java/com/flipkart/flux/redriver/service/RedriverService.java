@@ -55,10 +55,8 @@ public class RedriverService {
     private ScheduledFuture scheduledFuture;
     private final RedriverRegistry redriverRegistry;
 
-
     private final InstrumentedScheduledExecutorService scheduledExecutorService;
     private ExecutorService asyncRedriveService;
-
 
     @Inject
     public RedriverService(MessageManagerService messageService,
@@ -135,16 +133,17 @@ public class RedriverService {
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
-                    logger.warn("Error while sleeping before checking async redrive callbacks {}", e.getStackTrace());
+                    logger.warn("Error while sleeping before checking async redrive callbacks", e);
                 }
                 allCompleted = true;
-                for (int i = 0; i < tasksRedrived.size(); i++)
-                    if (tasksRedrived.get(i).isDone() || tasksRedrived.get(i).isCancelled())
+                for (int i = 0; i < tasksRedrived.size(); i++) {
+                    if (tasksRedrived.get(i).isDone() || tasksRedrived.get(i).isCancelled()) {
                         continue;
-                    else {
+                    } else {
                         allCompleted = false;
                         break;
                     }
+                }
             }
             tasksRedrived.clear();
             // get next batch if we found batchSize tasks and all were redriven

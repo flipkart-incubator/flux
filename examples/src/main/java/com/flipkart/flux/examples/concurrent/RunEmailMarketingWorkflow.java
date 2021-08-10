@@ -38,8 +38,9 @@ public class RunEmailMarketingWorkflow {
         final EmailMarketingWorkflow emailMarketingWorkflow = injector.getInstance(EmailMarketingWorkflow.class);
         /* Lets invoke our workflow */
         System.out.println("[Main] Starting workflow execution");
-        for(int i = 0 ; i < 100 ; i++)
-        emailMarketingWorkflow.sendEmails(new Email("someBody", "someone@flipkart.com"), new Email("someMore", "someoneElse@fk.com"));
+        for (int i = 0; i < 100; i++) {
+            emailMarketingWorkflow.sendEmails(new Email("someBody", "someone@flipkart.com"), new Email("someMore", "someoneElse@fk.com"));
+        }
         /* Observe the logs and see how different emails are sent from different threads! Its magic! */
     }
 }

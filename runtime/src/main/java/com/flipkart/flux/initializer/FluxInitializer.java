@@ -73,7 +73,6 @@ public class FluxInitializer {
                     "*************************************************************************"
     );
 
-
     /**
      * The Polyguice DI container
      */
@@ -94,9 +93,9 @@ public class FluxInitializer {
     /**
      * Startup entry method
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         String command = "start";
-        if (args != null && args.length > 1) {
+        if (args.length > 1) {
             command = args[0];
         }
         final FluxInitializer fluxInitializer = new FluxInitializer();
@@ -112,7 +111,7 @@ public class FluxInitializer {
                             break;
                     }
                 } else {
-                		fluxRole = FluxRuntimeRole.COMBINED; // no role specified. Default is combined
+                    fluxRole = FluxRuntimeRole.COMBINED; // no role specified. Default is combined
                 }
                 fluxInitializer.start();
                 break;
@@ -134,12 +133,10 @@ public class FluxInitializer {
      * 1. Register all relavent modules with the Polyguice container
      * 2. Boot the polyguice container
      */
-
     private void loadFluxRuntimeContainer() {
         logger.info("Running as role : {}", fluxRole);
         final ConfigModule configModule = new ConfigModule(fluxRole);
         //load flux runtime container
-        // this ensures component booter is up and initialised
         switch (fluxRole) {
             case ORCHESTRATION:
                 fluxRuntimeContainer.modules(
@@ -162,7 +159,7 @@ public class FluxInitializer {
                         new FluxClientComponentModule());
                 break;
             default:
-            		// we bring up the combined orchestration + execution runtime
+                // we bring up the combined orchestration + execution runtime
                 fluxRuntimeContainer.modules(
                         configModule,
                         new ContainerModule(),
@@ -170,11 +167,11 @@ public class FluxInitializer {
                         new OrchestrationTaskModule(),
                         new OrchestratorContainerModule(),
                         new FluxClientComponentModule(),
-		                new ExecutionContainerModule(),
-		                new DeploymentUnitModule(),
-		                new AkkaModule(),
-		                new ExecutionTaskModule(),
-		                new FluxClientInterceptorModule());                            		
+                        new ExecutionContainerModule(),
+                        new DeploymentUnitModule(),
+                        new AkkaModule(),
+                        new ExecutionTaskModule(),
+                        new FluxClientInterceptorModule());
         }
 
         //scans package com.flipkart.flux for polyguice specific annotations like @Bindable, @Component etc.
@@ -183,21 +180,22 @@ public class FluxInitializer {
         fluxRuntimeContainer.prepare();
     }
 
-    private void start() throws Exception {
+    private void start() {
         logger.info("** Flux starting up... **");
         long start = System.currentTimeMillis();
         //load flux runtime container
-        loadFluxRuntimeContainer();        
+        loadFluxRuntimeContainer();
+        // this ensures component booter is up and initialised
         switch (fluxRole) {
-        		case ORCHESTRATION:
-                    this.fluxRuntimeContainer.getComponentContext().getInstance(OrchestrationOrderedComponentBooter.class);
-        		break;
-        		case EXECUTION:
-                    this.fluxRuntimeContainer.getComponentContext().getInstance(ExecutionOrderedComponentBooter.class);
-        		break;
-        		default:
-                    this.fluxRuntimeContainer.getComponentContext().getInstance(OrchestrationOrderedComponentBooter.class);
-                    this.fluxRuntimeContainer.getComponentContext().getInstance(ExecutionOrderedComponentBooter.class);
+            case ORCHESTRATION:
+                this.fluxRuntimeContainer.getComponentContext().getInstance(OrchestrationOrderedComponentBooter.class);
+                break;
+            case EXECUTION:
+                this.fluxRuntimeContainer.getComponentContext().getInstance(ExecutionOrderedComponentBooter.class);
+                break;
+            default:
+                this.fluxRuntimeContainer.getComponentContext().getInstance(OrchestrationOrderedComponentBooter.class);
+                this.fluxRuntimeContainer.getComponentContext().getInstance(ExecutionOrderedComponentBooter.class);
         }
         final Object[] displayArgs = {
                 (System.currentTimeMillis() - start),
@@ -210,10 +208,9 @@ public class FluxInitializer {
     /**
      * Helper method to perform migrations
      */
-    private void migrate(String dbName) throws InterruptedException {
+    private void migrate(String dbName) {
         loadFluxRuntimeContainer();
         MigrationsRunner migrationsRunner = fluxRuntimeContainer.getComponentContext().getInstance(MigrationsRunner.class);
         migrationsRunner.migrate(dbName);
-
     }
 }

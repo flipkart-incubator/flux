@@ -12,9 +12,10 @@
  */
 
 package com.flipkart.flux.persistence;
+
 /**
  * Types of data source based on usage
- *
+ * <p>
  * Created by gaurav.ashok on 23/11/16.
  */
 public enum DataSourceType {

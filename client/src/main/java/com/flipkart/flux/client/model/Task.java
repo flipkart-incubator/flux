@@ -13,7 +13,6 @@
 
 package com.flipkart.flux.client.model;
 
-
 import java.lang.annotation.*;
 
 /**
@@ -33,11 +32,11 @@ public @interface Task {
      */
     long version();
 
-    /** The number of times Flux can retry the task in case of runtime failures.
+    /**
+     * The number of times Flux can retry the task in case of runtime failures.
      * Note: Runtime failures are failures encountered by Flux - such as a task being timed out, or Flux not receiving the response on time.
      * If a task throws an exception, it means the task executed successfuly and passed a response to flux.
      * This exception is carried back to the caller stack - similar to the way in which jvm bubbles up the exception in regular method calls
-     *
      */
     long retries() default 0;
 
@@ -46,6 +45,7 @@ public @interface Task {
      * In case the task does not produce a result within the timeout, the task may be retried by Flux (based on the number of retries remaining)
      * Any result produced by the task after the timeout value has elapsed will be ignored by the Flux engine and
      * will not be used by or passed on to other tasks that may be dependent on these results.
+     *
      * @return
      */
     long timeout();

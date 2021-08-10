@@ -27,15 +27,18 @@ import java.util.*;
  * the output of the given FsmGraphVertex node and is incident on the nodes that it contains
  * Note: We could have chosen to use a simple Map instead of this encapsulation to represent graph data, however it helps to
  * keep this representation since we may want to send additional details in the future (say audit trails)
+ *
  * @author yogesh.nachnani
  */
 public class FsmGraph {
 
     /* The adjacency-list representation of a graph */
     @JsonProperty
-    private Map<FsmGraphVertex,FsmGraphEdge> fsmGraphData;
+    private Map<FsmGraphVertex, FsmGraphEdge> fsmGraphData;
+
     @JsonProperty
     private Set<FsmGraphEdge> initStateEdges;
+
     @JsonProperty
     private List<AuditRecord> auditData;
 
@@ -44,7 +47,6 @@ public class FsmGraph {
 
     @JsonProperty
     private String stateMachineId;
-
 
     @JsonProperty
     private Long fsmVersion;
@@ -55,7 +57,7 @@ public class FsmGraph {
     @JsonProperty
     private StateMachineStatus fsmStatus;
 
-    public FsmGraph(){
+    public FsmGraph() {
         this.fsmGraphData = new HashMap<>();
         this.initStateEdges = new HashSet<>();
     }
@@ -63,9 +65,10 @@ public class FsmGraph {
     @JsonIgnore
     public void addVertex(FsmGraphVertex vertex, FsmGraphEdge fsmGraphEdge) {
         if (!this.fsmGraphData.containsKey(vertex)) {
-            this.fsmGraphData.put(vertex,fsmGraphEdge);
+            this.fsmGraphData.put(vertex, fsmGraphEdge);
         }
     }
+
     @JsonIgnore
     public void addOutgoingEdge(FsmGraphVertex from, Long to) {
         this.fsmGraphData.get(from).addOutgoingVertex(to);
@@ -106,26 +109,27 @@ public class FsmGraph {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         FsmGraph fsmGraph = (FsmGraph) o;
 
         return !(fsmGraphData != null ? !fsmGraphData.equals(fsmGraph.fsmGraphData) : fsmGraph.fsmGraphData != null);
-
     }
 
     @Override
     public int hashCode() {
         return fsmGraphData != null ? fsmGraphData.hashCode() : 0;
-
     }
 
     @Override
     public String toString() {
         return "FsmGraph{" +
-            "fsmGraphData=" + fsmGraphData +
-            '}';
+                "fsmGraphData=" + fsmGraphData +
+                '}';
     }
-
 }

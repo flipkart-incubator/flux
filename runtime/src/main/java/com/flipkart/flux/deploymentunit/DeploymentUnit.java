@@ -36,6 +36,7 @@ import com.flipkart.polyguice.config.YamlConfiguration;
 
 /**
  * <code>DeploymentUnit</code> represents a Deployment Unit.
+ *
  * @author shyam.akirala
  * @author gaurav.ashok
  */
@@ -43,34 +44,54 @@ public class DeploymentUnit {
 
     private static final Logger LOGGER = LogManager.getLogger(DeploymentUnit.class);
 
-    /** Key in the config file, which has list of workflow/task class FQNs*/
+    /**
+     * Key in the config file, which has list of workflow/task class FQNs
+     */
     private static final String WORKFLOW_CLASSES = "workflowClasses";
 
-    /** Name of the deployment unit. */
+    /**
+     * Name of the deployment unit.
+     */
     private String name;
 
-    /** Version */
+    /**
+     * Version
+     */
     private Integer version;
 
-    /** Class loader of the deployment unit*/
+    /**
+     * Class loader of the deployment unit
+     */
     private DeploymentUnitClassLoader deploymentUnitClassLoader;
 
-    /** Tasks which belong to the deployment unit*/
+    /**
+     * Tasks which belong to the deployment unit
+     */
     private Map<String, Method> taskMethods;
 
-    /** Object Mapper class instance which used for serialization/deserialization through out this deployment unit. Having it here to avoid multiple instances */
+    /**
+     * Object Mapper class instance which used for serialization/deserialization through out this deployment unit. Having it here to avoid multiple instances
+     */
     private Object objectMapperInstance;
 
-    /** Object of {@link com.google.inject.Injector} which is used to provide instances of classes which are in this deployment unit */
+    /**
+     * Object of {@link com.google.inject.Injector} which is used to provide instances of classes which are in this deployment unit
+     */
     private Object injectorClassInstance;
 
-    /** Object of {@link Stoppable} to stop/close all acquired resources */
+    /**
+     * Object of {@link Stoppable} to stop/close all acquired resources
+     */
     private Object stoppableInstance;
 
-    /** Configuration of this deployment unit which is specified in flux_config.yml file */
+    /**
+     * Configuration of this deployment unit which is specified in flux_config.yml file
+     */
     private YamlConfiguration configuration;
 
-    /** Constructor*/
+    /**
+     * Constructor
+     */
     public DeploymentUnit(String name, Integer version, DeploymentUnitClassLoader deploymentUnitClassLoader, YamlConfiguration configuration) {
         this.name = name;
         this.version = version;
@@ -93,7 +114,7 @@ public class DeploymentUnit {
 
     public void close() {
         // release all acquired resources
-        if(stoppableInstance != null) {
+        if (stoppableInstance != null) {
             try {
                 Method stopMethod = stoppableInstance.getClass().getMethod("stop");
                 stopMethod.invoke(stoppableInstance);
@@ -123,7 +144,7 @@ public class DeploymentUnit {
             //Convert the class into bytes
             byte[] classBytes = IOUtils.toByteArray(this.getClass().getResourceAsStream("/com/flipkart/flux/deploymentunit/ClassLoaderInjector.class"));
             injectorClass = deploymentUnitClassLoader.defineClass(ClassLoaderInjector.class.getCanonicalName(), classBytes);
-        } catch(LinkageError le) {
+        } catch (LinkageError le) {
             // This exception never comes in ideal world. Can occur while unit testing as class is already loaded
             // (while unit testing we use App classloader as parent for Deployment unit class loader, due to that this class would be already loaded)
             // TODO: Altering production code for unit testing is not good. Find a workaround.
@@ -133,7 +154,7 @@ public class DeploymentUnit {
             } catch (ClassNotFoundException e) {
                 throw new FluxError(FluxError.ErrorType.runtime, "Unable to load class ClassLoaderInjector into deployment unit's class loader.", e);
             }
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new FluxError(FluxError.ErrorType.runtime, "Unexpected error while converting ClassLoaderInjector.class to bytes.", e);
         }
 
@@ -142,18 +163,19 @@ public class DeploymentUnit {
             String DUModuleClassFQN = String.valueOf(configuration.getProperty("guiceModuleClass"));
 
             //check if user has specified any guice module class name in deployment unit configuration file, if not create an empty injector
-            if(DUModuleClassFQN == null || DUModuleClassFQN.trim().isEmpty() || DUModuleClassFQN.equals("null"))
+            if (DUModuleClassFQN == null || DUModuleClassFQN.trim().isEmpty() || DUModuleClassFQN.equals("null")) {
                 injectorClassInstance = injectorClass.newInstance();
-            else {
+            } else {
                 injectorClassInstance = injectorClass.getConstructor(guiceModuleClass).newInstance(deploymentUnitClassLoader.loadClass(DUModuleClassFQN).newInstance());
             }
-
         } catch (Exception e) {
             throw new FluxError(FluxError.ErrorType.runtime, "Unable to load class ClassLoaderInjector into deployment unit's class loader.", e);
         }
     }
 
-    /** Creates an instance of the object mapper for this deployment unit */
+    /**
+     * Creates an instance of the object mapper for this deployment unit
+     */
     private void createObjectMapperInstance() {
         stoppableInstance = null;
         try {
@@ -165,7 +187,9 @@ public class DeploymentUnit {
         }
     }
 
-    /** Loads {@link Stoppable} instance using the injector */
+    /**
+     * Loads {@link Stoppable} instance using the injector
+     */
     private void loadStoppableInstance() {
         try {
             Method getInstanceMethod = injectorClassInstance.getClass().getMethod("getInstance", Class.class);
@@ -215,7 +239,9 @@ public class DeploymentUnit {
         }
     }
 
-    /** Accessor methods*/
+    /**
+     * Accessor methods
+     */
     public String getName() {
         return name;
     }

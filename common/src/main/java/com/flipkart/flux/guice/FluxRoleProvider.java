@@ -1,6 +1,5 @@
 package com.flipkart.flux.guice;
 
-
 import com.flipkart.flux.FluxRuntimeRole;
 
 import java.lang.annotation.ElementType;

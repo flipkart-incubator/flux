@@ -18,18 +18,22 @@ import java.net.URLClassLoader;
 
 /**
  * <code>DeploymentUnitClassLoader</code> extends {@link java.net.URLClassLoader} and used by Flux runtime to create class loader for a Deployment Unit.
+ *
  * @author shyam.akirala
  */
 public class DeploymentUnitClassLoader extends URLClassLoader {
 
-    /** constructor */
+    /**
+     * constructor
+     */
     DeploymentUnitClassLoader(URL[] urls, ClassLoader parent) {
         super(urls, parent);
     }
 
-    /** Defines a Class from it's bytes */
+    /**
+     * Defines a Class from it's bytes
+     */
     protected Class defineClass(String name, byte[] bytes) {
         return super.defineClass(name, bytes, 0, bytes.length);
     }
-
 }

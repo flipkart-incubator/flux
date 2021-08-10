@@ -70,22 +70,25 @@ public class LatentArithmeticOperations {
         int x = (int) (Math.random() * 10000.0);
         System.out.println("x value is " + x);
         try {
-            if (x <= 5)
+            if (x <= 5) {
                 Thread.sleep(1100);
+            }
         } catch (Exception ex) {
         }
     }
 
     public void makePositive(EventTypeInteger a, EventTypeInteger b) {
-        if (a.getValue() <= 0)
+        if (a.getValue() <= 0) {
             a.value *= -1;
-        if (b.getValue() <= 0)
+        }
+        if (b.getValue() <= 0) {
             b.value *= -1;
+        }
     }
 
     public void makePositive(EventTypeInteger a) {
-        if (a.getValue() <= 0)
+        if (a.getValue() <= 0) {
             a.value *= -1;
+        }
     }
-
 }

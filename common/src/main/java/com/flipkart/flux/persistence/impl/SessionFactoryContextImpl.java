@@ -26,6 +26,7 @@ import java.util.Map;
  * for Master(Read-Write) and Slave(Read-Only) Shards, {@link SessionFactory} schedulerSessionFactory as well as shardString to ShardId Mapping for both Slave,Master
  * and uses a thread local to save the Session that is being used in an ongoing transaction.
  * <p>
+ *
  * @author amitkumar.o
  * @author gourav.ashok
  */
@@ -35,7 +36,6 @@ public class SessionFactoryContextImpl implements SessionFactoryContext {
     private final ImmutableMap<ShardId, SessionFactory> ROSessionFactoryImmutableMap;
     private final ImmutableMap<String, ShardId> shardKeyToShardIdMap;
     private final SessionFactory schedulerSessionFactory;
-
 
     private final ThreadLocal<Session> currentSessionFactoryContext = new ThreadLocal<>();
 
@@ -47,7 +47,6 @@ public class SessionFactoryContextImpl implements SessionFactoryContext {
         this.shardKeyToShardIdMap = ImmutableMap.copyOf(shardKeyToShardIdMap);
         this.schedulerSessionFactory = schedulerSessionFactory;
     }
-
 
     @Override
     public void setThreadLocalSession(Session session) {

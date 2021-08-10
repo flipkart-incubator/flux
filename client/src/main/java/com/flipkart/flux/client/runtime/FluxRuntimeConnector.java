@@ -26,7 +26,9 @@ import com.flipkart.flux.api.StateMachineDefinition;
  */
 public interface FluxRuntimeConnector {
 
-    /** Used to submit a new workflow to the core runtime */
+    /**
+     * Used to submit a new workflow to the core runtime
+     */
     void submitNewWorkflow(StateMachineDefinition stateMachineDef);
 
     /* Post the event generated as a result of task execution back to the core runtime, also updates the state status to completed which generated this event*/
@@ -34,56 +36,63 @@ public interface FluxRuntimeConnector {
 
     /**
      * Post an arbitrary event against a previously registered correlationId
-     * @param name name of the event. Should be same as the name given using <code>ExternalEvent</code> annotation
-     * @param data data to post against the given event name
+     *
+     * @param name          name of the event. Should be same as the name given using <code>ExternalEvent</code> annotation
+     * @param data          data to post against the given event name
      * @param correlationId the string used to identify a workflow instance (as passed using <code>CorrelationId</code> annotation
-     * @param eventSource optional string to denote an event source
+     * @param eventSource   optional string to denote an event source
      */
-    void submitEvent(String name, Object data,String correlationId,String eventSource);
+    void submitEvent(String name, Object data, String correlationId, String eventSource);
 
     /**
      * Post an arbitrary event against a previously registered correlationId with future time, and the event would be triggered at that particular time
-     * @param name name of the event. Should be same as the name given using <code>ExternalEvent</code> annotation
-     * @param data data to post against the given event name
+     *
+     * @param name          name of the event. Should be same as the name given using <code>ExternalEvent</code> annotation
+     * @param data          data to post against the given event name
      * @param correlationId the string used to identify a workflow instance (as passed using <code>CorrelationId</code> annotation
-     * @param eventSource optional string to denote an event source
+     * @param eventSource   optional string to denote an event source
      * @param scheduledTime future time (epoch format Ex: 1490789434, till seconds) at which this event needs to be triggered.
      */
     void submitScheduledEvent(String name, Object data, String correlationId, String eventSource, Long scheduledTime);
 
     /**
      * Post an updated event against a previously registered correlationId and event for EventData update.
-     * @param name name of the event. Should be same as the name given using <code>ExternalEvent</code> annotation
-     * @param data data to post and update against the given event name
+     *
+     * @param name          name of the event. Should be same as the name given using <code>ExternalEvent</code> annotation
+     * @param data          data to post and update against the given event name
      * @param correlationId the string used to identify a workflow instance (as passed using <code>CorrelationId</code> annotation
-     * @param eventSource source who generated this event, optional parameter, set by default to 'externalUpdate' since it's
-     *                    an external event update.
+     * @param eventSource   source who generated this event, optional parameter, set by default to 'externalUpdate' since it's
+     *                      an external event update.
      */
     void submitEventUpdate(String name, Object data, String correlationId, String eventSource);
 
     /**
      * Cancels the event, which results cancellation of subsequent path in state machine DAG
-     * @param eventName name of the event which needs to be cancelled
+     *
+     * @param eventName     name of the event which needs to be cancelled
      * @param correlationId state machine identifier
      */
     void cancelEvent(String eventName, String correlationId);
 
     /**
-     * Updates the status of the Task identified by the specified Task ID 
+     * Updates the status of the Task identified by the specified Task ID
+     *
      * @param executionUpdateData the execution update data
      */
     void updateExecutionStatus(ExecutionUpdateData executionUpdateData);
-    
+
     /**
      * Increments the attempted retries count for the Task identified by the specified task Id
+     *
      * @param stateMachineId the state machine identifier
-     * @param taskId identifier for the Task whose retry count is to be updated
+     * @param taskId         identifier for the Task whose retry count is to be updated
      */
     void incrementExecutionRetries(String stateMachineId, Long taskId);
 
     /**
      * Posts to Flux Runtime by connecting over Http to redrive a task.
-     * @param taskId the task/state identifier
+     *
+     * @param taskId         the task/state identifier
      * @param stateMachineId stateMachine Id, to which the task belongs
      */
     void redriveTask(String stateMachineId, Long taskId);

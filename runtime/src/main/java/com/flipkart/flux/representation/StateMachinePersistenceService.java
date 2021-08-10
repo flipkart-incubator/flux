@@ -133,7 +133,7 @@ public class StateMachinePersistenceService {
                     events.add(e.getName());
                 }
             }
-            State state = new State(stateDefinition.getVersion(),
+            return new State(stateDefinition.getVersion(),
                     stateDefinition.getName(),
                     stateDefinition.getDescription(),
                     stateDefinition.getOnEntryHook(),
@@ -143,11 +143,9 @@ public class StateMachinePersistenceService {
                     Math.min(stateDefinition.getRetryCount(), maxRetryCount),
                     stateDefinition.getTimeout(),
                     stateDefinition.getOutputEvent() != null ? objectMapper.writeValueAsString(stateDefinition.getOutputEvent()) : null,
-                    Status.initialized, null, 0l, stateMachineId, id);
-            return state;
+                    Status.initialized, null, 0L, stateMachineId, id);
         } catch (Exception e) {
             throw new IllegalRepresentationException("Unable to create state domain object", e);
         }
     }
-
 }

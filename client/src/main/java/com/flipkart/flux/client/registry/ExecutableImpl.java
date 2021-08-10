@@ -12,7 +12,6 @@
  *
  */
 
-
 package com.flipkart.flux.client.registry;
 
 import com.flipkart.flux.client.intercept.MethodId;
@@ -22,6 +21,7 @@ import java.lang.reflect.Method;
 
 /**
  * This provides a way for the core runtime to execute client side code
+ *
  * @author yogesh.nachnani
  */
 public class ExecutableImpl implements Executable {
@@ -38,13 +38,21 @@ public class ExecutableImpl implements Executable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         ExecutableImpl that = (ExecutableImpl) o;
 
-        if (timeout != that.timeout) return false;
-        if (!toInvoke.equals(that.toInvoke)) return false;
+        if (timeout != that.timeout) {
+            return false;
+        }
+        if (!toInvoke.equals(that.toInvoke)) {
+            return false;
+        }
         return singletonMethodOwner.equals(that.singletonMethodOwner);
     }
 
@@ -59,10 +67,11 @@ public class ExecutableImpl implements Executable {
     @Override
     public String toString() {
         return "Executable{" +
-            "singletonMethodOwner=" + singletonMethodOwner +
-            ", toInvoke=" + toInvoke +
-            '}';
+                "singletonMethodOwner=" + singletonMethodOwner +
+                ", toInvoke=" + toInvoke +
+                '}';
     }
+
     public String getName() {
         return new MethodId(toInvoke).getMethodName();
     }
@@ -74,7 +83,7 @@ public class ExecutableImpl implements Executable {
     @Override
     public Object execute(Object[] parameters) {
         try {
-            return toInvoke.invoke(singletonMethodOwner,parameters);
+            return toInvoke.invoke(singletonMethodOwner, parameters);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
@@ -84,5 +93,4 @@ public class ExecutableImpl implements Executable {
     public Class<?>[] getParameterTypes() {
         return toInvoke.getParameterTypes();
     }
-
 }

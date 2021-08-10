@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 
 /**
  * A task that can be executed locally within the same JVM
+ *
  * @author yogesh.nachnani
  * @author shyam.akirala
  */
@@ -52,12 +53,12 @@ public class LocalJvmTask extends AbstractTask {
 
     @Override
     public int getExecutionConcurrency() {
-        return ((TaskExecutableImpl)toInvoke).getExecutionConcurrency();
+        return ((TaskExecutableImpl) toInvoke).getExecutionConcurrency();
     }
 
     @Override
     public int getExecutionTimeout() {
-        return (int)toInvoke.getTimeout(); // TODO - fix this. Let all timeouts be in int
+        return (int) toInvoke.getTimeout(); // TODO - fix this. Let all timeouts be in int
     }
 
     @Override
@@ -65,21 +66,22 @@ public class LocalJvmTask extends AbstractTask {
         Object[] parameters = new Object[events.length];
         Class<?>[] parameterTypes = toInvoke.getParameterTypes();
         try {
-            ClassLoader classLoader = ((TaskExecutableImpl)toInvoke).getDeploymentUnitClassLoader();
-            Object objectMapperInstance = ((TaskExecutableImpl)toInvoke).getObjectMapperInstance();
+            ClassLoader classLoader = ((TaskExecutableImpl) toInvoke).getDeploymentUnitClassLoader();
+            Object objectMapperInstance = ((TaskExecutableImpl) toInvoke).getObjectMapperInstance();
             Class objectMapper = objectMapperInstance.getClass();
 
-			for (int i = 0; i < parameterTypes.length; i++) {
-			    if(events[i].getData() != null) {
+            for (int i = 0; i < parameterTypes.length; i++) {
+                if (events[i].getData() != null) {
                     if (parameterTypes[i].isAssignableFrom(Class.forName(events[i].getType(), true, classLoader))) {
-                        parameters[i] = objectMapper.getMethod("readValue", String.class, Class.class).invoke(objectMapperInstance, events[i].getData(), Class.forName(events[i].getType(), true, classLoader));
+                        parameters[i] =
+                                objectMapper.getMethod("readValue", String.class, Class.class).invoke(objectMapperInstance, events[i].getData(), Class.forName(events[i].getType(), true, classLoader));
                     } else {
                         logger.warn("Parameter type {} did not match with event: {}", parameterTypes[i], events[i]);
                         throw new RuntimeException(
                                 "Parameter type " + parameterTypes[i] + " did not match with event: " + events[i]);
                     }
                 }
-			}
+            }
 
             Method writeValueAsString = objectMapper.getMethod("writeValueAsString", Object.class);
 
@@ -99,22 +101,24 @@ public class LocalJvmTask extends AbstractTask {
             }
 
             return new Pair<>(serializedEvent, null);
-
         } catch (Exception e) {
-            logger.error("Bad things happened while trying to execute {}",toInvoke,e);
-            return new Pair<>(null,new FluxError(FluxError.ErrorType.runtime,e.getMessage(),e));
+            logger.error("Bad things happened while trying to execute {}", toInvoke, e);
+            return new Pair<>(null, new FluxError(FluxError.ErrorType.runtime, e.getMessage(), e));
         }
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         LocalJvmTask that = (LocalJvmTask) o;
 
         return toInvoke.equals(that.toInvoke);
-
     }
 
     @Override

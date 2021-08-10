@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.api;
 
+import java.util.Objects;
+
 /**
  * <code>ClientElbDefinition</code> defines a ClientElb details to the system
  *
@@ -58,16 +60,12 @@ public class ClientElbDefinition {
 
         ClientElbDefinition that = (ClientElbDefinition) o;
 
-        if (elbUrl != null ? !elbUrl.equals(that.elbUrl) : that.elbUrl != null) return false;
-
-        return true;
+        return Objects.equals(elbUrl, that.elbUrl);
     }
 
     @Override
     public int hashCode() {
-        int result = elbUrl != null ? elbUrl.hashCode() : 0;
-
-        return result;
+        return elbUrl != null ? elbUrl.hashCode() : 0;
     }
 
     @Override

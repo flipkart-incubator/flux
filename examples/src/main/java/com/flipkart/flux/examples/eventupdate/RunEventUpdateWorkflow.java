@@ -21,7 +21,7 @@ import com.google.inject.Injector;
 /**
  * This class can be used to run and observe the <code>EventUpdateWorkflow</code>
  * This or a similar class like this is _not_ required to be present in your actual production jar
- *
+ * <p>
  * Created by akif.khan on 31/08/18.
  */
 public class RunEventUpdateWorkflow {

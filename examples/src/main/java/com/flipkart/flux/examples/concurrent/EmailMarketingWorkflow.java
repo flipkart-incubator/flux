@@ -33,11 +33,10 @@ public class EmailMarketingWorkflow {
     private EmailDispatcher emailDispatcher;
 
     @Workflow(version = 1)
-    public void sendEmails(Email...emails) {
-        /** Each call to emailDispatcher.sendMail() is executed concurrently and possibly on different hosts */
+    public void sendEmails(Email... emails) {
+        /* Each call to emailDispatcher.sendMail() is executed concurrently and possibly on different hosts */
         for (Email email : emails) {
             emailDispatcher.sendEmail(email);
         }
-
     }
 }

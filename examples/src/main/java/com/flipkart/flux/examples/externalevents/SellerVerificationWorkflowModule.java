@@ -22,7 +22,7 @@ import com.google.inject.AbstractModule;
  *
  * @author shyam.akirala
  */
-public class SellerVerificationWorkflowModule extends AbstractModule{
+public class SellerVerificationWorkflowModule extends AbstractModule {
 
     @Override
     protected void configure() {

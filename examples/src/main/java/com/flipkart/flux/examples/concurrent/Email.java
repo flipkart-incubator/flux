@@ -38,9 +38,9 @@ public class Email implements Event {
     @Override
     public String toString() {
         return "Email{" +
-            "body='" + body + '\'' +
-            ", recipient='" + recipient + '\'' +
-            '}';
+                "body='" + body + '\'' +
+                ", recipient='" + recipient + '\'' +
+                '}';
     }
 
     @Override

@@ -79,5 +79,4 @@ public class EventSchedulerDao {
     private Session currentSession() {
         return sessionFactoryContext.getThreadLocalSession();
     }
-
 }

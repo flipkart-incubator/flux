@@ -63,7 +63,9 @@ public class DeploymentUnitsManagerImpl implements DeploymentUnitsManager, Initi
     @ManagedEnv
     private ExecutableRegistry executableRegistry;
 
-    /** Cached thread pool to load deploymentUnits in parallel. */
+    /**
+     * Cached thread pool to load deploymentUnits in parallel.
+     */
     private ExecutorService executorService = Executors.newCachedThreadPool();
 
     /**
@@ -78,10 +80,10 @@ public class DeploymentUnitsManagerImpl implements DeploymentUnitsManager, Initi
 
         // get latest
         DeploymentUnit latestUnit = getLatestFromMap(name);
-        if(latestUnit != null) {
-            if(latestUnit.getVersion().equals(version)) {
+        if (latestUnit != null) {
+            if (latestUnit.getVersion().equals(version)) {
                 throw new DuplicateDeploymentUnitException("Deployment Unit with name: " + name + " version: " + version + " exists already");
-            } else if(latestUnit.getVersion() > version) {
+            } else if (latestUnit.getVersion() > version) {
                 // dont allow to load an older version, for now.
                 throw new FluxError(FluxError.ErrorType.runtime, "Cannot load the deploymentUnit of an older version." +
                         " Latest version: " + latestUnit.getVersion(), null);
@@ -98,7 +100,7 @@ public class DeploymentUnitsManagerImpl implements DeploymentUnitsManager, Initi
             Map<String, Executable> loadedExes = executableLoader.loadExecutables(loadedUnit);
 
             /* register all loaded executables */
-            for(String taskId: loadedExes.keySet()) {
+            for (String taskId : loadedExes.keySet()) {
                 executableRegistry.registerTask(taskId, loadedExes.get(taskId));
             }
         } catch (FluxError fe) {
@@ -114,7 +116,7 @@ public class DeploymentUnitsManagerImpl implements DeploymentUnitsManager, Initi
         logger.warn("UNLOADING Deployment Unit: {}/{}", name, version);
 
         DeploymentUnit foundUnit = getFromMap(name, version);
-        if(foundUnit == null) {
+        if (foundUnit == null) {
             return;
         }
 
@@ -128,9 +130,9 @@ public class DeploymentUnitsManagerImpl implements DeploymentUnitsManager, Initi
         for (String taskId : foundUnit.getTaskMethods().keySet()) {
             Executable exe = executableRegistry.getTask(taskId);
 
-            if(exe instanceof TaskExecutableImpl) {
+            if (exe instanceof TaskExecutableImpl) {
                 // if the executable belongs to this classLoader, remove it
-                if(((TaskExecutableImpl) exe).getDeploymentUnitClassLoader() == foundUnit.getDeploymentUnitClassLoader()) {
+                if (((TaskExecutableImpl) exe).getDeploymentUnitClassLoader() == foundUnit.getDeploymentUnitClassLoader()) {
                     executableRegistry.unregisterTask(taskId);
                 }
             } else {
@@ -153,38 +155,38 @@ public class DeploymentUnitsManagerImpl implements DeploymentUnitsManager, Initi
         List<Path> paths = Collections.EMPTY_LIST;
         try {
             paths = deploymentUnitUtil.listAllDirectoryUnits();
-        } catch(IOException e) {
+        } catch (IOException e) {
             logger.error("Failed to list all directories of deploymentUnits");
         }
 
-        if(paths == null || paths.isEmpty()) {
+        if (paths == null || paths.isEmpty()) {
             return;
         }
 
         // load all of them
-        List<Future<DeploymentUnit>> unitFutures =  paths.stream().
+        List<Future<DeploymentUnit>> unitFutures = paths.stream().
                 map(path -> executorService.submit(() -> deploymentUnitUtil.getDeploymentUnit(path))).collect(Collectors.toList());
 
-        for(int index = 0; index < unitFutures.size(); ++index) {
+        for (int index = 0; index < unitFutures.size(); ++index) {
             try {
                 DeploymentUnit deploymentUnit = unitFutures.get(index).get();
                 addToMap(deploymentUnit);
-            } catch(ExecutionException ee) {
+            } catch (ExecutionException ee) {
                 logger.error("Unexpected error occurred while loading deploymentUnit: {}", paths.get(index), ee);
-            } catch(InterruptedException ie) {
+            } catch (InterruptedException ie) {
                 logger.error("DeploymentUnit loading got interrupted: {}", paths.get(index), ie);
             }
         }
 
         // after loading, iterate and create executables from them.
-        List<Future> unitsFutures =  deploymentUnitMap.keySet().stream().
+        List<Future> unitsFutures = deploymentUnitMap.keySet().stream().
                 map(name -> executorService.submit(() -> {
                     List<DeploymentUnit> units = deploymentUnitMap.get(name);
 
                     Map<String, Executable> executableMap = new ConcurrentHashMap<String, Executable>();
                     Boolean loadFailed = false;
                     for (DeploymentUnit unit : units) {
-                        if(!loadFailed) {
+                        if (!loadFailed) {
                             try {
                                 Map<String, Executable> loadedExecutables = executableLoader.loadExecutables(unit);
                                 executableMap.putAll(loadedExecutables);
@@ -193,14 +195,13 @@ public class DeploymentUnitsManagerImpl implements DeploymentUnitsManager, Initi
                                 logger.error("Unexpected error occurred while loading executables from deploymentUnit: {}/{}", unit.getName(), unit.getVersion(), fe);
                                 loadFailed = true;
                             }
-                        }
-                        else {
+                        } else {
                             unload(unit.getName(), unit.getVersion());
                         }
                     }
 
                     /* register all loaded executables */
-                    for(String taskId: executableMap.keySet()) {
+                    for (String taskId : executableMap.keySet()) {
                         executableRegistry.registerTask(taskId, executableMap.get(taskId));
                     }
                 })).collect(Collectors.toList());
@@ -218,11 +219,12 @@ public class DeploymentUnitsManagerImpl implements DeploymentUnitsManager, Initi
 
     /**
      * add deploymentUnit in the map, keeping the multiple deploymentUnit of same name in the order of their version.
+     *
      * @param unit
      */
     private void addToMap(DeploymentUnit unit) {
         logger.debug("adding deployingUnit: {}/{}", unit.getName(), unit.getVersion());
-        if(!deploymentUnitMap.containsKey(unit.getName())) {
+        if (!deploymentUnitMap.containsKey(unit.getName())) {
             deploymentUnitMap.put(unit.getName(), new CopyOnWriteArrayList<>(Arrays.asList(unit)));
             return;
         }
@@ -239,14 +241,14 @@ public class DeploymentUnitsManagerImpl implements DeploymentUnitsManager, Initi
     private void removeFromMap(String name, Integer version) {
         logger.debug("removing deploymentUnit: {}/{}", name, version);
         List<DeploymentUnit> units = deploymentUnitMap.get(name);
-        if(!CollectionUtils.isEmpty(units)) {
+        if (!CollectionUtils.isEmpty(units)) {
             units.removeIf(e -> e.getVersion().equals(version));
         }
     }
 
     private DeploymentUnit getFromMap(String name, Integer version) {
         List<DeploymentUnit> units = deploymentUnitMap.get(name);
-        if(units != null) {
+        if (units != null) {
             return units.stream().filter(e -> e.getVersion().equals(version)).findFirst().orElse(null);
         }
         return null;
@@ -254,7 +256,7 @@ public class DeploymentUnitsManagerImpl implements DeploymentUnitsManager, Initi
 
     private DeploymentUnit getLatestFromMap(String name) {
         List<DeploymentUnit> units = deploymentUnitMap.get(name);
-        if(!CollectionUtils.isEmpty(units)) {
+        if (!CollectionUtils.isEmpty(units)) {
             return units.get(units.size() - 1);
         }
         return null;

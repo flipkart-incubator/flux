@@ -15,16 +15,17 @@ package com.flipkart.flux.constant;
 
 /**
  * The <code>RuntimeConstants</code> class is a placeholder for all runtime framework constants.
- * 
+ *
  * @author regunath.balasubramanian
  * @author kartik.bommepally
  */
 public class RuntimeConstants {
 
-    /** Useful constants for servlet container configuration parts */
+    /**
+     * Useful constants for servlet container configuration parts
+     */
     public static final String DASHBOARD_CONTEXT_PATH = "/admin";
     public static final String API_CONTEXT_PATH = "/api";
-
 
     /**
      * Root for dashboard webapp configs.
@@ -35,9 +36,13 @@ public class RuntimeConstants {
 
     public static final String STATE_MACHINE_RESOURCE_RELATIVE_PATH = "/machines";
 
-    /** default timeout for a task */ //todo: move it to configuration file
-    public static final Long defaultTaskTimeout = 1000l;
+    /**
+     * default timeout for a task
+     */
+    public static final Long defaultTaskTimeout = 1000l; //todo: move it to configuration file
 
-    /** default value for clientElbId in StateMachineDefinition */
+    /**
+     * default value for clientElbId in StateMachineDefinition
+     */
     public static final String DEFAULT_ELB_ID = "defaultElbId";
 }

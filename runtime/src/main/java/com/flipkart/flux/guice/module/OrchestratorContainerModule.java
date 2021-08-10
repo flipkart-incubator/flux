@@ -48,71 +48,70 @@ import com.google.inject.Provides;
  *
  * @author regunath.balasubramanian
  * @author kartik.bommepally
- *
  */
 public class OrchestratorContainerModule extends AbstractModule {
 
     @Override
-    public void configure(){
-    		// nothing to configure
+    public void configure() {
+        // nothing to configure
     }
 
-	/**
-	 * Creates the Jetty server instance for the Flux API endpoint.
-	 * @param port where the service is available.
-	 * @return Jetty Server instance
-	 */
-	@Named("APIJettyServer")
-	@Provides
-	@Singleton
-	Server getAPIJettyServer(@Named("Api.service.port") int port,
-							 @Named("APIResourceConfig")ResourceConfig resourceConfig,
-							 @Named("Api.service.acceptors") int acceptorThreads,
-							 @Named("Api.service.selectors") int selectorThreads,
-							 @Named("Api.service.workers") int maxWorkerThreads,
-							 ObjectMapper objectMapper, MetricRegistry metricRegistry) throws URISyntaxException, UnknownHostException {
-		JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
-		provider.setMapper(objectMapper);
-		resourceConfig.register(provider);
-		QueuedThreadPool threadPool = new QueuedThreadPool();
-		threadPool.setMaxThreads(maxWorkerThreads);
-		Server server = new Server(threadPool);
-		ServerConnector http = new ServerConnector(server, acceptorThreads, selectorThreads);
-		http.setPort(port);
-		server.addConnector(http);
-		ServletContextHandler context = new ServletContextHandler(server, "/*");
-		ServletHolder servlet = new ServletHolder(new ServletContainer(resourceConfig));
-		context.addServlet(servlet, "/*");
+    /**
+     * Creates the Jetty server instance for the Flux API endpoint.
+     *
+     * @param port where the service is available.
+     * @return Jetty Server instance
+     */
+    @Named("APIJettyServer")
+    @Provides
+    @Singleton
+    Server getAPIJettyServer(@Named("Api.service.port") int port,
+                             @Named("APIResourceConfig") ResourceConfig resourceConfig,
+                             @Named("Api.service.acceptors") int acceptorThreads,
+                             @Named("Api.service.selectors") int selectorThreads,
+                             @Named("Api.service.workers") int maxWorkerThreads,
+                             ObjectMapper objectMapper, MetricRegistry metricRegistry) throws URISyntaxException, UnknownHostException {
+        JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
+        provider.setMapper(objectMapper);
+        resourceConfig.register(provider);
+        QueuedThreadPool threadPool = new QueuedThreadPool();
+        threadPool.setMaxThreads(maxWorkerThreads);
+        Server server = new Server(threadPool);
+        ServerConnector http = new ServerConnector(server, acceptorThreads, selectorThreads);
+        http.setPort(port);
+        server.addConnector(http);
+        ServletContextHandler context = new ServletContextHandler(server, "/*");
+        ServletHolder servlet = new ServletHolder(new ServletContainer(resourceConfig));
+        context.addServlet(servlet, "/*");
 
-		final InstrumentedHandler handler = new InstrumentedHandler(metricRegistry);
+        final InstrumentedHandler handler = new InstrumentedHandler(metricRegistry);
         handler.setName("Orchestration-Runtime-Metrics-"); // give a unique name that doesnot conflict with other webapps registered in the same metrics registry
-		handler.setHandler(context);
-		server.setHandler(handler);
+        handler.setHandler(context);
+        server.setHandler(handler);
 
-		server.setStopAtShutdown(true);
-		return server;
-	}
+        server.setStopAtShutdown(true);
+        return server;
+    }
 
-	@Named("APIResourceConfig")
-	@Singleton
-	@Provides
-	public ResourceConfig getAPIResourceConfig(StateMachineResource stateMachineResource,
-											   StatusResource statusResource, ClientElbResource clientElbResource,
-											   MetricRegistry metricRegistry) {
-		ResourceConfig resourceConfig = new ResourceConfig();
+    @Named("APIResourceConfig")
+    @Singleton
+    @Provides
+    public ResourceConfig getAPIResourceConfig(StateMachineResource stateMachineResource,
+                                               StatusResource statusResource, ClientElbResource clientElbResource,
+                                               MetricRegistry metricRegistry) {
+        ResourceConfig resourceConfig = new ResourceConfig();
 
-		//Register codahale metrics and publish to jmx
-		resourceConfig.register(new InstrumentedResourceMethodApplicationListener(metricRegistry));
-		JmxReporter jmxReporter = JmxReporter.forRegistry(metricRegistry).build();
+        //Register codahale metrics and publish to jmx
+        resourceConfig.register(new InstrumentedResourceMethodApplicationListener(metricRegistry));
+        JmxReporter jmxReporter = JmxReporter.forRegistry(metricRegistry).build();
 
-		//register resources
-		resourceConfig.register(stateMachineResource);
-		resourceConfig.register(statusResource);
-		resourceConfig.register(clientElbResource);
+        //register resources
+        resourceConfig.register(stateMachineResource);
+        resourceConfig.register(statusResource);
+        resourceConfig.register(clientElbResource);
 
-		resourceConfig.register(CORSFilter.class);
-		jmxReporter.start();
-		return resourceConfig;
-	}
-
+        resourceConfig.register(CORSFilter.class);
+        jmxReporter.start();
+        return resourceConfig;
+    }
 }

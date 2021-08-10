@@ -35,6 +35,7 @@ import java.io.File;
 /**
  * Responsible for bringing up the entire akka runtime
  * Lifecycle of this class is managed using polyguice
+ *
  * @author yogesh.nachnani
  * @author regunath.balasubramanian
  * @author shyam.akirala
@@ -42,12 +43,14 @@ import java.io.File;
 @Singleton
 public class ActorSystemManager implements Initializable {
 
-	/** Logger for this class*/
-	private static final Logger LOGGER = LoggerFactory.getLogger(ActorSystemManager.class);
-	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(ActorSystemManager.class);
+
     private String actorSystemName;
     private String configName;
-    private  Boolean withMetrics;
+    private Boolean withMetrics;
 
     private ActorSystem system;
 
@@ -69,7 +72,7 @@ public class ActorSystemManager implements Initializable {
     }
 
     public ActorSystem retrieveActorSystem() {
-        if(isInitialised) {
+        if (isInitialised) {
             return this.system;
         }
         throw new IllegalStateException("Actor system not initialised yet");
@@ -80,14 +83,14 @@ public class ActorSystemManager implements Initializable {
      */
     @Override
     public void initialize() {
-        if(withMetrics) {
+        if (withMetrics) {
             Kamon.start();
         }
 
         Config config;
         // check if actor system config file has been passed as part of system parameters
         String fluxActorsystemConfigurationFile = System.getProperty("flux.actorsystemConfigurationFile");
-        if(fluxActorsystemConfigurationFile != null) {
+        if (fluxActorsystemConfigurationFile != null) {
             config = ConfigFactory.parseFile(new File(fluxActorsystemConfigurationFile));
         } else {
             config = ConfigFactory.load(configName);
@@ -96,11 +99,10 @@ public class ActorSystemManager implements Initializable {
         system = ActorSystem.create(actorSystemName, config);
         // register the Dead Letter Actor
         final ActorRef deadLetterActor = system.actorOf(Props.create(DeadLetterActor.class));
-        system.eventStream().subscribe(deadLetterActor, DeadLetter.class);        
+        system.eventStream().subscribe(deadLetterActor, DeadLetter.class);
         this.isInitialised = true;
 
         registerShutdownHook();
-
     }
 
     private void registerShutdownHook() {
@@ -108,7 +110,7 @@ public class ActorSystemManager implements Initializable {
                 new Thread() {
                     @Override
                     public void run() {
-                        if(withMetrics) {
+                        if (withMetrics) {
                             Kamon.shutdown();
                         }
                         if (system != null) {

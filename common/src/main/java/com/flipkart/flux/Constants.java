@@ -29,12 +29,12 @@ public interface Constants {
     String CONFIG_ROOT = "packaged";
 
     /**
-     * Config files names for different execution modes 
+     * Config files names for different execution modes
      */
     String CONFIGURATION_YML = CONFIG_ROOT + "/configuration.yml"; // orchestration + execution
     String ORCHESTRATION_NODE_CONFIGURATION_YML = CONFIG_ROOT + "/orchestrationConfiguration.yml"; // orchestration only
     String EXECUTION_NODE_CONFIGURATION_YML = CONFIG_ROOT + "/executionConfiguration.yml"; // execution only
-    
+
     String MODE = "mode";
     String ORCHESTRATION = "orchestration";
     String EXECUTION = "execution";

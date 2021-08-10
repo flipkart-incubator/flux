@@ -31,24 +31,23 @@ import com.flipkart.flux.initializer.FluxInitializer;
 
 /**
  * <code>DashboardController</code> is a Spring MVC Controller for the Dashboard
- * 
+ *
  * @author regunath.balasubramanian
  * @author kartik.bommepally
  */
 @Controller
 public class DashboardController {
-	
+
     /**
      * Dashboard page
      */
     @RequestMapping(value = {"/dashboard"}, method = RequestMethod.GET)
     public String dashboard(ModelMap model, HttpServletRequest request) {
-		model.addAttribute(Constants.MODE, FluxInitializer.fluxRole);
-    		if (FluxInitializer.fluxRole == FluxRuntimeRole.ORCHESTRATION) {
-    			model.addAttribute("resource_not_available_message", "'/dashboard' not available in Orchestration mode of Flux. Try '/fsmview'");
-    			return RESOURCE_NOT_AVAILABLE_VIEW;
-    		}
+        model.addAttribute(Constants.MODE, FluxInitializer.fluxRole);
+        if (FluxInitializer.fluxRole == FluxRuntimeRole.ORCHESTRATION) {
+            model.addAttribute("resource_not_available_message", "'/dashboard' not available in Orchestration mode of Flux. Try '/fsmview'");
+            return RESOURCE_NOT_AVAILABLE_VIEW;
+        }
         return DASHBOARD_VIEW;
-    }        
-    
+    }
 }

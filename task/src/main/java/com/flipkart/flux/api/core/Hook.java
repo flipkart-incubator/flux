@@ -21,16 +21,15 @@ import com.flipkart.flux.domain.State;
  * The outcome of Hook execution does not impact state transition. Hooks are executed every time a state transition happens, including when retries happen and
  * this implies that Hook executions are better off being idempotent.
  *
- *  @author shyam.akirala
- *  @author regunath.balasubramanian
- *
+ * @author shyam.akirala
+ * @author regunath.balasubramanian
  */
 public interface Hook {
 
-	/**
-	 * Executes this Hook asynchronous to State transition
-	 * @param events the EventS available on entry or while exiting a State
-	 */
-	public void execute(EventData[] events);
-
+    /**
+     * Executes this Hook asynchronous to State transition
+     *
+     * @param events the EventS available on entry or while exiting a State
+     */
+    void execute(EventData[] events);
 }

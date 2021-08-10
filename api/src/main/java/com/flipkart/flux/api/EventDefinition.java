@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.api;
 
+import java.util.Objects;
+
 /**
  * <code>EventDefinition</code> defines an event to the system
  * An event is a named object of a certain type (say a java.lang.String with name foo)
@@ -58,14 +60,15 @@ public class EventDefinition {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof EventDefinition)) return false;
+        if (!(o instanceof EventDefinition))
+            return false;
 
         EventDefinition that = (EventDefinition) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (type != null ? !type.equals(that.type) : that.type != null) return false;
+        if (!Objects.equals(name, that.name))
+            return false;
 
-        return true;
+        return Objects.equals(type, that.type);
     }
 
     @Override

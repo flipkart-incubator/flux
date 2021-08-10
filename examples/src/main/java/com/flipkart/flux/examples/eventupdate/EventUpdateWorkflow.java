@@ -36,14 +36,16 @@ public class EventUpdateWorkflow {
     }
 
     @Task(version = 1, retries = 0, timeout = 1000L)
-    public ParamEvent task1() { return new ParamEvent("task1", true); }
+    public ParamEvent task1() {
+        return new ParamEvent("task1", true);
+    }
 
     @Task(version = 1, retries = 0, timeout = 400L)
     public ParamEvent task2(ParamEvent event) {
-        if(event.failDependentTask) {
+        if (event.failDependentTask) {
             try {
                 Thread.sleep(1000);
-            } catch (Exception e){
+            } catch (Exception e) {
                 System.out.println("interrupted");
                 e.printStackTrace();
             }
@@ -58,10 +60,10 @@ public class EventUpdateWorkflow {
 
     @Task(version = 1, retries = 0, timeout = 400L)
     public ParamEvent task4(ParamEvent event) {
-        if(event.failDependentTask) {
+        if (event.failDependentTask) {
             try {
                 Thread.sleep(1000);
-            } catch (Exception e){
+            } catch (Exception e) {
                 System.out.println("interrupted");
                 e.printStackTrace();
             }
@@ -99,7 +101,8 @@ class ParamEvent implements Event {
 
 class StartEvent implements Event {
 
-    @CorrelationId @JsonProperty
+    @CorrelationId
+    @JsonProperty
     String id;
 
     public StartEvent() {

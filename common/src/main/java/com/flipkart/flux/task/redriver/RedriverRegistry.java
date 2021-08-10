@@ -16,30 +16,32 @@ package com.flipkart.flux.task.redriver;
 /**
  * <code>RedriverRegistry</code> defines behavior for a Flux re-driver registry that executes stalled/zombie {@see Task} instances
  * including those that missed an execution schedule because of node failure in the Flux cluster.
- * 
- * @author regunath.balasubramanian
  *
+ * @author regunath.balasubramanian
  */
 public interface RedriverRegistry {
 
-	/**
-	 * Registers the specified task with this re-driver registry for restarts from stalled state after the specified
-	 * re-driver delay.
-	 * @param taskId the Task State identifier
-	 * @param redriverDelay the minimum elapsed duration after which restart is to be attempted
-	 */
-	public void registerTask(Long taskId, String stateMachineId, long redriverDelay);
-	
-	/**
-	 * Cancels restarts for the specified Task from stalled state.
-	 * @param stateMachineId StateMachineIdentifier
-	 * @param taskId task Identifier
-	 */
-	public void deRegisterTask(String stateMachineId, Long taskId);
-	
-	/**
-	 * Re-drives i.e. re-runs the Task identified by the specified Task Id
-	 * @param taskId identifier for the Task to re-drive/re-run 
-	 */
-	public void redriveTask(String stateMachineId, Long taskId);
+    /**
+     * Registers the specified task with this re-driver registry for restarts from stalled state after the specified
+     * re-driver delay.
+     *
+     * @param taskId        the Task State identifier
+     * @param redriverDelay the minimum elapsed duration after which restart is to be attempted
+     */
+    void registerTask(Long taskId, String stateMachineId, long redriverDelay);
+
+    /**
+     * Cancels restarts for the specified Task from stalled state.
+     *
+     * @param stateMachineId StateMachineIdentifier
+     * @param taskId         task Identifier
+     */
+    void deRegisterTask(String stateMachineId, Long taskId);
+
+    /**
+     * Re-drives i.e. re-runs the Task identified by the specified Task Id
+     *
+     * @param taskId identifier for the Task to re-drive/re-run
+     */
+    void redriveTask(String stateMachineId, Long taskId);
 }

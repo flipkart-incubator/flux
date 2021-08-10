@@ -32,6 +32,7 @@ import java.util.List;
 
 /**
  * <code>ListJsonType</code> is a Hibernate {@link UserType} implementation to store {@link java.util.List} as json in DB
+ *
  * @author shyam.akirala
  */
 public class ListJsonType implements UserType, Serializable {
@@ -86,7 +87,9 @@ public class ListJsonType implements UserType, Serializable {
         }
     }
 
-    /** Performs deep copy of an object using serialization and de-serialization*/
+    /**
+     * Performs deep copy of an object using serialization and de-serialization
+     */
     @Override
     public Object deepCopy(Object value) throws HibernateException {
         return SerializationHelper.clone((Serializable) value);
@@ -113,12 +116,14 @@ public class ListJsonType implements UserType, Serializable {
     }
 
     protected Object deSerialize(String value) throws IOException {
-        return MAPPER.readValue(value, new TypeReference<List<Object>>() {});
+        return MAPPER.readValue(value, new TypeReference<List<Object>>() {
+        });
     }
 
     protected String serialize(Object value) throws JsonProcessingException {
-        if(value == null)
+        if (value == null) {
             return null;
+        }
 
         return MAPPER.writeValueAsString(value);
     }

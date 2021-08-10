@@ -21,7 +21,7 @@ import com.google.inject.Injector;
 /**
  * This class can be used to run and observe the <code>CancelPathWorkflow</code>
  * This or a similar class like this is _not_ required to be present in your actual production jar
- *
+ * <p>
  * Created by shyam.akirala on 30/08/17.
  */
 public class RunCancelPathWorkflow {

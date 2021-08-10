@@ -100,8 +100,9 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         StringBuilder eventNamesString = new StringBuilder();
         for (int i = 0; i < eventNames.size(); i++) {
             eventNamesString.append("\'" + eventNames.get(i) + "\'");
-            if (i != eventNames.size() - 1)
+            if (i != eventNames.size() - 1) {
                 eventNamesString.append(", ");
+            }
         }
         //retrieves and returns the events in the order of eventNames
         Query hqlQuery = currentSession().createQuery("from Event where stateMachineInstanceId = :SMID and name in (" + eventNamesString.toString()
@@ -123,8 +124,8 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         List<Object[]> eventRows = sqlQuery.list();
         Map<String, Event.EventStatus> eventStatusMap = new HashMap<>();
 
-        for(Object[] eventRow : eventRows) {
-            eventStatusMap.put((String)eventRow[0], Event.EventStatus.valueOf((String)eventRow[1]));
+        for (Object[] eventRow : eventRows) {
+            eventStatusMap.put((String) eventRow[0], Event.EventStatus.valueOf((String) eventRow[1]));
         }
 
         return eventStatusMap;
@@ -140,5 +141,4 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         query.setString("eventName", eventName);
         query.executeUpdate();
     }
-
 }

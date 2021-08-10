@@ -40,5 +40,4 @@ public class EmailDispatcher {
         System.out.println("[EmailMarketingWorkflow] Sending email " + email);
         return new EmailAcknowledgement(random.nextBoolean());
     }
-
 }

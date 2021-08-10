@@ -22,6 +22,6 @@ public class UserDataService {
 
     @Task(version = 1, timeout = 1000l)
     public UserData retrieveUserData(UserId userId) {
-        return new UserData("someEmail@gmail.com","someName", userId);
+        return new UserData("someEmail@gmail.com", "someName", userId);
     }
 }

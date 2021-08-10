@@ -19,14 +19,14 @@ package com.flipkart.flux.config;
 import com.flipkart.flux.api.core.FluxError;
 
 /**
- * The <code>ConfigurationException</code> is sub-type of the {@link FluxError} for use in the configuration modules  
- * 
+ * The <code>ConfigurationException</code> is sub-type of the {@link FluxError} for use in the configuration modules
+ *
  * @author regunath.balasubramanian
  */
 public class ConfigurationException extends FluxError {
-	
+
 	private static final long serialVersionUID = 1L;
-	
+
 	/**
 	 * Constructor for ConfigurationException.
 	 * @param msg the detail message
@@ -38,10 +38,9 @@ public class ConfigurationException extends FluxError {
 	/**
 	 * Constructor for ConfigurationException.
 	 * @param msg the detail message
-	 * @param cause the root cause 
+	 * @param cause the root cause
 	 */
 	public ConfigurationException(String msg, Throwable cause) {
 		super(FluxError.ErrorType.runtime, msg, cause);
 	}
-	
 }

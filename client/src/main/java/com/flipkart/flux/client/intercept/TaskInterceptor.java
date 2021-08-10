@@ -43,6 +43,7 @@ import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
  * This intercepts the invocation to <code>@Task</code> methods
  * It executes the actual method in case it has been explicitly invoked by the Flux runtime via RPC
  * Else, it intercepts the call and adds a task+state combination to the current local state machine definition
+ *
  * @author yogesh.nachnani
  */
 public class TaskInterceptor implements MethodInterceptor {
@@ -59,8 +60,9 @@ public class TaskInterceptor implements MethodInterceptor {
     */
     public TaskInterceptor() {
     }
+
     /* Protected - since it makes sense to use this constructor only in tests */
-    TaskInterceptor(LocalContext localContext,ExecutableRegistry executableRegistry, Provider<ObjectMapper> objectMapperProvider) {
+    TaskInterceptor(LocalContext localContext, ExecutableRegistry executableRegistry, Provider<ObjectMapper> objectMapperProvider) {
         this.localContext = localContext;
         this.executableRegistry = executableRegistry;
         this.objectMapperProvider = objectMapperProvider;
@@ -75,14 +77,14 @@ public class TaskInterceptor implements MethodInterceptor {
         final Method method = invocation.getMethod();
         final Task taskAnnotation = method.getAnnotationsByType(Task.class)[0];
         final String taskIdentifier = generateTaskIdentifier(method, taskAnnotation);
-        final List<EventDefinition> dependencySet = generateDependencySet(invocation.getArguments(),method.getParameterAnnotations(),method.getParameterTypes());
+        final List<EventDefinition> dependencySet = generateDependencySet(invocation.getArguments(), method.getParameterAnnotations(), method.getParameterTypes());
         final Object proxyReturnObject = createProxyReturnObject(method);
         final EventDefinition outputEventDefintion = generateOutputEventDefintion(proxyReturnObject);
 
         //throw exception if state machine and state versions doesn't match
-        if(localContext.getStateMachineDef() != null && localContext.getStateMachineDef().getVersion() != taskAnnotation.version()) {
-            throw new VersionMismatchException("Mismatch between State machine and state versions for State: "+method.getDeclaringClass().getName()+"."
-                    +generateStateIdentifier(method)+". StateMachine version: "+localContext.getStateMachineDef().getVersion()+". State version: "+taskAnnotation.version());
+        if (localContext.getStateMachineDef() != null && localContext.getStateMachineDef().getVersion() != taskAnnotation.version()) {
+            throw new VersionMismatchException("Mismatch between State machine and state versions for State: " + method.getDeclaringClass().getName() + "."
+                    + generateStateIdentifier(method) + ". StateMachine version: " + localContext.getStateMachineDef().getVersion() + ". State version: " + taskAnnotation.version());
         }
         /* Contribute to the ongoing state machine definition */
         localContext.registerNewState(taskAnnotation.version(), generateStateIdentifier(method), null, null, taskIdentifier, taskAnnotation.retries(), taskAnnotation.timeout(), dependencySet, outputEventDefintion);
@@ -94,11 +96,11 @@ public class TaskInterceptor implements MethodInterceptor {
 
     private EventDefinition generateOutputEventDefintion(Object proxyReturnObject) {
         if (proxyReturnObject == null) {
-            return  null;
+            return null;
         }
         String eventName = ((Event) proxyReturnObject).name();
         String eventType = ((Intercepted) proxyReturnObject).getRealClassName();
-        return new EventDefinition(eventName,eventType);
+        return new EventDefinition(eventName, eventType);
     }
 
     private Object createProxyReturnObject(final Method method) {
@@ -114,7 +116,7 @@ public class TaskInterceptor implements MethodInterceptor {
         });
         final ReturnGivenStringCallback eventNameCallback = new ReturnGivenStringCallback(eventName);
         final ReturnGivenStringCallback realClassNameCallback = new ReturnGivenStringCallback(method.getReturnType().getName());
-        final ProxyEventCallbackFilter filter = new ProxyEventCallbackFilter(method.getReturnType(),new Class[]{Intercepted.class}) {
+        final ProxyEventCallbackFilter filter = new ProxyEventCallbackFilter(method.getReturnType(), new Class[]{Intercepted.class}) {
             @Override
             protected ReturnGivenStringCallback getRealClassName() {
                 return realClassNameCallback;
@@ -133,14 +135,15 @@ public class TaskInterceptor implements MethodInterceptor {
         final Class<?>[] parameterTypes = method.getParameterTypes();
         for (Class<?> parameterType : parameterTypes) {
             if (!Event.class.isAssignableFrom(parameterType)) {
-                throw new IllegalSignatureException(new MethodId(method),"Task parameters need to implement the com.flipkart.flux.client.model.Event interface. Found parameter of type"+parameterType + " which does not");
+                throw new IllegalSignatureException(new MethodId(method),
+                        "Task parameters need to implement the com.flipkart.flux.client.model.Event interface. Found parameter of type" + parameterType + " which does not");
             }
         }
     }
 
     private List<EventDefinition> generateDependencySet(Object[] arguments, Annotation[][] parameterAnnotations, Class<?>[] parameterTypes) throws JsonProcessingException {
         List<EventDefinition> eventDefinitions = new LinkedList<>();
-        for (int i = 0; i < arguments.length ; i++) {
+        for (int i = 0; i < arguments.length; i++) {
             Object argument = arguments[i];
             ExternalEvent externalEventAnnotation = checkForExternalEventAnnotation(parameterAnnotations[i]);
             if (externalEventAnnotation != null) {
@@ -157,9 +160,9 @@ public class TaskInterceptor implements MethodInterceptor {
                 continue;
             }
             if (argument instanceof Intercepted) {
-                eventDefinitions.add(new EventDefinition(((Event) argument).name(), ((Intercepted)argument).getRealClassName() ));
+                eventDefinitions.add(new EventDefinition(((Event) argument).name(), ((Intercepted) argument).getRealClassName()));
             } else {
-                String eventName = localContext.generateEventName((Event)argument);
+                String eventName = localContext.generateEventName((Event) argument);
                 eventDefinitions.add(new EventDefinition(eventName, argument.getClass().getName()));
                 localContext.addEvents(new EventData(eventName, argument.getClass().getName(), objectMapperProvider.get().writeValueAsString(argument), CLIENT));
             }
@@ -180,7 +183,7 @@ public class TaskInterceptor implements MethodInterceptor {
         return method.getName();
     }
 
-    private String generateTaskIdentifier(Method method,Task task) {
+    private String generateTaskIdentifier(Method method, Task task) {
         return new MethodId(method).toString() + _VERSION + task.version();
     }
 }

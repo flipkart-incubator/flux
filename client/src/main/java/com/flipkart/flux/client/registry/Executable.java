@@ -16,14 +16,16 @@ package com.flipkart.flux.client.registry;
 
 /**
  * This provides a interface for the core runtime to execute client side code
+ *
  * @author yogesh.nachnani
  */
 public interface Executable {
 
     String getName();
+
     long getTimeout();
+
     Object execute(Object[] parameters);
 
     Class<?>[] getParameterTypes();
-
 }

@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * <code>StatusResource</code> indicates the running status of Flux app.
+ *
  * @author shyam.akirala
  * @author gaurav.ashok
  */
@@ -78,17 +79,18 @@ public class StatusResource {
 
     /**
      * Api to make a node leave the cluster.
+     *
      * @param host hostname/ip of the node.
      * @param port port
      */
     @POST
     @Path("/cluster/leave")
     public Response leaveCluster(@QueryParam("host") String host, @QueryParam("port") Integer port) {
-        if(StringUtils.isEmpty(host) || port == null) {
+        if (StringUtils.isEmpty(host) || port == null) {
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity("empty hostname or port").build();
         }
 
-        if(FluxInitializer.fluxRole.equals(FluxRuntimeRole.ORCHESTRATION)){
+        if (FluxInitializer.fluxRole.equals(FluxRuntimeRole.ORCHESTRATION)) {
             return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity("Api not valid for Flux's" +
                     " orchestraton nodes.").build();
         }

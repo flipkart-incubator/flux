@@ -32,14 +32,14 @@ public class LoggingUtils {
             LOGGER.warn("Cannot register for logging as stateMachineId is null");
             return;
         }
-        MDC.put(STATE_MACHINE_ID, "smId:"+stateMachineId);
+        MDC.put(STATE_MACHINE_ID, "smId:" + stateMachineId);
     }
 
     public static void deRegisterStateMachineIdForLogging() {
         try {
             MDC.remove(STATE_MACHINE_ID);
         } catch (Exception ex) {
-            LOGGER.error("MDC STATE_MACHINE_ID remove method have thrown exception with message "+ex);
+            LOGGER.error("MDC STATE_MACHINE_ID remove method have thrown exception with message " + ex);
         }
     }
 }

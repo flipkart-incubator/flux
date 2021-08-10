@@ -23,15 +23,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 
-
 /**
  * <code>BlobType</code> is a Hibernate {@link UserType} implementation to store object as byte array in DB
+ *
  * @author shyam.akirala
  */
 public class BlobType implements UserType, Serializable {
     @Override
     public int[] sqlTypes() {
-        return new int[] { Types.JAVA_OBJECT };
+        return new int[]{Types.JAVA_OBJECT};
     }
 
     @Override
@@ -41,7 +41,7 @@ public class BlobType implements UserType, Serializable {
 
     @Override
     public boolean equals(Object x, Object y) throws HibernateException {
-        if(x == null)   {
+        if (x == null) {
             return (y == null);
         }
 
@@ -66,20 +66,20 @@ public class BlobType implements UserType, Serializable {
     public Object nullSafeGet(ResultSet rs, String[] names, SessionImplementor session, Object owner) throws HibernateException, SQLException {
         byte[] value = rs.getBytes(names[0]);
 
-        if(value == null)   {
+        if (value == null) {
             return null;
         }
 
         try {
             return deSerialize(value);
-        } catch (IOException e) {
-            throw new SQLException("Cannot deserialize byte array. Exception " + e.getMessage());
-        } catch (ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             throw new SQLException("Cannot deserialize byte array. Exception " + e.getMessage());
         }
     }
 
-    /** Provides deep copy of an object using serialization and de-serialization*/
+    /**
+     * Provides deep copy of an object using serialization and de-serialization
+     */
     @Override
     public Object deepCopy(Object value) throws HibernateException {
         try {
@@ -91,7 +91,7 @@ public class BlobType implements UserType, Serializable {
             ObjectInputStream ois = new ObjectInputStream(baip);
             return ois.readObject();
         } catch (Exception e) {
-            throw new HibernateException("Unable to deep copy. Exception: "+e.getMessage());
+            throw new HibernateException("Unable to deep copy. Exception: " + e.getMessage());
         }
     }
 
@@ -117,6 +117,7 @@ public class BlobType implements UserType, Serializable {
 
     /**
      * converts fetched byte array to Object
+     *
      * @param value of type byte array
      * @return object
      * @throws IOException
@@ -130,6 +131,7 @@ public class BlobType implements UserType, Serializable {
 
     /**
      * converts Object to byte array to store in DB
+     *
      * @param value of type Object
      * @return byte array
      * @throws IOException

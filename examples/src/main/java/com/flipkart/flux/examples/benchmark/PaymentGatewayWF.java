@@ -4,14 +4,13 @@ import com.flipkart.flux.client.model.Workflow;
 
 import javax.inject.Inject;
 
-
 public class PaymentGatewayWF {
 
     @Inject
     private PaymentGatewayTasks paymentGatewayTasks;
 
     @Workflow(version = 4)
-    public void initPayment(EventTypeInteger x){
+    public void initPayment(EventTypeInteger x) {
 
         EventTypeInteger a = paymentGatewayTasks.paymentInit(x);
 
