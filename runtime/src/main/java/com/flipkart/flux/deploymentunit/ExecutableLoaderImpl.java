@@ -1,5 +1,18 @@
 package com.flipkart.flux.deploymentunit;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.apache.commons.configuration.Configuration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.client.intercept.MethodId;
 import com.flipkart.flux.client.model.Task;
@@ -7,17 +20,6 @@ import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.deploymentunit.iface.ExecutableLoader;
 import com.flipkart.flux.registry.TaskExecutableImpl;
-import org.apache.commons.configuration.Configuration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * <code>ExecutableLoaderImpl</code> reads the deployment units and puts the methods
@@ -27,7 +29,7 @@ import java.util.Optional;
  */
 public class ExecutableLoaderImpl implements ExecutableLoader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExecutableLoaderImpl.class);
+    private static final Logger LOGGER = LogManager.getLogger(ExecutableLoaderImpl.class);
     private final int defaultTaskExecutionConcurrency;
 
     @Inject

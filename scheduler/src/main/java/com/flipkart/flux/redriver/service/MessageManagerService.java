@@ -13,20 +13,8 @@
 
 package com.flipkart.flux.redriver.service;
 
-import com.codahale.metrics.InstrumentedExecutorService;
-import com.codahale.metrics.InstrumentedScheduledExecutorService;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.SharedMetricRegistries;
-import com.flipkart.flux.redriver.dao.MessageDao;
-import com.flipkart.flux.redriver.model.ScheduledMessage;
-import com.flipkart.flux.redriver.model.SmIdAndTaskIdPair;
-import com.flipkart.polyguice.core.Initializable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -34,7 +22,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.codahale.metrics.InstrumentedExecutorService;
+import com.codahale.metrics.InstrumentedScheduledExecutorService;
+import com.codahale.metrics.SharedMetricRegistries;
+import com.flipkart.flux.redriver.dao.MessageDao;
+import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.flux.redriver.model.SmIdAndTaskIdPair;
+import com.flipkart.polyguice.core.Initializable;
 
 /**
  * Wrapper around the Message Persistence layer.
@@ -46,7 +47,7 @@ import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
 @Singleton
 public class MessageManagerService implements Initializable {
 
-    private static final Logger logger = LoggerFactory.getLogger(MessageManagerService.class);
+    private static final Logger logger = LogManager.getLogger(MessageManagerService.class);
     private static final String scheduledDeletionSvcName = "redriver-batch-delete-executor-svc";
     private static final String taskRegisterSvcName = "redriver-task-register-executor-svc";
     private static final String scheduledInsertionSvcName = "redriver-batch-insertion-executer-svc";

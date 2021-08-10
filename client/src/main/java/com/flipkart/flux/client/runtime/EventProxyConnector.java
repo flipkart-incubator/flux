@@ -6,13 +6,13 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.HttpClientUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class EventProxyConnector extends FluxRuntimeConnectorHttpImpl {
 
-    public static Logger logger = LoggerFactory.getLogger(EventProxyConnector.class);
+    public static Logger logger = LogManager.getLogger(EventProxyConnector.class);
 
     @Inject
     public EventProxyConnector(@Named("eventProxyForMigration.endpoint") String endpoint, FluxClientConfiguration fluxClientConfiguration) {

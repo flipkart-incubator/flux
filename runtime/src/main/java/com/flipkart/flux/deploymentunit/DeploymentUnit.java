@@ -13,15 +13,7 @@
 
 package com.flipkart.flux.deploymentunit;
 
-import com.flipkart.flux.api.core.FluxError;
-import com.flipkart.flux.client.intercept.MethodId;
-import com.flipkart.flux.client.model.Task;
-import com.flipkart.flux.client.runtime.Stoppable;
-import com.flipkart.polyguice.config.YamlConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -31,7 +23,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.flipkart.flux.api.core.FluxError;
+import com.flipkart.flux.client.intercept.MethodId;
+import com.flipkart.flux.client.model.Task;
+import com.flipkart.flux.client.runtime.Stoppable;
+import com.flipkart.polyguice.config.YamlConfiguration;
 
 /**
  * <code>DeploymentUnit</code> represents a Deployment Unit.
@@ -40,7 +41,7 @@ import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
  */
 public class DeploymentUnit {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DeploymentUnit.class);
+    private static final Logger LOGGER = LogManager.getLogger(DeploymentUnit.class);
 
     /** Key in the config file, which has list of workflow/task class FQNs*/
     private static final String WORKFLOW_CLASSES = "workflowClasses";

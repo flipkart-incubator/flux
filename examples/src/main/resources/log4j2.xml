@@ -7,6 +7,9 @@
         <Console name="console-log" target="SYSTEM_OUT">
             <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{5} %X{stateMachineId} - %msg%n"/>
         </Console>
+		<File name="file-log" fileName="${log-path}/flux-log.log">
+            <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{5} %X{stateMachineId} - %msg%n"/>
+	    </File>        
     </Appenders>
     <Loggers>
         <Root level="info" additivity="false">

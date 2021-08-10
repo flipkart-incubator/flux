@@ -13,10 +13,11 @@
 
 package com.flipkart.flux.persistence;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.security.MessageDigest;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Generates a SHA-256 Hex Code of a given String and returns first two characters as shard String
@@ -25,7 +26,7 @@ import java.security.MessageDigest;
 public class CryptHashGenerator {
 
     private static final String cryptHashAlgorithmPrefix = "SHA-256";
-    private static final Logger logger = LoggerFactory.getLogger(CryptHashGenerator.class);
+    private static final Logger logger = LogManager.getLogger(CryptHashGenerator.class);
 
 
     public static String getUniformCryptHash(String stateMachineId) {

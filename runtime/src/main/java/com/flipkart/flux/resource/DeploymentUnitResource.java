@@ -1,5 +1,24 @@
 package com.flipkart.flux.resource;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.inject.Named;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.flipkart.flux.client.intercept.MethodId;
 import com.flipkart.flux.config.TaskRouterUtil;
 import com.flipkart.flux.deploymentunit.DeploymentUnit;
@@ -8,18 +27,6 @@ import com.flipkart.flux.exception.DuplicateDeploymentUnitException;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Named;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Management APIs to load/unload deployment units
@@ -30,7 +37,7 @@ import java.util.stream.Collectors;
 @Singleton
 public class DeploymentUnitResource {
 
-    private static final Logger logger = LoggerFactory.getLogger(DeploymentUnitResource.class);
+    private static final Logger logger = LogManager.getLogger(DeploymentUnitResource.class);
 
     /**
      * Manager instance to load deploymentUnit.

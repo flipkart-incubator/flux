@@ -13,16 +13,17 @@
 
 package com.flipkart.flux.initializer;
 
-import com.flipkart.flux.impl.boot.ActorSystemManager;
-import com.flipkart.flux.impl.task.registry.RouterRegistry;
-import com.flipkart.polyguice.core.Initializable;
-import org.eclipse.jetty.server.Server;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.eclipse.jetty.server.Server;
+
+import com.flipkart.flux.impl.boot.ActorSystemManager;
+import com.flipkart.flux.impl.task.registry.RouterRegistry;
+import com.flipkart.polyguice.core.Initializable;
 
 /*
 * ExecutionOrderedComponentBooter boots startup components of runtime.
@@ -30,7 +31,7 @@ import javax.inject.Singleton;
 
 @Singleton
 public class ExecutionOrderedComponentBooter implements Initializable {
-    private static final Logger logger = LoggerFactory.getLogger(ExecutionOrderedComponentBooter.class);
+    private static final Logger logger = LogManager.getLogger(ExecutionOrderedComponentBooter.class);
     private final Server executionApiServer;
     private final Server executionDashboardServer;
     private final ActorSystemManager actorSystemManager;

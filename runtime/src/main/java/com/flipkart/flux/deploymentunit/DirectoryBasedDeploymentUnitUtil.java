@@ -13,11 +13,6 @@
 
 package com.flipkart.flux.deploymentunit;
 
-import com.flipkart.flux.deploymentunit.iface.DeploymentUnitUtil;
-import com.flipkart.polyguice.config.YamlConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -31,6 +26,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.flipkart.flux.deploymentunit.iface.DeploymentUnitUtil;
+import com.flipkart.polyguice.config.YamlConfiguration;
+
 /**
  * <code>DeploymentUnitUtil</code> is a {@link DeploymentUnitUtil} implementation which does operations
  * on deployment units assuming they are present in this machine as directories.
@@ -43,7 +44,7 @@ import java.util.stream.Stream;
  */
 public class DirectoryBasedDeploymentUnitUtil implements DeploymentUnitUtil {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DirectoryBasedDeploymentUnitUtil.class);
+    private static final Logger LOGGER = LogManager.getLogger(DirectoryBasedDeploymentUnitUtil.class);
 
     /** Configuration file of a deployment unit*/
     private static final String CONFIG_FILE = "flux_config.yml";

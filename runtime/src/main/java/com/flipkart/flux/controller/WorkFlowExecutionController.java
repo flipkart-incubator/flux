@@ -28,8 +28,8 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventAndExecutionData;
@@ -74,7 +74,7 @@ public class WorkFlowExecutionController {
     /**
      * Logger instance for this class
      */
-    private static final Logger logger = LoggerFactory.getLogger(WorkFlowExecutionController.class);
+    private static final Logger logger = LogManager.getLogger(WorkFlowExecutionController.class);
 
     /**
      * FSM and Events DAOs

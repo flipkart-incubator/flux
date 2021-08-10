@@ -29,17 +29,25 @@ cp target/dependency/* $DEPLOYMENT_UNIT_PATH/$DEPLOYMENT_UNIT_NAME/lib
 cp src/main/resources/flux_config.yml $DEPLOYMENT_UNIT_PATH/$DEPLOYMENT_UNIT_NAME/
 
 if [[ $# -ge 2 && "debug" == $DEBUG ]]; then
-    echo "Starting flux runtime combined mode"
-    java -Dlog4j.configurationFile=./target/classes/log4j2.xml -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" start &
-    FLUX_PID=$!
+    echo "Starting flux runtime orchestrator"
+    java -Dlog4j.configurationFile=./target/classes/log4j2.xml -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" start orchestration &
+    FLUX_ORCHESTRATOR_PID=$!
+    sleep 10
+    echo "Starting flux runtime executor in debug mode. Debug port: $DEBUG_PORT"
+    java -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=$DEBUG_PORT,suspend=n -Dlog4j.configurationFile=./target/classes/log4j2.xml -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" start execution &
+    FLUX_EXECUTOR_PID=$!
 else
-    echo "Starting flux runtime combined mode"
-    java -Dlog4j.configurationFile=./target/classes/log4j2.xml -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" start &
-    FLUX_PID=$!
+    echo "Starting flux runtime orchestrator"
+    java -Dlog4j.configurationFile=./target/classes/log4j2.xml -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" start orchestration &
+    FLUX_ORCHESTRATOR_PID=$!
+    sleep 10
+    echo "Starting flux runtime executor"
+    java -Dlog4j.configurationFile=./target/classes/log4j2.xml -cp "target/dependency/*" "com.flipkart.flux.initializer.FluxInitializer" start execution &
+    FLUX_EXECUTOR_PID=$!
 fi
 
 # kill the flux processes which are running in background on ctrl+c
-trap "kill -9 $FLUX_PID" 2
+trap "kill -9 $FLUX_ORCHESTRATOR_PID; kill -9 $FLUX_EXECUTOR_PID" 2
 
 sleep 15
 

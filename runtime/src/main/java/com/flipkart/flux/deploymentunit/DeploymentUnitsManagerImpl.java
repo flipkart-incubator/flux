@@ -1,5 +1,27 @@
 package com.flipkart.flux.deploymentunit;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.util.CollectionUtils;
+
+import com.flipkart.flux.annotation.ManagedEnv;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
@@ -7,22 +29,10 @@ import com.flipkart.flux.deploymentunit.iface.DeploymentUnitUtil;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import com.flipkart.flux.deploymentunit.iface.ExecutableLoader;
 import com.flipkart.flux.exception.DuplicateDeploymentUnitException;
-import com.flipkart.flux.annotation.ManagedEnv;
 import com.flipkart.flux.registry.TaskExecutableImpl;
 import com.flipkart.polyguice.core.Initializable;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * <code>DeploymentUnitsManagerImpl</code> is an implementation of {@link DeploymentUnitsManager} and handles load/unload/list operations on {@link DeploymentUnit}s
@@ -32,7 +42,7 @@ import java.util.stream.Stream;
 @Singleton
 public class DeploymentUnitsManagerImpl implements DeploymentUnitsManager, Initializable {
 
-    private static final Logger logger = LoggerFactory.getLogger(DeploymentUnitsManagerImpl.class);
+    private static final Logger logger = LogManager.getLogger(DeploymentUnitsManagerImpl.class);
 
     /**
      * To Load deploymentUnits

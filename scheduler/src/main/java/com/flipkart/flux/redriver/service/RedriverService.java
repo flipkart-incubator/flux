@@ -13,22 +13,28 @@
 
 package com.flipkart.flux.redriver.service;
 
-import com.codahale.metrics.InstrumentedScheduledExecutorService;
-import com.codahale.metrics.SharedMetricRegistries;
-import com.flipkart.flux.redriver.model.ScheduledMessage;
-import com.flipkart.flux.task.redriver.RedriverRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import java.util.ArrayList;
-import java.util.List;
 
-import java.util.concurrent.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
+import com.codahale.metrics.InstrumentedScheduledExecutorService;
+import com.codahale.metrics.SharedMetricRegistries;
+import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.flux.task.redriver.RedriverRegistry;
 
 /**
  * The service uses a scheduler to read the oldest message with fixed delay and redrives them if necessary. The task will
@@ -39,7 +45,7 @@ import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
 @Singleton
 public class RedriverService {
 
-    private static final Logger logger = LoggerFactory.getLogger(RedriverService.class);
+    private static final Logger logger = LogManager.getLogger(RedriverService.class);
     private static final String scheduledExectorSvcName = "redriver-batch-read-executor-svc";
 
     private Integer batchReadInterval;

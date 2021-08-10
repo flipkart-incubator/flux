@@ -13,15 +13,6 @@
 
 package com.flipkart.flux.resource;
 
-import akka.actor.ActorRef;
-import com.codahale.metrics.annotation.Timed;
-import com.flipkart.flux.api.core.TaskExecutionMessage;
-import com.flipkart.flux.impl.message.TaskAndEvents;
-import com.flipkart.flux.impl.task.registry.RouterRegistry;
-import com.flipkart.flux.metrics.iface.MetricsClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -31,11 +22,22 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.codahale.metrics.annotation.Timed;
+import com.flipkart.flux.api.core.TaskExecutionMessage;
+import com.flipkart.flux.impl.message.TaskAndEvents;
+import com.flipkart.flux.impl.task.registry.RouterRegistry;
+import com.flipkart.flux.metrics.iface.MetricsClient;
+
+import akka.actor.ActorRef;
+
 @Singleton
 @Path("/api/execution")
 @Named
 public class ExecutionApiResource {
-    private static final Logger logger = LoggerFactory.getLogger(ExecutionApiResource.class);
+    private static final Logger logger = LogManager.getLogger(ExecutionApiResource.class);
 
     private RouterRegistry routerRegistry;
     private MetricsClient metricsClient;

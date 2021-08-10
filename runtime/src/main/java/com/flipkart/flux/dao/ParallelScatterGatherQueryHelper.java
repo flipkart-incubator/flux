@@ -13,6 +13,23 @@
 
 package com.flipkart.flux.dao;
 
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.StateMachine;
@@ -22,16 +39,6 @@ import com.flipkart.flux.shard.ShardPairModel;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.sql.Timestamp;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 
 /**
  * Helper class to facilitate scatter queries and gather results paralleled.
@@ -45,7 +52,7 @@ public class ParallelScatterGatherQueryHelper {
     private final Map<ShardId, ShardPairModel> fluxShardIdToShardPairModelMap;
     private final ExecutorService executorService;
 
-    private static final Logger logger = LoggerFactory.getLogger(StatesDAOImpl.class);
+    private static final Logger logger = LogManager.getLogger(StatesDAOImpl.class);
 
     @Inject
     public ParallelScatterGatherQueryHelper(StatesDAO statesDAO, StateMachinesDAO stateMachinesDAO,

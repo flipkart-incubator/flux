@@ -13,12 +13,14 @@
 
 package com.flipkart.flux.examples.concurrent;
 
-import com.flipkart.flux.client.model.Task;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Random;
 
 import javax.inject.Singleton;
-import java.util.Random;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.flipkart.flux.client.model.Task;
 
 /**
  * Used to dispatch emails
@@ -26,7 +28,7 @@ import java.util.Random;
 @Singleton
 public class EmailDispatcher {
 
-    private static Logger logger = LoggerFactory.getLogger(EmailDispatcher.class);
+    private static Logger logger = LogManager.getLogger(EmailDispatcher.class);
     private Random random;
 
     public EmailDispatcher() {

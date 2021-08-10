@@ -13,20 +13,22 @@
 
 package com.flipkart.flux.representation;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.flipkart.flux.api.ClientElbDefinition;
 import com.flipkart.flux.clientelb.dao.iface.ClientElbDAO;
 import com.flipkart.flux.domain.ClientElb;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * <code>ClientElbPersistenceService</code> class does persistence related operations in memory
@@ -44,7 +46,7 @@ public class ClientElbPersistenceService {
 
     private Integer MAX_CACHE_SIZE;
 
-    private static final Logger logger = LoggerFactory.getLogger(ClientElbPersistenceService.class);
+    private static final Logger logger = LogManager.getLogger(ClientElbPersistenceService.class);
 
     @Inject
     public ClientElbPersistenceService(ClientElbDAO clientElbDAO,

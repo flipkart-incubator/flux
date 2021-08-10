@@ -15,15 +15,16 @@
  */
 package com.flipkart.flux.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static com.flipkart.flux.Constants.CONFIG_ROOT;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import static com.flipkart.flux.Constants.CONFIG_ROOT;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
 *
@@ -38,7 +39,7 @@ public class FileLocator {
 	/**
 	 * The Log instance for this class
 	 */
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileLocator.class);
+    private static final Logger LOGGER = LogManager.getLogger(FileLocator.class);
 
 	// TODO: Keep this injectable config
 	/** The config root folder of Flux */

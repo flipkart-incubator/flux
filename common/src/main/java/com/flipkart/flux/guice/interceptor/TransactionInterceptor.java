@@ -13,18 +13,23 @@
 
 package com.flipkart.flux.guice.interceptor;
 
-import com.flipkart.flux.persistence.*;
-import com.flipkart.flux.shard.ShardId;
+import javax.inject.Provider;
+
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.inject.Provider;
+import com.flipkart.flux.persistence.CryptHashGenerator;
+import com.flipkart.flux.persistence.DataSourceType;
+import com.flipkart.flux.persistence.SelectDataSource;
+import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.Storage;
+import com.flipkart.flux.shard.ShardId;
 
 /**
  * @author shyam.akirala
@@ -48,7 +53,7 @@ import javax.inject.Provider;
  **/
 public class TransactionInterceptor implements MethodInterceptor {
 
-    private static final Logger logger = LoggerFactory.getLogger(TransactionInterceptor.class);
+    private static final Logger logger = LogManager.getLogger(TransactionInterceptor.class);
 
     private final Provider<SessionFactoryContext> contextProvider;
 

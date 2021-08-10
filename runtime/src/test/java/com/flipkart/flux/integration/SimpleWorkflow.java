@@ -14,12 +14,13 @@
 
 package com.flipkart.flux.integration;
 
+import javax.inject.Singleton;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.model.Workflow;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Singleton;
 
 /**
  * Workflow used in <code>WorkflowInterceptorTest</code> to test e2e interception
@@ -27,7 +28,7 @@ import javax.inject.Singleton;
 @Singleton
 public class SimpleWorkflow {
 
-    private static final Logger logger = LoggerFactory.getLogger(SimpleWorkflow.class);
+    private static final Logger logger = LogManager.getLogger(SimpleWorkflow.class);
 
     /* A simple workflow that goes about creating tasks and making merry */
     @Workflow(version = 1)

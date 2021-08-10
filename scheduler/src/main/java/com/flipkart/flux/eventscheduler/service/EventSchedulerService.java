@@ -13,6 +13,20 @@
 
 package com.flipkart.flux.eventscheduler.service;
 
+import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
+
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.codahale.metrics.InstrumentedScheduledExecutorService;
 import com.codahale.metrics.SharedMetricRegistries;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,18 +35,6 @@ import com.flipkart.flux.eventscheduler.dao.EventSchedulerDao;
 import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
 import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
 import com.google.inject.Singleton;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
 
 /**
  * <code>EventSchedulerService</code> reads ScheduledEvents from DB with a fixed delay, and triggers them if necessary. The event would be triggered
@@ -43,7 +45,7 @@ import static com.flipkart.flux.Constants.METRIC_REGISTRY_NAME;
 @Singleton
 public class EventSchedulerService {
 
-    private static final Logger logger = LoggerFactory.getLogger(EventSchedulerService.class);
+    private static final Logger logger = LogManager.getLogger(EventSchedulerService.class);
     private static final String scheduledExectorSvcName = "event-scheduler-batch-read-executor-svc";
 
     private Integer batchReadInterval;

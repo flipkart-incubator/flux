@@ -1,22 +1,27 @@
 package com.flipkart.flux.resource;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+
+import javax.inject.Named;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.codahale.metrics.annotation.Timed;
 import com.flipkart.flux.api.ClientElbDefinition;
 import com.flipkart.flux.domain.ClientElb;
 import com.flipkart.flux.representation.ClientElbPersistenceService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Named;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.UUID;
 
 /**
  * API for CRUD operations on Client Cluster ELB details
@@ -27,7 +32,7 @@ import java.util.UUID;
 @Named
 public class ClientElbResource {
 
-    private static final Logger logger = LoggerFactory.getLogger(ClientElbResource.class);
+    private static final Logger logger = LogManager.getLogger(ClientElbResource.class);
 
     private ClientElbPersistenceService clientElbPersistenceService;
 

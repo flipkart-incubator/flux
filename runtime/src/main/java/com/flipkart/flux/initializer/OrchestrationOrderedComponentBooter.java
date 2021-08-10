@@ -13,14 +13,15 @@
 
 package com.flipkart.flux.initializer;
 
-import com.flipkart.polyguice.core.Initializable;
-import org.eclipse.jetty.server.Server;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.eclipse.jetty.server.Server;
+
+import com.flipkart.polyguice.core.Initializable;
 
 /**
  * <code>OrchestrationOrderedComponentBooter</code> boots various components one after the other. This is makeshift - till we get something equivalent to trooper
@@ -31,7 +32,7 @@ import javax.inject.Singleton;
 @Singleton
 public class OrchestrationOrderedComponentBooter implements Initializable {
 
-    private static final Logger logger = LoggerFactory.getLogger(OrchestrationOrderedComponentBooter.class);
+    private static final Logger logger = LogManager.getLogger(OrchestrationOrderedComponentBooter.class);
     private final Server apiServer;
     private final Server dashboardServer;
 

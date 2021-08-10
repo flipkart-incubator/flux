@@ -14,15 +14,11 @@
 
 package com.flipkart.flux.client.runtime;
 
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.SharedMetricRegistries;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.EventAndExecutionData;
-import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.ExecutionUpdateData;
-import com.flipkart.flux.api.StateMachineDefinition;
-import com.google.common.annotations.VisibleForTesting;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
+import javax.ws.rs.core.Response;
+
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -33,12 +29,18 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import javax.ws.rs.core.Response;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.SharedMetricRegistries;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventAndExecutionData;
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.ExecutionUpdateData;
+import com.flipkart.flux.api.StateMachineDefinition;
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * RuntimeConnector that connects to runtime over HTTP
@@ -48,7 +50,7 @@ import java.io.IOException;
  */
 public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
 
-    private static Logger logger = LoggerFactory.getLogger(FluxRuntimeConnectorHttpImpl.class);
+    private static Logger logger = LogManager.getLogger(FluxRuntimeConnectorHttpImpl.class);
 
     public static final int MAX_TOTAL = 400;
     public static final int MAX_PER_ROUTE = 50;

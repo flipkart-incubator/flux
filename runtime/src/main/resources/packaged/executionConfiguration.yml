@@ -1,7 +1,7 @@
 # Execution mode runtime configurations
 
 Dashboard:
-  service.port: 9999
+  service.port: 9996
   service.acceptors: 5
   service.selectors: 10
   service.workers: 30
