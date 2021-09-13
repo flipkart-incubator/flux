@@ -14,11 +14,15 @@
 
 package com.flipkart.flux.client.runtime;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-
-import javax.ws.rs.core.Response;
-
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.SharedMetricRegistries;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventAndExecutionData;
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.ExecutionUpdateData;
+import com.flipkart.flux.api.StateMachineDefinition;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -32,15 +36,9 @@ import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.SharedMetricRegistries;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.EventAndExecutionData;
-import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.ExecutionUpdateData;
-import com.flipkart.flux.api.StateMachineDefinition;
-import com.google.common.annotations.VisibleForTesting;
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 /**
  * RuntimeConnector that connects to runtime over HTTP
@@ -56,16 +54,35 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     public static final int MAX_TOTAL = 400;
     public static final int MAX_PER_ROUTE = 50;
     public static final String EXTERNAL = "external";
-    private final CloseableHttpClient closeableHttpClient;
-    private final String fluxEndpoint;
-    private final ObjectMapper objectMapper;
-    private final MetricRegistry metricRegistry;
+    private  CloseableHttpClient closeableHttpClient;
+    private  String fluxEndpoint;
+    private  ObjectMapper objectMapper;
+    private  MetricRegistry metricRegistry;
 
     @VisibleForTesting
     public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint) {
-        this(connectionTimeout, socketTimeout, fluxEndpoint, new ObjectMapper(),
-                SharedMetricRegistries.getOrCreate("mainMetricRegistry"));
+        this.fluxEndpoint = fluxEndpoint;
+        this.objectMapper = new ObjectMapper();
+        RequestConfig clientConfig = RequestConfig.custom()
+                .setConnectTimeout((connectionTimeout).intValue())
+                .setSocketTimeout((socketTimeout).intValue())
+                .setConnectionRequestTimeout((socketTimeout).intValue())
+                .build();
+        PoolingHttpClientConnectionManager syncConnectionManager = new PoolingHttpClientConnectionManager();
+        syncConnectionManager.setMaxTotal(MAX_TOTAL);
+        syncConnectionManager.setDefaultMaxPerRoute(MAX_PER_ROUTE);
+
+        closeableHttpClient = HttpClientBuilder.create().setDefaultRequestConfig(clientConfig).setConnectionManager(syncConnectionManager)
+                .build();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            HttpClientUtils.closeQuietly(closeableHttpClient);
+        }));
+        this.metricRegistry = SharedMetricRegistries.getOrCreate("mainMetricRegistry");
+
     }
+
+    public FluxRuntimeConnectorHttpImpl(){}
 
     public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint, ObjectMapper objectMapper,
                                         MetricRegistry metricRegistry) {
@@ -88,6 +105,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         }));
         this.metricRegistry = metricRegistry;
     }
+
 
     @Override
     public void submitNewWorkflow(StateMachineDefinition stateMachineDef) {
@@ -168,6 +186,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         try {
             final EventData eventData = new EventData(name, eventType, objectMapper.writeValueAsString(data), eventSource);
             httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/eventupdate");
+
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         } finally {
@@ -237,18 +256,21 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
             final int statusCode = httpResponse.getStatusLine().getStatusCode();
             if (statusCode >= Response.Status.OK.getStatusCode() && statusCode < Response.Status.MOVED_PERMANENTLY.getStatusCode()) {
                 logger.trace("Posting over http is successful. Status code: {}", statusCode);
-                metricRegistry.meter("stateMachines.forwardToOrchestrator.2xx").mark();
+                metricRegistry.meter(new StringBuilder().
+                        append("stateMachines.forwardToOrchestrator.2xx").toString()).mark();
             } else {
                 logger.error("Did not receive a valid response from Flux core. Status code: {}, message: {}", statusCode, EntityUtils.toString(httpResponse.getEntity()));
                 /* 400 <= defaultStatusCode < 500 */
                 if (statusCode >= Response.Status.BAD_REQUEST.getStatusCode()
                         && statusCode < Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                    metricRegistry.meter("stateMachines.forwardToOrchestrator.4xx").mark();
+                    metricRegistry.meter(new StringBuilder().
+                            append("stateMachines.forwardToOrchestrator.4xx").toString()).mark();
                 }
                 /* 500 <= defaultStatusCode <= 505 */
                 else if (statusCode >= Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()
                         && statusCode < Response.Status.HTTP_VERSION_NOT_SUPPORTED.getStatusCode()) {
-                    metricRegistry.meter("stateMachines.forwardToOrchestrator.5xx").mark();
+                    metricRegistry.meter(new StringBuilder().
+                            append("stateMachines.forwardToOrchestrator.5xx").toString()).mark();
                 }
                 HttpClientUtils.closeQuietly(httpResponse);
                 throw new RuntimeCommunicationException("Did not receive a valid response from Flux core");
@@ -260,4 +282,5 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         }
         return httpResponse;
     }
+
 }

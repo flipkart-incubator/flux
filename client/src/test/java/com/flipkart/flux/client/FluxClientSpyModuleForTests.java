@@ -14,28 +14,23 @@
 
 package com.flipkart.flux.client;
 
-import com.codahale.metrics.SharedMetricRegistries;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.client.guice.annotation.IsolatedEnv;
+import javax.inject.Singleton;
+
+import org.mockito.Mockito;
+
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest;
-import com.flipkart.flux.client.registry.ExecutableRegistry;
-import com.flipkart.flux.client.registry.LocalExecutableRegistryImpl;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
 import com.flipkart.flux.client.runtime.LocalContext;
 import com.flipkart.flux.client.utils.TestResourceModule;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import org.mockito.Mockito;
-
-import javax.inject.Singleton;
 
 public class FluxClientSpyModuleForTests extends AbstractModule {
 
     @Override
     protected void configure() {
         install(new FluxClientInterceptorModule());
-        bind(ExecutableRegistry.class).annotatedWith(IsolatedEnv.class).to(LocalExecutableRegistryImpl.class);
         bind(SimpleWorkflowForTest.class);
         install(new TestResourceModule());
     }
@@ -48,8 +43,9 @@ public class FluxClientSpyModuleForTests extends AbstractModule {
 
     @Provides
     @Singleton
-    public FluxRuntimeConnector provideFluxRuntimeConnector( ){
-        return Mockito.spy(new FluxRuntimeConnectorHttpImpl(1000l,1000l,"http://localhost:9091/flux/machines", new ObjectMapper(),
-                SharedMetricRegistries.getOrCreate("mainMetricRegistry")));
+    public FluxRuntimeConnector provideFluxRuntimeConnector() {
+        return Mockito.spy(new FluxRuntimeConnectorHttpImpl(1000l, 1000l,
+                "http://localhost:9091/flux/machines"));
     }
+    
 }

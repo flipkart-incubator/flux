@@ -44,7 +44,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 
 /**
- * <code>ContainerModule</code> is a Guice {@link AbstractModule} implementation used for wiring Flux Orchestration container components.
+ * <code>OrchestratorContainerModule</code> is a Guice {@link AbstractModule} implementation used for wiring Flux Orchestration container components.
  *
  * @author regunath.balasubramanian
  * @author kartik.bommepally
