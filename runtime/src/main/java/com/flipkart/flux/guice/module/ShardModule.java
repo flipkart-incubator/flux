@@ -118,7 +118,7 @@ public class ShardModule extends AbstractModule {
     @Singleton
     @Named("fluxShardIdToShardPairMap")
     public Map<ShardId, ShardPairModel> getFluxRWShardIdToShardMapping(@Named("fluxMasterSlavePairList") List<ShardPairModel> masterSlavePairList) {
-        Map shardIdToShardHostModelMap = new HashMap<ShardId, ShardPairModel>();
+        Map<ShardId, ShardPairModel> shardIdToShardHostModelMap = new HashMap<ShardId, ShardPairModel>();
         masterSlavePairList.forEach(masterSlavePair -> {
             shardIdToShardHostModelMap.put(masterSlavePair.getShardId(), masterSlavePair);
         });
@@ -137,7 +137,7 @@ public class ShardModule extends AbstractModule {
     @Singleton
     @Named("fluxShardKeyToShardIdMap")
     public Map<String, ShardId> getFluxRWShardKeyToShardIdMapping(@Named("fluxMasterSlavePairList") List<ShardPairModel> masterSlavePairList) {
-        Map shardKeyToShardIdMap = new HashMap<String, ShardId>();
+        Map<String, ShardId> shardKeyToShardIdMap = new HashMap<String, ShardId>();
         masterSlavePairList.forEach(masterSlavePair -> {
             String startKey = masterSlavePair.getStartKey();
             String endKey = masterSlavePair.getEndKey();
@@ -197,7 +197,7 @@ public class ShardModule extends AbstractModule {
     public Map<ShardId, SessionFactory> getFluxROSessionFactoryMap(@Named("fluxShardIdToShardPairMap") Map<ShardId, ShardPairModel>
                                                                            fluxShardIdToShardPairMap,
                                                                    YamlConfiguration yamlConfiguration) {
-        Map fluxROSessionFactories = new HashMap<ShardId, SessionFactory>();
+        Map<ShardId, SessionFactory> fluxROSessionFactories = new HashMap<ShardId, SessionFactory>();
         fluxShardIdToShardPairMap.entrySet().forEach(shardKeyToShardIdMapping -> {
             ShardId shardId = shardKeyToShardIdMapping.getKey();
             ShardPairModel shardPairModel = fluxShardIdToShardPairMap.get(shardId);
@@ -219,7 +219,7 @@ public class ShardModule extends AbstractModule {
     public Map<ShardId, SessionFactory> getFluxRWSessionFactoryMap(@Named("fluxShardIdToShardPairMap") Map<ShardId, ShardPairModel>
                                                                            fluxShardIdToShardPairMap,
                                                                    YamlConfiguration yamlConfiguration) {
-        Map fluxRWSessionFactories = new HashMap<ShardId, SessionFactory>();
+        Map<ShardId, SessionFactory> fluxRWSessionFactories = new HashMap<ShardId, SessionFactory>();
         fluxShardIdToShardPairMap.entrySet().forEach(shardKeyToShardIdMapping -> {
             ShardId shardId = shardKeyToShardIdMapping.getKey();
             ShardPairModel shardPairModel = fluxShardIdToShardPairMap.get(shardId);
