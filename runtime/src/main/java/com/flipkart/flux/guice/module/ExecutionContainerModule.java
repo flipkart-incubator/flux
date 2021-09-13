@@ -33,6 +33,7 @@ import com.codahale.metrics.jmx.JmxReporter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.flipkart.flux.filter.CORSFilter;
+import com.flipkart.flux.filter.RequestLoggingFilter;
 import com.flipkart.flux.resource.DeploymentUnitResource;
 import com.flipkart.flux.resource.ExecutionApiResource;
 import com.flipkart.flux.resource.StatusResource;
@@ -102,6 +103,7 @@ public class ExecutionContainerModule extends AbstractModule {
         resourceConfig.register(statusResource);
 
         resourceConfig.register(CORSFilter.class);
+        resourceConfig.register(RequestLoggingFilter.class);
         jmxReporter.start();
         return resourceConfig;
     }
