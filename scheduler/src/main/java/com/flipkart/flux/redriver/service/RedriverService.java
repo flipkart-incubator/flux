@@ -123,7 +123,7 @@ public class RedriverService {
                             try {
                                 redriverRegistry.redriveTask(e.getStateMachineId(), e.getTaskId());
                             } catch (Exception ex) {
-                                logger.error("Something went wrong in redriving task:{} smId:{}", e.getTaskId(), e.getStateMachineId());
+                                logger.error("Something went wrong in redriving task:{} smId:{}", e.getTaskId(), e.getStateMachineId(), ex);
                             }
                         }));
             });
