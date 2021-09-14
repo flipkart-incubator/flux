@@ -18,9 +18,14 @@ import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.api.core.Task;
 import com.flipkart.flux.client.exception.FluxCancelPathException;
 import com.flipkart.flux.domain.Event;
-import com.netflix.hystrix.*;
+import com.flipkart.flux.utils.Pair;
+import com.netflix.hystrix.HystrixCommand;
+import com.netflix.hystrix.HystrixCommandGroupKey;
+import com.netflix.hystrix.HystrixCommandKey;
+import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixCommandProperties.ExecutionIsolationStrategy;
-import javafx.util.Pair;
+import com.netflix.hystrix.HystrixThreadPoolKey;
+import com.netflix.hystrix.HystrixThreadPoolProperties;
 /**
  * <code>TaskExecutor</code> wraps {@link Task} execution with Hystrix.
  *

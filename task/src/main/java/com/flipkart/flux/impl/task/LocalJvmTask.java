@@ -14,15 +14,16 @@
 
 package com.flipkart.flux.impl.task;
 
+import java.lang.reflect.Method;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.registry.TaskExecutableImpl;
-import javafx.util.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.lang.reflect.Method;
+import com.flipkart.flux.utils.Pair;
 
 /**
  * A task that can be executed locally within the same JVM

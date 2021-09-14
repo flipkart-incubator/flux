@@ -15,7 +15,7 @@ package com.flipkart.flux.api.core;
 
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.domain.State;
-import javafx.util.Pair;
+import com.flipkart.flux.utils.Pair;
 
 /**
  * <code>RollbackTask</code> is a {@link Task} that supports compensating execution in case of state transition failures - either in the current {@link State} or a later one.
