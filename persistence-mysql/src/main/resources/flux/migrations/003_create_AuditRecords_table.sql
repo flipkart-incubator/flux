@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS `AuditRecords` (
   `stateStatus` VARCHAR(50) DEFAULT NULL,
   `stateRollbackStatus` VARCHAR(50) DEFAULT NULL,
   `errors` VARCHAR(1000) DEFAULT NULL,
-  `createdAt` TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `createdAt` TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`),
   KEY `index_audit_on_SM_instance_id` (`stateMachineInstanceId`)
 )

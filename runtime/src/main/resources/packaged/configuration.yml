@@ -75,6 +75,7 @@ runtime:
     metrics: false
     name: FluxOrchestrationSystem
     configname: application.conf
+    maxTaskActorCreateRetries : -1
 
 task:
   maxTaskRetryCount: 10
@@ -104,13 +105,6 @@ Execution.Node.Api:
 routers:
   default:
     instancesPerNode: 5
-
-runtime:
-  actorsystem:
-    metrics: false
-    name: FluxExecutionSystem
-    configname: execution_akka.conf
-    maxTaskActorCreateRetries : -1
 
 flux.Orchestration.URL: "http://localhost:9998"
 deploymentType: directory

@@ -77,7 +77,7 @@ runtime:
   actorsystem:
     metrics: false
     name: FluxOrchestrationSystem
-    configname: application.conf
+    configname: orchestration_akka.conf
 
 task:
   maxTaskRetryCount: 10
