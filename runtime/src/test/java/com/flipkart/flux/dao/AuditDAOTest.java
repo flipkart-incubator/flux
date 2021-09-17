@@ -15,6 +15,8 @@ package com.flipkart.flux.dao;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.flipkart.flux.client.FluxClientComponentModule;
+import com.flipkart.flux.guice.module.ContainerModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,7 +44,7 @@ import com.flipkart.flux.runner.Modules;
  * @author kartik.bommepally
  */
 @RunWith(GuiceJunit4Runner.class)
-@Modules(orchestrationModules = {ShardModule.class, RuntimeTestModule.class, OrchestratorContainerModule.class, OrchestrationTaskModule.class, FluxClientInterceptorModule.class})
+@Modules(orchestrationModules = {ShardModule.class, RuntimeTestModule.class, OrchestratorContainerModule.class, OrchestrationTaskModule.class, FluxClientComponentModule.class, ContainerModule.class})
 public class AuditDAOTest {
 
     @InjectFromRole

@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
@@ -54,8 +55,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(GuiceJunit4Runner.class)
 @Modules(orchestrationModules = {ContainerModule.class, OrchestrationTaskModule.class, ShardModule.class,
-        RuntimeTestModule.class, OrchestratorContainerModule.class, FluxClientInterceptorModule.class}, executionModules = {
-        DeploymentUnitTestModule.class, AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class, FluxClientInterceptorModule.class})
+        RuntimeTestModule.class, OrchestratorContainerModule.class, FluxClientInterceptorModule.class, FluxClientComponentModule.class, ContainerModule.class},
+        executionModules = {DeploymentUnitTestModule.class, AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class, FluxClientInterceptorModule.class, ContainerModule.class,
+                FluxClientComponentModule.class})
 public class StateMachineResourceTest {
 
     @Rule

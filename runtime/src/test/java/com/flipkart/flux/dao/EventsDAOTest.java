@@ -18,6 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Collections;
 import java.util.LinkedList;
 
+import com.flipkart.flux.client.FluxClientComponentModule;
+import com.flipkart.flux.guice.module.ContainerModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,7 +52,7 @@ import com.flipkart.flux.util.TestUtils;
  */
 @RunWith(GuiceJunit4Runner.class)
 @Modules(orchestrationModules = {ShardModule.class, RuntimeTestModule.class, OrchestratorContainerModule.class,
-        OrchestrationTaskModule.class, FluxClientInterceptorModule.class})
+        OrchestrationTaskModule.class, FluxClientComponentModule.class, ContainerModule.class})
 public class EventsDAOTest {
 
     @InjectFromRole
