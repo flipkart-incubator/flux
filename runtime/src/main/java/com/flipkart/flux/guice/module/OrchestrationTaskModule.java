@@ -14,8 +14,6 @@
 
 package com.flipkart.flux.guice.module;
 
-import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
-import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
 import com.flipkart.flux.impl.eventscheduler.EventSchedulerRegistryImpl;
 import com.flipkart.flux.impl.redriver.RedriverRegistryImpl;
 import com.flipkart.flux.module.SchedulerModule;
@@ -39,7 +37,6 @@ public class OrchestrationTaskModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(FluxRuntimeConnector.class).to(FluxRuntimeConnectorHttpImpl.class).in(Singleton.class);
         bind(ExecutionNodeTaskDispatcher.class).to(ExecutionNodeTaskDispatcherImpl.class).in(Singleton.class);
         bind(RedriverRegistry.class).to(RedriverRegistryImpl.class);
         bind(EventSchedulerRegistry.class).to(EventSchedulerRegistryImpl.class);
