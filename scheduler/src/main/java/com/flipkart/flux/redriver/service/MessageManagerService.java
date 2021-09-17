@@ -81,8 +81,9 @@ public class MessageManagerService implements Initializable {
                 SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME), scheduledInsertionSvcName);
         scheduledDeletionService =
                 new InstrumentedScheduledExecutorService(Executors.newScheduledThreadPool(2), SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME), scheduledDeletionSvcName);
+        // append hashcode of this instance to the metrics name to avoid issues of duplicate names in metrics registry	
         persistenceExecutorService =
-                new InstrumentedExecutorService(Executors.newFixedThreadPool(noOfPersistenceWorkers), SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME), taskRegisterSvcName);
+                new InstrumentedExecutorService(Executors.newFixedThreadPool(noOfPersistenceWorkers), SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME), taskRegisterSvcName + this.hashCode());
     }
 
     public List<ScheduledMessage> retrieveOldest(int offset, int count) {
