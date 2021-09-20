@@ -1,19 +1,22 @@
 package com.flipkart.flux.resource;
 
-import com.flipkart.flux.api.ClientElbDefinition;
-import com.flipkart.flux.client.model.Task;
-import com.flipkart.flux.config.TaskRouterUtil;
-import com.flipkart.flux.deploymentunit.DeploymentUnit;
-import com.flipkart.flux.domain.ClientElb;
-import com.flipkart.flux.representation.ClientElbPersistenceService;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+import javax.ws.rs.core.Response;
+
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.ws.rs.core.Response;
-
-import static org.mockito.Mockito.*;
+import com.flipkart.flux.api.ClientElbDefinition;
+import com.flipkart.flux.domain.ClientElb;
+import com.flipkart.flux.representation.ClientElbPersistenceService;
 
 /**
  * @author akif.khan

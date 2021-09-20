@@ -293,7 +293,8 @@ public class StateMachineResourceTest {
         assertThat(eventSchedulerDao.retrieveOldest(1)).hasSize(0);
     }
 
-    @Test
+    @SuppressWarnings("unused")
+	@Test
     public void testPostScheduledEvent_withTriggerTimeInMilliSeconds() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
         Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();

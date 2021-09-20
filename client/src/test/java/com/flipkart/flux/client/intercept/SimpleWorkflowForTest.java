@@ -48,7 +48,8 @@ public class SimpleWorkflowForTest {
     }
 
     /* A simple workflow that goes about creating tasks and making merry. Sometimes both these fight over whose the merrier */
-    @Workflow(version = 1)
+    @SuppressWarnings("unused")
+	@Workflow(version = 1)
     public void simpleDummyWorkflowWithExternalEvent(IntegerEvent someInteger) {
         final StringEvent newString = waitForExternalEvent(null, someInteger);
         final StringEvent anotherString = waitForExternalEvent((StringEvent) null);
@@ -56,12 +57,14 @@ public class SimpleWorkflowForTest {
     }
 
     /* A simple workflow that takes in a parameter which carries a correlationId */
+    @SuppressWarnings("unused")
     @Workflow(version = 1)
     public void simpleDummyWorkflowWithCorrelationEvent(StringEventWithContext someString,IntegerEvent someInteger) {
         final IntegerEvent someNewInteger = simpleAdditionTask(someInteger);
     }
 
     /* A simple workflow that takes in variable number of params tasks and making merry */
+    @SuppressWarnings("unused")
     @Workflow(version = 1)
     public void simpleDummyWorkflow(StringEvent...stringEvents) {
         final StringEvent newString = simpleStringModifyingTask(stringEvents[0]);

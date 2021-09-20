@@ -240,13 +240,13 @@ public class StateMachineResource {
                         try {
                             eventProxyConnector.submitEvent(eventData.getName(), eventData.getData(), machineId, eventData.getEventSource());
                         } catch (Exception ex) {
-                            logger.error("Unable to forward event to old endpoint, error {}", ex.getStackTrace());
+                            logger.error("Unable to forward event to old endpoint, error {}", ex);
                         }
                     } else {
                         try {
                             eventProxyConnector.submitScheduledEvent(eventData.getName(), eventData.getData(), machineId, eventData.getEventSource(), triggerTime);
                         } catch (Exception ex) {
-                            logger.error("Unable to forward scheduled event to old endpoint, error {}", ex.getStackTrace());
+                            logger.error("Unable to forward scheduled event to old endpoint, error {}", ex);
                         }
                     }
                     return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity(

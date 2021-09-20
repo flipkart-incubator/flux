@@ -9,7 +9,8 @@ public class PaymentGatewayWF {
     @Inject
     private PaymentGatewayTasks paymentGatewayTasks;
 
-    @Workflow(version = 4)
+    @SuppressWarnings("unused")
+	@Workflow(version = 4)
     public void initPayment(EventTypeInteger x) {
 
         EventTypeInteger a = paymentGatewayTasks.paymentInit(x);

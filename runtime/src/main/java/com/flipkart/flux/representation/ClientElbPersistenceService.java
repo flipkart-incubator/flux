@@ -44,15 +44,12 @@ public class ClientElbPersistenceService {
 
     private LoadingCache<String, String> clientElbCache;
 
-    private Integer MAX_CACHE_SIZE;
-
     private static final Logger logger = LogManager.getLogger(ClientElbPersistenceService.class);
 
     @Inject
     public ClientElbPersistenceService(ClientElbDAO clientElbDAO,
                                        @Named("elbCache.maxSize") Integer MAX_CACHE_SIZE) {
         this.clientElbDAO = clientElbDAO;
-        this.MAX_CACHE_SIZE = MAX_CACHE_SIZE;
         this.clientElbCache = CacheBuilder.newBuilder().maximumSize(MAX_CACHE_SIZE)
                 .expireAfterAccess(1, TimeUnit.DAYS)
                 .build(new CacheLoader<String, String>() {
