@@ -69,7 +69,8 @@ public class WorkflowExecutionDemo {
      *                       @see flux/examples/src/main/resources/flux_config.yml for example.
      * @throws Exception
      */
-    private static void runExample(String moduleName, String workflowClassFQN, String configFileName, String mavenPath) throws Exception {
+    @SuppressWarnings("rawtypes")
+	private static void runExample(String moduleName, String workflowClassFQN, String configFileName, String mavenPath) throws Exception {
 
         //copy dependencies to module's target directory
         executeCommand(mavenPath+" -pl " + moduleName + " -q package dependency:copy-dependencies -DincludeScope=runtime -DskipTests");

@@ -32,7 +32,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.omg.CORBA.OBJ_ADAPTER;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Method;
@@ -84,7 +83,8 @@ public class TaskInterceptorTest {
                 new MethodId(invokedMethod).toString()+_VERSION+"1", 2l, 2000l, expectedDependency, expectedOutput);
     }
 
-    @Test
+    @SuppressWarnings("serial")
+	@Test
     public void testInterception_shouldSubmitNewState_methodWithTwoParam() throws Throwable {
         setupMockLocalContext();
 
@@ -160,7 +160,8 @@ public class TaskInterceptorTest {
         taskInterceptor.invoke(dummyInvocation);
     }
 
-    @Test
+    @SuppressWarnings("serial")
+	@Test
     public void testRegisterExternalEventsWithTheirGivenName() throws Throwable {
         /* setup */
         setupMockLocalContext();

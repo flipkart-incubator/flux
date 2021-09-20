@@ -18,6 +18,7 @@ import java.io.Serializable;
  * Data holder for Task Redriver message 
  * @author regunath.balasubramanian
  */
+@SuppressWarnings("serial")
 public class TaskRedriverDetails implements Serializable {
 	
 	/** Permitted actions*/

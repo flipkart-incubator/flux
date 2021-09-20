@@ -163,7 +163,6 @@ public class WorkFlowExecutionControllerTest {
         final EventData testEventData = new EventData("event0", "java.lang.String", "42", "runtime");
 
         when(eventsDAO.findBySMIdAndName("standard-machine", "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, "1", null, null));
-        EventData[] expectedEvents = new EventData[]{new EventData("event0", "java.lang.String", "42", "runtime")};
         when(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId("standard-machine")).thenReturn(Collections.singletonList("event0"));
         when(executionNodeTaskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(Response.Status.ACCEPTED.getStatusCode());
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
@@ -182,11 +181,9 @@ public class WorkFlowExecutionControllerTest {
         final EventData testEventData = new EventData("event0", "java.lang.String", "42", "runtime");
 
         when(eventsDAO.findBySMIdAndName("standard-machine", "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, "1", null, null));
-        EventData[] expectedEvents = new EventData[]{new EventData("event0", "java.lang.String", "42", "runtime")};
         when(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId("standard-machine")).thenReturn(Collections.singletonList("event0"));
         when(executionNodeTaskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(Response.Status.ACCEPTED.getStatusCode());
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
-        StateMachine stateMachine = stateMachinesDAO.findById("standard-machine");
         State state = stateMachinesDAO.findById("standard-machine").getStates().stream().filter((s) -> s.getId() == 4L).findFirst().orElse(null);
 
         state.setStatus(Status.errored);
@@ -202,7 +199,6 @@ public class WorkFlowExecutionControllerTest {
         final EventData testEventData = new EventData("event0", "java.lang.String", "42", "runtime");
 
         when(eventsDAO.findBySMIdAndName("standard-machine", "event0")).thenReturn(new Event("event0", "java.lang.String", Event.EventStatus.pending, "1", null, null));
-        EventData[] expectedEvents = new EventData[]{testEventData};
         when(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId("standard-machine")).thenReturn(Collections.singletonList("event0"));
         when(executionNodeTaskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(Response.Status.ACCEPTED.getStatusCode());
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
@@ -215,7 +211,8 @@ public class WorkFlowExecutionControllerTest {
         verify(executionNodeTaskDispatcher, times(1)).forwardExecutionMessage(anyString(), anyObject());
     }
 
-    @Test
+    @SuppressWarnings("serial")
+	@Test
     public void testCancelPath_shouldCancelPathTillJoinNode() throws Exception {
 
         //setup the below state machine, and do cancel with event3, that should cancel till state3

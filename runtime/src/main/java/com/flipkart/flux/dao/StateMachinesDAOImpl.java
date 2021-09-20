@@ -56,7 +56,8 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     }
 
     // scatter gather query
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
     public Set<StateMachine> findByName(ShardId shardId, String stateMachineName) {
@@ -67,7 +68,8 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     }
 
     //Scatter gather query
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
     public Set<StateMachine> findByNameAndVersion(ShardId shardId, String stateMachineName, Long version) {

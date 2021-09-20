@@ -57,7 +57,8 @@ public interface StatesDAO {
      * Retrieves all errored states for a particular state machine name and the state machine creation time in
      * the given range fromTime and toTime.
      */
-    List findErroredStates(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime);
+    @SuppressWarnings("rawtypes")
+	List findErroredStates(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime);
 
     /**
      * Scatter gather query for slave shards
@@ -65,10 +66,12 @@ public interface StatesDAO {
      * the given range fromTime and toTime with optional taskName parameter.
      * If status list is empty/null, returns all tasks.
      */
-    List findStatesByStatus(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime, String taskName, List<Status> statuses);
+    @SuppressWarnings("rawtypes")
+	List findStatesByStatus(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime, String taskName, List<Status> statuses);
 
     /**
      * Retrieves all states for a particular state-machine-id and like input dependent-event-name.
      */
-    List findStatesByDependentEvent(String stateMachineId, String eventName);
+    @SuppressWarnings("rawtypes")
+	List findStatesByDependentEvent(String stateMachineId, String eventName);
 }

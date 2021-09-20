@@ -18,6 +18,7 @@ package com.flipkart.flux.registry;
  * Ex: Thrown from {@link TaskExecutableRegistryImpl} if the task is missing in it's identifierToMethodMap.
  * @author shyam.akirala
  */
+@SuppressWarnings("serial")
 public class TaskNotFoundException extends RuntimeException {
     public TaskNotFoundException(String message) {
         super(message);

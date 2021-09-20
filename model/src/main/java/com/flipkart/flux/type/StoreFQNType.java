@@ -29,13 +29,15 @@ import java.sql.Types;
  *
  * @author shyam.akirala
  */
+@SuppressWarnings("serial")
 public class StoreFQNType implements UserType, Serializable {
     @Override
     public int[] sqlTypes() {
         return new int[]{Types.JAVA_OBJECT};
     }
 
-    @Override
+    @SuppressWarnings("rawtypes")
+	@Override
     public Class returnedClass() {
         return Object.class;
     }
@@ -109,7 +111,8 @@ public class StoreFQNType implements UserType, Serializable {
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
-    public Object constructObject(String value) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+    @SuppressWarnings("rawtypes")
+	public Object constructObject(String value) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
         Class c = Class.forName(value);
         return c.newInstance();
     }

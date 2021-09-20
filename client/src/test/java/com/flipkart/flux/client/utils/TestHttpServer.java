@@ -32,7 +32,8 @@ import java.util.Set;
 public class TestHttpServer extends ExternalResource {
 
     public static final int TEST_HTTP_SERVER_PORT = 9091;
-    private final Server httpServer;
+    @SuppressWarnings("unused")
+	private final Server httpServer;
     private final Map<Class<? extends TestResource>,TestResource> testResourceMap;
 
     @Inject

@@ -378,7 +378,8 @@ public class StateMachineResourceTest {
         }
     }
 
-    private void testEventUpdate_IneligibleTaskStatus_Util(HttpResponse<String> smCreationResponse) throws Exception {
+    @SuppressWarnings("unused")
+	private void testEventUpdate_IneligibleTaskStatus_Util(HttpResponse<String> smCreationResponse) throws Exception {
         String eventJson1 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
         String eventJson2 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
                 "updated_event_data.json"));

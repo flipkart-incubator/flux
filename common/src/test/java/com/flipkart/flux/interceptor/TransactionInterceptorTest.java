@@ -40,9 +40,9 @@ public class TransactionInterceptorTest {
     @Test
     public void testTransactionInterceptorWithSessionFactoryContext() {
 
-        final Map RWSessionFactoryMap = new HashMap<ShardId, SessionFactory>();
-        final Map ROSessionFactoryMap = new HashMap<ShardId, SessionFactory>();
-        final Map shardStringToShardIdMap = new HashMap<String, ShardId>();
+        final Map<ShardId, SessionFactory> RWSessionFactoryMap = new HashMap<ShardId, SessionFactory>();
+        final Map<ShardId, SessionFactory> ROSessionFactoryMap = new HashMap<ShardId, SessionFactory>();
+        final Map<String, ShardId> shardStringToShardIdMap = new HashMap<String, ShardId>();
         final SessionFactory schedulerSessionFactory;
 
 

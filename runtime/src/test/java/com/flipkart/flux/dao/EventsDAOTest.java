@@ -18,8 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Collections;
 import java.util.LinkedList;
 
-import com.flipkart.flux.client.FluxClientComponentModule;
-import com.flipkart.flux.guice.module.ContainerModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,11 +27,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.client.FluxClientInterceptorModule;
+import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.OrchestrationTaskModule;
 import com.flipkart.flux.guice.module.OrchestratorContainerModule;
 import com.flipkart.flux.guice.module.ShardModule;
@@ -83,7 +82,8 @@ public class EventsDAOTest {
         assertThat(event1).isEqualTo(event);
     }
 
-    @Test
+    @SuppressWarnings("serial")
+	@Test
     public void testRetrieveByEventNamesAndSmId() throws Exception {
         final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
         stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);

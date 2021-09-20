@@ -14,7 +14,6 @@
 package com.flipkart.flux.controller;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -377,6 +376,9 @@ public class WorkFlowExecutionController {
                 break;
             case sidelined:
                 updateStatus = com.flipkart.flux.domain.Status.sidelined;
+                break;
+            case unsidelined:
+                updateStatus = com.flipkart.flux.domain.Status.unsidelined;
                 break;
         }
         metricsClient.markMeter(new StringBuilder().
