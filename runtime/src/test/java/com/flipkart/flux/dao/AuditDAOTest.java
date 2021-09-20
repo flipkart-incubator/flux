@@ -15,20 +15,19 @@ package com.flipkart.flux.dao;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.flipkart.flux.client.FluxClientComponentModule;
-import com.flipkart.flux.guice.module.ContainerModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.flipkart.flux.InjectFromRole;
-import com.flipkart.flux.client.FluxClientInterceptorModule;
+import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.OrchestrationTaskModule;
 import com.flipkart.flux.guice.module.OrchestratorContainerModule;
 import com.flipkart.flux.guice.module.ShardModule;

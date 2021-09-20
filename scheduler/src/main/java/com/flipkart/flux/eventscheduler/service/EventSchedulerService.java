@@ -51,7 +51,7 @@ public class EventSchedulerService {
     private Integer batchReadInterval;
     private Integer batchSize;
     private Long initialDelay = 10000L;
-    private ScheduledFuture scheduledFuture;
+    private ScheduledFuture<?> scheduledFuture;
     private EventSchedulerDao eventSchedulerDao;
     private final EventSchedulerRegistry eventSchedulerRegistry;
     private final InstrumentedScheduledExecutorService scheduledExecutorService;

@@ -14,11 +14,13 @@
 
 package com.flipkart.flux.taskDispatcher;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.core.TaskExecutionMessage;
-import com.flipkart.flux.metrics.iface.MetricsClient;
-import com.google.inject.Inject;
-import com.google.inject.Provides;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
+import javax.inject.Named;
+import javax.inject.Singleton;
+import javax.ws.rs.core.Response;
+
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -32,11 +34,10 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
-import javax.ws.rs.core.Response;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.core.TaskExecutionMessage;
+import com.flipkart.flux.metrics.iface.MetricsClient;
+import com.google.inject.Inject;
 
 @Singleton
 public class ExecutionNodeTaskDispatcherImpl implements ExecutionNodeTaskDispatcher {

@@ -63,7 +63,8 @@ public class E2EWorkflowTest {
     ExecutableRegistry executableRegistry;
 
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     public void test_e2eSubmissionOfAWorkflow() throws Exception {
         simpleWorkflowForTest.simpleDummyWorkflow(new StringEvent("String one"),new IntegerEvent(2));
         /* verify submission to flux runtime */

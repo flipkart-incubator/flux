@@ -62,7 +62,8 @@ public class LocalJvmTask extends AbstractTask {
         return (int) toInvoke.getTimeout(); // TODO - fix this. Let all timeouts be in int
     }
 
-    @Override
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
     public Pair<Object, FluxError> execute(EventData[] events) {
         Object[] parameters = new Object[events.length];
         Class<?>[] parameterTypes = toInvoke.getParameterTypes();

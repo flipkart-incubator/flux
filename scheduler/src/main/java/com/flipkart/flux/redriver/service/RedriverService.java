@@ -52,7 +52,7 @@ public class RedriverService {
     private Integer batchSize;
     private Long initialDelay = 10000L;
     private MessageManagerService messageService;
-    private ScheduledFuture scheduledFuture;
+    private ScheduledFuture<?> scheduledFuture;
     private final RedriverRegistry redriverRegistry;
 
     private final InstrumentedScheduledExecutorService scheduledExecutorService;

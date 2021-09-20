@@ -28,7 +28,8 @@ import java.lang.reflect.Method;
  */
 public abstract class ProxyEventCallbackFilter extends CallbackHelper {
 
-    public ProxyEventCallbackFilter(Class<?> superclass, Class[] interfaces) {
+    @SuppressWarnings("rawtypes")
+	public ProxyEventCallbackFilter(Class<?> superclass, Class[] interfaces) {
         super(superclass, interfaces);
     }
 

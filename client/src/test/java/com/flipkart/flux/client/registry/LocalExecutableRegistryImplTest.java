@@ -73,7 +73,8 @@ public class LocalExecutableRegistryImplTest {
         assertThat(localExecutableRegistry.getTask("fooBar")).isEqualTo(givenExecutable);
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     public void testTaskRetrieval_shouldTryToRetrieveNonRegisteredMethods() throws Exception {
         /* Test Setup */
         when(injector.getInstance(any(Class.class))).thenReturn(simpleWorkflowForTest);
@@ -91,6 +92,7 @@ public class LocalExecutableRegistryImplTest {
         localExecutableRegistry.getTask("com.Foo.NonExistent.Class_someMethodName_com.Foo.NonExistant.SomeReturnType_version1");
     }
 
+    @SuppressWarnings("unchecked")
     @Test(expected = UnknownIdentifierException.class)
     public void testTaskRetrieval_shouldBombOnIncorrectSignatures() throws Exception {
         /* Test Setup */
@@ -100,6 +102,7 @@ public class LocalExecutableRegistryImplTest {
         localExecutableRegistry.getTask("com.flipkart.flux.client.intercept.SimpleWorkflowForTest_simpleStringModifyingTask_java.lang.String_java.lang.String_java.lang.String");
     }
 
+    @SuppressWarnings("unchecked")
     @Test(expected = UnknownIdentifierException.class)
     public void testTaskRetrieval_shouldBombOnIncorrectMethodNames() throws Exception {
         final SimpleWorkflowForTest mockSimpleWorkflow = new SimpleWorkflowForTest();

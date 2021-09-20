@@ -61,7 +61,8 @@ public class EventSchedulerDao {
      *
      * @param rowCount
      */
-    @Transactional
+    @SuppressWarnings("unchecked")
+	@Transactional
     @SelectDataSource(storage = Storage.SCHEDULER)
     public List<ScheduledEvent> retrieveOldest(int rowCount) {
         return currentSession()

@@ -9,7 +9,8 @@ public class BenchmarkWorkFlowAExtended {
     @Inject
     private ArithmeticOperationsExtended arithmeticOperationsExtended;
 
-    @Workflow(version = 1)
+    @SuppressWarnings("unused")
+	@Workflow(version = 1)
     public void initAExtended(EventTypeInteger x) {
         EventTypeInteger first = arithmeticOperationsExtended.randomE(x);
         EventTypeInteger second = arithmeticOperationsExtended.randomE(x);

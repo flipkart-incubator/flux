@@ -80,7 +80,8 @@ public class MessageDao {
      * @param offset
      * @param rowCount
      */
-    @Transactional
+    @SuppressWarnings("unchecked")
+	@Transactional
     @SelectDataSource(storage = Storage.SCHEDULER)
     public List<ScheduledMessage> retrieveOldest(int offset, int rowCount) {
         return currentSession()

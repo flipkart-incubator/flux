@@ -9,7 +9,8 @@ public class BenchmarkWorkflowLatentSimulation {
     @Inject
     private LatentArithmeticOperations latentArithmeticOperations;
 
-    @Workflow(version = 1)
+    @SuppressWarnings("unused")
+	@Workflow(version = 1)
     public void initLatent(EventTypeInteger x) {
         EventTypeInteger first = latentArithmeticOperations.randomLatent(x);
         EventTypeInteger second = latentArithmeticOperations.randomLatent(x);

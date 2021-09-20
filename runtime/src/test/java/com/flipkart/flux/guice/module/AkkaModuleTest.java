@@ -13,9 +13,13 @@
 
 package com.flipkart.flux.guice.module;
 
-import com.flipkart.flux.config.TaskRouterUtil;
-import com.flipkart.flux.deploymentunit.DeploymentUnit;
-import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
+import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.Map;
+
 import org.apache.commons.configuration.Configuration;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,13 +27,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import com.flipkart.flux.config.TaskRouterUtil;
+import com.flipkart.flux.deploymentunit.DeploymentUnit;
+import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 
 /**
  * @author shyam.akirala
@@ -57,9 +57,6 @@ public class AkkaModuleTest {
     public void testGetRouterConfigurations_shouldGetConcurrencyValueFromConfigFile() throws Exception {
         when(configuration.getProperty("com.flipkart.flux.integration.SimpleWorkflow_simpleIntegerReturningTask.executionConcurrency")).thenReturn(5);
         when(deploymentUnit.getTaskConfiguration()).thenReturn(configuration);
-        Map<String, DeploymentUnit> deploymentUnitsMap = new HashMap<String, DeploymentUnit>(){{
-            put("DeploymentUnit1", deploymentUnit);
-        }};
         int defaultNoOfActors = 10;
 
         Class simpleWorkflowClass = this.getClass().getClassLoader().loadClass("com.flipkart.flux.integration.SimpleWorkflow");
@@ -75,9 +72,6 @@ public class AkkaModuleTest {
     @Test
     public void testGetRouterConfigurations_shouldUseDefaultConcurrentValue() throws Exception {
         when(deploymentUnit.getTaskConfiguration()).thenReturn(configuration);
-        Map<String, DeploymentUnit> deploymentUnitsMap = new HashMap<String, DeploymentUnit>(){{
-            put("DeploymentUnit1", deploymentUnit);
-        }};
         int defaultNoOfActors = 10;
 
         Class simpleWorkflowClass = this.getClass().getClassLoader().loadClass("com.flipkart.flux.integration.SimpleWorkflow");

@@ -1,18 +1,10 @@
 package com.flipkart.flux.resource;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.actor.Terminated;
-import akka.testkit.TestActorRef;
-import akka.testkit.TestProbe;
-import com.flipkart.flux.MockActorRef;
-import com.flipkart.flux.api.core.TaskExecutionMessage;
-import com.flipkart.flux.impl.task.registry.RouterRegistry;
-import com.flipkart.flux.metrics.iface.MetricsClient;
-import com.flipkart.flux.util.TestUtils;
-import com.typesafe.config.ConfigFactory;
-import org.aspectj.lang.annotation.After;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -21,10 +13,18 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
+import com.flipkart.flux.MockActorRef;
+import com.flipkart.flux.api.core.TaskExecutionMessage;
+import com.flipkart.flux.impl.task.registry.RouterRegistry;
+import com.flipkart.flux.metrics.iface.MetricsClient;
+import com.flipkart.flux.util.TestUtils;
+import com.typesafe.config.ConfigFactory;
 
-import static org.mockito.Mockito.*;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.actor.Terminated;
+import akka.testkit.TestActorRef;
+import akka.testkit.TestProbe;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExecutionApiResourceTest {

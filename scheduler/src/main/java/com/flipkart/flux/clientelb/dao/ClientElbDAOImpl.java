@@ -13,21 +13,20 @@
 
 package com.flipkart.flux.clientelb.dao;
 
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+
+import org.hibernate.Criteria;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.criterion.Restrictions;
+
 import com.flipkart.flux.clientelb.dao.iface.ClientElbDAO;
 import com.flipkart.flux.domain.ClientElb;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.Storage;
 import com.google.inject.name.Named;
-import org.hibernate.Criteria;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
-
-import javax.inject.Inject;
-import javax.transaction.Transactional;
-import java.util.List;
 
 /**
  * <code>ClientElbDAOImpl</code> is an implementation of {@link ClientElbDAO} which uses Hibernate to perform

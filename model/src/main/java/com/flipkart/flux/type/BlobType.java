@@ -35,7 +35,7 @@ public class BlobType implements UserType, Serializable {
     }
 
     @Override
-    public Class returnedClass() {
+    public Class<?> returnedClass() {
         return Object.class;
     }
 

@@ -51,7 +51,6 @@ public class MessageManagerService implements Initializable {
     private static final String scheduledDeletionSvcName = "redriver-batch-delete-executor-svc";
     private static final String taskRegisterSvcName = "redriver-task-register-executor-svc";
     private static final String scheduledInsertionSvcName = "redriver-batch-insertion-executer-svc";
-    private static final String scheduledDeletionSvcFailureCounter = "scheduled.deletion.failure.counter";
     private final MessageDao messageDao;
     private final Integer batchDeleteInterval;
     private final Integer batchDeleteSize;
@@ -106,7 +105,7 @@ public class MessageManagerService implements Initializable {
         scheduledDeletionService.scheduleAtFixedRate(() -> {
             try {
                 SmIdAndTaskIdPair currentMessageIdToDelete = null;
-                List messageIdsToDelete = new ArrayList<SmIdAndTaskIdPair>(batchDeleteSize);
+                List<SmIdAndTaskIdPair> messageIdsToDelete = new ArrayList<SmIdAndTaskIdPair>(batchDeleteSize);
                 while (messageIdsToDelete.size() < batchDeleteSize && (currentMessageIdToDelete = messagesToDelete.poll()) != null) {
                     messageIdsToDelete.add(currentMessageIdToDelete);
                 }
@@ -123,7 +122,7 @@ public class MessageManagerService implements Initializable {
         scheduledInsertionService.scheduleAtFixedRate(() -> {
             try {
                 ScheduledMessage currentMessageIdToInsert = null;
-                List messagesToInsert = new ArrayList<ScheduledMessage>(batchInsertSize);
+                List<ScheduledMessage> messagesToInsert = new ArrayList<ScheduledMessage>(batchInsertSize);
                 while (messagesToInsert.size() < batchInsertSize && (currentMessageIdToInsert = messagesToInsertOrUpdate.poll()) != null) {
                     messagesToInsert.add(currentMessageIdToInsert);
                 }

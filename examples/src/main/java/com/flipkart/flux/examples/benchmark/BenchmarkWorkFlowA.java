@@ -9,7 +9,8 @@ public class BenchmarkWorkFlowA {
     @Inject
     private ArithmeticOperations arithmeticOperations;
 
-    @Workflow(version = 1)
+    @SuppressWarnings("unused")
+	@Workflow(version = 1)
     public void initA(EventTypeInteger x) {
         EventTypeInteger first = arithmeticOperations.random(x);
         EventTypeInteger second = arithmeticOperations.random(x);

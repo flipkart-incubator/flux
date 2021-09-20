@@ -43,7 +43,7 @@ public class ClientElb {
      */
     private Timestamp createdAt;
 
-    /**
+	/**
      * Time at which this Client ELB has been last updated
      */
     private Timestamp updatedAt;
@@ -65,14 +65,24 @@ public class ClientElb {
     public String getId() {
         return id;
     }
-
     public String getElbUrl() {
         return elbUrl;
     }
-
     public void setElbUrl(String elbUrl) {
         this.elbUrl = elbUrl;
     }
+    public Timestamp getCreatedAt() {
+		return createdAt;
+	}
+	public void setCreatedAt(Timestamp createdAt) {
+		this.createdAt = createdAt;
+	}
+	public Timestamp getUpdatedAt() {
+		return updatedAt;
+	}
+	public void setUpdatedAt(Timestamp updatedAt) {
+		this.updatedAt = updatedAt;
+	}
 
     @Override
     public boolean equals(Object o) {

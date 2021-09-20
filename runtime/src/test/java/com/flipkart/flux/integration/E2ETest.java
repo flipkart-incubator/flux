@@ -44,7 +44,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.inject.Inject;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -173,7 +172,6 @@ public class E2ETest {
             redriverRegistry.registerTask(i * 1L, "smId", 0);
         for(int i = 1; i <= 100 ; i++)
             redriverRegistry.registerTask( 1000L + i, "smId",  (i*10000000L));
-        Long total  = messageDao.redriverCount();
         try {
             Thread.sleep(12000);
         }

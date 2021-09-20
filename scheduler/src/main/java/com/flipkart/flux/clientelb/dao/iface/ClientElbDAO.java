@@ -15,8 +15,6 @@ package com.flipkart.flux.clientelb.dao.iface;
 
 import com.flipkart.flux.domain.ClientElb;
 
-import java.util.List;
-
 /**
  * <code>ClientElbDAO</code> is an interface to perform
  *  CRUD operations on Client Elb DB table
