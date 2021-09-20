@@ -355,7 +355,6 @@ public class State {
     /**
      * <code>StatePK</code> is the composite primary key of "State" table in DB.
      */
-    @SuppressWarnings("serial")
 	static class StatePK implements Serializable {
 
         private Long id;

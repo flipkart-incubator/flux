@@ -90,7 +90,6 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         return super.findByCompositeIdFromStateTable(State.class, stateMachineId, id);
     }
 
-    @SuppressWarnings("rawtypes")
 	@Transactional
     @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
     public List findErroredStates(ShardId shardId, String stateMachineName, Timestamp fromTime, Timestamp toTime) {
@@ -99,7 +98,6 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         return findStatesByStatus(shardId, stateMachineName, fromTime, toTime, null, statuses);
     }
 
-    @SuppressWarnings("rawtypes")
 	@Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
@@ -131,7 +129,6 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         return query.list();
     }
 
-    @SuppressWarnings("rawtypes")
 	@Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)

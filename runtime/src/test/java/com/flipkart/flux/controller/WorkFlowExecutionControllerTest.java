@@ -211,7 +211,6 @@ public class WorkFlowExecutionControllerTest {
         verify(executionNodeTaskDispatcher, times(1)).forwardExecutionMessage(anyString(), anyObject());
     }
 
-    @SuppressWarnings("serial")
 	@Test
     public void testCancelPath_shouldCancelPathTillJoinNode() throws Exception {
 

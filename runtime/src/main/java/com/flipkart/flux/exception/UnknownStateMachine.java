@@ -17,7 +17,6 @@ package com.flipkart.flux.exception;
  * <code>UnknownStateMachine</code> used to denote an illegal state machine.
  * @author shyam.akirala
  */
-@SuppressWarnings("serial")
 public class UnknownStateMachine extends RuntimeException {
     public UnknownStateMachine(String message) {
         super(message);

@@ -29,7 +29,6 @@ public class TestUtils {
 
     public static String routerName = "someRandomRouterName";
 
-    @SuppressWarnings("serial")
 	public static StateMachine getStandardTestMachine() throws Exception {
         String stateMachineId = "magic_number_1";
         List<String> state3Events = new LinkedList<String>() {{
@@ -56,7 +55,6 @@ public class TestUtils {
     /**
      * Returns a dummy State machine with states which have the Id's set
      */
-    @SuppressWarnings("serial")
 	public static StateMachine getStandardTestMachineWithId() throws Exception {
         String stateMachineId = "standard-machine";
         List<String> state3Events = new LinkedList<String>() {{
@@ -85,7 +83,6 @@ public class TestUtils {
         return stateMachine;
     }
 
-    @SuppressWarnings("rawtypes")
 	public static EventDefinition getOutputEvent(String name, Class clazz) {
         return new EventDefinition(name, clazz.getCanonicalName());
     }

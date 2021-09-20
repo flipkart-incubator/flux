@@ -56,7 +56,6 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     }
 
     // scatter gather query
-    @SuppressWarnings("unchecked")
 	@Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
@@ -68,7 +67,6 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     }
 
     //Scatter gather query
-    @SuppressWarnings("unchecked")
 	@Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)

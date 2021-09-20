@@ -82,7 +82,6 @@ public class EventsDAOTest {
         assertThat(event1).isEqualTo(event);
     }
 
-    @SuppressWarnings("serial")
 	@Test
     public void testRetrieveByEventNamesAndSmId() throws Exception {
         final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();

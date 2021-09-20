@@ -29,7 +29,6 @@ import java.sql.Types;
  *
  * @author shyam.akirala
  */
-@SuppressWarnings("serial")
 public class StoreFQNType implements UserType, Serializable {
     @Override
     public int[] sqlTypes() {

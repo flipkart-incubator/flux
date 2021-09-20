@@ -83,7 +83,6 @@ public class TaskInterceptorTest {
                 new MethodId(invokedMethod).toString()+_VERSION+"1", 2l, 2000l, expectedDependency, expectedOutput);
     }
 
-    @SuppressWarnings("serial")
 	@Test
     public void testInterception_shouldSubmitNewState_methodWithTwoParam() throws Throwable {
         setupMockLocalContext();
@@ -160,7 +159,6 @@ public class TaskInterceptorTest {
         taskInterceptor.invoke(dummyInvocation);
     }
 
-    @SuppressWarnings("serial")
 	@Test
     public void testRegisterExternalEventsWithTheirGivenName() throws Throwable {
         /* setup */

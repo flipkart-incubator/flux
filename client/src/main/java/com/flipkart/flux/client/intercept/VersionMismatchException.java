@@ -17,7 +17,6 @@ package com.flipkart.flux.client.intercept;
  * <code>VersionMismatchException</code> indicates mismatch between state machine and state versions.
  * @author shyam.akirala
  */
-@SuppressWarnings("serial")
 public class VersionMismatchException extends RuntimeException {
     public VersionMismatchException(String message) {
         super(message);
