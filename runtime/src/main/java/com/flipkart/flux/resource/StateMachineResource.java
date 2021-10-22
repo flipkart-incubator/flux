@@ -13,47 +13,10 @@
 
 package com.flipkart.flux.resource;
 
-import static com.flipkart.flux.constant.RuntimeConstants.DEFAULT_ELB_ID;
-
-import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
-import javax.transaction.Transactional;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.hibernate.exception.ConstraintViolationException;
-
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.EventAndExecutionData;
-import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.EventDefinition;
-import com.flipkart.flux.api.ExecutionUpdateData;
-import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.api.*;
 import com.flipkart.flux.client.runtime.EventProxyConnector;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
 import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
@@ -61,11 +24,7 @@ import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
-import com.flipkart.flux.domain.AuditRecord;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.State;
-import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.domain.StateMachineStatus;
+import com.flipkart.flux.domain.*;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.impl.RAMContext;
@@ -78,6 +37,22 @@ import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
 import com.flipkart.flux.utils.LoggingUtils;
 import com.google.inject.Inject;
+import org.hibernate.exception.ConstraintViolationException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.inject.Named;
+import javax.inject.Singleton;
+import javax.transaction.Transactional;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.flipkart.flux.constant.RuntimeConstants.DEFAULT_ELB_ID;
 
 /**
  * <code>StateMachineResource</code> exposes APIs to perform state machine related operations. Ex: Creating SM, receiving event for a SM
@@ -160,11 +135,11 @@ public class StateMachineResource {
     @Timed
     public Response createStateMachine(StateMachineDefinition stateMachineDefinition) throws Exception {
 
-        if (stateMachineDefinition == null) {
+        if (stateMachineDefinition == null)
             throw new IllegalRepresentationException("State machine definition is empty");
-        }
 
-        StateMachine stateMachine = null;
+        StateMachine stateMachine = null, stateMachine1 = null;
+
 
         final String stateMachineInstanceId;
         if (stateMachineDefinition.getCorrelationId() != null && !stateMachineDefinition.getCorrelationId().isEmpty()) {
@@ -184,11 +159,22 @@ public class StateMachineResource {
                     append(stateMachine.getName()).
                     append(".started").toString());
         } catch (ConstraintViolationException ex) {
-            //in case of Duplicate correlation key, return http code 409 conflict
-            return Response.status(Response.Status.CONFLICT.getStatusCode()).entity(ex.getCause() != null ? ex.getCause().getMessage() : null).build();
+            //In case of Duplicate correlation key, return http code 409 conflict
+            stateMachine1 = stateMachinesDAO.findById(stateMachineInstanceId);
+            if (stateMachine1 != null) {
+                return Response.status(Response.Status.CONFLICT.getStatusCode()).entity(
+                        ex.getCause() != null ? ex.getCause().getMessage() : null).build();
+
+            }
+            logger.error("Constraint Violation during creating or initiating StateMachine" +
+                    " with id {} {}", stateMachineInstanceId, ex.getStackTrace());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).entity(
+                    ex.getCause() != null ? ex.getCause().getMessage() : null).build();
+
         } catch (Exception ex) {
             logger.error("Failed During Creating or Initiating StateMachine with id {} {}", stateMachineInstanceId, ex.getStackTrace());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).entity(ex.getCause() != null ? ex.getCause().getMessage() : null).build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).entity(
+                    ex.getCause() != null ? ex.getCause().getMessage() : null).build();
         }
 
         return Response.status(Response.Status.CREATED.getStatusCode()).entity(stateMachine.getId()).build();
@@ -207,7 +193,8 @@ public class StateMachineResource {
             // 2. initialize and start State Machine
             workFlowExecutionController.initAndStart(stateMachine);
             return stateMachine;
-        } finally {
+        }
+        finally {
             LoggingUtils.deRegisterStateMachineIdForLogging();
         }
     }
@@ -242,6 +229,7 @@ public class StateMachineResource {
                         } catch (Exception ex) {
                             logger.error("Unable to forward event to old endpoint, error {}", ex);
                         }
+
                     } else {
                         try {
                             eventProxyConnector.submitScheduledEvent(eventData.getName(), eventData.getData(), machineId, eventData.getEventSource(), triggerTime);
@@ -249,8 +237,7 @@ public class StateMachineResource {
                             logger.error("Unable to forward scheduled event to old endpoint, error {}", ex);
                         }
                     }
-                    return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity(
-                            "State Machine with Id: " + machineId + " not found on this cluster. Forwarding the event to the old cluster").build();
+                    return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State Machine with Id: " + machineId + " not found on this cluster. Forwarding the event to the old cluster").build();
                 } else {
                     logger.error("StateMachine not found with id: {}, rejecting the event", machineId);
                     return Response.status(Response.Status.NOT_FOUND).entity("StateMachine not found with id: " + machineId + ", rejecting the event").build();
@@ -261,6 +248,7 @@ public class StateMachineResource {
                 logger.info("Discarding event: {} as State machine: {} is in cancelled state", eventData.getName(), stateMachine.getId());
                 return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: " + stateMachine.getId() + " is in 'cancelled' state. Discarding the event.").build();
             }
+
 
             if (triggerTime == null) {
                 logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
@@ -276,14 +264,12 @@ public class StateMachineResource {
                 }
             } else {
                 logger.info("Received event: {} for state machine: {} with triggerTime: {}", eventData.getName(), machineId, triggerTime);
-                if (searchField == null || !searchField.equals(CORRELATION_ID)) {
+                if (searchField == null || !searchField.equals(CORRELATION_ID))
                     return Response.status(Response.Status.BAD_REQUEST).entity("searchField=correlationId is missing in the request").build();
-                }
 
                 //if trigger time is more than below value, it means the value has been passed in milliseconds, convert it to seconds and register
-                if (triggerTime > 9999999999L) {
+                if (triggerTime > 9999999999L)
                     triggerTime = triggerTime / 1000;
-                }
                 eventSchedulerRegistry.registerEvent(machineId, eventData.getName(), objectMapper.writeValueAsString(eventData), triggerTime);
                 return Response.status(Response.Status.ACCEPTED).build();
             }
@@ -329,6 +315,7 @@ public class StateMachineResource {
         }
         return Response.status(Response.Status.ACCEPTED).build();
     }
+
 
     /**
      * Update EventData of the specified Event name under the specified State machine
@@ -421,6 +408,7 @@ public class StateMachineResource {
         this.workFlowExecutionController.updateTaskStatus(machineId, stateId, executionUpdateData);
         return Response.status(Response.Status.ACCEPTED).build();
     }
+
 
     /**
      * Increments the retry count for the specified Task under the specified State machine
@@ -528,8 +516,7 @@ public class StateMachineResource {
                 try {
                     statuses.add(Status.valueOf(status));
                 } catch (IllegalArgumentException e) {
-                    return Response.status(Response.Status.BAD_REQUEST).entity(
-                            "status: " + status + " must be one of initialized, running, completed, cancelled, errored, sidelined, unsidelined").build();
+                    return Response.status(Response.Status.BAD_REQUEST).entity("status: " + status + " must be one of initialized, running, completed, cancelled, errored, sidelined, unsidelined").build();
                 }
             }
         }
@@ -663,8 +650,7 @@ public class StateMachineResource {
         eventsGivenOnWorkflowTrigger.removeAll(allOutputEventNames);
         eventsGivenOnWorkflowTrigger.forEach((workflowTriggeredEventName) -> {
             final Event correspondingEvent = stateMachineEvents.get(workflowTriggeredEventName);
-            final FsmGraphEdge initEdge =
-                    new FsmGraphEdge(this.getEventDisplayName(workflowTriggeredEventName), correspondingEvent.getStatus().name(), correspondingEvent.getEventSource(), correspondingEvent.getEventData(), correspondingEvent.getUpdatedAt());
+            final FsmGraphEdge initEdge = new FsmGraphEdge(this.getEventDisplayName(workflowTriggeredEventName), correspondingEvent.getStatus().name(), correspondingEvent.getEventSource(), correspondingEvent.getEventData(), correspondingEvent.getUpdatedAt());
             final Set<State> dependantStates = ramContext.getDependantStates(workflowTriggeredEventName);
             dependantStates.forEach((state) -> initEdge.addOutgoingVertex(state.getId()));
             fsmGraph.addInitStateEdge(initEdge);
@@ -705,7 +691,7 @@ public class StateMachineResource {
                         "(?<=[^A-Z])(?=[A-Z])",
                         "(?<=[A-Za-z])(?=[^A-Za-z])"
                 ), " ");
-        StringBuilder sb = new StringBuilder();
+        StringBuffer sb = new StringBuffer();
         for (String s : words.split(" ")) {
             sb.append(Character.toUpperCase(s.charAt(0)));
             if (s.length() > 1) {
@@ -715,4 +701,5 @@ public class StateMachineResource {
         }
         return sb.toString().trim();
     }
+
 }

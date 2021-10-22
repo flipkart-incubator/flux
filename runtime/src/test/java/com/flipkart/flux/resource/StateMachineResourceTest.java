@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.api.StateMachineDefinition;
-import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
@@ -54,10 +53,9 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(GuiceJunit4Runner.class)
-@Modules(orchestrationModules = {ContainerModule.class, OrchestrationTaskModule.class, ShardModule.class,
-        RuntimeTestModule.class, OrchestratorContainerModule.class, FluxClientInterceptorModule.class, FluxClientComponentModule.class, ContainerModule.class},
-        executionModules = {DeploymentUnitTestModule.class, AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class, FluxClientInterceptorModule.class, ContainerModule.class,
-                FluxClientComponentModule.class})
+@Modules(orchestrationModules = {OrchestrationTaskModule.class, ShardModule.class,
+        RuntimeTestModule.class, ContainerModule.class, FluxClientInterceptorModule.class}, executionModules = {
+        DeploymentUnitTestModule.class, AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class, FluxClientInterceptorModule.class})
 public class StateMachineResourceTest {
 
     @Rule
@@ -184,6 +182,13 @@ public class StateMachineResourceTest {
         assertThat(parallelScatterGatherQueryHelper.findStateMachinesByName("test_state_machine")).hasSize(1);
         final HttpResponse<String> secondResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
         assertThat(secondResponse.getStatus()).isEqualTo(Response.Status.CONFLICT.getStatusCode());
+    }
+
+    @Test
+    public void testCreateStateMachine_shouldReturn5xxForNonDuplicateIdConstraintViolation() throws Exception {
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition_broken.json"));
+        final HttpResponse<String> response = Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
+        assertThat(response.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
