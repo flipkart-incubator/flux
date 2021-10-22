@@ -138,7 +138,7 @@ public class StateMachineResource {
         if (stateMachineDefinition == null)
             throw new IllegalRepresentationException("State machine definition is empty");
 
-        StateMachine stateMachine = null, stateMachine1 = null;
+        StateMachine stateMachine = null;
 
 
         final String stateMachineInstanceId;
@@ -160,14 +160,13 @@ public class StateMachineResource {
                     append(".started").toString());
         } catch (ConstraintViolationException ex) {
             //In case of Duplicate correlation key, return http code 409 conflict
-            stateMachine1 = stateMachinesDAO.findById(stateMachineInstanceId);
-            if (stateMachine1 != null) {
+            if (ex.getCause().getMessage().contains("Duplicate entry")) {
                 return Response.status(Response.Status.CONFLICT.getStatusCode()).entity(
                         ex.getCause() != null ? ex.getCause().getMessage() : null).build();
 
             }
             logger.error("Constraint Violation during creating or initiating StateMachine" +
-                    " with id {} {}", stateMachineInstanceId, ex.getStackTrace());
+                    " with id {} {} {}", stateMachineInstanceId, ex.getCause().getMessage(), ex.getStackTrace());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).entity(
                     ex.getCause() != null ? ex.getCause().getMessage() : null).build();
 
