@@ -67,6 +67,9 @@ public class Event implements Serializable {
      */
     private String eventSource;
 
+    @Id
+    private Long executionVersion;
+
     /**
      * Event creation time
      */
@@ -82,7 +85,7 @@ public class Event implements Serializable {
      * Enum of Event statuses
      */
     public enum EventStatus {
-        pending, triggered, cancelled;
+        pending, triggered, cancelled, invalid;
     }
 
     /**
@@ -99,6 +102,7 @@ public class Event implements Serializable {
         this.stateMachineInstanceId = stateMachineInstanceId;
         this.eventData = eventData;
         this.eventSource = eventSource;
+        this.executionVersion = 0L;
     }
 
     /**
@@ -157,6 +161,14 @@ public class Event implements Serializable {
         return updatedAt;
     }
 
+    public Long getExecutionVersion() {
+        return executionVersion;
+    }
+
+    public void setExecutionVersion(Long executionVersion) {
+        this.executionVersion = executionVersion;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -171,6 +183,8 @@ public class Event implements Serializable {
             return false;
         if (status != event.status) return false;
         if (type != null ? !type.equals(event.type) : event.type != null) return false;
+        if (executionVersion != null ? !executionVersion.equals(event.executionVersion) : event.executionVersion != null)
+            return false;
 
         return true;
     }
@@ -183,6 +197,7 @@ public class Event implements Serializable {
         result = 31 * result + (stateMachineInstanceId != null ? stateMachineInstanceId.hashCode() : 0);
         result = 31 * result + (eventData != null ? eventData.hashCode() : 0);
         result = 31 * result + (eventSource != null ? eventSource.hashCode() : 0);
+        result = 31 * result + (executionVersion != null ? executionVersion.hashCode() : 0);
         return result;
     }
 
@@ -193,6 +208,7 @@ public class Event implements Serializable {
 
         private String stateMachineInstanceId;
         private String name;
+        private Long executionVersion;
 
         /**
          * for Hibernate
@@ -200,9 +216,10 @@ public class Event implements Serializable {
         public EventPK() {
         }
 
-        public EventPK(String stateMachineInstanceId, String name) {
+        public EventPK(String stateMachineInstanceId, String name, Long executionVersion) {
             this.stateMachineInstanceId = stateMachineInstanceId;
             this.name = name;
+            this.executionVersion = executionVersion;
         }
 
         public String getStateMachineInstanceId() {
@@ -221,6 +238,14 @@ public class Event implements Serializable {
             this.name = name;
         }
 
+        public Long getExecutionVersion() {
+            return executionVersion;
+        }
+
+        public void setExecutionVersion(Long executionVersion) {
+            this.executionVersion = executionVersion;
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -229,6 +254,7 @@ public class Event implements Serializable {
             EventPK eventPK = (EventPK) o;
 
             if (!getStateMachineInstanceId().equals(eventPK.getStateMachineInstanceId())) return false;
+            if (!getExecutionVersion().equals(eventPK.getExecutionVersion())) return false;
             return getName().equals(eventPK.getName());
 
         }
@@ -237,6 +263,7 @@ public class Event implements Serializable {
         public int hashCode() {
             int result = getStateMachineInstanceId().hashCode();
             result = 31 * result + getName().hashCode();
+            result = 31 * result + getExecutionVersion().hashCode();
             return result;
         }
     }

@@ -13,8 +13,11 @@
 
 package com.flipkart.flux.domain;
 
+import org.hibernate.annotations.Type;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.List;
 
 /**
  * <code>AuditRecord</code> represents a audit log of state machine execution.
@@ -49,6 +52,11 @@ public class AuditRecord {
     /** Any errors occurred in the state execution*/
     private String errors;
 
+    private Long taskExecutionVersion;
+
+    @Type(type = "ListJsonType")
+    private List<String> eventDependencies;
+
     /** Audit log creation time */
     private Timestamp createdAt;
 
@@ -62,6 +70,8 @@ public class AuditRecord {
         this.stateStatus = stateStatus;
         this.stateRollbackStatus = stateRollbackStatus;
         this.errors = errors;
+        this.taskExecutionVersion = 0L;
+        this.eventDependencies = null;
     }
 
     /** Accessor/Mutator methods*/
@@ -108,6 +118,22 @@ public class AuditRecord {
         return createdAt;
     }
 
+    public Long getTaskExecutionVersion() {
+        return taskExecutionVersion;
+    }
+
+    public void setTaskExecutionVersion(Long taskExecutionVersion) {
+        this.taskExecutionVersion = taskExecutionVersion;
+    }
+
+    public List<String> getEventDependencies() {
+        return eventDependencies;
+    }
+
+    public void setEventDependencies(List<String> eventDependencies) {
+        this.eventDependencies = eventDependencies;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -121,6 +147,7 @@ public class AuditRecord {
             return false;
         if (stateRollbackStatus != that.stateRollbackStatus) return false;
         if (stateStatus != that.stateStatus) return false;
+        if (taskExecutionVersion != that.taskExecutionVersion) return false;
 
         return true;
     }
@@ -132,6 +159,7 @@ public class AuditRecord {
         result = 31 * result + (retryAttempt != null ? retryAttempt.hashCode() : 0);
         result = 31 * result + (stateStatus != null ? stateStatus.hashCode() : 0);
         result = 31 * result + (stateRollbackStatus != null ? stateRollbackStatus.hashCode() : 0);
+        result = 31 * result + (taskExecutionVersion != null ? taskExecutionVersion.hashCode() : 0);
         return result;
     }
 

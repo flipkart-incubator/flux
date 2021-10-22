@@ -109,6 +109,8 @@ public class State {
      */
     private Long attemptedNoOfRetries;
 
+    private Long executionVersion;
+
     /**
      * Time at which this State has been created
      */
@@ -148,6 +150,7 @@ public class State {
         this.attemptedNoOfRetries = attemptedNoOfRetries;
         this.stateMachineId = stateMachineId;
         this.id = id;
+        this.executionVersion = 0L;
     }
 
     /**
@@ -281,6 +284,14 @@ public class State {
         return outputEvent;
     }
 
+    public Long getExecutionVersion() {
+        return executionVersion;
+    }
+
+    public void setExecutionVersion(Long executionVersion) {
+        this.executionVersion = executionVersion;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -305,6 +316,8 @@ public class State {
         if (timeout != null ? !timeout.equals(state.timeout) : state.timeout != null) return false;
         if (updatedAt != null ? !updatedAt.equals(state.updatedAt) : state.updatedAt != null) return false;
         if (version != null ? !version.equals(state.version) : state.version != null) return false;
+        if (executionVersion != null ? !executionVersion.equals(state.executionVersion) : state.executionVersion != null)
+            return false;
 
         return true;
     }
@@ -324,6 +337,7 @@ public class State {
         result = 31 * result + (status != null ? status.hashCode() : 0);
         result = 31 * result + (rollbackStatus != null ? rollbackStatus.hashCode() : 0);
         result = 31 * result + (attemptedNoOfRetries != null ? attemptedNoOfRetries.hashCode() : 0);
+        result = 31 * result + (executionVersion != null ? executionVersion.hashCode() : 0);
         result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
         result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
         return result;
@@ -347,6 +361,7 @@ public class State {
                 ", status=" + status +
                 ", rollbackStatus=" + rollbackStatus +
                 ", attemptedNoOfRetries=" + attemptedNoOfRetries +
+                ", executionVersion=" + executionVersion +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
@@ -355,7 +370,7 @@ public class State {
     /**
      * <code>StatePK</code> is the composite primary key of "State" table in DB.
      */
-	static class StatePK implements Serializable {
+    static class StatePK implements Serializable {
 
         private Long id;
 
