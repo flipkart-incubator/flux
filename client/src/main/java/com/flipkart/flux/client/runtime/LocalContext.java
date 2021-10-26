@@ -27,13 +27,12 @@ import java.util.function.Function;
 
 /**
  * Maintains all local flux related context
- *
  * @author yogesh.nachnani
  */
 public class LocalContext {
     private ThreadLocal<StateMachineDefinition> stateMachineDefinition;
     private ThreadLocal<MutableInt> tlUniqueEventCount;
-    private ThreadLocal<IdentityHashMap<Event, String>> eventNames;
+    private ThreadLocal<IdentityHashMap<Event,String>> eventNames;
 
     public LocalContext() {
         this(new ThreadLocal<>(), new ThreadLocal<>(), new ThreadLocal<>());
@@ -47,19 +46,18 @@ public class LocalContext {
 
     /**
      * Creates a new, local StateMachineDefinition instance
-     *
+     * @return
      * @param workflowIdentifier
      * @param version
      * @param description
-     * @return
      */
-    public void registerNew(String workflowIdentifier, long version, String description, String correlationId,
+    public void registerNew(String workflowIdentifier, long version, String description,String correlationId,
                             String clientElbId) {
         if (this.stateMachineDefinition.get() != null) {
             /* This ensures we don't compose workflows within workflows */
             throw new IllegalStateException("A single thread cannot execute more than one workflow");
         }
-        stateMachineDefinition.set(new StateMachineDefinition(description, workflowIdentifier, version, new HashSet<>(),
+        stateMachineDefinition.set(new StateMachineDefinition(description,workflowIdentifier, version, new HashSet<>(),
                 new HashSet<>(), correlationId, clientElbId));
         tlUniqueEventCount.set(new MutableInt(0));
         this.eventNames.set(new IdentityHashMap<>());
@@ -72,8 +70,20 @@ public class LocalContext {
                                  List<EventDefinition> dependencySet, EventDefinition outputEvent
     ) {
         final StateDefinition stateDefinition = new StateDefinition(version, name, description,
+            hookIdentifier, taskIdentifier, hookIdentifier,
+            retryCount, timeout, dependencySet, outputEvent);
+        this.stateMachineDefinition.get().addState(stateDefinition);
+    }
+
+    public void registerNewReplayableState(Long version,
+                                 String name, String description,
+                                 String hookIdentifier, String taskIdentifier,
+                                 Long retryCount, Long timeout, boolean replayable,
+                                 List<EventDefinition> dependencySet, EventDefinition outputEvent
+    ) {
+        final StateDefinition stateDefinition = new StateDefinition(version, name, description,
                 hookIdentifier, taskIdentifier, hookIdentifier,
-                retryCount, timeout, dependencySet, outputEvent);
+                retryCount, timeout, dependencySet, outputEvent,replayable);
         this.stateMachineDefinition.get().addState(stateDefinition);
     }
 
@@ -90,7 +100,6 @@ public class LocalContext {
      * Returns the state machine definition created for the current thread.
      * Ideally, we should prevent any modifications to the state machine definition after this method is called.
      * TODO Will implement safety features later
-     *
      * @return Thread local state machine definition
      */
     public StateMachineDefinition getStateMachineDef() {
@@ -101,14 +110,13 @@ public class LocalContext {
      * This is used to determine if the LocalContext had been called before to register a new Workflow (which would
      * happen as part of Workflow interception). If the current thread has not been called by the <code>WorkflowInterceptor</code>
      * then it is being called by the client runtime to execute actual user code.
-     *
      * @return
      */
     public boolean isWorkflowInterception() {
         return this.getStateMachineDef() != null;
     }
 
-    public void addEvents(EventData... events) {
+    public void addEvents(EventData ...events) {
         this.stateMachineDefinition.get().addEventDatas(events);
     }
 
@@ -142,7 +150,7 @@ public class LocalContext {
             }
         }).forEach(allDefinitions::addAll);
         final Optional<EventDefinition> searchResult =
-                allDefinitions.stream().filter(eventDefinition -> givenDefinition.getName().equals(eventDefinition.getName())).findFirst();
+            allDefinitions.stream().filter(eventDefinition -> givenDefinition.getName().equals(eventDefinition.getName())).findFirst();
         if (!searchResult.isPresent()) {
             return null;
         }

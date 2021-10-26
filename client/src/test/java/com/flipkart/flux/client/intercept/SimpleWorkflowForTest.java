@@ -56,16 +56,24 @@ public class SimpleWorkflowForTest {
         someTaskWithIntegerAndString(newString, someInteger);
     }
 
+    @SuppressWarnings("unused")
+	@Workflow(version = 1)
+    public void simpleDummyWorkflowWithReplayEvent(IntegerEvent someInteger) {
+        final StringEvent newString = waitForReplayEvent(null, someInteger);
+        final StringEvent anotherString = waitForReplayEvent((StringEvent) null);
+        someTaskWithIntegerAndString(newString, someInteger);
+    }
+
     /* A simple workflow that takes in a parameter which carries a correlationId */
     @SuppressWarnings("unused")
-    @Workflow(version = 1)
+	@Workflow(version = 1)
     public void simpleDummyWorkflowWithCorrelationEvent(StringEventWithContext someString,IntegerEvent someInteger) {
         final IntegerEvent someNewInteger = simpleAdditionTask(someInteger);
     }
 
     /* A simple workflow that takes in variable number of params tasks and making merry */
     @SuppressWarnings("unused")
-    @Workflow(version = 1)
+	@Workflow(version = 1)
     public void simpleDummyWorkflow(StringEvent...stringEvents) {
         final StringEvent newString = simpleStringModifyingTask(stringEvents[0]);
     }
@@ -88,6 +96,17 @@ public class SimpleWorkflowForTest {
     public StringEvent waitForExternalEvent(@ExternalEvent("someExternalEvent") StringEvent someString,IntegerEvent integerEvent) {
         return new StringEvent(integerEvent.anInteger.toString() + someString);
     }
+
+    @Task(version = 1, retries = 2, timeout = 2000l, replayable = true)
+    public StringEvent waitForReplayEvent(@ReplayEvent("someReplayEvent") StringEvent someString,IntegerEvent integerEvent) {
+        return new StringEvent(integerEvent.anInteger.toString() + someString);
+    }
+
+    @Task(version = 1, retries = 2, timeout = 2000l, replayable = true)
+    public StringEvent waitForReplayEvent(@ReplayEvent("someReplayEvent") StringEvent someString) {
+        return new StringEvent("randomBs" + someString);
+    }
+
     @Task(version = 1, retries = 2, timeout = 2000l)
     public StringEvent waitForExternalEvent(@ExternalEvent("someExternalEvent") StringEvent someString) {
         return new StringEvent(someString.toString());

@@ -56,6 +56,8 @@ public class StateDefinition {
 
 	private EventDefinition outputEvent;
 
+	private boolean replayable;
+
 	/* Used only by Jackson */
 	StateDefinition() {
 		super();
@@ -78,6 +80,22 @@ public class StateDefinition {
 		this.outputEvent = outputEvent;
 	}
 
+	public StateDefinition(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
+						   Long retryCount, Long timeout, List<EventDefinition> dependencies, EventDefinition outputEvent, boolean replayable) {
+		this();
+		this.version = version;
+		this.name = name;
+		this.description = description;
+		this.onEntryHook = onEntryHook;
+		this.task = task;
+		this.onExitHook = onExitHook;
+		this.retryCount = retryCount;
+		this.timeout = timeout;
+		this.dependencies = dependencies;
+		this.outputEvent = outputEvent;
+		this.replayable=replayable;
+	}
+
     /** Accessors/Mutators for member variables*/
 	public Long getVersion() {
 		return version;
@@ -88,6 +106,13 @@ public class StateDefinition {
 	public String getName() {
 		return name;
 	}
+	public boolean isReplayable() {
+		return replayable;
+	}
+	public void setReplayable(boolean replayable) {
+		this.replayable = replayable;
+	}
+
 	public void setName(String name) {
 		this.name = name;
 	}
@@ -137,7 +162,6 @@ public class StateDefinition {
 	public EventDefinition getOutputEvent() {
 		return outputEvent;
 	}
-
 	public void setOutputEvent(EventDefinition outputEvent) {
 		this.outputEvent = outputEvent;
 	}

@@ -86,4 +86,13 @@ public class E2EWorkflowTest {
         final Stream<String> eventDefNames = submittedDefinition.getStates().stream().flatMap(stateDefinition -> stateDefinition.getDependencies().stream()).map(EventDefinition::getName);
         assertThat(eventDefNames.distinct().toArray()).containsOnlyOnce(SimpleWorkflowForTest.INTEGER_EVENT_NAME + "0", "someExternalEvent", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent1");
     }
+
+    @Test
+    public void testSubmissionOfWorkflowWithReplayEvents() throws Exception {
+        simpleWorkflowForTest.simpleDummyWorkflowWithReplayEvent(new IntegerEvent(2));
+        final StateMachineDefinition submittedDefinition = dummyFluxRuntimeResource.smToCountMap.keySet().stream().findFirst().get();
+        assertThat(submittedDefinition.getStates()).hasSize(3);
+        final Stream<String> eventDefNames = submittedDefinition.getStates().stream().flatMap(stateDefinition -> stateDefinition.getDependencies().stream()).map(EventDefinition::getName);
+        assertThat(eventDefNames.distinct().toArray()).containsOnlyOnce(SimpleWorkflowForTest.INTEGER_EVENT_NAME + "0", "someReplayEvent", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent1");
+    }
 }

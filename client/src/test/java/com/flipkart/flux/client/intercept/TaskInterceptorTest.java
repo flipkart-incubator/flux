@@ -83,7 +83,7 @@ public class TaskInterceptorTest {
                 new MethodId(invokedMethod).toString()+_VERSION+"1", 2l, 2000l, expectedDependency, expectedOutput);
     }
 
-	@Test
+    @Test
     public void testInterception_shouldSubmitNewState_methodWithTwoParam() throws Throwable {
         setupMockLocalContext();
 
@@ -159,7 +159,7 @@ public class TaskInterceptorTest {
         taskInterceptor.invoke(dummyInvocation);
     }
 
-	@Test
+    @Test
     public void testRegisterExternalEventsWithTheirGivenName() throws Throwable {
         /* setup */
         setupMockLocalContext();
@@ -177,6 +177,27 @@ public class TaskInterceptorTest {
         verify(localContext, times(1)).
             registerNewState(1l, "waitForExternalEvent", null, null,
                 new MethodId(invokedMethod).toString()+_VERSION+"1", 2l, 2000l, expectedDependency, expectedOutput);
+    }
+
+
+    @Test
+    public void testRegisterReplayEventsWithTheirGivenName() throws Throwable {
+        /* setup */
+        setupMockLocalContext();
+        final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("waitForReplayEvent", StringEvent.class, IntegerEvent.class);
+
+        /* invocation */
+        taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod,new Object[]{null,new IntegerEvent(1)}));
+
+        /* verification */
+        final List<EventDefinition> expectedDependency = new LinkedList<EventDefinition>() {{
+            add(new EventDefinition("someReplayEvent", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
+            add(new EventDefinition(INTEGER_EVENT_NAME + "0", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent"));
+        }};
+        final EventDefinition expectedOutput = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent1","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
+        verify(localContext, times(1)).
+                registerNewReplayableState(1l, "waitForReplayEvent", null, null,
+                        new MethodId(invokedMethod).toString()+_VERSION+"1", 2l, 2000l, true,expectedDependency, expectedOutput);
     }
 
     @Test(expected = IllegalInvocationException.class)
