@@ -44,6 +44,9 @@ public interface EventsDAO {
     /** Retrieves list of events which are in triggered/cancelled state and belongs to provided state machine */
     List<String> findTriggeredOrCancelledEventsNamesBySMId(String stateMachineInstanceId);
 
+    /** Retrieves list of events whose eventSource is replay and belongs to provided state machine */
+    List<String> findReplayEventsNamesBySMId(String stateMachineInstanceId);
+
     /** Retrieves list of events which are in triggered state and belongs to provided state machine */
     List<Event> findTriggeredEventsBySMId(String stateMachineInstanceId);
 

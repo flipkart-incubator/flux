@@ -67,6 +67,11 @@ import static com.flipkart.flux.constant.RuntimeConstants.DEFAULT_ELB_ID;
 public class StateMachineResource {
 
     /**
+     * Logger instance for this class
+     */
+    private static final Logger logger = LogManager.getLogger(StateMachineResource.class);
+	
+    /**
      * Single white space label to denote start of processing i.e. the Trigger
      */
     private static final String TRIGGER = " ";
@@ -118,11 +123,6 @@ public class StateMachineResource {
         this.eventProxyConnector = eventProxyConnector;
         this.eventProxyEnabled = eventProxyEnabled;
     }
-
-    /**
-     * Logger instance for this class
-     */
-    private static final Logger logger = LogManager.getLogger(StateMachineResource.class);
 
     /**
      * Will instantiate a state machine in the flux execution engine
@@ -254,16 +254,25 @@ public class StateMachineResource {
             if (triggerTime == null) {
                 logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
                 try {
-                    if (eventData.getCancelled() != null && eventData.getCancelled()) {
-                        workFlowExecutionController.handlePathCancellation(stateMachine.getId(), eventData);
-                    } else {
-                        workFlowExecutionController.postEvent(eventData, stateMachine.getId());
+                    if(eventsDAO.findBySMIdExecutionVersionAndName(machineId, eventData.getName(),
+                            eventData.getExecutionVersion()).getStatus() != Event.EventStatus.invalid) {
+                        if (eventData.getCancelled() != null && eventData.getCancelled()) {
+                            workFlowExecutionController.handlePathCancellation(stateMachine.getId(), eventData);
+                        } else {
+                            workFlowExecutionController.postEvent(eventData, stateMachine.getId());
+                        }
+                    }
+                    else {
+                        logger.info("Discarding event:{} with eventExecutionVersion:{} " +
+                                        "for state machine: {}. StateExecutionVersion, it's not valid anymore.",
+                                eventData.getName(), eventData.getExecutionVersion(), machineId);
                     }
                     return Response.status(Response.Status.ACCEPTED).build();
                 } catch (IllegalEventException ex) {
                     return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
                 }
             } else {
+                // TODO: Handle this path with execution version added.
                 logger.info("Received event: {} for state machine: {} with triggerTime: {}", eventData.getName(), machineId, triggerTime);
                 if (searchField == null || !searchField.equals(CORRELATION_ID))
                     return Response.status(Response.Status.BAD_REQUEST).entity("searchField=correlationId is missing in the request").build();
@@ -318,9 +327,9 @@ public class StateMachineResource {
                 else {
                     // TODO: This is an event for invalid state(execution version no more valid), hence discarded.
                     // TODO: We can store this event data for audit purpose.
-                    logger.info("Not processing event:{} with eventExecutionVersion:{} from state: {} with " +
+                    logger.info("Discarding event:{} with eventExecutionVersion:{} from state: {} with " +
                                     "stateExecutionVersion:{}" +
-                                    " for state machine: {}. StateExecutionVersion is not valid anymore.",
+                                    " for state machine: {}. StateExecutionVersion, it's not valid anymore.",
                             eventData.getName(), eventData.getExecutionVersion(),
                             executionUpdateData.getTaskId(), executionUpdateData.getTaskExecutionVersion(), machineId);
                 }
