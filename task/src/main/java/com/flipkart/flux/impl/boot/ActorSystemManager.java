@@ -21,8 +21,8 @@ import com.flipkart.polyguice.core.Initializable;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import kamon.Kamon;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
@@ -46,7 +46,7 @@ public class ActorSystemManager implements Initializable {
     /**
      * Logger for this class
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(ActorSystemManager.class);
+    private static final Logger LOGGER = LogManager.getLogger(ActorSystemManager.class);
 
     private String actorSystemName;
     private String configName;
