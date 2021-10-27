@@ -2,8 +2,8 @@ package com.flipkart.flux.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
 import com.flipkart.flux.domain.Event;
@@ -29,7 +29,7 @@ public class TestUtils {
 
     public static String routerName = "someRandomRouterName";
 
-	public static StateMachine getStandardTestMachine() throws Exception {
+    public static StateMachine getStandardTestMachine() throws Exception {
         String stateMachineId = "magic_number_1";
         List<String> state3Events = new LinkedList<String>() {{
             add("event2");
@@ -55,7 +55,7 @@ public class TestUtils {
     /**
      * Returns a dummy State machine with states which have the Id's set
      */
-	public static StateMachine getStandardTestMachineWithId() throws Exception {
+    public static StateMachine getStandardTestMachineWithId() throws Exception {
         String stateMachineId = "standard-machine";
         List<String> state3Events = new LinkedList<String>() {{
             add("event2");
@@ -83,7 +83,7 @@ public class TestUtils {
         return stateMachine;
     }
 
-	public static EventDefinition getOutputEvent(String name, Class clazz) {
+    public static EventDefinition getOutputEvent(String name, Class clazz) {
         return new EventDefinition(name, clazz.getCanonicalName());
     }
 
@@ -104,7 +104,8 @@ public class TestUtils {
     }
 
     public static Event getStandardTestEvent() throws JsonProcessingException {
-        return new Event("event0", "java.lang.String", Event.EventStatus.triggered, null, "42", null);
+        return new Event("event0", "java.lang.String", Event.EventStatus.triggered, null,
+                "42", null, 0L);
     }
 
     public static String toStr(Object obj) throws Exception {
@@ -137,12 +138,15 @@ public class TestUtils {
     }
 
     public static TaskExecutionMessage getStandardTaskExecutionMessage() throws Exception {
-        EventData[] expectedEvents = new EventData[]{new EventData("event0", "java.lang.String", "42", "runtime")};
+        VersionedEventData[] expectedEvents = new VersionedEventData[]{new VersionedEventData("event0",
+                "java.lang.String", "42", "runtime", 0L)};
         StateMachine sm = getStandardTestMachine();
         State state = sm.getStates().stream().filter((s) -> s.getId() == 4L).findFirst().orElse(null);
         TaskExecutionMessage msg = new TaskExecutionMessage();
         msg.setRouterName(WorkFlowExecutionController.getRouterName(state.getTask()));
-        msg.setAkkaMessage(new TaskAndEvents(state.getName(), state.getTask(), state.getId(), expectedEvents, state.getStateMachineId(), "test_state_machine", state.getOutputEvent(), state.getRetryCount()));
+        msg.setAkkaMessage(new TaskAndEvents(state.getName(), state.getTask(), state.getId(), expectedEvents,
+                state.getStateMachineId(), "test_state_machine", state.getOutputEvent(),
+                state.getRetryCount()));
         return msg;
     }
 }

@@ -13,7 +13,7 @@
 
 package com.flipkart.flux.api.core;
 
-import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.utils.Pair;
 
@@ -21,17 +21,17 @@ import com.flipkart.flux.utils.Pair;
  * <code>Task</code> defines the user code that is executed when a {@link State} transition happens.
  * The task is eligible for execution once all the dependent Triggers are received.
  * Tasks may include RPCs being performed on a client's compute instance, for isolation purposes.
- *
+ * 
  * @author Yogesh
  * @author regunath.balasubramanian
+ * 
  */
 
 public interface Task {
     /**
      * Unpacks the data from events and proceeds with execution that might include calling a remote worker
-     *
      * @param events Dependencies that need to be satisfied for this task to be executed
      * @return The event produced by a worker on successful execution OR an error object representing the error.
      */
-    Pair<Object, FluxError> execute(EventData[] events);
+	public Pair<Object,FluxError> execute(VersionedEventData[] events);
 }

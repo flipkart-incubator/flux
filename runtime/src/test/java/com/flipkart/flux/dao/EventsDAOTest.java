@@ -13,28 +13,18 @@
 
 package com.flipkart.flux.dao;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Collections;
-import java.util.LinkedList;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.client.FluxClientComponentModule;
+import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.OrchestrationTaskModule;
-import com.flipkart.flux.guice.module.OrchestratorContainerModule;
 import com.flipkart.flux.guice.module.ShardModule;
 import com.flipkart.flux.integration.StringEvent;
 import com.flipkart.flux.module.RuntimeTestModule;
@@ -42,6 +32,15 @@ import com.flipkart.flux.rule.DbClearWithTestSMRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
 import com.flipkart.flux.util.TestUtils;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import java.util.Collections;
+import java.util.LinkedList;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * <code>EventsDAOTest</code> class tests the functionality of {@link EventsDAO} using JUnit tests.
@@ -50,8 +49,8 @@ import com.flipkart.flux.util.TestUtils;
  * @author kartik.bommepally
  */
 @RunWith(GuiceJunit4Runner.class)
-@Modules(orchestrationModules = {ShardModule.class, RuntimeTestModule.class, OrchestratorContainerModule.class,
-        OrchestrationTaskModule.class, FluxClientComponentModule.class, ContainerModule.class})
+@Modules(orchestrationModules = {FluxClientComponentModule.class, ShardModule.class, RuntimeTestModule.class, ContainerModule.class,
+        OrchestrationTaskModule.class, FluxClientInterceptorModule.class})
 public class EventsDAOTest {
 
     @InjectFromRole
@@ -75,21 +74,24 @@ public class EventsDAOTest {
     public void createEventTest() throws JsonProcessingException {
         StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
         StringEvent data = new StringEvent("event_dat");
-        Event event = new Event("test_event_name", "Internal", Event.EventStatus.pending, stateMachine.getId(), objectMapper.writeValueAsString(data), "state1");
+        Event event = new Event("test_event_name", "Internal", Event.EventStatus.pending,
+                stateMachine.getId(), objectMapper.writeValueAsString(data), "state1", 0L);
         eventsDAO.create(event.getStateMachineInstanceId(), event);
 
         Event event1 = eventsDAO.findBySMIdAndName(event.getStateMachineInstanceId(), event.getName());
         assertThat(event1).isEqualTo(event);
     }
 
-	@Test
+    @Test
     public void testRetrieveByEventNamesAndSmId() throws Exception {
         final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
         stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
-        final Event event1 = new Event("event1", "someType", Event.EventStatus.pending, standardTestMachine.getId(), null, null);
+        final Event event1 = new Event("event1", "someType", Event.EventStatus.pending,
+                standardTestMachine.getId(), null, null, 0L);
         final EventData eventData1 = new EventData(event1.getName(), event1.getType(), event1.getEventData(), event1.getEventSource());
         eventsDAO.create(event1.getStateMachineInstanceId(), event1);
-        final Event event3 = new Event("event3", "someType", Event.EventStatus.pending, standardTestMachine.getId(), null, null);
+        final Event event3 = new Event("event3", "someType", Event.EventStatus.pending,
+                standardTestMachine.getId(), null, null, 0L);
         final EventData eventData3 = new EventData(event3.getName(), event3.getType(), event3.getEventData(), event3.getEventSource());
         eventsDAO.create(event3.getStateMachineInstanceId(), event3);
 
@@ -104,9 +106,11 @@ public class EventsDAOTest {
         /* Doesn't matter, but still setting it up */
         final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
         stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
-        final Event event1 = new Event("event1", "someType", Event.EventStatus.pending, standardTestMachine.getId(), null, null);
+        final Event event1 = new Event("event1", "someType", Event.EventStatus.pending,
+                standardTestMachine.getId(), null, null, 0L);
         eventsDAO.create(event1.getStateMachineInstanceId(), event1);
-        final Event event3 = new Event("event3", "someType", Event.EventStatus.pending, standardTestMachine.getId(), null, null);
+        final Event event3 = new Event("event3", "someType", Event.EventStatus.pending,
+                standardTestMachine.getId(), null, null, 0L);
         eventsDAO.create(event3.getStateMachineInstanceId(), event3);
 
         /* Actual test */

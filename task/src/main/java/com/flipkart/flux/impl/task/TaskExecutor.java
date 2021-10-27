@@ -13,7 +13,7 @@
 
 package com.flipkart.flux.impl.task;
 
-import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.api.core.Task;
 import com.flipkart.flux.client.exception.FluxCancelPathException;
@@ -26,6 +26,7 @@ import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixCommandProperties.ExecutionIsolationStrategy;
 import com.netflix.hystrix.HystrixThreadPoolKey;
 import com.netflix.hystrix.HystrixThreadPoolProperties;
+
 /**
  * <code>TaskExecutor</code> wraps {@link Task} execution with Hystrix.
  *
@@ -42,7 +43,7 @@ public class TaskExecutor extends HystrixCommand<Event> {
     /**
      * The events used in Task execution
      */
-    private EventData[] events;
+    private VersionedEventData[] events;
 
     /**
      * State Machine Id to which this task belongs to
@@ -57,7 +58,7 @@ public class TaskExecutor extends HystrixCommand<Event> {
     /**
      * Constructor for this class
      */
-    public TaskExecutor(AbstractTask task, EventData[] events, String stateMachineId, String outputEventName) {
+    public TaskExecutor(AbstractTask task, VersionedEventData[] events, String stateMachineId, String outputEventName) {
         super(Setter
                 .withGroupKey(HystrixCommandGroupKey.Factory.asKey(task.getTaskGroupName()))
                 .andCommandKey(HystrixCommandKey.Factory.asKey(task.getName()))
@@ -85,7 +86,9 @@ public class TaskExecutor extends HystrixCommand<Event> {
             }
             final SerializedEvent returnObject = (SerializedEvent) result.getKey();
             if (returnObject != null) {
-                return new Event(outputEventName, returnObject.getEventType(), Event.EventStatus.triggered, stateMachineId, returnObject.getSerializedEventData(), MANAGED_RUNTIME);
+                //TODO : Populate executionVersion
+                return new Event(outputEventName, returnObject.getEventType(), Event.EventStatus.triggered,
+                        stateMachineId, returnObject.getSerializedEventData(), MANAGED_RUNTIME, 0L);
             }
         } catch (Exception ex) {
             boolean isFluxCancelPathException = false;
@@ -98,7 +101,9 @@ public class TaskExecutor extends HystrixCommand<Event> {
                 cause = cause.getCause();
             }
             if (isFluxCancelPathException) {
-                return new Event(outputEventName, null, Event.EventStatus.cancelled, stateMachineId, null, MANAGED_RUNTIME);
+                //TODO : Populate executionVersion
+                return new Event(outputEventName, null, Event.EventStatus.cancelled, stateMachineId,
+                        null, MANAGED_RUNTIME, 0L);
             } else {
                 throw ex;
             }

@@ -16,10 +16,10 @@ package com.flipkart.flux.impl.task;
 
 import java.lang.reflect.Method;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.registry.TaskExecutableImpl;
@@ -27,7 +27,6 @@ import com.flipkart.flux.utils.Pair;
 
 /**
  * A task that can be executed locally within the same JVM
- *
  * @author yogesh.nachnani
  * @author shyam.akirala
  */
@@ -35,7 +34,7 @@ public class LocalJvmTask extends AbstractTask {
 
     private final Executable toInvoke;
 
-    private static final Logger logger = LoggerFactory.getLogger(LocalJvmTask.class);
+    private static final Logger logger = LogManager.getLogger(LocalJvmTask.class);
 
     public LocalJvmTask(Executable toInvoke) {
         this.toInvoke = toInvoke;
@@ -54,36 +53,35 @@ public class LocalJvmTask extends AbstractTask {
 
     @Override
     public int getExecutionConcurrency() {
-        return ((TaskExecutableImpl) toInvoke).getExecutionConcurrency();
+        return ((TaskExecutableImpl)toInvoke).getExecutionConcurrency();
     }
 
     @Override
     public int getExecutionTimeout() {
-        return (int) toInvoke.getTimeout(); // TODO - fix this. Let all timeouts be in int
+        return (int)toInvoke.getTimeout(); // TODO - fix this. Let all timeouts be in int
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-    public Pair<Object, FluxError> execute(EventData[] events) {
+    public Pair<Object, FluxError> execute(VersionedEventData[] events) {
         Object[] parameters = new Object[events.length];
         Class<?>[] parameterTypes = toInvoke.getParameterTypes();
         try {
-            ClassLoader classLoader = ((TaskExecutableImpl) toInvoke).getDeploymentUnitClassLoader();
-            Object objectMapperInstance = ((TaskExecutableImpl) toInvoke).getObjectMapperInstance();
+            ClassLoader classLoader = ((TaskExecutableImpl)toInvoke).getDeploymentUnitClassLoader();
+            Object objectMapperInstance = ((TaskExecutableImpl)toInvoke).getObjectMapperInstance();
             Class objectMapper = objectMapperInstance.getClass();
 
-            for (int i = 0; i < parameterTypes.length; i++) {
-                if (events[i].getData() != null) {
+			for (int i = 0; i < parameterTypes.length; i++) {
+			    if(events[i].getData() != null) {
                     if (parameterTypes[i].isAssignableFrom(Class.forName(events[i].getType(), true, classLoader))) {
-                        parameters[i] =
-                                objectMapper.getMethod("readValue", String.class, Class.class).invoke(objectMapperInstance, events[i].getData(), Class.forName(events[i].getType(), true, classLoader));
+                        parameters[i] = objectMapper.getMethod("readValue", String.class, Class.class).invoke(objectMapperInstance, events[i].getData(), Class.forName(events[i].getType(), true, classLoader));
                     } else {
                         logger.warn("Parameter type {} did not match with event: {}", parameterTypes[i], events[i]);
                         throw new RuntimeException(
                                 "Parameter type " + parameterTypes[i] + " did not match with event: " + events[i]);
                     }
                 }
-            }
+			}
 
             Method writeValueAsString = objectMapper.getMethod("writeValueAsString", Object.class);
 
@@ -103,24 +101,22 @@ public class LocalJvmTask extends AbstractTask {
             }
 
             return new Pair<>(serializedEvent, null);
+
         } catch (Exception e) {
-            logger.error("Bad things happened while trying to execute {}", toInvoke, e);
-            return new Pair<>(null, new FluxError(FluxError.ErrorType.runtime, e.getMessage(), e));
+            logger.error("Bad things happened while trying to execute {}",toInvoke,e);
+            return new Pair<>(null,new FluxError(FluxError.ErrorType.runtime,e.getMessage(),e));
         }
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
         LocalJvmTask that = (LocalJvmTask) o;
 
         return toInvoke.equals(that.toInvoke);
+
     }
 
     @Override

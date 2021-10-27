@@ -13,39 +13,14 @@
 
 package com.flipkart.flux.controller;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.Set;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import javax.transaction.Transactional;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.EventAndExecutionData;
-import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.EventDefinition;
-import com.flipkart.flux.api.ExecutionUpdateData;
+import com.flipkart.flux.api.*;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
-import com.flipkart.flux.domain.AuditRecord;
-import com.flipkart.flux.domain.Context;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.domain.State;
-import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.domain.StateMachineStatus;
+import com.flipkart.flux.domain.*;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.exception.UnknownStateMachine;
@@ -60,6 +35,16 @@ import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.utils.LoggingUtils;
 import com.google.common.collect.Sets;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import javax.transaction.Transactional;
+import java.io.IOException;
+import java.util.*;
+
 
 /**
  * <code>WorkFlowExecutionController</code> controls the execution flow of a given state machine
@@ -114,6 +99,7 @@ public class WorkFlowExecutionController {
      * ClientElbUrl is the one where a particular state machines states is supposed to be executed.
      */
     private ClientElbPersistenceService clientElbPersistenceService;
+
 
     /**
      * Constructor for this class
@@ -316,9 +302,8 @@ public class WorkFlowExecutionController {
     public Event persistEvent(String stateMachineInstanceId, EventData eventData) {
         //update event's data and status
         Event event = eventsDAO.findBySMIdAndName(stateMachineInstanceId, eventData.getName());
-        if (event == null) {
+        if (event == null)
             throw new IllegalEventException("Event with stateMachineId: " + stateMachineInstanceId + ", event name: " + eventData.getName() + " not found");
-        }
         event.setStatus(eventData.getCancelled() != null && eventData.getCancelled() ? Event.EventStatus.cancelled : Event.EventStatus.triggered);
         event.setEventData(eventData.getData());
         event.setEventSource(eventData.getEventSource());
@@ -411,8 +396,9 @@ public class WorkFlowExecutionController {
         }
     }
 
+
     /*
-     * Audit entry in AuditRecord.
+     *  Audit entry in AuditRecord.
      * Default values: [{machineId}, 0, 0, null, null, {EventUpdateAudit} String]
      */
     @Transactional
@@ -434,9 +420,8 @@ public class WorkFlowExecutionController {
     public void unsidelineState(String stateMachineId, Long stateId) throws UnknownStateMachine, IllegalStateException {
         State askedState = null;
         StateMachine stateMachine = retrieveStateMachine(stateMachineId);
-        if (stateMachine == null) {
+        if (stateMachine == null)
             throw new UnknownStateMachine("State machine with id: " + stateMachineId + " not found");
-        }
         for (State state : stateMachine.getStates()) {
             if (Objects.equals(state.getId(), stateId)) {
                 askedState = state;
@@ -460,7 +445,7 @@ public class WorkFlowExecutionController {
             askedState.setStatus(Status.unsidelined);
             askedState.setAttemptedNoOfRetries(0L);
             statesDAO.updateState(stateMachineId, askedState);
-            executeStates(stateMachine, Sets.newHashSet(askedState), false);
+            executeStates(stateMachine, Sets.newHashSet(Arrays.asList(askedState)), false);
         }
     }
 
@@ -487,23 +472,29 @@ public class WorkFlowExecutionController {
      * @param stateMachine     the state machine
      * @param executableStates states whose all dependencies are met
      */
-    private void executeStates(StateMachine stateMachine, Set<State> executableStates, Event currentEvent, boolean redriverTriggered) {
+    private void executeStates(StateMachine stateMachine, Set<State> executableStates, Event currentEvent,
+                               boolean redriverTriggered) {
         try {
             LoggingUtils.registerStateMachineIdForLogging(stateMachine.getId().toString());
             executableStates.forEach((state -> {
-                // trigger execution if state is not in completed|cancelled state
-                if (!(state.getStatus() == Status.completed || state.getStatus() == Status.cancelled)) {
+                // trigger execution if state is not in completed|cancelled|invalid state
+                if (!(state.getStatus() == Status.completed || state.getStatus() == Status.cancelled ||
+                state.getStatus() == Status.invalid)) {
 
-                    List<EventData> eventDatas;
+                    List<VersionedEventData> eventDatas;
                     // If the state is dependant on only one event, that would be the event which came now, in that case don't make a call to DB
-                    if (currentEvent != null && state.getDependencies() != null && state.getDependencies().size() == 1 && currentEvent.getName().equals(state.getDependencies().get(0))) {
-                        eventDatas = Collections.singletonList(new EventData(currentEvent.getName(), currentEvent.getType(), currentEvent.getEventData(), currentEvent.getEventSource()));
+                    if (currentEvent != null && state.getDependencies() != null && state.getDependencies().size() == 1
+                            && currentEvent.getName().equals(state.getDependencies().get(0))) {
+                        eventDatas = Collections.singletonList(new VersionedEventData(currentEvent.getName(),
+                                currentEvent.getType(), currentEvent.getEventData(), currentEvent.getEventSource(),
+                                currentEvent.getExecutionVersion()));
                     } else {
-                        eventDatas = eventsDAO.findByEventNamesAndSMId(stateMachine.getId(), state.getDependencies());
+                        eventDatas = eventsDAO.findByVersionedEventNamesAndSMId(stateMachine.getId(), state.getDependencies());
                     }
                     final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
-                            eventDatas.toArray(new EventData[]{}),
-                            stateMachine.getId(), stateMachine.getName(), state.getOutputEvent(), state.getRetryCount(), state.getAttemptedNoOfRetries());
+                            eventDatas.toArray(new VersionedEventData[]{}),
+                            stateMachine.getId(), stateMachine.getName(), state.getOutputEvent(),
+                            state.getRetryCount(), state.getAttemptedNoOfRetries());
                     if (state.getStatus().equals(Status.initialized) || state.getStatus().equals(Status.unsidelined)) {
                         msg.setFirstTimeExecution(true);
                     }
@@ -514,7 +505,8 @@ public class WorkFlowExecutionController {
                     long redriverInterval;
                     if (redriverTriggered && state.getStatus() == Status.initialized) {
                         redriverInterval = 2 * ((int) Math.pow(2, 7) * 1000);
-                    } else {
+                    }
+                    else {
                         redriverInterval = 2 * ((int) Math.pow(2, state.getRetryCount() + 1) * 1000 + (state.getRetryCount() + 1) * state.getTimeout());
                     }
                     this.redriverRegistry.registerTask(state.getId(), state.getStateMachineId(), redriverInterval);
@@ -541,7 +533,9 @@ public class WorkFlowExecutionController {
                         logger.error("Failed to succesfully send task for Execution smId:{} taskId:{}," +
                                         " should be retried by Redriver after {} ms.",
                                 msg.getStateMachineId(), msg.getTaskId(), redriverInterval);
+
                     }
+
                 } else {
                     logger.info("State machine: {} Task: {} execution request got discarded as the task is {}", state.getStateMachineId(), state.getId(), state.getStatus());
                 }
@@ -549,6 +543,7 @@ public class WorkFlowExecutionController {
         } finally {
             LoggingUtils.deRegisterStateMachineIdForLogging();
         }
+
     }
 
     private StateMachine retrieveStateMachine(String stateMachineInstanceId) {
@@ -617,11 +612,13 @@ public class WorkFlowExecutionController {
         });
     }
 
-    /* *
+    /*
      * Returns a routerName for the task, given TaskName
-     */
+     *
+     * */
     public static String getRouterName(String taskName) {
         int secondUnderscorePosition = taskName.indexOf('_', taskName.indexOf('_') + 1);
-        return taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition);
+        String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition);
+        return routerName;
     }
 }

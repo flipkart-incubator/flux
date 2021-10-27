@@ -12,7 +12,7 @@
  */
 package com.flipkart.flux.impl.task;
 
-import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.api.core.Task;
 import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
@@ -61,7 +61,7 @@ public class TaskRegistry {
 	 * @param task the Task
 	 * @param events array of EventS that the Task can process
 	 */
-	public void registerTask(AbstractTask task, EventData[] events) {
+	public void registerTask(AbstractTask task, VersionedEventData[] events) {
 		this.eventsToTaskMap.put(TaskRegistry.getEventsKey(events), task);
 	}
 
@@ -106,9 +106,9 @@ public class TaskRegistry {
 	 * @param events Event[] array for creating key
 	 * @return String representing the EventS
 	 */
-	public static String getEventsKey(EventData[] events) {
+	public static String getEventsKey(VersionedEventData[] events) {
 		StringBuilder sb = new StringBuilder();
-		for (EventData event : events) {
+		for (VersionedEventData event : events) {
 			sb.append(event.getClass().getName());
 			sb.append("_");
 		}

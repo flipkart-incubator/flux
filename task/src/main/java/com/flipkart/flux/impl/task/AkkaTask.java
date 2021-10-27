@@ -53,7 +53,7 @@ import scala.concurrent.duration.FiniteDuration;
 
 /**
  * <code>AkkaTask</code> is an Akka {@link UntypedActor} that executes {@link Task} instances concurrently. Tasks are executed using a {@link TaskExecutor} where
- * the execution of {@link Task#execute(EventData[])} is wrapped with a {@link HystrixCommand} to provide isolation and fault tolerance to
+ * the execution of {@link Task#execute(EventVersionedData[])} is wrapped with a {@link HystrixCommand} to provide isolation and fault tolerance to
  * the Flux runtime.
  *
  * @author regunath.balasubramanian
@@ -209,7 +209,7 @@ public class AkkaTask extends UntypedActor {
                     // Execute any post-exec HookS
 //                    this.executeHooks(AkkaTask.taskRegistry.getPostExecHooks(task), taskAndEvent.getEvents());
                 } else {
-                    logger.error("Task received EventS that it cannot process. State machine: {} task: {} Events received are : {}",
+                    logger.error("Task received Events that it cannot process. State machine: {} task: {} Events received are : {}",
                             taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(), TaskRegistry.getEventsKey(taskAndEvent.getEvents()));
                 }
             } catch (FluxError fe) { //this catch block handles local retries

@@ -14,6 +14,7 @@
 package com.flipkart.flux.dao;
 
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.persistence.*;
@@ -73,11 +74,12 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public List<String> findTriggeredOrCancelledEventsNamesBySMId(String stateMachineInstanceId) {
 
-        Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
+        Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq(
+                "stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.or(
                         Restrictions.eq("status", Event.EventStatus.triggered),
                         Restrictions.eq("status", Event.EventStatus.cancelled)))
-                .setProjection(Projections.property("name"));
+                        .setProjection(Projections.property("name"));
         return criteria.list();
     }
 
@@ -100,9 +102,8 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         StringBuilder eventNamesString = new StringBuilder();
         for (int i = 0; i < eventNames.size(); i++) {
             eventNamesString.append("\'" + eventNames.get(i) + "\'");
-            if (i != eventNames.size() - 1) {
+            if (i != eventNames.size() - 1)
                 eventNamesString.append(", ");
-            }
         }
         //retrieves and returns the events in the order of eventNames
         Query hqlQuery = currentSession().createQuery("from Event where stateMachineInstanceId = :SMID and name in (" + eventNamesString.toString()
@@ -118,14 +119,41 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public List<VersionedEventData> findByVersionedEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames) {
+        if (eventNames.isEmpty()) {
+            return new ArrayList<>();
+        }
+        StringBuilder eventNamesString = new StringBuilder();
+        for (int i = 0; i < eventNames.size(); i++) {
+            eventNamesString.append("\'" + eventNames.get(i) + "\'");
+            if (i != eventNames.size() - 1)
+                eventNamesString.append(", ");
+        }
+        //retrieves and returns the events in the order of eventNames
+        Query hqlQuery = currentSession().createQuery(
+                "from Event where stateMachineInstanceId = :SMID and name in (" + eventNamesString.toString()
+                + ") order by field(name, " + eventNamesString.toString() + ")").setParameter(
+                        "SMID", stateMachineInstanceId);
+        List<Event> readEvents = hqlQuery.list();
+        LinkedList<VersionedEventData> readEventsDTOs = new LinkedList<VersionedEventData>();
+        for (Event event : readEvents) {
+            readEventsDTOs.add(new VersionedEventData(event.getName(), event.getType(), event.getEventData(),
+                    event.getEventSource(), event.getExecutionVersion()));
+        }
+        return readEventsDTOs;
+    }
+
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Map<String, Event.EventStatus> getAllEventsNameAndStatus(String stateMachineInstanceId, boolean forUpdate) {
         SQLQuery sqlQuery = currentSession().createSQLQuery("Select name, status from Events where stateMachineInstanceId ='" + stateMachineInstanceId + (forUpdate ? "' for update" : "''"));
 
         List<Object[]> eventRows = sqlQuery.list();
         Map<String, Event.EventStatus> eventStatusMap = new HashMap<>();
 
-        for (Object[] eventRow : eventRows) {
-            eventStatusMap.put((String) eventRow[0], Event.EventStatus.valueOf((String) eventRow[1]));
+        for(Object[] eventRow : eventRows) {
+            eventStatusMap.put((String)eventRow[0], Event.EventStatus.valueOf((String)eventRow[1]));
         }
 
         return eventStatusMap;
@@ -141,4 +169,5 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         query.setString("eventName", eventName);
         query.executeUpdate();
     }
+
 }

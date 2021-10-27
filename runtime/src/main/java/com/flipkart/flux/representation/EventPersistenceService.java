@@ -40,7 +40,8 @@ public class EventPersistenceService {
      * @return event domain object
      */
     public Event convertEventDefinitionToEvent(EventDefinition eventDefinition) {
-        return new Event(eventDefinition.getName(), eventDefinition.getType(), Event.EventStatus.pending, null, null, null);
+        return new Event(eventDefinition.getName(), eventDefinition.getType(), Event.EventStatus.pending,
+                null, null, null, 0L);
     }
 
     /**

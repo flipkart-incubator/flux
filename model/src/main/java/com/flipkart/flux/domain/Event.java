@@ -95,14 +95,15 @@ public class Event implements Serializable {
 
     }
 
-    public Event(String name, String type, EventStatus status, String stateMachineInstanceId, String eventData, String eventSource) {
+    public Event(String name, String type, EventStatus status, String stateMachineInstanceId, String eventData,
+                 String eventSource, Long executionVersion) {
         this.name = name;
         this.type = type;
         this.status = status;
         this.stateMachineInstanceId = stateMachineInstanceId;
         this.eventData = eventData;
         this.eventSource = eventSource;
-        this.executionVersion = 0L;
+        this.executionVersion = executionVersion;
     }
 
     /**
