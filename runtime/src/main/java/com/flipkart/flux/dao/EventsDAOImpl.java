@@ -56,15 +56,29 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public List<Event> findBySMInstanceId(String stateMachineInstanceId) {
-        return currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId)).list();
+        return currentSession().createCriteria(Event.class)
+                .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId)).list();
     }
 
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public Event findBySMIdAndName(String stateMachineInstanceId, String eventName) {
-        Criteria criteria = currentSession().createCriteria(Event.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
+    public List<Event> findBySMIdAndName(String stateMachineInstanceId, String eventName) {
+        Criteria criteria = currentSession().createCriteria(Event.class)
+                .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("name", eventName));
+        return (List<Event>) criteria.list();
+    }
+
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public Event findBySMIdExecutionVersionAndName(String stateMachineInstanceId, String eventName,
+                                                   Long executionVersion) {
+        Criteria criteria = currentSession().createCriteria(Event.class)
+                .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
+                .add(Restrictions.eq("name", eventName))
+                .add(Restrictions.eq("executionVersion", executionVersion));
         return (Event) criteria.uniqueResult();
     }
 
@@ -111,33 +125,6 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         LinkedList<EventData> readEventsDTOs = new LinkedList<EventData>();
         for (Event event : readEvents) {
             readEventsDTOs.add(new EventData(event.getName(), event.getType(), event.getEventData(), event.getEventSource()));
-        }
-        return readEventsDTOs;
-    }
-
-    @Override
-    @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public List<EventData> findByVersionedEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames) {
-        if (eventNames.isEmpty()) {
-            return new ArrayList<>();
-        }
-        StringBuilder eventNamesString = new StringBuilder();
-        for (int i = 0; i < eventNames.size(); i++) {
-            eventNamesString.append("\'" + eventNames.get(i) + "\'");
-            if (i != eventNames.size() - 1)
-                eventNamesString.append(", ");
-        }
-        //retrieves and returns the events in the order of eventNames
-        Query hqlQuery = currentSession().createQuery(
-                "from Event where stateMachineInstanceId = :SMID and name in (" + eventNamesString.toString()
-                + ") order by field(name, " + eventNamesString.toString() + ")").setParameter(
-                        "SMID", stateMachineInstanceId);
-        List<Event> readEvents = hqlQuery.list();
-        LinkedList<EventData> readEventsDTOs = new LinkedList<EventData>();
-        for (Event event : readEvents) {
-            readEventsDTOs.add(new EventData(event.getName(), event.getType(), event.getEventData(),
-                    event.getEventSource(), event.getExecutionVersion()));
         }
         return readEventsDTOs;
     }

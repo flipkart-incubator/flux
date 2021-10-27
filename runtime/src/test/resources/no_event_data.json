@@ -1,5 +1,6 @@
 {
-  "name": "event0",
-  "type": "java.lang.String",
-  "eventSource": null
+	"name": "event0",
+	"type": "java.lang.String",
+	"eventSource": null,
+	"executionVersion": 0
 }

@@ -301,13 +301,28 @@ public class StateMachineResource {
             EventData eventData = eventAndExecutionData.getEventData();
             ExecutionUpdateData executionUpdateData = eventAndExecutionData.getExecutionUpdateData();
             try {
-                logger.info("Received event:{} from state: {} for state machine: {}", eventData.getName(), executionUpdateData.getTaskId(), machineId);
-                if (eventData.getCancelled() != null && eventData.getCancelled()) {
-                    workFlowExecutionController.updateTaskStatusAndHandlePathCancellation(machineId, eventAndExecutionData);
-                } else {
-                    workFlowExecutionController.updateTaskStatus(machineId, executionUpdateData.getTaskId(),
-                            executionUpdateData.getTaskExecutionVersion(), executionUpdateData);
-                    workFlowExecutionController.postEvent(eventData, stateMachine.getId());
+                if(executionUpdateData.getTaskExecutionVersion() == statesDAO.findById(
+                        machineId, executionUpdateData.getTaskId()).getExecutionVersion()) {
+                    logger.info("Received event:{} with eventExecutionVersion:{} from state: {} with stateExecutionVersion:{}" +
+                                    " for state machine: {}", eventData.getName(), eventData.getExecutionVersion(),
+                            executionUpdateData.getTaskId(), executionUpdateData.getTaskExecutionVersion(), machineId);
+                    if (eventData.getCancelled() != null && eventData.getCancelled()) {
+                        // TODO: Handle this path with execution version added.
+                        workFlowExecutionController.updateTaskStatusAndHandlePathCancellation(machineId, eventAndExecutionData);
+                    } else {
+                        workFlowExecutionController.updateTaskStatus(machineId, executionUpdateData.getTaskId(),
+                                executionUpdateData.getTaskExecutionVersion(), executionUpdateData);
+                        workFlowExecutionController.postEvent(eventData, stateMachine.getId());
+                    }
+                }
+                else {
+                    // TODO: This is an event for invalid state(execution version no more valid), hence discarded.
+                    // TODO: We can store this event data for audit purpose.
+                    logger.info("Not processing event:{} with eventExecutionVersion:{} from state: {} with " +
+                                    "stateExecutionVersion:{}" +
+                                    " for state machine: {}. StateExecutionVersion is not valid anymore.",
+                            eventData.getName(), eventData.getExecutionVersion(),
+                            executionUpdateData.getTaskId(), executionUpdateData.getTaskExecutionVersion(), machineId);
                 }
             } catch (IllegalEventException ex) {
                 return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
@@ -344,13 +359,15 @@ public class StateMachineResource {
                 return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
                         "Event Data|Name|Source cannot be null.").build();
             }
-            Event event = eventsDAO.findBySMIdAndName(machineId, eventData.getName());
+            Event event = eventsDAO.findBySMIdExecutionVersionAndName(machineId, eventData.getName(),
+                    eventData.getExecutionVersion());
             if (event == null) {
                 logger.error("Event with input event Name {} doesn't exist.", eventData.getName());
                 return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(
                         "Event with input event Name doesn't exist.").build();
             }
-            if (eventsDAO.findBySMIdAndName(machineId, eventData.getName()).getStatus() != Event.EventStatus.triggered) {
+            if (eventsDAO.findBySMIdExecutionVersionAndName(machineId, eventData.getName(),
+                    eventData.getExecutionVersion()).getStatus() != Event.EventStatus.triggered) {
                 return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
                         "Input event is not in triggered state.").build();
             }

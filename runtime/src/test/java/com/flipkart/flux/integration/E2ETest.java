@@ -49,10 +49,9 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(GuiceJunit4Runner.class)
-@Modules(orchestrationModules = {ContainerModule.class, ShardModule.class, RuntimeTestModule.class, OrchestratorContainerModule.class,
-        OrchestrationTaskModule.class, FluxClientInterceptorModule.class, FluxClientComponentModule.class},
-        executionModules = { DeploymentUnitTestModule.class, AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class, FluxClientInterceptorModule.class,
-                FluxClientComponentModule.class, ContainerModule.class})
+@Modules(orchestrationModules = {FluxClientComponentModule.class, ShardModule.class, RuntimeTestModule.class, ContainerModule.class, 
+        OrchestrationTaskModule.class, FluxClientInterceptorModule.class},
+        executionModules = {FluxClientComponentModule.class, DeploymentUnitTestModule.class, AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class, FluxClientInterceptorModule.class})
 public class E2ETest {
 
     @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
@@ -141,14 +140,14 @@ public class E2ETest {
         Thread.sleep(2000L);
 
         /* Asserts*/
-        final Set<StateMachine> smInDb =  parallelScatterGatherQueryHelper.findStateMachinesByNameAndVersion("com.flipkart.flux.integration.TestCancelPathWorkflow_create_void_com.flipkart.flux.integration.StartEvent_version1", 1l);
+        final Set<StateMachine> smInDb = parallelScatterGatherQueryHelper.findStateMachinesByNameAndVersion("com.flipkart.flux.integration.TestCancelPathWorkflow_create_void_com.flipkart.flux.integration.StartEvent_version1", 1l);
         final String smId = smInDb.stream().findFirst().get().getId();
         assertThat(smInDb).hasSize(1);
         assertThat(eventsDAO.findBySMInstanceId(smId)).hasSize(9);
 
         /* Tests the propagation of FluxCancelPathException via event ParamEvent2 */
         String eventName = "com.flipkart.flux.integration.ParamEvent2";
-        assertThat(eventsDAO.findBySMIdAndName(smId, eventName).getStatus().toString().equalsIgnoreCase("cancelled"));
+        assertThat(eventsDAO.findBySMIdExecutionVersionAndName(smId, eventName, 0L).getStatus().toString().equalsIgnoreCase("cancelled"));
 
         /* Triggered events coming from States which do not throw FluxCancelPathException */
         assertThat(eventsDAO.findTriggeredEventsBySMId(smId)).hasSize(3);
@@ -165,17 +164,18 @@ public class E2ETest {
         assertThat(taskExecutable.getExecutionConcurrency()).isEqualTo(5);
     }
 
-    @Test
-    public void verifyRedriverPolling(){
+    @SuppressWarnings("unused")
+	@Test
+    public void verifyRedriverPolling() {
         dbClearRule.explicitClearTables();
-        for(int i = 0 ; i < 100; i++)
+        for (int i = 0; i < 100; i++)
             redriverRegistry.registerTask(i * 1L, "smId", 0);
-        for(int i = 1; i <= 100 ; i++)
-            redriverRegistry.registerTask( 1000L + i, "smId",  (i*10000000L));
+        for (int i = 1; i <= 100; i++)
+            redriverRegistry.registerTask(1000L + i, "smId", (i * 10000000L));
+        Long total = messageDao.redriverCount();
         try {
             Thread.sleep(12000);
-        }
-        catch (InterruptedException ex){
+        } catch (InterruptedException ex) {
         }
         assertThat(messageDao.redriverCount()).isEqualTo(100L);
         dbClearRule.explicitClearTables();

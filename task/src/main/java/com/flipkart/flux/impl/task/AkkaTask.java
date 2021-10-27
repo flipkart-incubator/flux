@@ -137,7 +137,8 @@ public class AkkaTask extends UntypedActor {
                     // Execute any pre-exec HookS
 //                    this.executeHooks(AkkaTask.taskRegistry.getPreExecHooks(task), taskAndEvent.getEvents());
                     final String outputEventName = getOutputEventName(taskAndEvent);
-                    final TaskExecutor taskExecutor = new TaskExecutor(task, taskAndEvent.getEvents(), taskAndEvent.getStateMachineId(), outputEventName);
+                    final TaskExecutor taskExecutor = new TaskExecutor(task, taskAndEvent.getEvents(),
+                            taskAndEvent.getStateMachineId(), outputEventName, taskAndEvent.getTaskExecutionVersion());
                     Event outputEvent = null;
                     final Timer.Context context = timer.time();
                     try {
@@ -148,7 +149,10 @@ public class AkkaTask extends UntypedActor {
                         if (outputEvent != null) {
                             // after successful task execution, post the generated output event for further processing, also update status as part of same call
                             fluxRuntimeConnector.submitEventAndUpdateStatus(
-                                    new EventData(outputEvent.getName(), outputEvent.getType(), outputEvent.getEventData(), outputEvent.getEventSource(), outputEvent.getStatus() == Event.EventStatus.cancelled),
+                                    new EventData(outputEvent.getName(), outputEvent.getType(),
+                                            outputEvent.getEventData(), outputEvent.getEventSource(),
+                                            outputEvent.getStatus() == Event.EventStatus.cancelled,
+                                            outputEvent.getExecutionVersion()),
                                     outputEvent.getStateMachineInstanceId(),
                                     new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(), Status.completed, taskAndEvent.getRetryCount(),
                                             taskAndEvent.getCurrentRetryCount(), null, true,

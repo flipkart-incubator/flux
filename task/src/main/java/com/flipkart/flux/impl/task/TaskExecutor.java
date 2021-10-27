@@ -55,9 +55,15 @@ public class TaskExecutor extends HystrixCommand<Event> {
     private final String outputEventName;
 
     /**
+     * Execution Version of the task.
+     */
+    private Long executionVersion;
+
+    /**
      * Constructor for this class
      */
-    public TaskExecutor(AbstractTask task, EventData[] events, String stateMachineId, String outputEventName) {
+    public TaskExecutor(AbstractTask task, EventData[] events, String stateMachineId, String outputEventName,
+                        Long executionVersion) {
         super(Setter
                 .withGroupKey(HystrixCommandGroupKey.Factory.asKey(task.getTaskGroupName()))
                 .andCommandKey(HystrixCommandKey.Factory.asKey(task.getName()))
@@ -70,6 +76,7 @@ public class TaskExecutor extends HystrixCommand<Event> {
         this.events = events;
         this.stateMachineId = stateMachineId;
         this.outputEventName = outputEventName;
+        this.executionVersion = executionVersion;
     }
 
     /**
@@ -85,9 +92,8 @@ public class TaskExecutor extends HystrixCommand<Event> {
             }
             final SerializedEvent returnObject = (SerializedEvent) result.getKey();
             if (returnObject != null) {
-                //TODO : Populate executionVersion
                 return new Event(outputEventName, returnObject.getEventType(), Event.EventStatus.triggered,
-                        stateMachineId, returnObject.getSerializedEventData(), MANAGED_RUNTIME, 0L);
+                        stateMachineId, returnObject.getSerializedEventData(), MANAGED_RUNTIME, executionVersion);
             }
         } catch (Exception ex) {
             boolean isFluxCancelPathException = false;
@@ -100,9 +106,8 @@ public class TaskExecutor extends HystrixCommand<Event> {
                 cause = cause.getCause();
             }
             if (isFluxCancelPathException) {
-                //TODO : Populate executionVersion
                 return new Event(outputEventName, null, Event.EventStatus.cancelled, stateMachineId,
-                        null, MANAGED_RUNTIME, 0L);
+                        null, MANAGED_RUNTIME, executionVersion);
             } else {
                 throw ex;
             }

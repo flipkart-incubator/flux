@@ -304,7 +304,8 @@ public class WorkFlowExecutionController {
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Event persistEvent(String stateMachineInstanceId, EventData eventData) {
         //update event's data and status
-        Event event = eventsDAO.findBySMIdAndName(stateMachineInstanceId, eventData.getName());
+        Event event = eventsDAO.findBySMIdExecutionVersionAndName(stateMachineInstanceId, eventData.getName(),
+                eventData.getExecutionVersion());
         if (event == null)
             throw new IllegalEventException("Event with stateMachineId: " + stateMachineInstanceId + ", event name: " + eventData.getName() + " not found");
         event.setStatus(eventData.getCancelled() != null && eventData.getCancelled() ? Event.EventStatus.cancelled : Event.EventStatus.triggered);
@@ -389,6 +390,7 @@ public class WorkFlowExecutionController {
      *
      * @param stateMachineId    the state machine identifier
      * @param taskId            the Task identifier
+     * @param taskExecutionVersion  the Task Execution Version
      * @param status            the Status to be updated to
      * @param retryCount        the configured retry count for the task
      * @param currentRetryCount current retry count for the task
@@ -398,10 +400,14 @@ public class WorkFlowExecutionController {
                                       long retryCount, long currentRetryCount, String errorMessage,
                                       boolean deleteFromRedriver) {
         // TODO: Handle deletion from redriver when executionVersion is added to redriver table.
+        // TODO: Once this check is handled in all it's callers, it can be removed from here.
         if(taskExecutionVersion == this.statesDAO.findById(stateMachineId, taskId).getExecutionVersion()) {
             this.statesDAO.updateStatus(stateMachineId, taskId, status);
-            this.auditDAO.create(stateMachineId, new AuditRecord(stateMachineId, taskId, currentRetryCount, status,
-                    null, errorMessage));
+            AuditRecord auditRecord = new AuditRecord(stateMachineId, taskId, currentRetryCount, status,
+                    null, errorMessage);
+            auditRecord.setTaskExecutionVersion(taskExecutionVersion);
+            // TODO: Need to add dependent events for executed state in auditRecords.
+            this.auditDAO.create(stateMachineId, auditRecord);
             if (deleteFromRedriver) {
                 this.redriverRegistry.deRegisterTask(stateMachineId, taskId);
             }
@@ -512,7 +518,7 @@ public class WorkFlowExecutionController {
                                 currentEvent.getType(), currentEvent.getEventData(), currentEvent.getEventSource(),
                                 currentEvent.getExecutionVersion()));
                     } else {
-                        eventDatas = eventsDAO.findByVersionedEventNamesAndSMId(stateMachine.getId(), state.getDependencies());
+                        eventDatas = eventsDAO.findByEventNamesAndSMId(stateMachine.getId(), state.getDependencies());
                     }
                     final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
                             state.getExecutionVersion(), eventDatas.toArray(new EventData[]{}),

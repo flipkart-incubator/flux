@@ -1,6 +1,7 @@
 {
-  "name": "event0",
-  "type": "java.lang.String",
-  "data": "50",
-  "eventSource": "external"
+	"name": "event0",
+	"type": "java.lang.String",
+	"data": "50",
+	"eventSource": "external",
+	"executionVersion": 0
 }

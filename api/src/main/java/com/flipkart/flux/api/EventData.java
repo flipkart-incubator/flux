@@ -15,6 +15,7 @@ package com.flipkart.flux.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.io.Serializable;
 
@@ -38,10 +39,12 @@ public class EventData implements Serializable {
     /** Source who generated this event, might be state name or external */
     private String eventSource;
 
-    private Long executionVersion;
-
     /** Indicates whether this event is cancelled, based on this value runtime decides to cancel the entire path in DAG */
     private Boolean isCancelled;
+
+    // TODO: Need to revisit this usage of JsonInclude
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Long executionVersion;
 
     /** Used by jackson */
     EventData() {}
@@ -120,6 +123,8 @@ public class EventData implements Serializable {
         if (data != null ? !data.equals(eventData.data) : eventData.data != null) return false;
         if (eventSource != null ? !eventSource.equals(eventData.eventSource) : eventData.eventSource != null)
             return false;
+        if (executionVersion != null ? !executionVersion.equals(eventData.executionVersion) : eventData.executionVersion != null)
+            return false;
         return isCancelled != null ? isCancelled.equals(eventData.isCancelled) : eventData.isCancelled == null;
     }
 
@@ -129,6 +134,7 @@ public class EventData implements Serializable {
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (data != null ? data.hashCode() : 0);
         result = 31 * result + (eventSource != null ? eventSource.hashCode() : 0);
+        result = 31 * result + (executionVersion != null ? executionVersion.hashCode() : 0);
         result = 31 * result + (isCancelled != null ? isCancelled.hashCode() : 0);
         return result;
     }
@@ -140,6 +146,7 @@ public class EventData implements Serializable {
                 ", type='" + type + '\'' +
                 ", data='" + data + '\'' +
                 ", eventSource='" + eventSource + '\'' +
+                ", executionVersion=" + executionVersion +
                 ", isCancelled=" + isCancelled +
                 '}';
     }

@@ -2,5 +2,9 @@
   "name": "event0",
   "type": "java.lang.String",
   "data": "42",
-  "eventSource": null
+  "eventSource": null,
+  "executionVersion": 0
 }
+// TODO: This payload is directly testing state machine resource layer. When called from flux client by user,
+// TODO: EventData is initialised by EventData overloading with default "0L EventExecutionVersion",
+// TODO: hence it doesn't break backward compatibility.
