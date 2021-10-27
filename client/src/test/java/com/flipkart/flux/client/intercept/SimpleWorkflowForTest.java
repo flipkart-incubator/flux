@@ -56,14 +56,6 @@ public class SimpleWorkflowForTest {
         someTaskWithIntegerAndString(newString, someInteger);
     }
 
-    @SuppressWarnings("unused")
-	@Workflow(version = 1)
-    public void simpleDummyWorkflowWithReplayEvent(IntegerEvent someInteger) {
-        final StringEvent newString = waitForReplayEvent(null, someInteger);
-        final StringEvent anotherString = waitForReplayEvent((StringEvent) null);
-        someTaskWithIntegerAndString(newString, someInteger);
-    }
-
     /* A simple workflow that takes in a parameter which carries a correlationId */
     @SuppressWarnings("unused")
 	@Workflow(version = 1)
@@ -97,16 +89,6 @@ public class SimpleWorkflowForTest {
         return new StringEvent(integerEvent.anInteger.toString() + someString);
     }
 
-    @Task(version = 1, retries = 2, timeout = 2000l, replayable = true)
-    public StringEvent waitForReplayEvent(@ReplayEvent("someReplayEvent") StringEvent someString,IntegerEvent integerEvent) {
-        return new StringEvent(integerEvent.anInteger.toString() + someString);
-    }
-
-    @Task(version = 1, retries = 2, timeout = 2000l, replayable = true)
-    public StringEvent waitForReplayEvent(@ReplayEvent("someReplayEvent") StringEvent someString) {
-        return new StringEvent("randomBs" + someString);
-    }
-
     @Task(version = 1, retries = 2, timeout = 2000l)
     public StringEvent waitForExternalEvent(@ExternalEvent("someExternalEvent") StringEvent someString) {
         return new StringEvent(someString.toString());
@@ -115,8 +97,6 @@ public class SimpleWorkflowForTest {
     public StringEvent waitForExternalEvent(@ExternalEvent("someExternalEvent") IntegerEvent integerEvent) {
         return new StringEvent(integerEvent.anInteger.toString());
     }
-
-
 
     @Task(version = 1, retries = 2, timeout = 3000l)
     public IntegerEvent simpleAdditionTask(IntegerEvent i) {

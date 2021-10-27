@@ -196,7 +196,7 @@ public class TaskInterceptorTest {
         }};
         final EventDefinition expectedOutput = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent1","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
         verify(localContext, times(1)).
-                registerNewReplayableState(1l, "waitForReplayEvent", null, null,
+                registerNewState(1l, "waitForReplayEvent", null, null,
                         new MethodId(invokedMethod).toString()+_VERSION+"1", 2l, 2000l, true,expectedDependency, expectedOutput);
     }
 

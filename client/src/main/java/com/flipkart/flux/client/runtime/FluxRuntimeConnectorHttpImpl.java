@@ -14,15 +14,14 @@
 
 package com.flipkart.flux.client.runtime;
 
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.SharedMetricRegistries;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.EventAndExecutionData;
-import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.ExecutionUpdateData;
-import com.flipkart.flux.api.StateMachineDefinition;
-import com.google.common.annotations.VisibleForTesting;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+
+import javax.ws.rs.core.Response;
+
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -36,9 +35,18 @@ import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.ws.rs.core.Response;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.SharedMetricRegistries;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventAndExecutionData;
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.api.ExecutionUpdateData;
+import com.flipkart.flux.api.StateDefinition;
+import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.utils.Pair;
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * RuntimeConnector that connects to runtime over HTTP
@@ -91,6 +99,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     public void submitNewWorkflow(StateMachineDefinition stateMachineDef) {
         CloseableHttpResponse httpResponse = null;
         try {
+        	stateMachineDef = validateStateMachineDef(stateMachineDef);
             httpResponse = postOverHttp(stateMachineDef, "");
             if (logger.isDebugEnabled()) {
                 try {
@@ -264,5 +273,30 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         }
         return httpResponse;
     }
+    
+    private StateMachineDefinition validateStateMachineDef (StateMachineDefinition stateMachineDefinition) {
+        HashMap< Pair<String, List<EventDefinition>>, Integer> countForTasks = new HashMap<>();
+        Integer count = 1;
+        Set<StateDefinition> setOfStates = stateMachineDefinition.getStates();
+        for (StateDefinition state : setOfStates) {
+            Pair<String, List<EventDefinition>> pair = new Pair<String, List<EventDefinition>>(state.getTask(), state.getDependencies());
+            if(countForTasks.get(pair) != null) {
+                int getCount = countForTasks.get(pair);
+                countForTasks.put(pair, getCount+1);
+
+            }
+            else {
+                countForTasks.put(pair, count);
+            }
+        }
+        for (StateDefinition state : setOfStates) {
+            Pair<String, List<EventDefinition>> pair = new Pair<String, List<EventDefinition>>(state.getTask(),state.getDependencies());
+            int getCount = countForTasks.get(pair);
+            if (getCount > 1)
+                state.setReplayable(false);
+        }
+        return stateMachineDefinition;
+    }
+    
 
 }

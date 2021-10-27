@@ -75,7 +75,7 @@ public class LocalContext {
         this.stateMachineDefinition.get().addState(stateDefinition);
     }
 
-    public void registerNewReplayableState(Long version,
+    public void registerNewState(Long version,
                                  String name, String description,
                                  String hookIdentifier, String taskIdentifier,
                                  Long retryCount, Long timeout, boolean isReplayed,
@@ -83,7 +83,7 @@ public class LocalContext {
     ) {
         final StateDefinition stateDefinition = new StateDefinition(version, name, description,
                 hookIdentifier, taskIdentifier, hookIdentifier,
-                retryCount, timeout, dependencySet, outputEvent,isReplayed);
+                retryCount, timeout, dependencySet, outputEvent, isReplayed);
         this.stateMachineDefinition.get().addState(stateDefinition);
     }
 

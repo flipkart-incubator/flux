@@ -87,7 +87,7 @@ public class TaskInterceptor implements MethodInterceptor {
         }
         /* Contribute to the ongoing state machine definition */
         if(taskAnnotation.replayable())
-            localContext.registerNewReplayableState(taskAnnotation.version(), generateStateIdentifier(method), null, null, taskIdentifier, taskAnnotation.retries(), taskAnnotation.timeout(), taskAnnotation.replayable(), dependencySet, outputEventDefintion);
+            localContext.registerNewState(taskAnnotation.version(), generateStateIdentifier(method), null, null, taskIdentifier, taskAnnotation.retries(), taskAnnotation.timeout(), taskAnnotation.replayable(), dependencySet, outputEventDefintion);
         else
             localContext.registerNewState(taskAnnotation.version(), generateStateIdentifier(method), null, null, taskIdentifier, taskAnnotation.retries(), taskAnnotation.timeout(), dependencySet, outputEventDefintion);
 
@@ -148,14 +148,14 @@ public class TaskInterceptor implements MethodInterceptor {
         List<EventDefinition> eventDefinitions = new LinkedList<>();
         for (int i = 0; i < arguments.length ; i++) {
             Object argument = arguments[i];
-            ExternalEvent externalEventAnnotation = checkAndAddExternalEventAnnotation(parameterAnnotations[i]);
-            ReplayEvent replayEventAnnotation = checkAndAddReplayEventAnnotation(parameterAnnotations[i]);
+            ExternalEvent externalEventAnnotation = checkForExternalEventAnnotation(parameterAnnotations[i]);
+            ReplayEvent replayEventAnnotation = checkForReplayEventAnnotation(parameterAnnotations[i]);
             if (externalEventAnnotation != null) {
-            	checkAndAddExternalEventToEventDefiniton(eventDefinitions, externalEventAnnotation, argument, parameterTypes, i);
+                checkAndAddEventToEventDefiniton(eventDefinitions, externalEventAnnotation, argument, parameterTypes, i);
                 continue;
             }
             else if (replayEventAnnotation != null) {
-            	checkAndAddReplayEventToEventDefiniton(eventDefinitions, replayEventAnnotation, argument, parameterTypes, i);
+                checkAndAddEventToEventDefiniton(eventDefinitions, replayEventAnnotation, argument, parameterTypes, i);
                 continue;
             }
 
@@ -170,9 +170,11 @@ public class TaskInterceptor implements MethodInterceptor {
         return eventDefinitions;
     }
 
-    private void checkAndAddExternalEventToEventDefiniton(List<EventDefinition> eventDefinitions, ExternalEvent externalEventAnnotation, Object argument, Class<?>[] parameterTypes, int argumentIndex) {
 
-            if (argument != null) {
+
+    private void checkAndAddEventToEventDefiniton(List<EventDefinition> eventDefinitions, ExternalEvent externalEventAnnotation, Object argument, Class<?>[] parameterTypes, int argumentIndex) {
+
+        if (argument != null) {
                 throw new IllegalInvocationException("cannot pass" + argument + " as the parameter is marked an external event");
             }
             final EventDefinition definition = new EventDefinition(externalEventAnnotation.value(), parameterTypes[argumentIndex].getName());
@@ -185,9 +187,9 @@ public class TaskInterceptor implements MethodInterceptor {
 
     }
 
-    private void checkAndAddReplayEventToEventDefiniton(List<EventDefinition> eventDefinitions, ReplayEvent replayEventAnnotation, Object argument, Class<?>[] parameterTypes, int argumentIndex) {
+    private void checkAndAddEventToEventDefiniton(List<EventDefinition> eventDefinitions, ReplayEvent replayEventAnnotation, Object argument, Class<?>[] parameterTypes, int argumentIndex) {
 
-            if (argument != null) {
+        if (argument != null) {
                 throw new IllegalInvocationException("cannot pass" + argument + " as the parameter is marked an replay event");
             }
             final EventDefinition definition = new EventDefinition(replayEventAnnotation.value(), parameterTypes[argumentIndex].getName());
@@ -201,7 +203,7 @@ public class TaskInterceptor implements MethodInterceptor {
     }
 
 
-    private ExternalEvent checkAndAddExternalEventAnnotation(Annotation[] givenParameterAnnotations) {
+    private ExternalEvent checkForExternalEventAnnotation(Annotation[] givenParameterAnnotations) {
         for (Annotation annotation : givenParameterAnnotations) {
             if (annotation instanceof ExternalEvent) {
                 return (ExternalEvent) annotation;
@@ -210,7 +212,7 @@ public class TaskInterceptor implements MethodInterceptor {
         return null;
     }
 
-    private ReplayEvent checkAndAddReplayEventAnnotation(Annotation[] givenParameterAnnotations) {
+    private ReplayEvent checkForReplayEventAnnotation(Annotation[] givenParameterAnnotations) {
         for (Annotation annotation : givenParameterAnnotations) {
             if (annotation instanceof ReplayEvent) {
                 return (ReplayEvent) annotation;
