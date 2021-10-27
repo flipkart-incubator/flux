@@ -289,6 +289,54 @@ public class StateMachineResource {
     }
 
     /**
+     * Used to post Data corresponding to a replay event.
+     * This data is independently posted (manually, for example)
+     *
+     * @param machineId machineId the event is to be submitted against
+     * @param eventData Json representation of event
+     */
+    @POST
+    @Path("/{machineId}/context/replayevents")
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    @Timed
+    public Response submitReplayEvent(@PathParam("machineId") String machineId,
+                                @QueryParam("searchField") String searchField,
+                                EventData eventData
+    ) throws Exception {
+
+        try {
+            LoggingUtils.registerStateMachineIdForLogging(machineId);
+            logger.info("Received replay event: {} for state machine: {}", eventData.getName(), machineId);
+            StateMachine stateMachine = null;
+            stateMachine = stateMachinesDAO.findById(machineId);
+            if (stateMachine == null) {
+                logger.error("stateMachine with id not found while processing replay event {} ", machineId,
+                        eventData.getName());
+                throw new RuntimeException("StateMachine with id " + machineId + " not found while processing replay event "
+                        + eventData.getName());
+            }
+            if (stateMachine.getStatus() == StateMachineStatus.cancelled) {
+                logger.info("Discarding replay event: {} as State machine: {} is in cancelled state",
+                        eventData.getName(), stateMachine.getId());
+                return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: "
+                        + stateMachine.getId() + " is in 'cancelled' state. Discarding the replay event.").build();
+            }
+            logger.info("Received replay event: {} for state machine: {}", eventData.getName(), machineId);
+            try {
+                workFlowExecutionController.postReplayEvent(eventData, stateMachine);
+                return Response.status(Response.Status.ACCEPTED).build();
+            } catch (IllegalEventException ex) {
+                // TODO: Need to add more catch blocks to handle different illegal event exceptions.
+                // TODO: Sending only one response type for now.
+                return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
+            }
+        } finally {
+            LoggingUtils.deRegisterStateMachineIdForLogging();
+        }
+    }
+
+    /**
      * Used to post Data corresponding to an event. This also updates the task status to completed which generated the event.
      *
      * @param machineId             machineId the event is to be submitted against

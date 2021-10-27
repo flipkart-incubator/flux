@@ -109,7 +109,15 @@ public class State {
      */
     private Long attemptedNoOfRetries;
 
+    /**
+     * Execution version for this state
+     */
     private Long executionVersion;
+
+    /**
+     * Boolean value to indicate whether state is replayable or not
+     */
+    private Boolean replayable;
 
     /**
      * Time at which this State has been created
@@ -131,6 +139,7 @@ public class State {
         dependencies = new LinkedList<>();
     }
 
+    // TODO : With flux client for replay event merge, will overload constructor to populate value for replayable from StateDefinition.
     public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, List<String> dependencies,
                  Long retryCount, Long timeout, String outputEvent, Status status, Status rollbackStatus,
                  Long attemptedNoOfRetries, String stateMachineId, Long id) {
@@ -292,6 +301,14 @@ public class State {
         this.executionVersion = executionVersion;
     }
 
+    public Boolean getReplayable() {
+        return replayable;
+    }
+
+    public void setReplayable(Boolean replayable) {
+        this.replayable = replayable;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -318,6 +335,7 @@ public class State {
         if (version != null ? !version.equals(state.version) : state.version != null) return false;
         if (executionVersion != null ? !executionVersion.equals(state.executionVersion) : state.executionVersion != null)
             return false;
+        if (replayable != null ? !replayable.equals(state.replayable) : state.replayable != null) return false;
 
         return true;
     }
@@ -338,6 +356,7 @@ public class State {
         result = 31 * result + (rollbackStatus != null ? rollbackStatus.hashCode() : 0);
         result = 31 * result + (attemptedNoOfRetries != null ? attemptedNoOfRetries.hashCode() : 0);
         result = 31 * result + (executionVersion != null ? executionVersion.hashCode() : 0);
+        result = 31 * result + (replayable != null ? replayable.hashCode() : 0);
         result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
         result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
         return result;
@@ -362,6 +381,7 @@ public class State {
                 ", rollbackStatus=" + rollbackStatus +
                 ", attemptedNoOfRetries=" + attemptedNoOfRetries +
                 ", executionVersion=" + executionVersion +
+                ", replayable=" + replayable +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

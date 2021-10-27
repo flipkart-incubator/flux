@@ -294,6 +294,107 @@ public class WorkFlowExecutionController {
     }
 
     /**
+     * // TODO : Rephrase this desciption
+     * Retrieves the states which are dependant on this replay event and starts the execution of eligible states (replayable is true).
+     * 0. Verify eligible dependant state(replayable is true) on this replay event.
+     * 1. Retrieves set of states and events occurring in the topological path with triggering of this replay event using BFS.
+     * In a Transaction :
+     *  2. Mark all states and events retrieved as invalid.
+     *  3. Increment, update and read executionVersion for this State Machine.
+     *  4. Update executionVersion for all states(marked as invalid) retrieved in step 1.
+     *  5. Create new event entries in pending status including replay event containing event data with executionVersion read in step 3.
+     *  6. Submit replay event to execute eligible dependent states(replayable is true) on this replay event.
+     *
+     * @param eventData
+     * @param stateMachine
+     */
+    public Set<State> postReplayEvent(EventData eventData, StateMachine stateMachine) throws IllegalEventException {
+
+        Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
+
+        // TODO : Add a check on client side so as not to allow a replay event being a dependency of 2 or more states.
+        //Get the dependant state on this replay event.
+        State dependantState = statesDAO.findStateByDependentReplayEvent(stateMachine.getId(), eventData.getName());
+        logger.debug("This state {} depends on replay event {}", dependantState, eventData.getName());
+
+        if(!dependantState.getReplayable()) {
+                throw new IllegalEventException("Dependant state:"+ dependantState.getName() +" with stateMachineId:" +
+                        stateMachine.getId() +" and replay event:"+ eventData.getName() + " is not replayable.");
+        }
+
+        // Build states set and events names list in topological path of replay event
+        // All these states and events will be marked as invalid.
+        // TODO: Need to add test cases for this.
+        Set<State> dependantStates = new HashSet<>();
+        List<String> dependantEvents = new ArrayList<>();
+        dependantStates.add(dependantState); // add initial state dependant on replay event
+        dependantEvents.add(dependantState.getOutputEvent()); // add initial state's output event
+
+        // Using BFS, for each state in State Machine, find path between initial dependant state -> current state
+        for (State state : stateMachine.getStates()) {
+            if(pathExists(stateMachine.getStates(), context, dependantState, state)) {
+                dependantStates.add(state);
+                dependantEvents.add(state.getOutputEvent());
+            }
+        }
+        return null;
+    }
+
+    // TODO : Add description, test cases
+    // TODO : Will modify to return all states in the path
+    // BFS to check a path between 2 states
+    private boolean pathExists(Set<State> allStates, Context context, State initialState, State destinationState) {
+
+        Map<State, Boolean> visitedState = new HashMap<>();
+        LinkedList<State> queue = new LinkedList<>();
+
+        // initialise visited states
+        allStates.forEach((state -> {
+            visitedState.put(state, Boolean.FALSE);
+        }));
+        visitedState.put(initialState, Boolean.TRUE);
+        queue.add(initialState);
+
+        Set<State> nextDependantStates;
+
+        while (queue.size() != 0) {
+            State retrievedState = queue.poll();
+
+            nextDependantStates = context.getDependantStates(retrievedState.getOutputEvent());
+
+            for (State dependantState : nextDependantStates) {
+                if(dependantState.equals(destinationState)) {
+                    return true;
+                }
+
+                if(!visitedState.get(dependantState)) {
+                    visitedState.put(dependantState, Boolean.TRUE);
+                    queue.add(dependantState);
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     *
+     * @param stateMachineInstanceId
+     * @param eventData
+     */
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public Event persistReplayEvent(String stateMachineInstanceId, EventData eventData) {
+        //update event's data and status
+        Event event = eventsDAO.findBySMIdExecutionVersionAndName(stateMachineInstanceId, eventData.getName(),
+                eventData.getExecutionVersion());
+        if (event == null)
+            throw new IllegalEventException("Replay Event with stateMachineId: " + stateMachineInstanceId + "," +
+                    " event name: " + eventData.getName() + " not found");
+
+        return event;
+    }
+
+    /**
      * Persists Event data and changes event status
      *
      * @param stateMachineInstanceId
