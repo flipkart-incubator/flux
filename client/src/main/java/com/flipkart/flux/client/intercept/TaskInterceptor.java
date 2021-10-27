@@ -14,20 +14,6 @@
 
 package com.flipkart.flux.client.intercept;
 
-import static com.flipkart.flux.client.constant.ClientConstants.CLIENT;
-import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.LinkedList;
-import java.util.List;
-
-import javax.inject.Inject;
-import javax.inject.Provider;
-
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
@@ -40,8 +26,19 @@ import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.registry.ExecutableImpl;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.client.runtime.LocalContext;
-
 import net.sf.cglib.proxy.Enhancer;
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
+
+import javax.inject.Inject;
+import javax.inject.Provider;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.LinkedList;
+import java.util.List;
+
+import static com.flipkart.flux.client.constant.ClientConstants.CLIENT;
+import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
 
 /**
  * This intercepts the invocation to <code>@Task</code> methods
@@ -151,8 +148,8 @@ public class TaskInterceptor implements MethodInterceptor {
         List<EventDefinition> eventDefinitions = new LinkedList<>();
         for (int i = 0; i < arguments.length ; i++) {
             Object argument = arguments[i];
-            ExternalEvent externalEventAnnotation = checkForExternalEventAnnotation(parameterAnnotations[i]);
-            ReplayEvent replayEventAnnotation = checkForReplayEventAnnotation(parameterAnnotations[i]);
+            ExternalEvent externalEventAnnotation = checkAndAddExternalEventAnnotation(parameterAnnotations[i]);
+            ReplayEvent replayEventAnnotation = checkAndAddReplayEventAnnotation(parameterAnnotations[i]);
             if (externalEventAnnotation != null) {
                 addExternalEventToEventDefiniton(eventDefinitions, externalEventAnnotation, argument, parameterTypes, i);
                 continue;
@@ -169,14 +166,11 @@ public class TaskInterceptor implements MethodInterceptor {
                 eventDefinitions.add(new EventDefinition(eventName, argument.getClass().getName()));
                 localContext.addEvents(new EventData(eventName, argument.getClass().getName(), objectMapperProvider.get().writeValueAsString(argument), CLIENT));
             }
-
-            System.out.println(eventDefinitions);
         }
         return eventDefinitions;
     }
 
     private void addExternalEventToEventDefiniton(List<EventDefinition> eventDefinitions, ExternalEvent externalEventAnnotation, Object argument, Class<?>[] parameterTypes, int argumentIndex) {
-
 
             if (argument != null) {
                 throw new IllegalInvocationException("cannot pass" + argument + " as the parameter is marked an external event");
@@ -193,7 +187,6 @@ public class TaskInterceptor implements MethodInterceptor {
 
     private void addReplayEventToEventDefiniton(List<EventDefinition> eventDefinitions, ReplayEvent replayEventAnnotation, Object argument, Class<?>[] parameterTypes, int argumentIndex) {
 
-
             if (argument != null) {
                 throw new IllegalInvocationException("cannot pass" + argument + " as the parameter is marked an replay event");
             }
@@ -208,7 +201,7 @@ public class TaskInterceptor implements MethodInterceptor {
     }
 
 
-    private ExternalEvent checkForExternalEventAnnotation(Annotation[] givenParameterAnnotations) {
+    private ExternalEvent checkAndAddExternalEventAnnotation(Annotation[] givenParameterAnnotations) {
         for (Annotation annotation : givenParameterAnnotations) {
             if (annotation instanceof ExternalEvent) {
                 return (ExternalEvent) annotation;
@@ -217,7 +210,7 @@ public class TaskInterceptor implements MethodInterceptor {
         return null;
     }
 
-    private ReplayEvent checkForReplayEventAnnotation(Annotation[] givenParameterAnnotations) {
+    private ReplayEvent checkAndAddReplayEventAnnotation(Annotation[] givenParameterAnnotations) {
         for (Annotation annotation : givenParameterAnnotations) {
             if (annotation instanceof ReplayEvent) {
                 return (ReplayEvent) annotation;
