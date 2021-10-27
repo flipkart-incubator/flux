@@ -57,18 +57,6 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         query.executeUpdate();
     }
 
-    // TODO : Add test case
-    @Override
-    @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public void updateStatusOfStates(String stateMachineId, Set<Long> stateIds, Status status) {
-        Query query = currentSession().createQuery("update State set status = :status where id in ("
-                + stateIds.toString() + ")" + " and stateMachineId = :stateMachineId");
-        query.setString("status", status != null ? status.toString() : null);
-        query.setString("stateMachineId", stateMachineId);
-        query.executeUpdate();
-    }
-
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
@@ -161,7 +149,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public State findStateByDependentReplayEvent(String stateMachineId, String eventName) {
         Query query;
-        String queryString = "select id, stateMachineId, status from State where stateMachineId = :stateMachineId" +
+        String queryString = "select * from State where stateMachineId = :stateMachineId" +
                 " and dependencies like :eventName";
         query = currentSession().createQuery(queryString);
         query.setString("stateMachineId", stateMachineId);

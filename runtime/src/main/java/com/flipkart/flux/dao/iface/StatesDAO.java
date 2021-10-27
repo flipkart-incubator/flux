@@ -13,13 +13,12 @@
 
 package com.flipkart.flux.dao.iface;
 
+import java.sql.Timestamp;
+import java.util.List;
+
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.shard.ShardId;
-
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.Set;
 
 /**
  * <code>StatesDAO</code> interface provides methods to perform CR operations on {@link State}
@@ -37,12 +36,6 @@ public interface StatesDAO {
      * Updates status of a state
      */
     void updateStatus(String stateMachineInstanceId, Long stateId, Status status);
-
-    /**
-     * Updates status of states
-     */
-    void updateStatusOfStates(String stateMachineInstanceId, Set<Long> stateId, Status status);
-
 
     /**
      * Updates rollback status of a state
