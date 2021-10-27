@@ -19,6 +19,7 @@ import com.flipkart.flux.shard.ShardId;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <code>StatesDAO</code> interface provides methods to perform CR operations on {@link State}
@@ -38,6 +39,12 @@ public interface StatesDAO {
     void updateStatus(String stateMachineInstanceId, Long stateId, Status status);
 
     /**
+     * Updates status of states
+     */
+    void updateStatusOfStates(String stateMachineInstanceId, Set<Long> stateId, Status status);
+
+
+    /**
      * Updates rollback status of a state
      */
     public void updateRollbackStatus(String stateMachineInstanceId, Long stateId, Status rollbackStatus);
@@ -46,6 +53,11 @@ public interface StatesDAO {
      * Increments the attempted no.of retries of a state by 1
      */
     void incrementRetryCount(String stateMachineInstanceId, Long stateId);
+
+    /**
+     * Update the execution Version for specified stateId belonging to State Machine.
+     */
+    void updateExecutionVersion(String stateMachineInstanceId, Long stateId, Long executionVersion);
 
     /**
      * Retrieves a state by it's unique identifier

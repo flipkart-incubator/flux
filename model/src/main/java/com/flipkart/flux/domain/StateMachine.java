@@ -196,8 +196,6 @@ public class StateMachine {
         if (updatedAt != null ? !updatedAt.equals(that.updatedAt) : that.updatedAt != null) return false;
         if (clientElbId != null ? !clientElbId.equals(that.clientElbId) : that.clientElbId != null) return false;
         if (version != null ? !version.equals(that.version) : that.version != null) return false;
-        if (executionVersion != null ? !executionVersion.equals(that.executionVersion) : that.executionVersion != null)
-            return false;
 
         return true;
     }
@@ -210,7 +208,6 @@ public class StateMachine {
         result = 31 * result + (states != null ? states.hashCode() : 0);
         result = 31 * result + (currentStates != null ? currentStates.hashCode() : 0);
         result = 31 * result + (context != null ? context.hashCode() : 0);
-        result = 31 * result + (executionVersion != null ? executionVersion.hashCode() : 0);
         result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
         result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
         return result;
@@ -226,7 +223,6 @@ public class StateMachine {
                 ", description='" + description + '\'' +
                 ", states=" + states +
                 ", currentStates=" + currentStates +
-                ", executionVersion=" + executionVersion +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

@@ -50,6 +50,10 @@ public interface EventsDAO {
     /** Retrieves list of events which are in triggered state and belongs to provided state machine */
     List<Event> findTriggeredEventsBySMId(String stateMachineInstanceId);
 
+    /** Retrieves event which is in triggered state, event name and belongs to provided state machine */
+    Event findTriggeredEventBySMIdAndName(String stateMachineInstanceId, String eventName);
+
+
     /** Retrieves list of events by their names and state machine id */
     List<EventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames );
 
@@ -58,4 +62,7 @@ public interface EventsDAO {
 
     /** Marks an event as cancelled */
     void markEventAsCancelled(String stateMachineInstanceId, String eventName);
+
+    /** Marks list of events as invalid */
+    void markEventsAsInvalid(String stateMachineInstanceId, List<String> eventName);
 }

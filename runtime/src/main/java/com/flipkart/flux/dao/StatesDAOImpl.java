@@ -57,6 +57,18 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         query.executeUpdate();
     }
 
+    // TODO : Add test case
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void updateStatusOfStates(String stateMachineId, Set<Long> stateIds, Status status) {
+        Query query = currentSession().createQuery("update State set status = :status where id in ("
+                + stateIds.toString() + ")" + " and stateMachineId = :stateMachineId");
+        query.setString("status", status != null ? status.toString() : null);
+        query.setString("stateMachineId", stateMachineId);
+        query.executeUpdate();
+    }
+
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
@@ -155,5 +167,18 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         query.setString("stateMachineId", stateMachineId);
         query.setString("eventName", "%"+eventName+"%");
         return (State)query.uniqueResult();
+    }
+
+    // TODO : modify this to update for multiple stateIds in a single sql query.
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void updateExecutionVersion(String stateMachineId, Long stateId, Long executionVersion) {
+        Query query = currentSession().createQuery("update State set executionVersion = :executionVersion" +
+                " where id = :stateId and stateMachineId = :stateMachineId");
+        query.setLong("executionVersion", executionVersion);
+        query.setLong("stateId", stateId);
+        query.setString("stateMachineId", stateMachineId);
+        query.executeUpdate();
     }
 }

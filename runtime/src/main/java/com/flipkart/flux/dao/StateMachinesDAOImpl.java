@@ -56,7 +56,7 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     }
 
     // scatter gather query
-	@Override
+    @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
     public Set<StateMachine> findByName(ShardId shardId, String stateMachineName) {
@@ -67,7 +67,7 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     }
 
     //Scatter gather query
-	@Override
+    @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
     public Set<StateMachine> findByNameAndVersion(ShardId shardId, String stateMachineName, Long version) {
@@ -78,6 +78,7 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
         return new HashSet<>(stateMachines);
     }
 
+
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
@@ -87,4 +88,15 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
         query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
+
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void incrementExecutionVersion(String stateMachineId) {
+        Query query = currentSession().createQuery(
+                "update StateMachine set executionVersion = executionVersion + 1 where id = :stateMachineId");
+        query.setString("stateMachineId", stateMachineId);
+        query.executeUpdate();
+    }
+
 }

@@ -282,64 +282,6 @@ public class WorkFlowExecutionController {
         executeStates(stateMachinesDAO.findById(stateMachineId), executableStates, false);
     }
 
-    /**
-     * Retrieves the states which are dependant on this event and starts the execution of eligible states (whose all dependencies are met).
-     *
-     * @param eventData
-     * @param stateMachineInstanceId
-     */
-    public Set<State> postEvent(EventData eventData, String stateMachineInstanceId) {
-        Event event = persistEvent(stateMachineInstanceId, eventData);
-        return processEvent(event, stateMachineInstanceId);
-    }
-
-    /**
-     * // TODO : Rephrase this desciption
-     * Retrieves the states which are dependant on this replay event and starts the execution of eligible states (replayable is true).
-     * 0. Verify eligible dependant state(replayable is true) on this replay event.
-     * 1. Retrieves set of states and events occurring in the topological path with triggering of this replay event using BFS.
-     * In a Transaction :
-     *  2. Mark all states and events retrieved as invalid.
-     *  3. Increment, update and read executionVersion for this State Machine.
-     *  4. Update executionVersion for all states(marked as invalid) retrieved in step 1.
-     *  5. Create new event entries in pending status including replay event containing event data with executionVersion read in step 3.
-     *  6. Submit replay event to execute eligible dependent states(replayable is true) on this replay event.
-     *
-     * @param eventData
-     * @param stateMachine
-     */
-    public Set<State> postReplayEvent(EventData eventData, StateMachine stateMachine) throws IllegalEventException {
-
-        Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
-
-        // TODO : Add a check on client side so as not to allow a replay event being a dependency of 2 or more states.
-        //Get the dependant state on this replay event.
-        State dependantState = statesDAO.findStateByDependentReplayEvent(stateMachine.getId(), eventData.getName());
-        logger.debug("This state {} depends on replay event {}", dependantState, eventData.getName());
-
-        if(!dependantState.getReplayable()) {
-                throw new IllegalEventException("Dependant state:"+ dependantState.getName() +" with stateMachineId:" +
-                        stateMachine.getId() +" and replay event:"+ eventData.getName() + " is not replayable.");
-        }
-
-        // Build states set and events names list in topological path of replay event
-        // All these states and events will be marked as invalid.
-        // TODO: Need to add test cases for this.
-        Set<State> dependantStates = new HashSet<>();
-        List<String> dependantEvents = new ArrayList<>();
-        dependantStates.add(dependantState); // add initial state dependant on replay event
-        dependantEvents.add(dependantState.getOutputEvent()); // add initial state's output event
-
-        // Using BFS, for each state in State Machine, find path between initial dependant state -> current state
-        for (State state : stateMachine.getStates()) {
-            if(pathExists(stateMachine.getStates(), context, dependantState, state)) {
-                dependantStates.add(state);
-                dependantEvents.add(state.getOutputEvent());
-            }
-        }
-        return null;
-    }
-
     // TODO : Add description, test cases
     // TODO : Will modify to return all states in the path
     // BFS to check a path between 2 states
@@ -377,21 +319,126 @@ public class WorkFlowExecutionController {
     }
 
     /**
+     * // TODO : Test cases needs to be added
+     * // TODO : Rephrase this description
+     * Retrieves the states which are dependant on this replay event and starts the execution of eligible states (replayable is true).
+     * 0. Verify eligible dependant state(replayable is true) on this replay event.
+     * 1. Retrieves set of states and events occurring in the topological path with triggering of this replay event using BFS.
+     * 2. Process and persist replay event
+     * 3. Submit replay event to execute eligible dependent states(replayable is true) on this replay event.
      *
-     * @param stateMachineInstanceId
      * @param eventData
+     * @param stateMachine
+     */
+    public Set<State> postReplayEvent(EventData eventData, StateMachine stateMachine) throws IllegalEventException {
+
+        Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
+
+        // TODO : Add a check on client side so as not to allow a replay event being a dependency of 2 or more states.
+        //Get the dependant state on this replay event.
+        State dependantStateOnReplayEvent = statesDAO.findStateByDependentReplayEvent(stateMachine.getId(), eventData.getName());
+        logger.debug("This state {} depends on replay event {}", dependantStateOnReplayEvent, eventData.getName());
+
+        if(!dependantStateOnReplayEvent.getReplayable()) {
+                throw new IllegalEventException("Dependant state:"+ dependantStateOnReplayEvent.getName() +" with stateMachineId:" +
+                        stateMachine.getId() +" and replay event:"+ eventData.getName() + " is not replayable.");
+        }
+
+        // Build states set and events names list in topological path of replay event
+        // All these states and events will be marked as invalid.
+        // TODO: Need to add test cases for this.
+        Set<State> dependantStates = new HashSet<>();
+        List<String> dependantEvents = new ArrayList<>();
+        dependantStates.add(dependantStateOnReplayEvent); // add initial state dependant on replay event
+        dependantEvents.add(dependantStateOnReplayEvent.getOutputEvent()); // add initial state's output event
+        dependantEvents.add(eventData.getName()); // add previous executionVersion replay event to be marked as invalid.
+        // Using BFS, for each state in State Machine, find path between initial dependant state -> current state
+        for (State state : stateMachine.getStates()) {
+            if(pathExists(stateMachine.getStates(), context, dependantStateOnReplayEvent, state)) {
+                dependantStates.add(state);
+                dependantEvents.add(state.getOutputEvent());
+            }
+        }
+        logger.info("Building set of states and list of events in dependancy path of replay event:{} for SMId:{} is done.",
+                eventData.getName(), stateMachine.getId());
+        //Remove external events from being marked as invalid.
+        List<String> tempDependantEvents = new ArrayList<>();
+        tempDependantEvents.addAll(dependantEvents);
+        for (String eventName : tempDependantEvents) {
+            // Using default execution version "0L" because it's the only executionVersion which will have all
+            // event's entries
+            if(eventsDAO.findBySMIdExecutionVersionAndName(stateMachine.getId(), eventName, 0L)
+                    .getEventSource() == "external") {
+                dependantEvents.remove(eventName);
+            }
+        }
+        Event currentEvent = persistAndProcessReplayEvent(eventData, dependantStateOnReplayEvent, dependantStates, dependantEvents,
+                stateMachine.getId());
+
+        Set<State> executableStates = new HashSet<>();
+        executableStates.add(dependantStateOnReplayEvent);
+        executeStates(stateMachine, executableStates, currentEvent, false);
+
+        return executableStates;
+    }
+
+    /**
+     * TODO : Rephrase this description
+     * In a Transaction :
+     *  1. Increment, update and read executionVersion for this State Machine.
+     *  2. Mark all states and Update executionVersion for all states(marked as invalid) retrieved in step 1.
+     *  3. Mark dependant events as invalid.
+     *  4. Create new event entries in pending status including replay event as triggered containing event data with executionVersion
+     *     read in step 2.
+     * @param eventData
+     * @param dependantStateOnReplayEvent
+     * @param dependantStates
+     * @param dependantEvents
+     * @param stateMachineId
      */
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public Event persistReplayEvent(String stateMachineInstanceId, EventData eventData) {
-        //update event's data and status
-        Event event = eventsDAO.findBySMIdExecutionVersionAndName(stateMachineInstanceId, eventData.getName(),
-                eventData.getExecutionVersion());
-        if (event == null)
-            throw new IllegalEventException("Replay Event with stateMachineId: " + stateMachineInstanceId + "," +
-                    " event name: " + eventData.getName() + " not found");
+    public Event persistAndProcessReplayEvent(EventData eventData, State dependantStateOnReplayEvent,
+                                              Set<State> dependantStates, List<String> dependantEvents,
+                                              String stateMachineId) {
 
-        return event;
+        // TODO : This will be updated to return updated value in same call. Need to add tests for it.
+        stateMachinesDAO.incrementExecutionVersion(stateMachineId);
+        Long smExecutionVersion = stateMachinesDAO.findById(stateMachineId).getExecutionVersion();
+
+        // TODO: Test and use a single query in StatesDAO to mark all states in dependantStates as invalid
+        for (State state:dependantStates) {
+            statesDAO.updateStatus(stateMachineId, state.getId(), Status.invalid);
+            statesDAO.updateExecutionVersion(stateMachineId, state.getId(), smExecutionVersion);
+        }
+
+        // TODO : This should be moved to EventPersistenceService
+        eventsDAO.markEventsAsInvalid(stateMachineId, dependantEvents);
+        dependantEvents.remove(eventData.getName()); // Remove replay event. Purpose was to mark all it's previous version invalid.
+        for (String eventName: dependantEvents) {
+            // To retrieve event meta data (type) for creating new event with new smExecutionVersion
+            // Retrieving for executionVersion 0 is fine because type of event doesn't change with executionVersion
+            Event currentEvent = eventsDAO.findBySMIdExecutionVersionAndName(stateMachineId, eventName, 0L);
+            Event event = new Event(currentEvent.getName(), currentEvent.getType(), Event.EventStatus.pending,
+                    stateMachineId, null, null, smExecutionVersion);
+            eventsDAO.create(stateMachineId, event);
+        }
+
+        //Persist replay event
+        Event replayEvent = new Event(eventData.getName(), eventData.getType(), Event.EventStatus.triggered, stateMachineId,
+                eventData.getData(), eventData.getEventSource(), smExecutionVersion);
+        return eventsDAO.create(stateMachineId, replayEvent);
+    }
+
+    /**
+     * Retrieves the states which are dependant on this event and starts the execution of eligible states (whose all dependencies are met).
+     *
+     * @param eventData
+     * @param stateMachineInstanceId
+     */
+    public Set<State> postEvent(EventData eventData, String stateMachineInstanceId) {
+        Event event = persistEvent(stateMachineInstanceId, eventData);
+        return processEvent(event, stateMachineInstanceId);
     }
 
     /**
@@ -612,8 +659,14 @@ public class WorkFlowExecutionController {
                 state.getStatus() == Status.invalid)) {
 
                     List<EventData> eventDatas;
+                    // Reading only replay event's data, ignoring all other dependant event's data.
+                    if(currentEvent != null && currentEvent.getEventSource() == "replay") {
+                        eventDatas = Collections.singletonList(new EventData(currentEvent.getName(),
+                                currentEvent.getType(), currentEvent.getEventData(), currentEvent.getEventSource(),
+                                currentEvent.getExecutionVersion()));
+                    }
                     // If the state is dependant on only one event, that would be the event which came now, in that case don't make a call to DB
-                    if (currentEvent != null && state.getDependencies() != null && state.getDependencies().size() == 1
+                    else if (currentEvent != null && state.getDependencies() != null && state.getDependencies().size() == 1
                             && currentEvent.getName().equals(state.getDependencies().get(0))) {
                         eventDatas = Collections.singletonList(new EventData(currentEvent.getName(),
                                 currentEvent.getType(), currentEvent.getEventData(), currentEvent.getEventSource(),

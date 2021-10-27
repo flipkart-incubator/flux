@@ -36,10 +36,12 @@ public interface StateMachinesDAO {
      */
     StateMachine findById(String stateMachineId);
 
+
     /**
      * Retrieves set of state machines by State machine's Name
      */
     Set<StateMachine> findByName(ShardId shardId, String stateMachineName);
+
 
     /**
      * Retrieves set of state machines by Name and version
@@ -50,4 +52,11 @@ public interface StateMachinesDAO {
      * Updates status of a state machine
      */
     void updateStatus(String stateMachineId, StateMachineStatus status);
+
+    /**
+     * // TODO : Modify this query to return updated value in same sql query. Add tests for the same.
+     * Increments the executionVersion of a stateMachine by 1, this will be picked up as an executionVersion for
+     * post replay event.
+     */
+    void incrementExecutionVersion(String stateMachineInstanceId);
 }

@@ -125,6 +125,18 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         return criteria.list();
     }
 
+    // TODO: Add tests for this.
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public Event findTriggeredEventBySMIdAndName(String stateMachineInstanceId, String eventName) {
+        Criteria criteria = currentSession().createCriteria(Event.class)
+                .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
+                .add(Restrictions.eq("name", eventName))
+                .add(Restrictions.eq("status", Event.EventStatus.triggered));
+        return (Event) criteria.uniqueResult();
+    }
+
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
@@ -145,6 +157,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         List<Event> readEvents = hqlQuery.list();
         LinkedList<EventData> readEventsDTOs = new LinkedList<EventData>();
         for (Event event : readEvents) {
+            // Skip replay event source, since it's an optional event.
             if(event.getEventSource() != "replay") {
                 readEventsDTOs.add(new EventData(event.getName(), event.getType(), event.getEventData(), event.getEventSource()));
             }
@@ -182,5 +195,26 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         query.setString("eventName", eventName);
         query.executeUpdate();
     }
+
+    // TODO: Add test case for this update query.
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void markEventsAsInvalid(String stateMachineInstanceId, List<String> eventNames) {
+        if (!eventNames.isEmpty()) {
+            StringBuilder eventNamesString = new StringBuilder();
+            for (int i = 0; i < eventNames.size(); i++) {
+                eventNamesString.append("\'" + eventNames.get(i) + "\'");
+                if (i != eventNames.size() - 1)
+                    eventNamesString.append(", ");
+            }
+            Query query = currentSession().createQuery("update Event set status = :status where" +
+                    " stateMachineInstanceId = :stateMachineInstanceId and name in (" + eventNamesString.toString() + ")");
+            query.setString("status", Event.EventStatus.invalid.toString());
+            query.setString("stateMachineInstanceId", stateMachineInstanceId);
+            query.executeUpdate();
+        }
+    }
+
 
 }
