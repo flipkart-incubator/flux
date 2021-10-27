@@ -33,12 +33,15 @@ public class ExecutionUpdateData implements Serializable {
     private long currentRetryCount = 0;
     private String errorMessage;
 	private boolean deleteFromRedriver;
+	private Long taskExecutionVersion;
 	
 	/** Constructors*/
 	/* For use by Jackson for deserialization*/
 	public ExecutionUpdateData() {
 	}
-    public ExecutionUpdateData(String stateMachineId, String stateMachineName, String taskName, Long taskId, Status status, long retrycount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver) {
+    public ExecutionUpdateData(String stateMachineId, String stateMachineName, String taskName, Long taskId,
+							   Status status, long retrycount, long currentRetryCount, String errorMessage,
+							   boolean deleteFromRedriver, Long taskExecutionVersion) {
 		this.stateMachineId = stateMachineId;
 		this.stateMachineName = stateMachineName;
 		this.taskName = taskName;
@@ -48,14 +51,17 @@ public class ExecutionUpdateData implements Serializable {
 		this.currentRetryCount = currentRetryCount;
         this.errorMessage = errorMessage;
 		this.deleteFromRedriver = deleteFromRedriver;
+		this.taskExecutionVersion = taskExecutionVersion;
     }
 
     /** Accessors*/
 	public String getStateMachineId() {
 		return stateMachineId;
 	}
-	public String getStateMachineName() { return stateMachineName; }
-	public String getTaskName(){return taskName;}
+	public String getStateMachineName() {
+		return stateMachineName; }
+	public String getTaskName(){
+		return taskName;}
 	public Long getTaskId() {
 		return taskId;
 	}
@@ -66,12 +72,15 @@ public class ExecutionUpdateData implements Serializable {
 		return retrycount;
 	}
     public long getCurrentRetryCount() {
-        return currentRetryCount;
+		return currentRetryCount;
     }
     public String getErrorMessage() {
         return errorMessage;
     }
 	public boolean isDeleteFromRedriver() {
 		return deleteFromRedriver;
+	}
+	public Long getTaskExecutionVersion() {
+		return taskExecutionVersion;
 	}
 }

@@ -53,10 +53,14 @@ public class TaskAndEvents implements Serializable {
     /* Indicates whether this task is getting executed for the first time, useful in incrementing attempted no. retries of task*/
     private boolean isFirstTimeExecution;
 
+    /* Execution Version for this task */
+    private Long taskExecutionVersion;
+
     /** constructors*/
     public TaskAndEvents() {}
     public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, VersionedEventData[] events,
-                         String stateMachineId, String stateMachineName, String outputEvent, long retryCount) {
+                         String stateMachineId, String stateMachineName, String outputEvent, long retryCount,
+                         Long taskExecutionVersion) {
     	this.taskName = taskName;
         this.taskIdentifier = taskIdentifier;
         this.taskId = taskId;
@@ -65,10 +69,14 @@ public class TaskAndEvents implements Serializable {
         this.stateMachineName = stateMachineName;
         this.outputEvent = outputEvent;
         this.retryCount = retryCount;
+        this.taskExecutionVersion = taskExecutionVersion;
     }
 
-    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, VersionedEventData[] events, String stateMachineId, String stateMachineName, String outputEvent, long retryCount, long currentRetryCount) {
-        this(taskName, taskIdentifier, taskId, events, stateMachineId, stateMachineName, outputEvent, retryCount);
+    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, VersionedEventData[] events,
+                         String stateMachineId, String stateMachineName, String outputEvent, long retryCount,
+                         long currentRetryCount, Long taskExecutionVersion) {
+        this(taskName, taskIdentifier, taskId, events, stateMachineId, stateMachineName, outputEvent, retryCount,
+                taskExecutionVersion);
         this.currentRetryCount = currentRetryCount;
     }
 
@@ -109,6 +117,14 @@ public class TaskAndEvents implements Serializable {
         isFirstTimeExecution = firstTimeExecution;
     }
 
+    public Long getTaskExecutionVersion() {
+        return taskExecutionVersion;
+    }
+
+    public void setTaskExecutionVersion(Long taskExecutionVersion) {
+        this.taskExecutionVersion = taskExecutionVersion;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -121,6 +137,7 @@ public class TaskAndEvents implements Serializable {
         // Probably incorrect - comparing Object[] arrays with Arrays.equals
         if (!Arrays.equals(events, that.events)) return false;
         if (!stateMachineId.equals(that.stateMachineId)) return false;
+        if (!taskExecutionVersion.equals(that.taskExecutionVersion)) return false;
         return !(outputEvent != null ? !outputEvent.equals(that.outputEvent) : that.outputEvent != null);
 
     }
@@ -131,6 +148,7 @@ public class TaskAndEvents implements Serializable {
         result = 31 * result + (events != null ? Arrays.hashCode(events) : 0);
         result = 31 * result + taskId.hashCode();
         result = 31 * result + stateMachineId.hashCode();
+        result = 31 * result + taskExecutionVersion.hashCode();
         result = 31 * result + (outputEvent != null ? outputEvent.hashCode() : 0);
         return result;
     }
@@ -144,6 +162,7 @@ public class TaskAndEvents implements Serializable {
             ", stateMachineId=" + stateMachineId +
             ", stateMachineName=" + stateMachineName +
             ", outputEvent='" + outputEvent + '\'' +
+            ", taskExecutionVersion='" + taskExecutionVersion +
             '}';
     }
 }

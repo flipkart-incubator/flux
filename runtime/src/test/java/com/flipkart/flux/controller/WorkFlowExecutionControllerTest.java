@@ -122,7 +122,9 @@ public class WorkFlowExecutionControllerTest {
 
         TaskExecutionMessage msg = new TaskExecutionMessage();
         msg.setRouterName(WorkFlowExecutionController.getRouterName(state.getTask()));
-        msg.setAkkaMessage(new TaskAndEvents(state.getName(), state.getTask(), state.getId(), expectedEvents, state.getStateMachineId(), "test_state_machine", state.getOutputEvent(), state.getRetryCount()));
+        msg.setAkkaMessage(new TaskAndEvents(state.getName(), state.getTask(), state.getId(), expectedEvents,
+                state.getStateMachineId(), "test_state_machine", state.getOutputEvent(),
+                state.getRetryCount(), 0L));
         verify(executionNodeTaskDispatcher, times(1)).forwardExecutionMessage("http://localhost:9997" + "/api/execution", msg);
         verifyNoMoreInteractions(executionNodeTaskDispatcher);
     }
@@ -196,7 +198,6 @@ public class WorkFlowExecutionControllerTest {
         when(eventsDAO.findBySMIdAndName("standard-machine", "event0")).thenReturn(
                 new Event("event0", "java.lang.String", Event.EventStatus.pending, "1",
                         null, null, 0L));
-        EventData[] expectedEvents = new EventData[]{new EventData("event0", "java.lang.String", "42", "runtime")};
         when(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId("standard-machine")).thenReturn(Collections.singletonList("event0"));
         when(executionNodeTaskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(Response.Status.ACCEPTED.getStatusCode());
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
@@ -323,10 +324,14 @@ public class WorkFlowExecutionControllerTest {
 
     @Test
     public void testUpdateTaskStatusBehaviourWhenTaskStatusIsUpdatedToRunning() {
-        workFlowExecutionController.updateTaskStatus("random-state-machine", 1L,
+        when(statesDAO.findById("random-state-machine", 1L)).thenReturn(
+                new State(1L, "someState", null, null, null, null,
+                        new ArrayList<>(), 0L, 1000L, null, Status.initialized,
+                        null, 0L, "random-state-machine", 1L));
+        workFlowExecutionController.updateTaskStatus("random-state-machine", 1L, 0L,
                 new ExecutionUpdateData("random-state-machine", "someStateMachine",
                         "someTask", 1L, com.flipkart.flux.api.Status.running,
-                        0, 1, "", false));
+                        0, 1, "", false, 0L));
         verify(statesDAO).updateStatus("random-state-machine", 1L, Status.running);
         verify(auditDAO).create("random-state-machine", new AuditRecord("random-state-machine", 1L, 1L, Status.running, null , ""));
         verifyNoMoreInteractions(redriverRegistry);
@@ -334,10 +339,14 @@ public class WorkFlowExecutionControllerTest {
 
     @Test
     public void testUpdateTaskStatusBehaviourWhenTaskStatusIsUpdatedToCompleted() {
-        workFlowExecutionController.updateTaskStatus("random-state-machine", 1L,
+        when(statesDAO.findById("random-state-machine", 1L)).thenReturn(
+                new State(1L, "someState", null, null, null, null,
+                        new ArrayList<>(), 0L, 1000L, null, Status.initialized,
+                        null, 0L, "random-state-machine", 1L));
+        workFlowExecutionController.updateTaskStatus("random-state-machine", 1L,0L,
                 new ExecutionUpdateData("random-state-machine", "someStateMachine",
                         "someTask", 1L, com.flipkart.flux.api.Status.completed,
-                        0, 1, "", true));
+                        0, 1, "", true, 0L));
         verify(statesDAO).updateStatus("random-state-machine", 1L, Status.completed);
         verify(auditDAO).create("random-state-machine", new AuditRecord("random-state-machine", 1L, 1L, Status.completed, null , ""));
         verify(redriverRegistry).deRegisterTask("random-state-machine",1L );

@@ -53,7 +53,7 @@ import scala.concurrent.duration.FiniteDuration;
 
 /**
  * <code>AkkaTask</code> is an Akka {@link UntypedActor} that executes {@link Task} instances concurrently. Tasks are executed using a {@link TaskExecutor} where
- * the execution of {@link Task#execute(EventVersionedData[])} is wrapped with a {@link HystrixCommand} to provide isolation and fault tolerance to
+ * the execution of {@link Task#execute(com.flipkart.flux.api.VersionedEventData[])} is wrapped with a {@link HystrixCommand} to provide isolation and fault tolerance to
  * the Flux runtime.
  *
  * @author regunath.balasubramanian
@@ -118,7 +118,8 @@ public class AkkaTask extends UntypedActor {
                 if (!taskAndEvent.getIsFirstTimeExecution()) {
                     taskAndEvent.setCurrentRetryCount(taskAndEvent.getCurrentRetryCount() + 1); // increment the retry count
                     // update the Flux runtime incrementing the retry count for the Task
-                    fluxRuntimeConnector.incrementExecutionRetries(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId());
+                    fluxRuntimeConnector.incrementExecutionRetries(taskAndEvent.getStateMachineId(), taskAndEvent.getTaskId(),
+                            taskAndEvent.getTaskExecutionVersion());
                 }
                 final Timer timer = metricsClient.getTimer(new StringBuilder(metricPrefix).append(".executionTime").toString());
                 AbstractTask task = AkkaTask.taskRegistry.retrieveTask(taskAndEvent.getTaskIdentifier());
@@ -130,7 +131,8 @@ public class AkkaTask extends UntypedActor {
                         logger.error("Error occurred while updating task: {} status to running. Error: {}", taskAndEvent.getTaskId(), e.getMessage());
                         throw new FluxError(FluxError.ErrorType.retriable, e.getMessage(), e, false,
                                 new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(),
-                                        taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
+                                        taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount(),
+                                        taskAndEvent.getTaskExecutionVersion()));
                     }
                     // Execute any pre-exec HookS
 //                    this.executeHooks(AkkaTask.taskRegistry.getPreExecHooks(task), taskAndEvent.getEvents());
@@ -149,7 +151,8 @@ public class AkkaTask extends UntypedActor {
                                     new EventData(outputEvent.getName(), outputEvent.getType(), outputEvent.getEventData(), outputEvent.getEventSource(), outputEvent.getStatus() == Event.EventStatus.cancelled),
                                     outputEvent.getStateMachineInstanceId(),
                                     new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(), Status.completed, taskAndEvent.getRetryCount(),
-                                            taskAndEvent.getCurrentRetryCount(), null, true));
+                                            taskAndEvent.getCurrentRetryCount(), null, true,
+                                            taskAndEvent.getTaskExecutionVersion()));
                         } else {
                             // update the Flux runtime with status of the Task as completed
                             updateExecutionStatus(taskAndEvent, Status.completed, null, true);
@@ -167,7 +170,8 @@ public class AkkaTask extends UntypedActor {
                             throw new FluxError(FluxError.ErrorType.timeout, ft.toString().toLowerCase(),
                                     null, false,
                                     new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(),
-                                            taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
+                                            taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount(),
+                                            taskAndEvent.getTaskExecutionVersion()));
                         } else {
                             //check if the exception hierarchy has FluxRetriableException, if yes trigger retry
                             boolean isFluxRetriableException = false;
@@ -185,7 +189,8 @@ public class AkkaTask extends UntypedActor {
 
                                 throw new FluxError(FluxError.ErrorType.retriable, cause.getClass().getName() + " : " + cause.getMessage(), null, false,
                                         new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(),
-                                                taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
+                                                taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount(),
+                                                taskAndEvent.getTaskExecutionVersion()));
                             } else {
                                 // mark the task outcome as execution failure, and the task won't retried
                                 updateExecutionStatus(taskAndEvent, Status.errored, cause.getClass().getName() + " : " + cause.getMessage(), true);
@@ -199,7 +204,8 @@ public class AkkaTask extends UntypedActor {
 
                         throw new FluxError(FluxError.ErrorType.retriable, e.getMessage(), e, false,
                                 new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(),
-                                        taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount()));
+                                        taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount(),
+                                        taskAndEvent.getTaskExecutionVersion()));
                     } catch (Exception e) {
                         context.close();
                         // mark the task outcome as execution failure
@@ -235,9 +241,16 @@ public class AkkaTask extends UntypedActor {
                         logger.warning("Aborting retries for Task Id : {}. Retry count exceeded : {}", fe.getExecutionContextMeta().getTaskId(),
                                 fe.getExecutionContextMeta().getAttemptedNoOfRetries());
                         // update the Flux runtime to mark the Task as sidelined
-                        fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(fe.getExecutionContextMeta().getStateMachineId(), fe.getExecutionContextMeta().getStateMachineName(), fe.getExecutionContextMeta().getTaskName(),
-                                fe.getExecutionContextMeta().getTaskId(), Status.sidelined, fe.getExecutionContextMeta().getMaxRetries(),
-                                fe.getExecutionContextMeta().getAttemptedNoOfRetries(), fe.getMessage(), true));
+                        fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(
+                                fe.getExecutionContextMeta().getStateMachineId(),
+                                fe.getExecutionContextMeta().getStateMachineName(),
+                                fe.getExecutionContextMeta().getTaskName(),
+                                fe.getExecutionContextMeta().getTaskId(), Status.sidelined,
+                                fe.getExecutionContextMeta().getMaxRetries(),
+                                fe.getExecutionContextMeta().getAttemptedNoOfRetries(), fe.getMessage(),
+                                true,
+                                fe.getExecutionContextMeta().getTaskExecutionVersion()
+                                ));
                     }
                 }
             }
@@ -271,7 +284,8 @@ public class AkkaTask extends UntypedActor {
      */
     private void updateExecutionStatus(TaskAndEvents taskAndEvent, Status status, String errorMsg, boolean deleteFromRedriver) {
         fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(
-                taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(), status, taskAndEvent.getRetryCount(),
-                taskAndEvent.getCurrentRetryCount(), errorMsg, deleteFromRedriver));
+                taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(),
+                taskAndEvent.getTaskId(), status, taskAndEvent.getRetryCount(),
+                taskAndEvent.getCurrentRetryCount(), errorMsg, deleteFromRedriver, taskAndEvent.getTaskExecutionVersion()));
     }
 }

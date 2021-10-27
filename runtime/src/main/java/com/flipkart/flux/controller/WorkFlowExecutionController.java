@@ -35,7 +35,6 @@ import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.utils.LoggingUtils;
 import com.google.common.collect.Sets;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -158,7 +157,9 @@ public class WorkFlowExecutionController {
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     protected Event updateTaskStatusAndPersistEvent(StateMachine stateMachine, EventAndExecutionData eventAndExecutionData) {
-        updateTaskStatus(stateMachine.getId(), eventAndExecutionData.getExecutionUpdateData().getTaskId(), eventAndExecutionData.getExecutionUpdateData());
+        updateTaskStatus(stateMachine.getId(), eventAndExecutionData.getExecutionUpdateData().getTaskId(),
+                eventAndExecutionData.getExecutionUpdateData().getTaskExecutionVersion(),
+                eventAndExecutionData.getExecutionUpdateData());
         return persistEvent(stateMachine.getId(), eventAndExecutionData.getEventData());
     }
 
@@ -186,7 +187,9 @@ public class WorkFlowExecutionController {
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     protected Set<State> updateTaskStatusAndCancelPath(String stateMachineId, EventAndExecutionData eventAndExecutionData) {
-        updateTaskStatus(stateMachineId, eventAndExecutionData.getExecutionUpdateData().getTaskId(), eventAndExecutionData.getExecutionUpdateData());
+        updateTaskStatus(stateMachineId, eventAndExecutionData.getExecutionUpdateData().getTaskId(),
+                eventAndExecutionData.getExecutionUpdateData().getTaskExecutionVersion(),
+                eventAndExecutionData.getExecutionUpdateData());
         return cancelPath(stateMachineId, eventAndExecutionData.getEventData());
     }
 
@@ -341,7 +344,8 @@ public class WorkFlowExecutionController {
 
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public void updateTaskStatus(String machineId, Long stateId, ExecutionUpdateData executionUpdateData) {
+    public void updateTaskStatus(String machineId, Long stateId, Long stateExecutionVersion,
+                                 ExecutionUpdateData executionUpdateData) {
         com.flipkart.flux.domain.Status updateStatus = null;
         switch (executionUpdateData.getStatus()) {
             case initialized:
@@ -363,7 +367,7 @@ public class WorkFlowExecutionController {
                 updateStatus = com.flipkart.flux.domain.Status.sidelined;
                 break;
             case unsidelined:
-                updateStatus = com.flipkart.flux.domain.Status.unsidelined;
+                updateStatus = com.flipkart.flux.domain.Status.sidelined;
                 break;
         }
         metricsClient.markMeter(new StringBuilder().
@@ -374,8 +378,9 @@ public class WorkFlowExecutionController {
                 append(".status.").
                 append(updateStatus.name()).
                 toString());
-        updateExecutionStatus(machineId, stateId, updateStatus, executionUpdateData.getRetrycount(),
-                executionUpdateData.getCurrentRetryCount(), executionUpdateData.getErrorMessage(), executionUpdateData.isDeleteFromRedriver());
+        updateExecutionStatus(machineId, stateId, stateExecutionVersion, updateStatus, executionUpdateData.getRetrycount(),
+                executionUpdateData.getCurrentRetryCount(), executionUpdateData.getErrorMessage(),
+                executionUpdateData.isDeleteFromRedriver());
     }
 
     /**
@@ -388,12 +393,23 @@ public class WorkFlowExecutionController {
      * @param currentRetryCount current retry count for the task
      * @param errorMessage      the error message in case task has failed
      */
-    public void updateExecutionStatus(String stateMachineId, Long taskId, Status status, long retryCount, long currentRetryCount, String errorMessage, boolean deleteFromRedriver) {
-        this.statesDAO.updateStatus(stateMachineId, taskId, status);
-        this.auditDAO.create(stateMachineId, new AuditRecord(stateMachineId, taskId, currentRetryCount, status, null, errorMessage));
-        if (deleteFromRedriver) {
-            this.redriverRegistry.deRegisterTask(stateMachineId, taskId);
+    public void updateExecutionStatus(String stateMachineId, Long taskId, Long taskExecutionVersion, Status status,
+                                      long retryCount, long currentRetryCount, String errorMessage,
+                                      boolean deleteFromRedriver) {
+        // TODO: Handle deletion from redriver when executionVersion is added to redriver table.
+        if(taskExecutionVersion == this.statesDAO.findById(stateMachineId, taskId).getExecutionVersion()) {
+            this.statesDAO.updateStatus(stateMachineId, taskId, status);
+            this.auditDAO.create(stateMachineId, new AuditRecord(stateMachineId, taskId, currentRetryCount, status,
+                    null, errorMessage));
+            if (deleteFromRedriver) {
+                this.redriverRegistry.deRegisterTask(stateMachineId, taskId);
+            }
         }
+        else {
+            logger.info("Input taskExecutionVersion: {} is invalid, update task execution status denied for taskId: {}," +
+                    " stateMachineId: {}.", taskExecutionVersion, taskId, stateMachineId);
+        }
+
     }
 
 
@@ -455,8 +471,14 @@ public class WorkFlowExecutionController {
      * @param stateMachineId the state machine identifier
      * @param taskId         the Task identifier
      */
-    public void incrementExecutionRetries(String stateMachineId, Long taskId) {
-        this.statesDAO.incrementRetryCount(stateMachineId, taskId);
+    public void incrementExecutionRetries(String stateMachineId, Long taskId, Long taskExecutionVersion) {
+        if(taskExecutionVersion == this.statesDAO.findById(stateMachineId, taskId).getExecutionVersion()) {
+            this.statesDAO.incrementRetryCount(stateMachineId, taskId);
+        }
+        else {
+            logger.info("Input taskExecutionVersion: {} is invalid, increment execution retries denied for taskId: {}," +
+                    " stateMachineId: {}.", taskExecutionVersion, taskId, stateMachineId);
+        }
     }
 
     /**
@@ -494,7 +516,7 @@ public class WorkFlowExecutionController {
                     final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
                             eventDatas.toArray(new VersionedEventData[]{}),
                             stateMachine.getId(), stateMachine.getName(), state.getOutputEvent(),
-                            state.getRetryCount(), state.getAttemptedNoOfRetries());
+                            state.getRetryCount(), state.getAttemptedNoOfRetries(), state.getExecutionVersion());
                     if (state.getStatus().equals(Status.initialized) || state.getStatus().equals(Status.unsidelined)) {
                         msg.setFirstTimeExecution(true);
                     }
@@ -511,7 +533,7 @@ public class WorkFlowExecutionController {
                     }
                     this.redriverRegistry.registerTask(state.getId(), state.getStateMachineId(), redriverInterval);
 
-                    //send t=dhe message to the Router
+                    // Send the message to Akka Router
                     String taskName = state.getTask();
                     String routerName = getRouterName(taskName);
                     /*

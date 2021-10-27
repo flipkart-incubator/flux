@@ -146,7 +146,7 @@ public class TestUtils {
         msg.setRouterName(WorkFlowExecutionController.getRouterName(state.getTask()));
         msg.setAkkaMessage(new TaskAndEvents(state.getName(), state.getTask(), state.getId(), expectedEvents,
                 state.getStateMachineId(), "test_state_machine", state.getOutputEvent(),
-                state.getRetryCount()));
+                state.getRetryCount(), 0L));
         return msg;
     }
 }

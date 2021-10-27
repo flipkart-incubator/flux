@@ -54,35 +54,15 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     public static final int MAX_TOTAL = 400;
     public static final int MAX_PER_ROUTE = 50;
     public static final String EXTERNAL = "external";
-    private  CloseableHttpClient closeableHttpClient;
-    private  String fluxEndpoint;
-    private  ObjectMapper objectMapper;
-    private  MetricRegistry metricRegistry;
+    private final CloseableHttpClient closeableHttpClient;
+    private final String fluxEndpoint;
+    private final ObjectMapper objectMapper;
+    private final MetricRegistry metricRegistry;
 
     @VisibleForTesting
     public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint) {
-        this.fluxEndpoint = fluxEndpoint;
-        this.objectMapper = new ObjectMapper();
-        RequestConfig clientConfig = RequestConfig.custom()
-                .setConnectTimeout((connectionTimeout).intValue())
-                .setSocketTimeout((socketTimeout).intValue())
-                .setConnectionRequestTimeout((socketTimeout).intValue())
-                .build();
-        PoolingHttpClientConnectionManager syncConnectionManager = new PoolingHttpClientConnectionManager();
-        syncConnectionManager.setMaxTotal(MAX_TOTAL);
-        syncConnectionManager.setDefaultMaxPerRoute(MAX_PER_ROUTE);
-
-        closeableHttpClient = HttpClientBuilder.create().setDefaultRequestConfig(clientConfig).setConnectionManager(syncConnectionManager)
-                .build();
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            HttpClientUtils.closeQuietly(closeableHttpClient);
-        }));
-        this.metricRegistry = SharedMetricRegistries.getOrCreate("mainMetricRegistry");
-
+        this(connectionTimeout, socketTimeout, fluxEndpoint, new ObjectMapper(), SharedMetricRegistries.getOrCreate("mainMetricRegistry"));
     }
-
-    public FluxRuntimeConnectorHttpImpl(){}
 
     public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint, ObjectMapper objectMapper,
                                         MetricRegistry metricRegistry) {
@@ -214,19 +194,21 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
      */
     public void updateExecutionStatus(ExecutionUpdateData executionUpdateData) {
         CloseableHttpResponse httpResponse = null;
-        httpResponse = postOverHttp(executionUpdateData, "/" + executionUpdateData.getStateMachineId() + "/" + executionUpdateData.getTaskId() + "/status");
+        httpResponse = postOverHttp(executionUpdateData, "/" + executionUpdateData.getStateMachineId() +
+                "/" + executionUpdateData.getTaskId() + "/" + executionUpdateData.getTaskExecutionVersion() + "/status");
         HttpClientUtils.closeQuietly(httpResponse);
     }
 
     /**
      * Interface method implementation. Increments the execution retries in persistence by invoking suitable Flux runtime API
      *
-     * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#incrementExecutionRetries(String, Long)
+     * @see com.flipkart.flux.client.runtime.FluxRuntimeConnector#incrementExecutionRetries(String, Long, Long)
      */
     @Override
-    public void incrementExecutionRetries(String stateMachineId, Long taskId) {
+    public void incrementExecutionRetries(String stateMachineId, Long taskId, Long taskExecutionVersion) {
         CloseableHttpResponse httpResponse = null;
-        httpResponse = postOverHttp(null, "/" + stateMachineId + "/" + taskId + "/retries/inc");
+        httpResponse = postOverHttp(null, "/" + stateMachineId + "/" + taskId +
+                "/" + taskExecutionVersion + "/retries/inc");
         HttpClientUtils.closeQuietly(httpResponse);
     }
 

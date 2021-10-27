@@ -305,7 +305,8 @@ public class StateMachineResource {
                 if (eventData.getCancelled() != null && eventData.getCancelled()) {
                     workFlowExecutionController.updateTaskStatusAndHandlePathCancellation(machineId, eventAndExecutionData);
                 } else {
-                    workFlowExecutionController.updateTaskStatus(machineId, executionUpdateData.getTaskId(), executionUpdateData);
+                    workFlowExecutionController.updateTaskStatus(machineId, executionUpdateData.getTaskId(),
+                            executionUpdateData.getTaskExecutionVersion(), executionUpdateData);
                     workFlowExecutionController.postEvent(eventData, stateMachine.getId());
                 }
             } catch (IllegalEventException ex) {
@@ -400,13 +401,14 @@ public class StateMachineResource {
      * @throws Exception
      */
     @POST
-    @Path("/{machineId}/{stateId}/status")
+    @Path("/{machineId}/{stateId}/{stateExecutionVersion}/status")
     @Timed
     public Response updateStatus(@PathParam("machineId") String machineId,
                                  @PathParam("stateId") Long stateId,
+                                 @PathParam("stateExecutionVersion") Long stateExecutionVersion,
                                  ExecutionUpdateData executionUpdateData
     ) throws Exception {
-        this.workFlowExecutionController.updateTaskStatus(machineId, stateId, executionUpdateData);
+        this.workFlowExecutionController.updateTaskStatus(machineId, stateId, stateExecutionVersion, executionUpdateData);
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
@@ -420,13 +422,14 @@ public class StateMachineResource {
      * @throws Exception
      */
     @POST
-    @Path("/{machineId}/{stateId}/retries/inc")
+    @Path("/{machineId}/{stateId}/{taskExecutionVersion}/retries/inc")
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Response incrementRetry(@PathParam("machineId") String machineId,
-                                   @PathParam("stateId") Long stateId
+                                   @PathParam("stateId") Long stateId,
+                                   @PathParam("taskExecutionVersion") Long taskExecutionVersion
     ) throws Exception {
-        this.workFlowExecutionController.incrementExecutionRetries(machineId, stateId);
+        this.workFlowExecutionController.incrementExecutionRetries(machineId, stateId, taskExecutionVersion);
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
