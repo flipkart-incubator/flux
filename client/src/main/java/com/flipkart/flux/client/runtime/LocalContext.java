@@ -78,12 +78,12 @@ public class LocalContext {
     public void registerNewReplayableState(Long version,
                                  String name, String description,
                                  String hookIdentifier, String taskIdentifier,
-                                 Long retryCount, Long timeout, boolean replayable,
+                                 Long retryCount, Long timeout, boolean isReplayed,
                                  List<EventDefinition> dependencySet, EventDefinition outputEvent
     ) {
         final StateDefinition stateDefinition = new StateDefinition(version, name, description,
                 hookIdentifier, taskIdentifier, hookIdentifier,
-                retryCount, timeout, dependencySet, outputEvent,replayable);
+                retryCount, timeout, dependencySet, outputEvent,isReplayed);
         this.stateMachineDefinition.get().addState(stateDefinition);
     }
 
