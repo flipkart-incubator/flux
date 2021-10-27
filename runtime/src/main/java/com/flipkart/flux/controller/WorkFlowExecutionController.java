@@ -344,7 +344,7 @@ public class WorkFlowExecutionController {
 
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public void updateTaskStatus(String machineId, Long stateId, Long stateExecutionVersion,
+    public void updateTaskStatus(String machineId, Long stateId, Long taskExecutionVersion,
                                  ExecutionUpdateData executionUpdateData) {
         com.flipkart.flux.domain.Status updateStatus = null;
         switch (executionUpdateData.getStatus()) {
@@ -378,7 +378,8 @@ public class WorkFlowExecutionController {
                 append(".status.").
                 append(updateStatus.name()).
                 toString());
-        updateExecutionStatus(machineId, stateId, stateExecutionVersion, updateStatus, executionUpdateData.getRetrycount(),
+        updateExecutionStatus(machineId, stateId, taskExecutionVersion, updateStatus,
+                executionUpdateData.getRetrycount(),
                 executionUpdateData.getCurrentRetryCount(), executionUpdateData.getErrorMessage(),
                 executionUpdateData.isDeleteFromRedriver());
     }
@@ -503,20 +504,20 @@ public class WorkFlowExecutionController {
                 if (!(state.getStatus() == Status.completed || state.getStatus() == Status.cancelled ||
                 state.getStatus() == Status.invalid)) {
 
-                    List<VersionedEventData> eventDatas;
+                    List<EventData> eventDatas;
                     // If the state is dependant on only one event, that would be the event which came now, in that case don't make a call to DB
                     if (currentEvent != null && state.getDependencies() != null && state.getDependencies().size() == 1
                             && currentEvent.getName().equals(state.getDependencies().get(0))) {
-                        eventDatas = Collections.singletonList(new VersionedEventData(currentEvent.getName(),
+                        eventDatas = Collections.singletonList(new EventData(currentEvent.getName(),
                                 currentEvent.getType(), currentEvent.getEventData(), currentEvent.getEventSource(),
                                 currentEvent.getExecutionVersion()));
                     } else {
                         eventDatas = eventsDAO.findByVersionedEventNamesAndSMId(stateMachine.getId(), state.getDependencies());
                     }
                     final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
-                            eventDatas.toArray(new VersionedEventData[]{}),
+                            state.getExecutionVersion(), eventDatas.toArray(new EventData[]{}),
                             stateMachine.getId(), stateMachine.getName(), state.getOutputEvent(),
-                            state.getRetryCount(), state.getAttemptedNoOfRetries(), state.getExecutionVersion());
+                            state.getRetryCount(), state.getAttemptedNoOfRetries());
                     if (state.getStatus().equals(Status.initialized) || state.getStatus().equals(Status.unsidelined)) {
                         msg.setFirstTimeExecution(true);
                     }

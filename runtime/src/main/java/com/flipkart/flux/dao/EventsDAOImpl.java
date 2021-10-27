@@ -14,7 +14,6 @@
 package com.flipkart.flux.dao;
 
 import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.persistence.*;
@@ -119,7 +118,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public List<VersionedEventData> findByVersionedEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames) {
+    public List<EventData> findByVersionedEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames) {
         if (eventNames.isEmpty()) {
             return new ArrayList<>();
         }
@@ -135,9 +134,9 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
                 + ") order by field(name, " + eventNamesString.toString() + ")").setParameter(
                         "SMID", stateMachineInstanceId);
         List<Event> readEvents = hqlQuery.list();
-        LinkedList<VersionedEventData> readEventsDTOs = new LinkedList<VersionedEventData>();
+        LinkedList<EventData> readEventsDTOs = new LinkedList<EventData>();
         for (Event event : readEvents) {
-            readEventsDTOs.add(new VersionedEventData(event.getName(), event.getType(), event.getEventData(),
+            readEventsDTOs.add(new EventData(event.getName(), event.getType(), event.getEventData(),
                     event.getEventSource(), event.getExecutionVersion()));
         }
         return readEventsDTOs;

@@ -19,8 +19,8 @@ import akka.routing.RoundRobinPool;
 import com.flipkart.flux.impl.boot.ActorSystemManager;
 import com.flipkart.flux.impl.task.AkkaTask;
 import com.flipkart.polyguice.core.Initializable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import scala.concurrent.duration.Duration;
 
 import javax.inject.Inject;
@@ -42,7 +42,7 @@ import static akka.actor.SupervisorStrategy.restart;
 public class EagerInitRouterRegistryImpl implements RouterRegistry, Initializable {
 
     /** Logger instance of this class */
-    private static final Logger logger = LoggerFactory.getLogger(EagerInitRouterRegistryImpl.class);
+    private static final Logger logger = LogManager.getLogger(EagerInitRouterRegistryImpl.class);
 
 	/** Access to the Actor system initialized by Flux*/
     private ActorSystemManager actorSystemManager;

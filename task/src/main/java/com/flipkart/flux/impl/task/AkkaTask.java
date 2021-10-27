@@ -53,7 +53,7 @@ import scala.concurrent.duration.FiniteDuration;
 
 /**
  * <code>AkkaTask</code> is an Akka {@link UntypedActor} that executes {@link Task} instances concurrently. Tasks are executed using a {@link TaskExecutor} where
- * the execution of {@link Task#execute(com.flipkart.flux.api.VersionedEventData[])} is wrapped with a {@link HystrixCommand} to provide isolation and fault tolerance to
+ * the execution of {@link Task#execute(com.flipkart.flux.api.EventData[])} is wrapped with a {@link HystrixCommand} to provide isolation and fault tolerance to
  * the Flux runtime.
  *
  * @author regunath.balasubramanian

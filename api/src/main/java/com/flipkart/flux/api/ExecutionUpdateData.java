@@ -41,6 +41,13 @@ public class ExecutionUpdateData implements Serializable {
 	}
     public ExecutionUpdateData(String stateMachineId, String stateMachineName, String taskName, Long taskId,
 							   Status status, long retrycount, long currentRetryCount, String errorMessage,
+							   boolean deleteFromRedriver) {
+		this(stateMachineId, stateMachineName, taskName, taskId, status, retrycount, currentRetryCount, errorMessage,
+				deleteFromRedriver, 0L);
+    }
+
+	public ExecutionUpdateData(String stateMachineId, String stateMachineName, String taskName, Long taskId,
+							   Status status, long retrycount, long currentRetryCount, String errorMessage,
 							   boolean deleteFromRedriver, Long taskExecutionVersion) {
 		this.stateMachineId = stateMachineId;
 		this.stateMachineName = stateMachineName;
@@ -49,10 +56,10 @@ public class ExecutionUpdateData implements Serializable {
 		this.status = status;
 		this.retrycount = retrycount;
 		this.currentRetryCount = currentRetryCount;
-        this.errorMessage = errorMessage;
+		this.errorMessage = errorMessage;
 		this.deleteFromRedriver = deleteFromRedriver;
 		this.taskExecutionVersion = taskExecutionVersion;
-    }
+	}
 
     /** Accessors*/
 	public String getStateMachineId() {

@@ -13,7 +13,7 @@
 
 package com.flipkart.flux.api.core;
 
-import com.flipkart.flux.api.VersionedEventData;
+import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.utils.Pair;
 
@@ -33,5 +33,5 @@ public interface Task {
      * @param events Dependencies that need to be satisfied for this task to be executed
      * @return The event produced by a worker on successful execution OR an error object representing the error.
      */
-	public Pair<Object,FluxError> execute(VersionedEventData[] events);
+	public Pair<Object,FluxError> execute(EventData[] events);
 }

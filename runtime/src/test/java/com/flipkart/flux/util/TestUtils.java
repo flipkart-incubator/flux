@@ -2,8 +2,8 @@ package com.flipkart.flux.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
-import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
 import com.flipkart.flux.domain.Event;
@@ -104,8 +104,7 @@ public class TestUtils {
     }
 
     public static Event getStandardTestEvent() throws JsonProcessingException {
-        return new Event("event0", "java.lang.String", Event.EventStatus.triggered, null,
-                "42", null, 0L);
+        return new Event("event0", "java.lang.String", Event.EventStatus.triggered, null, "42", null);
     }
 
     public static String toStr(Object obj) throws Exception {
@@ -138,15 +137,12 @@ public class TestUtils {
     }
 
     public static TaskExecutionMessage getStandardTaskExecutionMessage() throws Exception {
-        VersionedEventData[] expectedEvents = new VersionedEventData[]{new VersionedEventData("event0",
-                "java.lang.String", "42", "runtime", 0L)};
+        EventData[] expectedEvents = new EventData[]{new EventData("event0", "java.lang.String", "42", "runtime")};
         StateMachine sm = getStandardTestMachine();
         State state = sm.getStates().stream().filter((s) -> s.getId() == 4L).findFirst().orElse(null);
         TaskExecutionMessage msg = new TaskExecutionMessage();
         msg.setRouterName(WorkFlowExecutionController.getRouterName(state.getTask()));
-        msg.setAkkaMessage(new TaskAndEvents(state.getName(), state.getTask(), state.getId(), expectedEvents,
-                state.getStateMachineId(), "test_state_machine", state.getOutputEvent(),
-                state.getRetryCount(), 0L));
+        msg.setAkkaMessage(new TaskAndEvents(state.getName(), state.getTask(), state.getId(), expectedEvents, state.getStateMachineId(), "test_state_machine", state.getOutputEvent(), state.getRetryCount()));
         return msg;
     }
 }

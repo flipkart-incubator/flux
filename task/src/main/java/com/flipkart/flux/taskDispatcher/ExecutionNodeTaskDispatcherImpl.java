@@ -31,8 +31,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
@@ -42,7 +42,7 @@ import com.google.inject.Inject;
 @Singleton
 public class ExecutionNodeTaskDispatcherImpl implements ExecutionNodeTaskDispatcher {
 
-    private static Logger logger = LoggerFactory.getLogger(ExecutionNodeTaskDispatcherImpl.class);
+    private static Logger logger = LogManager.getLogger(ExecutionNodeTaskDispatcherImpl.class);
     private final CloseableHttpClient closeableHttpClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private MetricsClient metricsClient;

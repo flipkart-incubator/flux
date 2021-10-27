@@ -26,8 +26,8 @@ import com.flipkart.flux.impl.boot.ActorSystemManager;
 import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
 import com.flipkart.polyguice.core.Initializable;
 import com.google.inject.Singleton;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.inject.Inject;
 
@@ -40,7 +40,7 @@ import javax.inject.Inject;
 @Singleton
 public class EventSchedulerRegistryImpl implements EventSchedulerRegistry, Initializable {
 
-    private static final Logger logger = LoggerFactory.getLogger(EventSchedulerRegistryImpl.class);
+    private static final Logger logger = LogManager.getLogger(EventSchedulerRegistryImpl.class);
 
     /**
      * ActorSystemManager to create a singleton actor of {@link AkkaEventSchedulerService}

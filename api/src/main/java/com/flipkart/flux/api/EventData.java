@@ -38,6 +38,8 @@ public class EventData implements Serializable {
     /** Source who generated this event, might be state name or external */
     private String eventSource;
 
+    private Long executionVersion;
+
     /** Indicates whether this event is cancelled, based on this value runtime decides to cancel the entire path in DAG */
     private Boolean isCancelled;
 
@@ -46,15 +48,24 @@ public class EventData implements Serializable {
 
     /** constructor */
     public EventData(String name, String type, String data, String eventSource) {
+        this(name, type, data, eventSource, false, 0L);
+    }
+
+    public EventData(String name, String type, String data, String eventSource, Long executionVersion) {
+        this(name, type, data, eventSource, false, executionVersion);
+    }
+
+    public EventData(String name, String type, String data, String eventSource, Boolean isCancelled) {
+        this(name, type, data, eventSource, isCancelled, 0L);
+    }
+
+    public EventData(String name, String type, String data, String eventSource, Boolean isCancelled, Long executionVersion) {
         this.name = name;
         this.type = type;
         this.data = data;
         this.eventSource = eventSource;
-    }
-
-    public EventData(String name, String type, String data, String eventSource, Boolean isCancelled) {
-        this(name, type, data, eventSource);
         this.isCancelled = isCancelled;
+        this.executionVersion = executionVersion;
     }
 
     /** Accessor/Mutator methods*/
@@ -87,6 +98,14 @@ public class EventData implements Serializable {
     }
     public void setCancelled(Boolean cancelled) {
         isCancelled = cancelled;
+    }
+
+    public Long getExecutionVersion() {
+        return executionVersion;
+    }
+
+    public void setExecutionVersion(Long executionVersion) {
+        this.executionVersion = executionVersion;
     }
 
     @Override

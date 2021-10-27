@@ -14,7 +14,7 @@
 
 package com.flipkart.flux.impl.message;
 
-import com.flipkart.flux.api.VersionedEventData;
+import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.core.Task;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.impl.task.AkkaTask;
@@ -39,7 +39,7 @@ public class TaskAndEvents implements Serializable {
     /* The Task instance identifier in persistence store*/
     private Long taskId;
     /* The set of events that have presently unblocked the task and whose data will be utilised during task execution */
-    private VersionedEventData[] events;
+    private EventData[] events;
     /* The state machine id for which this execution message is raised */
     private String stateMachineId;
     /* The state machine name for which this execution message is raised */
@@ -58,25 +58,44 @@ public class TaskAndEvents implements Serializable {
 
     /** constructors*/
     public TaskAndEvents() {}
-    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, VersionedEventData[] events,
-                         String stateMachineId, String stateMachineName, String outputEvent, long retryCount,
-                         Long taskExecutionVersion) {
-    	this.taskName = taskName;
+    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, EventData[] events,
+                         String stateMachineId, String stateMachineName, String outputEvent, long retryCount) {
+    	this(taskName, taskIdentifier, taskId, 0L, events, stateMachineId, stateMachineName,
+                outputEvent, retryCount);
+    }
+
+    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, Long taskExecutionVersion, EventData[] events,
+                         String stateMachineId, String stateMachineName, String outputEvent, long retryCount) {
+        this.taskName = taskName;
         this.taskIdentifier = taskIdentifier;
         this.taskId = taskId;
+        this.taskExecutionVersion = taskExecutionVersion;
         this.events = events;
         this.stateMachineId = stateMachineId;
         this.stateMachineName = stateMachineName;
         this.outputEvent = outputEvent;
         this.retryCount = retryCount;
-        this.taskExecutionVersion = taskExecutionVersion;
     }
 
-    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, VersionedEventData[] events,
+    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, EventData[] events,
                          String stateMachineId, String stateMachineName, String outputEvent, long retryCount,
-                         long currentRetryCount, Long taskExecutionVersion) {
-        this(taskName, taskIdentifier, taskId, events, stateMachineId, stateMachineName, outputEvent, retryCount,
-                taskExecutionVersion);
+                         long currentRetryCount) {
+        this(taskName, taskIdentifier, taskId, 0L, events, stateMachineId, stateMachineName,
+                outputEvent, retryCount, currentRetryCount);
+    }
+
+    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, Long taskExecutionVersion, EventData[] events,
+                         String stateMachineId, String stateMachineName, String outputEvent, long retryCount,
+                         long currentRetryCount) {
+        this.taskName = taskName;
+        this.taskIdentifier = taskIdentifier;
+        this.taskId = taskId;
+        this.taskExecutionVersion = taskExecutionVersion;
+        this.events = events;
+        this.stateMachineId = stateMachineId;
+        this.stateMachineName = stateMachineName;
+        this.outputEvent = outputEvent;
+        this.retryCount = retryCount;
         this.currentRetryCount = currentRetryCount;
     }
 
@@ -89,7 +108,7 @@ public class TaskAndEvents implements Serializable {
     public Long getTaskId() {
 		return taskId;
 	}
-	public VersionedEventData[] getEvents() {
+	public EventData[] getEvents() {
         return this.events;
     }
     public String getStateMachineId() {

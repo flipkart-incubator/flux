@@ -74,8 +74,8 @@ public class EventsDAOTest {
     public void createEventTest() throws JsonProcessingException {
         StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
         StringEvent data = new StringEvent("event_dat");
-        Event event = new Event("test_event_name", "Internal", Event.EventStatus.pending,
-                stateMachine.getId(), objectMapper.writeValueAsString(data), "state1", 0L);
+        Event event = new Event("test_event_name", "Internal", Event.EventStatus.pending, stateMachine.getId(),
+                objectMapper.writeValueAsString(data), "state1");
         eventsDAO.create(event.getStateMachineInstanceId(), event);
 
         Event event1 = eventsDAO.findBySMIdAndName(event.getStateMachineInstanceId(), event.getName());
@@ -86,12 +86,10 @@ public class EventsDAOTest {
     public void testRetrieveByEventNamesAndSmId() throws Exception {
         final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
         stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
-        final Event event1 = new Event("event1", "someType", Event.EventStatus.pending,
-                standardTestMachine.getId(), null, null, 0L);
+        final Event event1 = new Event("event1", "someType", Event.EventStatus.pending, standardTestMachine.getId(), null, null);
         final EventData eventData1 = new EventData(event1.getName(), event1.getType(), event1.getEventData(), event1.getEventSource());
         eventsDAO.create(event1.getStateMachineInstanceId(), event1);
-        final Event event3 = new Event("event3", "someType", Event.EventStatus.pending,
-                standardTestMachine.getId(), null, null, 0L);
+        final Event event3 = new Event("event3", "someType", Event.EventStatus.pending, standardTestMachine.getId(), null, null);
         final EventData eventData3 = new EventData(event3.getName(), event3.getType(), event3.getEventData(), event3.getEventSource());
         eventsDAO.create(event3.getStateMachineInstanceId(), event3);
 
@@ -106,11 +104,9 @@ public class EventsDAOTest {
         /* Doesn't matter, but still setting it up */
         final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
         stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
-        final Event event1 = new Event("event1", "someType", Event.EventStatus.pending,
-                standardTestMachine.getId(), null, null, 0L);
+        final Event event1 = new Event("event1", "someType", Event.EventStatus.pending, standardTestMachine.getId(), null, null);
         eventsDAO.create(event1.getStateMachineInstanceId(), event1);
-        final Event event3 = new Event("event3", "someType", Event.EventStatus.pending,
-                standardTestMachine.getId(), null, null, 0L);
+        final Event event3 = new Event("event3", "someType", Event.EventStatus.pending, standardTestMachine.getId(), null, null);
         eventsDAO.create(event3.getStateMachineInstanceId(), event3);
 
         /* Actual test */

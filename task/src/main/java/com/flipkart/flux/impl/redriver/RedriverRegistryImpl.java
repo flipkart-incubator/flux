@@ -26,8 +26,8 @@ import com.flipkart.flux.redriver.service.RedriverService;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.polyguice.core.Initializable;
 import com.flipkart.flux.utils.LoggingUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -44,7 +44,7 @@ import javax.inject.Singleton;
 @Singleton
 public class RedriverRegistryImpl implements RedriverRegistry, Initializable {
 
-    private static final Logger logger = LoggerFactory.getLogger(RedriverRegistryImpl.class);
+    private static final Logger logger = LogManager.getLogger(RedriverRegistryImpl.class);
 
     /**
      * ActorSystemManager to create a singleton actor of {@link AkkaRedriverService}

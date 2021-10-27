@@ -14,7 +14,6 @@
 package com.flipkart.flux.dao.iface;
 
 import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.domain.Event;
 
 import java.util.List;
@@ -49,7 +48,7 @@ public interface EventsDAO {
     List<EventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames );
 
     /** Retrieves list of versioned events by their names and state machine id */
-    List<VersionedEventData> findByVersionedEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames );
+    List<EventData> findByVersionedEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames );
 
     /** Retrieves all the events names and statuses. Selects for update if forUpdate is true */
     Map<String, Event.EventStatus> getAllEventsNameAndStatus(String stateMachineInstanceId, boolean forUpdate);
