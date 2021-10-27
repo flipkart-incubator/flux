@@ -16,7 +16,6 @@ package com.flipkart.flux.client.model;
 
 /**
  * Used to denote a task parameter which will be replayable
- * A task can be marked replayable by using this annotation
  * @author vartika.bhatia
  */
 

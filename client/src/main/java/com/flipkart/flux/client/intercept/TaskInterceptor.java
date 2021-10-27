@@ -151,11 +151,11 @@ public class TaskInterceptor implements MethodInterceptor {
             ExternalEvent externalEventAnnotation = checkForExternalEventAnnotation(parameterAnnotations[i]);
             ReplayEvent replayEventAnnotation = checkForReplayEventAnnotation(parameterAnnotations[i]);
             if (externalEventAnnotation != null) {
-                checkAndAddEventToEventDefiniton(eventDefinitions, externalEventAnnotation, argument, parameterTypes, i);
+                checkAndAddEventToEventDefinition(eventDefinitions, externalEventAnnotation, argument, parameterTypes, i);
                 continue;
             }
             else if (replayEventAnnotation != null) {
-                checkAndAddEventToEventDefiniton(eventDefinitions, replayEventAnnotation, argument, parameterTypes, i);
+                checkAndAddEventToEventDefinition(eventDefinitions, replayEventAnnotation, argument, parameterTypes, i);
                 continue;
             }
 
@@ -172,8 +172,7 @@ public class TaskInterceptor implements MethodInterceptor {
 
 
 
-    private void checkAndAddEventToEventDefiniton(List<EventDefinition> eventDefinitions, ExternalEvent externalEventAnnotation, Object argument, Class<?>[] parameterTypes, int argumentIndex) {
-
+    private void checkAndAddEventToEventDefinition(List<EventDefinition> eventDefinitions, ExternalEvent externalEventAnnotation, Object argument, Class<?>[] parameterTypes, int argumentIndex) {
         if (argument != null) {
                 throw new IllegalInvocationException("cannot pass" + argument + " as the parameter is marked an external event");
             }
@@ -187,8 +186,7 @@ public class TaskInterceptor implements MethodInterceptor {
 
     }
 
-    private void checkAndAddEventToEventDefiniton(List<EventDefinition> eventDefinitions, ReplayEvent replayEventAnnotation, Object argument, Class<?>[] parameterTypes, int argumentIndex) {
-
+    private void checkAndAddEventToEventDefinition(List<EventDefinition> eventDefinitions, ReplayEvent replayEventAnnotation, Object argument, Class<?>[] parameterTypes, int argumentIndex) {
         if (argument != null) {
                 throw new IllegalInvocationException("cannot pass" + argument + " as the parameter is marked an replay event");
             }
@@ -201,7 +199,6 @@ public class TaskInterceptor implements MethodInterceptor {
             }
 
     }
-
 
     private ExternalEvent checkForExternalEventAnnotation(Annotation[] givenParameterAnnotations) {
         for (Annotation annotation : givenParameterAnnotations) {

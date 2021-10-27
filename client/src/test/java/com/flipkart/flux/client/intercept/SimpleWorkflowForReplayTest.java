@@ -3,32 +3,40 @@ package com.flipkart.flux.client.intercept;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flipkart.flux.client.model.*;
 
+/**
+ * Workflow used test e2e interception using replayEvent
+ */
 public class SimpleWorkflowForReplayTest {
 
-    public static final String STRING_EVENT_NAME = "Some String Event";
-    public static final String INTEGER_EVENT_NAME = "Some Integer Event";
+    public static final String STRING_REPLAY_EVENT_NAME = "Some String Event";
+    public static final String INTEGER_REPLAY_EVENT_NAME = "Some Integer Event";
 
-    /* A simple workflow that goes about creating tasks and making merry. Sometimes both these fight over whose the merrier */
+    /* A simple workflow that goes about creating tasks and making merry. */
     @SuppressWarnings("unused")
 	@Workflow(version = 1)
-    public void simpleDummyWorkflowWithReplayEvent(SimpleWorkflowForReplayTest.IntegerEvent someInteger) {
+    public void simpleDummyWorkflowWithReplayEvent(IntegerEvent someInteger) {
         final StringEvent newString = waitForReplayEvent(null, someInteger);
-        final StringEvent anotherString = waitForReplayEvent((SimpleWorkflowForReplayTest.StringEvent) null);
+        final StringEvent anotherString = waitForReplayEvent((StringEvent) null);
         someTaskWithIntegerAndString(newString, someInteger);
     }
 
     @Task(version = 1, retries = 2, timeout = 2000l, replayable = true)
-    public SimpleWorkflowForReplayTest.StringEvent waitForReplayEvent(@ReplayEvent("someReplayEvent") SimpleWorkflowForReplayTest.StringEvent someString, SimpleWorkflowForReplayTest.IntegerEvent integerEvent) {
-        return new SimpleWorkflowForReplayTest.StringEvent(integerEvent.anInteger.toString() + someString);
+    public StringEvent waitForReplayEvent(@ReplayEvent("someReplayEvent") StringEvent someString, IntegerEvent integerEvent) {
+        return new StringEvent(integerEvent.anInteger.toString() + someString);
     }
 
     @Task(version = 1, retries = 2, timeout = 2000l, replayable = true)
-    public SimpleWorkflowForReplayTest.StringEvent waitForReplayEvent(@ReplayEvent("someReplayEvent") SimpleWorkflowForReplayTest.StringEvent someString) {
-        return new SimpleWorkflowForReplayTest.StringEvent("randomBs" + someString);
+    public StringEvent waitForReplayEvent(@ReplayEvent("someReplayEvent") StringEvent someString) {
+        return new StringEvent("randomBs" + someString);
+    }
+
+    @Task(version = 1, retries = 2, timeout = 2000l, replayable = true)
+    public StringEvent waitForReplayableEvent(@ExternalEvent("someReplayableEvent") IntegerEvent integerEvent) {
+        return new StringEvent(integerEvent.anInteger.toString());
     }
 
     @Task(version = 1, retries = 0, timeout = 1000l)
-    public void someTaskWithIntegerAndString(SimpleWorkflowForReplayTest.StringEvent someString, SimpleWorkflowForReplayTest.IntegerEvent someInteger) {
+    public void someTaskWithIntegerAndString(StringEvent someString, IntegerEvent someInteger) {
         //blah
     }
 
@@ -45,7 +53,7 @@ public class SimpleWorkflowForReplayTest {
 
         @Override
         public String name() {
-            return STRING_EVENT_NAME;
+            return STRING_REPLAY_EVENT_NAME;
         }
 
         @Override
@@ -53,7 +61,7 @@ public class SimpleWorkflowForReplayTest {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            SimpleWorkflowForReplayTest.StringEvent that = (SimpleWorkflowForReplayTest.StringEvent) o;
+            StringEvent that = (StringEvent) o;
 
             return aString.equals(that.aString);
 
@@ -84,7 +92,7 @@ public class SimpleWorkflowForReplayTest {
 
         @Override
         public String name() {
-            return INTEGER_EVENT_NAME;
+            return INTEGER_REPLAY_EVENT_NAME;
         }
 
         @Override
@@ -92,7 +100,7 @@ public class SimpleWorkflowForReplayTest {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            SimpleWorkflowForReplayTest.IntegerEvent that = (SimpleWorkflowForReplayTest.IntegerEvent) o;
+            IntegerEvent that = (IntegerEvent) o;
 
             return anInteger.equals(that.anInteger);
 

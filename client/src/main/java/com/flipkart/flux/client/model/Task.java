@@ -52,7 +52,8 @@ public @interface Task {
 
     /**
      * Defines if a task is marked as replayable or not
-     * This enables the flux runtime to re run only those tasks that are marked as replayable
+     * This enables the flux runtime to re-run only those tasks that are marked as replayable
+     * By defaault a task is marked as replayable false
      * @return
      */
     boolean replayable() default false;

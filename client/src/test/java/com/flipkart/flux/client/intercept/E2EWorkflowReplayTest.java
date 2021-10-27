@@ -15,6 +15,9 @@ import javax.inject.Inject;
 import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/***
+ * Checks for end to end flow of a workflow with replay event
+ */
 @RunWith(GuiceJunit4Runner.class)
 public class E2EWorkflowReplayTest {
 
@@ -43,7 +46,9 @@ public class E2EWorkflowReplayTest {
         simpleWorkflowForReplayTest.simpleDummyWorkflowWithReplayEvent(new SimpleWorkflowForReplayTest.IntegerEvent(2));
         final StateMachineDefinition submittedDefinition = dummyFluxRuntimeResource.smToCountMap.keySet().stream().findFirst().get();
         assertThat(submittedDefinition.getStates()).hasSize(3);
-        final Stream<String> eventDefNames = submittedDefinition.getStates().stream().flatMap(stateDefinition -> stateDefinition.getDependencies().stream()).map(EventDefinition::getName);
-        assertThat(eventDefNames.distinct().toArray()).containsOnlyOnce(SimpleWorkflowForReplayTest.INTEGER_EVENT_NAME + "0", "someReplayEvent", "com.flipkart.flux.client.intercept.SimpleWorkflowForReplayTest$StringEvent1");
+        final Stream<String> eventDefNames = submittedDefinition.getStates().stream().
+                flatMap(stateDefinition -> stateDefinition.getDependencies().stream()).map(EventDefinition::getName);
+        assertThat(eventDefNames.distinct().toArray()).containsOnlyOnce(SimpleWorkflowForReplayTest.INTEGER_REPLAY_EVENT_NAME + "0",
+                "someReplayEvent", "com.flipkart.flux.client.intercept.SimpleWorkflowForReplayTest$StringEvent1");
     }
 }

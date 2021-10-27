@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
 import static com.flipkart.flux.client.intercept.SimpleWorkflowForTest.INTEGER_EVENT_NAME;
+import static com.flipkart.flux.client.intercept.SimpleWorkflowForReplayTest.INTEGER_REPLAY_EVENT_NAME;
 import static com.flipkart.flux.client.intercept.SimpleWorkflowForTest.STRING_EVENT_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -55,6 +56,7 @@ public class TaskInterceptorTest {
     ExecutableRegistry executableRegistry;
 
     private SimpleWorkflowForTest simpleWorkflowForTest;
+    private SimpleWorkflowForReplayTest simpleWorkflowForReplayTest;
     private TaskInterceptor taskInterceptor;
 
     private ObjectMapper objectMapper;
@@ -65,6 +67,7 @@ public class TaskInterceptorTest {
         objectMapper = new ObjectMapper();
         taskInterceptor = new TaskInterceptor(localContext,executableRegistry, () -> objectMapper);
         simpleWorkflowForTest = new SimpleWorkflowForTest();
+        simpleWorkflowForReplayTest = new SimpleWorkflowForReplayTest();
         when(localContext.isWorkflowInterception()).thenReturn(true);
     }
 
@@ -179,22 +182,25 @@ public class TaskInterceptorTest {
                 new MethodId(invokedMethod).toString()+_VERSION+"1", 2l, 2000l, expectedDependency, expectedOutput);
     }
 
-
+    /***
+     * Test registerNewState() with replay event
+     * @throws Throwable
+     */
     @Test
     public void testRegisterReplayEventsWithTheirGivenName() throws Throwable {
         /* setup */
         setupMockLocalContext();
-        final Method invokedMethod = simpleWorkflowForTest.getClass().getDeclaredMethod("waitForReplayEvent", StringEvent.class, IntegerEvent.class);
+        final Method invokedMethod = simpleWorkflowForReplayTest.getClass().getDeclaredMethod("waitForReplayEvent", SimpleWorkflowForReplayTest.StringEvent.class, SimpleWorkflowForReplayTest.IntegerEvent.class);
 
         /* invocation */
-        taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod,new Object[]{null,new IntegerEvent(1)}));
+        taskInterceptor.invoke(TestUtil.dummyInvocation(invokedMethod,new Object[]{null,new SimpleWorkflowForReplayTest.IntegerEvent(1)}));
 
         /* verification */
         final List<EventDefinition> expectedDependency = new LinkedList<EventDefinition>() {{
-            add(new EventDefinition("someReplayEvent", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent"));
-            add(new EventDefinition(INTEGER_EVENT_NAME + "0", "com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent"));
+            add(new EventDefinition("someReplayEvent", "com.flipkart.flux.client.intercept.SimpleWorkflowForReplayTest$StringEvent"));
+            add(new EventDefinition(INTEGER_REPLAY_EVENT_NAME + "0", "com.flipkart.flux.client.intercept.SimpleWorkflowForReplayTest$IntegerEvent"));
         }};
-        final EventDefinition expectedOutput = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent1","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$StringEvent");
+        final EventDefinition expectedOutput = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForReplayTest$StringEvent1","com.flipkart.flux.client.intercept.SimpleWorkflowForReplayTest$StringEvent");
         verify(localContext, times(1)).
                 registerNewState(1l, "waitForReplayEvent", null, null,
                         new MethodId(invokedMethod).toString()+_VERSION+"1", 2l, 2000l, true,expectedDependency, expectedOutput);
