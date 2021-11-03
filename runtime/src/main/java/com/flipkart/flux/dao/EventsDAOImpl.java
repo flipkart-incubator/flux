@@ -74,6 +74,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         return (List<Event>) criteria.list();
     }
 
+    // TODO : Modify query not to send invalid event. Need to add test cases around it.
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
@@ -82,8 +83,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         Criteria criteria = currentSession().createCriteria(Event.class)
                 .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("name", eventName))
-                .add(Restrictions.eq("executionVersion", executionVersion))
-                .add(Restrictions.ne("status", Event.EventStatus.invalid));
+                .add(Restrictions.eq("executionVersion", executionVersion));
         return (Event) criteria.uniqueResult();
     }
 

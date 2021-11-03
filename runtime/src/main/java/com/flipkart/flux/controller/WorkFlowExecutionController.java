@@ -414,8 +414,11 @@ public class WorkFlowExecutionController {
         Event currentEvent = persistAndProcessReplayEvent(eventData, dependantStates, dependantEvents, stateMachine.getId());
 
         Set<State> executableStates = new HashSet<>();
+
+        // TODO : Need to call execute state from outside this transaction. We can register it in redriver.
+        dependantStateOnReplayEvent.setStatus(Status.initialized);
         executableStates.add(dependantStateOnReplayEvent);
-//        executeStates(stateMachine, executableStates, currentEvent, false);
+        executeStates(stateMachine, executableStates, currentEvent, false);
 
         return executableStates;
     }
@@ -443,9 +446,9 @@ public class WorkFlowExecutionController {
         Long smExecutionVersion = stateMachinesDAO.findById(stateMachineId).getExecutionVersion() + 1;
         stateMachinesDAO.incrementExecutionVersion(stateMachineId, smExecutionVersion);
 
-        // TODO: Test and use a single query in StatesDAO to mark all states in dependantStates as invalid
+        // TODO: Test and use a single query in StatesDAO to mark all states in dependantStates as initialized
         for (State state:dependantStates) {
-            statesDAO.updateStatus(stateMachineId, state.getId(), Status.invalid);
+            statesDAO.updateStatus(stateMachineId, state.getId(), Status.initialized);
             statesDAO.updateExecutionVersion(stateMachineId, state.getId(), smExecutionVersion);
         }
 
