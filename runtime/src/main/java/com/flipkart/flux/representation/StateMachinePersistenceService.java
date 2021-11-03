@@ -142,7 +142,8 @@ public class StateMachinePersistenceService {
                     events,
                     Math.min(stateDefinition.getRetryCount(), maxRetryCount),
                     stateDefinition.getTimeout(),
-                    stateDefinition.getOutputEvent() != null ? objectMapper.writeValueAsString(stateDefinition.getOutputEvent()) : null,
+                    stateDefinition.getOutputEvent() != null ? objectMapper.writeValueAsString(
+                            stateDefinition.getOutputEvent()) : null,
                     Status.initialized, null, 0L, stateMachineId, id);
         } catch (Exception e) {
             throw new IllegalRepresentationException("Unable to create state domain object", e);

@@ -296,7 +296,7 @@ public class StateMachineResource {
      * @param eventData Json representation of event
      */
     @POST
-    @Path("/{machineId}/context/replayevents")
+    @Path("/{machineId}/context/replayevent")
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     @Timed
@@ -307,7 +307,7 @@ public class StateMachineResource {
 
         try {
             LoggingUtils.registerStateMachineIdForLogging(machineId);
-            logger.info("Received replay event: {} for state machine: {}", eventData.getName(), machineId);
+            logger.info("Received replay event: {} for state machine id: {}", eventData.getName(), machineId);
             StateMachine stateMachine = null;
             stateMachine = stateMachinesDAO.findById(machineId);
             if (stateMachine == null) {
@@ -322,8 +322,8 @@ public class StateMachineResource {
                 return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity("State machine with Id: "
                         + stateMachine.getId() + " is in 'cancelled' state. Discarding the replay event.").build();
             }
-            logger.info("Received replay event: {} for state machine: {}", eventData.getName(), machineId);
             try {
+                // TODO : Add a check to eventSource being "replay"
                 workFlowExecutionController.postReplayEvent(eventData, stateMachine);
                 return Response.status(Response.Status.ACCEPTED).build();
             } catch (IllegalEventException ex) {
