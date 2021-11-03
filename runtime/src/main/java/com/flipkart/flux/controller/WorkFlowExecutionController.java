@@ -282,10 +282,17 @@ public class WorkFlowExecutionController {
         executeStates(stateMachinesDAO.findById(stateMachineId), executableStates, false);
     }
 
+    /**
+     * Helper method to JSON serialize the output event
+     */
+    private String getOutputEventName(String outputEvent) throws java.io.IOException {
+        return outputEvent != null ? objectMapper.readValue(outputEvent, EventDefinition.class).getName() : null;
+    }
+
     // TODO : Add description, test cases
     // TODO : Will modify to return all states in the path
     // BFS to check a path between 2 states
-    private boolean pathExists(Set<State> allStates, Context context, State initialState, State destinationState) {
+    private boolean pathExists(Set<State> allStates, Context context, String stateMachineId, State initialState, State destinationState) {
 
         Map<State, Boolean> visitedState = new HashMap<>();
         LinkedList<State> queue = new LinkedList<>();
@@ -302,16 +309,28 @@ public class WorkFlowExecutionController {
         while (queue.size() != 0) {
             State retrievedState = queue.poll();
 
-            nextDependantStates = context.getDependantStates(retrievedState.getOutputEvent());
+            if (retrievedState.getOutputEvent() != null) {
+                String outputEventName;
 
-            for (State dependantState : nextDependantStates) {
-                if(dependantState.equals(destinationState)) {
-                    return true;
+                try {
+                    outputEventName = getOutputEventName(retrievedState.getOutputEvent());
+                } catch (IOException ex) {
+                    throw new RuntimeException("Error occurred while deserializing task outputEvent for stateMachineId: "
+                            + stateMachineId + " stateId: " + retrievedState.getId());
                 }
 
-                if(!visitedState.get(dependantState)) {
-                    visitedState.put(dependantState, Boolean.TRUE);
-                    queue.add(dependantState);
+                nextDependantStates = context.getDependantStates(outputEventName);
+
+                // TODO: Check for state object equals at object level, need to test.
+                for (State dependantState : nextDependantStates) {
+                    if(dependantState.getName().equals(destinationState.getName())) {
+                        return true;
+                    }
+
+                    if(!visitedState.get(dependantState)) {
+                        visitedState.put(dependantState, Boolean.TRUE);
+                        queue.add(dependantState);
+                    }
                 }
             }
         }
@@ -319,8 +338,9 @@ public class WorkFlowExecutionController {
     }
 
     /**
-     * // TODO : Test cases needs to be added
-     * // TODO : Rephrase this description
+     * TODO : Test cases needs to be added.
+     * TODO : Use dependantStates as a tuple/pair of composite key <stateId, stateMachineId>
+     * TODO : Rephrase this description
      * Retrieves the states which are dependant on this replay event and starts the execution of eligible states (replayable is true).
      * 0. Verify eligible dependant state(replayable is true) on this replay event.
      * 1. Retrieves set of states and events occurring in the topological path with triggering of this replay event using BFS.
@@ -330,16 +350,17 @@ public class WorkFlowExecutionController {
      * @param eventData
      * @param stateMachine
      */
-    public Set<State> postReplayEvent(EventData eventData, StateMachine stateMachine) throws IllegalEventException {
+    public Set<State> postReplayEvent(EventData eventData, StateMachine stateMachine) throws IllegalEventException, IOException {
 
         Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
 
         // TODO : Add a check on client side so as not to allow a replay event being a dependency of 2 or more states.
         //Get the dependant state on this replay event.
-        State dependantStateOnReplayEvent = statesDAO.findStateByDependentReplayEvent(stateMachine.getId(), eventData.getName());
-        logger.debug("This state {} depends on replay event {}", dependantStateOnReplayEvent, eventData.getName());
-
-        if(!dependantStateOnReplayEvent.getReplayable()) {
+        Long dependantStateId = statesDAO.findStateByDependentReplayEvent(stateMachine.getId(), eventData.getName());
+        State dependantStateOnReplayEvent = statesDAO.findById(stateMachine.getId(), dependantStateId);
+        // TODO : Add null check for dependantStateOnReplayEvent
+        logger.info("This state {} depends on replay event {}", dependantStateOnReplayEvent.getName(), eventData.getName());
+        if(!dependantStateOnReplayEvent.getReplayable() || dependantStateOnReplayEvent.getStatus() != Status.completed) {
                 throw new IllegalEventException("Dependant state:"+ dependantStateOnReplayEvent.getName() +" with stateMachineId:" +
                         stateMachine.getId() +" and replay event:"+ eventData.getName() + " is not replayable.");
         }
@@ -349,14 +370,29 @@ public class WorkFlowExecutionController {
         // TODO: Need to add test cases for this.
         Set<State> dependantStates = new HashSet<>();
         List<String> dependantEvents = new ArrayList<>();
-        dependantStates.add(dependantStateOnReplayEvent); // add initial state dependant on replay event
-        dependantEvents.add(dependantStateOnReplayEvent.getOutputEvent()); // add initial state's output event
-        dependantEvents.add(eventData.getName()); // add previous executionVersion replay event to be marked as invalid.
+
+        // add initial state dependant on replay event
+        dependantStates.add(dependantStateOnReplayEvent);
+
+        // add initial state's output event
+        String initialStateOutputEventName = getOutputEventName(dependantStateOnReplayEvent.getOutputEvent());
+        dependantEvents.add(initialStateOutputEventName);
+
+        // add previous executionVersion replay event to be marked as invalid.
+        dependantEvents.add(eventData.getName());
+
         // Using BFS, for each state in State Machine, find path between initial dependant state -> current state
         for (State state : stateMachine.getStates()) {
-            if(pathExists(stateMachine.getStates(), context, dependantStateOnReplayEvent, state)) {
-                dependantStates.add(state);
-                dependantEvents.add(state.getOutputEvent());
+            // TODO : Need to check for equals method in State. Until then using state Name here.
+            if (!dependantStateOnReplayEvent.getName().equals(state.getName())) {
+                if (pathExists(stateMachine.getStates(), context, stateMachine.getId(), dependantStateOnReplayEvent, state)) {
+                    dependantStates.add(state);
+
+                    String outputEventName = getOutputEventName(dependantStateOnReplayEvent.getOutputEvent());
+                    if(!dependantEvents.contains(outputEventName.toString()))
+                        dependantEvents.add(outputEventName);
+
+                }
             }
         }
         logger.info("Building set of states and list of events in dependancy path of replay event:{} for SMId:{} is done.",
@@ -368,16 +404,18 @@ public class WorkFlowExecutionController {
             // Using default execution version "0L" because it's the only executionVersion which will have all
             // event's entries
             if(eventsDAO.findBySMIdExecutionVersionAndName(stateMachine.getId(), eventName, 0L)
-                    .getEventSource() == "external") {
+                    .getEventSource().equals("external")) {
                 dependantEvents.remove(eventName);
             }
         }
-        Event currentEvent = persistAndProcessReplayEvent(eventData, dependantStateOnReplayEvent, dependantStates, dependantEvents,
-                stateMachine.getId());
+        logger.info("Set of States:{} , List of Events:{}", dependantStates, dependantEvents);
+
+        // TODO : Handle error responses
+        Event currentEvent = persistAndProcessReplayEvent(eventData, dependantStates, dependantEvents, stateMachine.getId());
 
         Set<State> executableStates = new HashSet<>();
         executableStates.add(dependantStateOnReplayEvent);
-        executeStates(stateMachine, executableStates, currentEvent, false);
+//        executeStates(stateMachine, executableStates, currentEvent, false);
 
         return executableStates;
     }
@@ -398,13 +436,12 @@ public class WorkFlowExecutionController {
      */
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public Event persistAndProcessReplayEvent(EventData eventData, State dependantStateOnReplayEvent,
-                                              Set<State> dependantStates, List<String> dependantEvents,
-                                              String stateMachineId) {
+    public Event persistAndProcessReplayEvent(EventData eventData, Set<State> dependantStates,
+                                              List<String> dependantEvents, String stateMachineId) {
 
         // TODO : This will be updated to return updated value in same call. Need to add tests for it.
-        stateMachinesDAO.incrementExecutionVersion(stateMachineId);
-        Long smExecutionVersion = stateMachinesDAO.findById(stateMachineId).getExecutionVersion();
+        Long smExecutionVersion = stateMachinesDAO.findById(stateMachineId).getExecutionVersion() + 1;
+        stateMachinesDAO.incrementExecutionVersion(stateMachineId, smExecutionVersion);
 
         // TODO: Test and use a single query in StatesDAO to mark all states in dependantStates as invalid
         for (State state:dependantStates) {
@@ -414,8 +451,11 @@ public class WorkFlowExecutionController {
 
         // TODO : This should be moved to EventPersistenceService
         eventsDAO.markEventsAsInvalid(stateMachineId, dependantEvents);
-        dependantEvents.remove(eventData.getName()); // Remove replay event. Purpose was to mark all it's previous version invalid.
-        for (String eventName: dependantEvents) {
+
+        // Remove replay event. Purpose was to mark all it's previous version invalid.
+        dependantEvents.remove(eventData.getName());
+
+        for (String eventName : dependantEvents) {
             // To retrieve event meta data (type) for creating new event with new smExecutionVersion
             // Retrieving for executionVersion 0 is fine because type of event doesn't change with executionVersion
             Event currentEvent = eventsDAO.findBySMIdExecutionVersionAndName(stateMachineId, eventName, 0L);

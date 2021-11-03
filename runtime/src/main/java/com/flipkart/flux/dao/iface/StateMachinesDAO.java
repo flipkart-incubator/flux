@@ -58,5 +58,5 @@ public interface StateMachinesDAO {
      * Increments the executionVersion of a stateMachine by 1, this will be picked up as an executionVersion for
      * post replay event.
      */
-    void incrementExecutionVersion(String stateMachineInstanceId);
+    void incrementExecutionVersion(String stateMachineInstanceId, Long smExecutionVersion);
 }

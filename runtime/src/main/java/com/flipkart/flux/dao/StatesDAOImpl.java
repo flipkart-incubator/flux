@@ -20,9 +20,11 @@ import com.flipkart.flux.persistence.*;
 import com.flipkart.flux.shard.ShardId;
 import com.google.inject.name.Named;
 import org.hibernate.Query;
+import org.hibernate.SQLQuery;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -147,14 +149,11 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public State findStateByDependentReplayEvent(String stateMachineId, String eventName) {
-        Query query;
-        String queryString = "select * from State where stateMachineId = :stateMachineId" +
-                " and dependencies like :eventName";
-        query = currentSession().createQuery(queryString);
-        query.setString("stateMachineId", stateMachineId);
-        query.setString("eventName", "%"+eventName+"%");
-        return (State)query.uniqueResult();
+    public Long findStateByDependentReplayEvent(String stateMachineId, String eventName) {
+        SQLQuery query = currentSession().createSQLQuery(
+                "select id from States where `stateMachineId`= '" + stateMachineId + "' and dependencies like" +
+                        " '%" + eventName + "%'");
+        return ((BigInteger) query.uniqueResult()).longValue();
     }
 
     // TODO : modify this to update for multiple stateIds in a single sql query.
