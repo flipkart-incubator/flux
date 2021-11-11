@@ -78,7 +78,7 @@ public class EventsDAOTest {
                 objectMapper.writeValueAsString(data), "state1");
         eventsDAO.create(event.getStateMachineInstanceId(), event);
 
-        Event event1 = eventsDAO.findBySMIdExecutionVersionAndName(event.getStateMachineInstanceId(), event.getName(),
+        Event event1 = eventsDAO.findByStateMachineIdAndExecutionVersionAndName(event.getStateMachineInstanceId(), event.getName(),
                 0L);
         assertThat(event1).isEqualTo(event);
     }

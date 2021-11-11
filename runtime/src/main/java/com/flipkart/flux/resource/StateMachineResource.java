@@ -254,7 +254,7 @@ public class StateMachineResource {
             if (triggerTime == null) {
                 logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
                 try {
-                    if(eventsDAO.findBySMIdExecutionVersionAndName(machineId, eventData.getName(),
+                    if(eventsDAO.findByStateMachineIdAndExecutionVersionAndName(machineId, eventData.getName(),
                             eventData.getExecutionVersion()).getStatus() != Event.EventStatus.invalid) {
                         if (eventData.getCancelled() != null && eventData.getCancelled()) {
                             workFlowExecutionController.handlePathCancellation(stateMachine.getId(), eventData);
@@ -416,14 +416,14 @@ public class StateMachineResource {
                 return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
                         "Event Data|Name|Source cannot be null.").build();
             }
-            Event event = eventsDAO.findBySMIdExecutionVersionAndName(machineId, eventData.getName(),
+            Event event = eventsDAO.findByStateMachineIdAndExecutionVersionAndName(machineId, eventData.getName(),
                     eventData.getExecutionVersion());
             if (event == null) {
                 logger.error("Event with input event Name {} doesn't exist.", eventData.getName());
                 return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(
                         "Event with input event Name doesn't exist.").build();
             }
-            if (eventsDAO.findBySMIdExecutionVersionAndName(machineId, eventData.getName(),
+            if (eventsDAO.findByStateMachineIdAndExecutionVersionAndName(machineId, eventData.getName(),
                     eventData.getExecutionVersion()).getStatus() != Event.EventStatus.triggered) {
                 return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
                         "Input event is not in triggered state.").build();

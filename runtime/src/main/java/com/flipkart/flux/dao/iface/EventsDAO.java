@@ -39,7 +39,7 @@ public interface EventsDAO {
     List<Event> findBySMIdAndName(String stateMachineInstanceId, String eventName);
 
     /** Retrieves Event by state machine instance id, event execution version and event name */
-    Event findBySMIdExecutionVersionAndName(String stateMachineInstanceId, String eventName, Long executionVersion);
+    Event findByStateMachineIdAndExecutionVersionAndName(String stateMachineInstanceId, String eventName, Long executionVersion);
 
     /** Retrieves list of events which are in triggered/cancelled state and belongs to provided state machine */
     List<String> findTriggeredOrCancelledEventsNamesBySMId(String stateMachineInstanceId);

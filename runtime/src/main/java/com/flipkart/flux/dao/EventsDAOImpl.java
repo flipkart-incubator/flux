@@ -78,7 +78,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public Event findBySMIdExecutionVersionAndName(String stateMachineInstanceId, String eventName,
+    public Event findByStateMachineIdAndExecutionVersionAndName(String stateMachineInstanceId, String eventName,
                                                    Long executionVersion) {
         Criteria criteria = currentSession().createCriteria(Event.class)
                 .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
