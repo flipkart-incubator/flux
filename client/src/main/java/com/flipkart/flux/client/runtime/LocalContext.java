@@ -116,7 +116,7 @@ public class LocalContext {
         return this.getStateMachineDef() != null;
     }
 
-    public void addEvents(EventData ...events) {
+    public void addEvents(EventData... events) {
         this.stateMachineDefinition.get().addEventDatas(events);
     }
 

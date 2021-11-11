@@ -17,7 +17,10 @@ public class SimpleWorkflowForReplayTest {
     public void simpleDummyWorkflowWithReplayEvent(IntegerEvent someInteger) {
         final StringEvent newString = waitForReplayEvent(null, someInteger);
         final StringEvent anotherString = waitForReplayEvent((StringEvent) null);
+        final IntegerEvent anotherInteger = simpleAdditionTask(someInteger);
+        final StringEvent someString = simpleStringModifyingTask(anotherString);
         someTaskWithIntegerAndString(newString, someInteger);
+        someTaskWithIntegerAndString(someString, anotherInteger);
     }
 
     @Task(version = 1, retries = 2, timeout = 2000l, replayable = true)
@@ -30,14 +33,19 @@ public class SimpleWorkflowForReplayTest {
         return new StringEvent("randomBs" + someString);
     }
 
-    @Task(version = 1, retries = 2, timeout = 2000l, replayable = true)
-    public StringEvent waitForReplayableEvent(@ExternalEvent("someReplayableEvent") IntegerEvent integerEvent) {
-        return new StringEvent(integerEvent.anInteger.toString());
-    }
-
     @Task(version = 1, retries = 0, timeout = 1000l)
     public void someTaskWithIntegerAndString(StringEvent someString, IntegerEvent someInteger) {
         //blah
+    }
+
+    @Task(version = 1, retries = 2, timeout = 3000l)
+    public IntegerEvent simpleAdditionTask(IntegerEvent i) {
+        return new IntegerEvent(i.anInteger + 2);
+    }
+
+    @Task(version = 1, retries = 2, timeout = 2000l)
+    public StringEvent simpleStringModifyingTask(StringEvent someString) {
+        return new StringEvent("randomBs" + someString);
     }
 
     public static class StringEvent implements Event {

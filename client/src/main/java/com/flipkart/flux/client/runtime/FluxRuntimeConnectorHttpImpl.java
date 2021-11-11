@@ -100,8 +100,8 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     public void submitNewWorkflow(StateMachineDefinition stateMachineDef) {
         CloseableHttpResponse httpResponse = null;
         try {
-        	stateMachineDef = validationForMultipleTaskWithSameName(stateMachineDef);
-            stateMachineDef = validationForMultipleReplayEventWithSameName(stateMachineDef);
+//        	stateMachineDef = validationForMultipleTaskWithSameName(stateMachineDef);
+//            stateMachineDef = validationForMultipleReplayEventWithSameName(stateMachineDef);
             httpResponse = postOverHttp(stateMachineDef, "");
             if (logger.isDebugEnabled()) {
                 try {

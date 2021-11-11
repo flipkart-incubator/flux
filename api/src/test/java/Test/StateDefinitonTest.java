@@ -1,0 +1,42 @@
+package Test;
+
+import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.api.StateDefinition;
+import org.junit.Test;
+import org.junit.Assert;
+
+import java.util.List;
+
+public class StateDefinitonTest {
+
+    /***
+     * Method is used to check functionality of equals() and hashCode()
+     */
+    @Test
+    public void testEquals_Symmetric() {
+        EventDefinition eventDefinition = new EventDefinition("someEvent", "someType");
+        List<EventDefinition> eventDefinitionList = null;
+        StateDefinition stateDefinition1 = new StateDefinition(1l, "someName", "someDescription", "someHook",
+                "someTask", "someHook", 1L, 1000L, eventDefinitionList
+                , eventDefinition, false);
+        StateDefinition stateDefinition2 = new StateDefinition(1l, "someName", "someDescription", "someHook",
+                "someTask", "someHook", 1L, 1000L, eventDefinitionList
+                , eventDefinition, false);
+        Assert.assertTrue(stateDefinition1.equals(stateDefinition2) && stateDefinition2.equals(stateDefinition1));
+        Assert.assertTrue(stateDefinition1.hashCode() == stateDefinition2.hashCode());
+    }
+
+    @Test
+    public void testNotEquals_Symmetric() {
+        EventDefinition eventDefinition = new EventDefinition("someEvent", "someType");
+        List<EventDefinition> eventDefinitionList = null;
+        StateDefinition stateDefinition1 = new StateDefinition(1l, "someName1", "someDescription1", "someHook1",
+                "someTask1", "someHook1", 1L, 1000L, eventDefinitionList
+                , eventDefinition, false);
+        StateDefinition stateDefinition2 = new StateDefinition(1l, "someName2", "someDescription2", "someHook2",
+                "someTask2", "someHook2", 1L, 1000L, eventDefinitionList
+                , eventDefinition, false);
+        Assert.assertFalse(stateDefinition1.equals(stateDefinition2) && stateDefinition2.equals(stateDefinition1));
+        Assert.assertFalse(stateDefinition1.hashCode() == stateDefinition2.hashCode());
+    }
+}

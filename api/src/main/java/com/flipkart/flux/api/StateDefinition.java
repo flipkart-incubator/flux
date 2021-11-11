@@ -27,6 +27,9 @@ import java.util.List;
  */
 public class StateDefinition {
 
+    private static final int REPLAYABLE_TRUE = 79;
+    private static final int REPLAYABLE_FALSE = 97;
+
     /**
      * The version of this state definition
      */
@@ -241,7 +244,7 @@ public class StateDefinition {
         result = 31 * result + (retryCount != null ? retryCount.hashCode() : 0);
         result = 31 * result + (timeout != null ? timeout.hashCode() : 0);
         result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
-        result = 31 * result + (this.replayable ? 79 : 97);
+        result = 31 * result + (this.replayable ? REPLAYABLE_TRUE : REPLAYABLE_FALSE);
         return result;
     }
 

@@ -170,11 +170,17 @@ public class TaskInterceptor implements MethodInterceptor {
         return eventDefinitions;
     }
 
-
-
+    /***
+     * Checks whether eventDefinition exists, if yes, add it to eventDefinition.
+     * @param eventDefinitions
+     * @param externalEventAnnotation
+     * @param argument
+     * @param parameterTypes
+     * @param argumentIndex
+     */
     private void checkAndAddEventToEventDefinition(List<EventDefinition> eventDefinitions, ExternalEvent externalEventAnnotation, Object argument, Class<?>[] parameterTypes, int argumentIndex) {
         if (argument != null) {
-                throw new IllegalInvocationException("cannot pass" + argument + " as the parameter is marked an external event");
+                throw new IllegalInvocationException("cannot pass" + argument + " as the parameter is marked as external event");
             }
             final EventDefinition definition = new EventDefinition(externalEventAnnotation.value(), parameterTypes[argumentIndex].getName());
             EventDefinition existingDefinition = localContext.checkExistingDefinition(definition);
@@ -186,9 +192,17 @@ public class TaskInterceptor implements MethodInterceptor {
 
     }
 
+    /***
+     * Checks whether eventDefinition exists, if yes, add it to eventDefinition.
+     * @param eventDefinitions
+     * @param replayEventAnnotation
+     * @param argument
+     * @param parameterTypes
+     * @param argumentIndex
+     */
     private void checkAndAddEventToEventDefinition(List<EventDefinition> eventDefinitions, ReplayEvent replayEventAnnotation, Object argument, Class<?>[] parameterTypes, int argumentIndex) {
         if (argument != null) {
-                throw new IllegalInvocationException("cannot pass" + argument + " as the parameter is marked an replay event");
+                throw new IllegalInvocationException("cannot pass" + argument + " as the parameter is marked as replay event");
             }
             final EventDefinition definition = new EventDefinition(replayEventAnnotation.value(), parameterTypes[argumentIndex].getName());
             EventDefinition existingDefinition = localContext.checkExistingDefinition(definition);
