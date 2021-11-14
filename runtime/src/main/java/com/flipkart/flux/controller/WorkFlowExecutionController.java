@@ -565,6 +565,8 @@ public class WorkFlowExecutionController {
                 append(executionUpdateData.getStateMachineName()).
                 append(".task.").
                 append(executionUpdateData.getTaskName()).
+                append(".executionVersion.").
+                append(executionUpdateData.getTaskExecutionVersion()).
                 append(".status.").
                 append(updateStatus.name()).
                 toString());

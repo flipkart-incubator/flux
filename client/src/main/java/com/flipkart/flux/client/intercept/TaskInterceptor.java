@@ -50,7 +50,8 @@ public class TaskInterceptor implements MethodInterceptor {
 
     @Inject
     private LocalContext localContext;
-    @Inject @IsolatedEnv
+    @Inject
+    @IsolatedEnv
     private ExecutableRegistry executableRegistry;
     @Inject
     private Provider<ObjectMapper> objectMapperProvider;
@@ -60,6 +61,7 @@ public class TaskInterceptor implements MethodInterceptor {
     */
     public TaskInterceptor() {
     }
+
     /* Protected - since it makes sense to use this constructor only in tests */
     TaskInterceptor(LocalContext localContext,ExecutableRegistry executableRegistry, Provider<ObjectMapper> objectMapperProvider) {
         this.localContext = localContext;
@@ -148,14 +150,13 @@ public class TaskInterceptor implements MethodInterceptor {
         List<EventDefinition> eventDefinitions = new LinkedList<>();
         for (int i = 0; i < arguments.length ; i++) {
             Object argument = arguments[i];
-            ExternalEvent externalEventAnnotation = checkForExternalEventAnnotation(parameterAnnotations[i]);
-            ReplayEvent replayEventAnnotation = checkForReplayEventAnnotation(parameterAnnotations[i]);
-            if (externalEventAnnotation != null) {
-                checkAndAddEventToEventDefinition(eventDefinitions, externalEventAnnotation, argument, parameterTypes, i);
+
+            if (checkForEventAnnotation(parameterAnnotations[i]) instanceof ExternalEvent){
+                checkAndAddEventToEventDefinition(eventDefinitions, checkForEventAnnotation(parameterAnnotations[i]), argument, parameterTypes, i);
                 continue;
             }
-            else if (replayEventAnnotation != null) {
-                checkAndAddEventToEventDefinition(eventDefinitions, replayEventAnnotation, argument, parameterTypes, i);
+            else if (checkForEventAnnotation(parameterAnnotations[i]) instanceof ReplayEvent){
+                checkAndAddEventToEventDefinition(eventDefinitions, checkForEventAnnotation(parameterAnnotations[i]), argument, parameterTypes, i);
                 continue;
             }
 
@@ -173,60 +174,46 @@ public class TaskInterceptor implements MethodInterceptor {
     /***
      * Checks whether eventDefinition exists, if yes, add it to eventDefinition.
      * @param eventDefinitions
-     * @param externalEventAnnotation
+     * @param eventAnnotation
      * @param argument
      * @param parameterTypes
      * @param argumentIndex
      */
-    private void checkAndAddEventToEventDefinition(List<EventDefinition> eventDefinitions, ExternalEvent externalEventAnnotation, Object argument, Class<?>[] parameterTypes, int argumentIndex) {
+    private void checkAndAddEventToEventDefinition(List<EventDefinition> eventDefinitions, Object eventAnnotation, Object argument, Class<?>[] parameterTypes, int argumentIndex) {
         if (argument != null) {
-                throw new IllegalInvocationException("cannot pass" + argument + " as the parameter is marked as external event");
-            }
-            final EventDefinition definition = new EventDefinition(externalEventAnnotation.value(), parameterTypes[argumentIndex].getName());
-            EventDefinition existingDefinition = localContext.checkExistingDefinition(definition);
-            if (existingDefinition != null) {
-                eventDefinitions.add(existingDefinition);
-            } else {
-                eventDefinitions.add(definition);
-            }
+            throw new IllegalInvocationException("cannot pass" + argument + " as the parameter is marked as external/replay event");
+        }
+        EventDefinition definition = null;
+        try {
+            definition = new EventDefinition(((ExternalEvent) eventAnnotation).value(), parameterTypes[argumentIndex].getName());
+        } catch (ClassCastException e) {
+            definition = new EventDefinition(((ReplayEvent) eventAnnotation).value(), parameterTypes[argumentIndex].getName());
 
-    }
+        } finally {
+            if (definition != null) {
+                EventDefinition existingDefinition = localContext.checkExistingDefinition(definition);
+                if (existingDefinition != null) {
+                    eventDefinitions.add(existingDefinition);
+                } else {
+                    eventDefinitions.add(definition);
+                }
 
-    /***
-     * Checks whether eventDefinition exists, if yes, add it to eventDefinition.
-     * @param eventDefinitions
-     * @param replayEventAnnotation
-     * @param argument
-     * @param parameterTypes
-     * @param argumentIndex
-     */
-    private void checkAndAddEventToEventDefinition(List<EventDefinition> eventDefinitions, ReplayEvent replayEventAnnotation, Object argument, Class<?>[] parameterTypes, int argumentIndex) {
-        if (argument != null) {
-                throw new IllegalInvocationException("cannot pass" + argument + " as the parameter is marked as replay event");
-            }
-            final EventDefinition definition = new EventDefinition(replayEventAnnotation.value(), parameterTypes[argumentIndex].getName());
-            EventDefinition existingDefinition = localContext.checkExistingDefinition(definition);
-            if (existingDefinition != null) {
-                eventDefinitions.add(existingDefinition);
-            } else {
-                eventDefinitions.add(definition);
-            }
-
-    }
-
-    private ExternalEvent checkForExternalEventAnnotation(Annotation[] givenParameterAnnotations) {
-        for (Annotation annotation : givenParameterAnnotations) {
-            if (annotation instanceof ExternalEvent) {
-                return (ExternalEvent) annotation;
             }
         }
-        return null;
     }
 
-    private ReplayEvent checkForReplayEventAnnotation(Annotation[] givenParameterAnnotations) {
+
+    /***
+     * checks if the current annotation is of type ExternalEvent/ReplayEvent
+     * @param givenParameterAnnotations
+     * @return
+     */
+    private <T> T checkForEventAnnotation(Annotation[] givenParameterAnnotations) {
         for (Annotation annotation : givenParameterAnnotations) {
-            if (annotation instanceof ReplayEvent) {
-                return (ReplayEvent) annotation;
+            if (annotation instanceof ExternalEvent) {
+                return (T) annotation;
+            } else if (annotation instanceof ReplayEvent) {
+                return (T) annotation;
             }
         }
         return null;
