@@ -38,6 +38,15 @@ public interface StatesDAO {
     void updateStatus(String stateMachineInstanceId, Long stateId, Status status);
 
     /**
+     * Updates the status for all the given states identified by stateIds
+     *
+     * @param stateMachineInstanceId
+     * @param stateIds
+     * @param status
+     */
+    void updateStatus(String stateMachineInstanceId, List<State> stateIds, Status status);
+
+    /**
      * Updates rollback status of a state
      */
     public void updateRollbackStatus(String stateMachineInstanceId, Long stateId, Status rollbackStatus);
@@ -52,6 +61,15 @@ public interface StatesDAO {
      */
     void updateExecutionVersion(String stateMachineInstanceId, Long stateId, Long executionVersion);
 
+    /**
+     * update the execution version for all the specified States identified by stateId in the given State Machine
+     *
+     * @param stateMachineInstanceId
+     * @param states
+     * @param executionVersion
+     */
+    void updateExecutionVersion(String stateMachineInstanceId, List<State> states, Long executionVersion);
+    
     /**
      * Retrieves a state by it's unique identifier
      */

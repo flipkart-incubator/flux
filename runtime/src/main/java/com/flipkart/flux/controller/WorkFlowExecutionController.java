@@ -444,11 +444,9 @@ public class WorkFlowExecutionController {
         Long smExecutionVersion = stateMachinesDAO.findById(stateMachineId).getExecutionVersion() + 1;
         stateMachinesDAO.incrementExecutionVersion(stateMachineId, smExecutionVersion);
 
-        // TODO: Test and use a single query in StatesDAO to mark all states in dependantStates as initialized
-        for (State state:dependantStates) {
-            statesDAO.updateStatus(stateMachineId, state.getId(), Status.initialized);
-            statesDAO.updateExecutionVersion(stateMachineId, state.getId(), smExecutionVersion);
-        }
+        ArrayList<State> states = new ArrayList<>(dependantStates);
+        statesDAO.updateStatus(stateMachineId,states,Status.initialized);
+        statesDAO.updateExecutionVersion(stateMachineId,states,smExecutionVersion);
 
         // TODO : This should be moved to EventPersistenceService
         eventsDAO.markEventsAsInvalid(stateMachineId, dependantEvents);

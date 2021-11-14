@@ -62,6 +62,22 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void updateStatus(String stateMachineInstanceId, List<State> states, Status status) {
+        StringBuilder inClause = new StringBuilder();
+        inClause.append("(");
+        for (State state : states) {
+            inClause.append(state.getId() + ",");
+        }
+        inClause.deleteCharAt(inClause.length() - 1).append(")");
+        Query query = currentSession().createQuery("update State set status = :status where stateMachineId = :stateMachineId and id in ".concat(inClause.toString()));
+        query.setString("status", status != null ? status.toString() : null);
+        query.setString("stateMachineId", stateMachineInstanceId);
+        query.executeUpdate();
+    }
+
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public void updateRollbackStatus(String stateMachineId, Long stateId, Status rollbackStatus) {
         Query query = currentSession().createQuery("update State set rollbackStatus = :rollbackStatus where id = :stateId and stateMachineId = :stateMachineId");
         query.setString("rollbackStatus", rollbackStatus != null ? rollbackStatus.toString() : null);
@@ -156,7 +172,6 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         return ((BigInteger) query.uniqueResult()).longValue();
     }
 
-    // TODO : modify this to update for multiple stateIds in a single sql query.
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
@@ -165,6 +180,23 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
                 " where id = :stateId and stateMachineId = :stateMachineId");
         query.setLong("executionVersion", executionVersion);
         query.setLong("stateId", stateId);
+        query.setString("stateMachineId", stateMachineId);
+        query.executeUpdate();
+    }
+
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void updateExecutionVersion(String stateMachineId, List<State> states, Long executionVersion) {
+        StringBuilder inClause = new StringBuilder();
+        inClause.append("(,");
+        for (State state : states) {
+            inClause.append(state.getId() + ",");
+        }
+        inClause.deleteCharAt(inClause.length() - 1).append(")");
+        Query query = currentSession().createQuery("update State set executionVersion= :executionVersion" +
+                " where stateMachineId=:stateMachineId and id in ".concat(inClause.toString()));
+        query.setLong("executionVersion", executionVersion);
         query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
