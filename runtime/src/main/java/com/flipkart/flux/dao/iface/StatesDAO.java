@@ -38,18 +38,18 @@ public interface StatesDAO {
     void updateStatus(String stateMachineInstanceId, Long stateId, Status status);
 
     /**
-     * Updates the status for all the given states identified by stateIds
+     * Updates the status for all the given states
      *
      * @param stateMachineInstanceId
-     * @param stateIds
+     * @param states
      * @param status
      */
-    void updateStatus(String stateMachineInstanceId, List<State> stateIds, Status status);
+    void updateStatus(String stateMachineInstanceId, List<State> states, Status status);
 
     /**
      * Updates rollback status of a state
      */
-    public void updateRollbackStatus(String stateMachineInstanceId, Long stateId, Status rollbackStatus);
+    void updateRollbackStatus(String stateMachineInstanceId, Long stateId, Status rollbackStatus);
 
     /**
      * Increments the attempted no.of retries of a state by 1
@@ -62,7 +62,7 @@ public interface StatesDAO {
     void updateExecutionVersion(String stateMachineInstanceId, Long stateId, Long executionVersion);
 
     /**
-     * update the execution version for all the specified States identified by stateId in the given State Machine
+     * Updates the execution version for all the specified States in the given State Machine
      *
      * @param stateMachineInstanceId
      * @param states
