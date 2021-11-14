@@ -139,10 +139,16 @@ public class State {
         dependencies = new LinkedList<>();
     }
 
-    // TODO : With flux client for replay event merge, will overload constructor to populate value for replayable from StateDefinition.
-    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, List<String> dependencies,
-                 Long retryCount, Long timeout, String outputEvent, Status status, Status rollbackStatus,
-                 Long attemptedNoOfRetries, String stateMachineId, Long id) {
+    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
+                 List<String> dependencies, Long retryCount, Long timeout, String outputEvent, Status status,
+                 Status rollbackStatus, Long attemptedNoOfRetries, String stateMachineId, Long id) {
+        this(version, name, description, onEntryHook, task, onExitHook, dependencies, retryCount, timeout, outputEvent,
+                status, rollbackStatus, attemptedNoOfRetries, stateMachineId, id, Boolean.FALSE);
+    }
+
+    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
+                 List<String> dependencies, Long retryCount, Long timeout, String outputEvent, Status status,
+                 Status rollbackStatus, Long attemptedNoOfRetries, String stateMachineId, Long id, Boolean replayable) {
         this();
         this.version = version;
         this.name = name;
@@ -160,6 +166,7 @@ public class State {
         this.stateMachineId = stateMachineId;
         this.id = id;
         this.executionVersion = 0L;
+        this.replayable = replayable;
     }
 
     /**

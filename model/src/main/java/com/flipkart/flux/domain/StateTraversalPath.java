@@ -21,18 +21,17 @@ import java.sql.Timestamp;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 /**
- * <code>TraversalPathMappings</code> is used to store list of states and events in the traversal paths of replayable
+ * <code>StateTraversalPath</code> is used to store list of states and events in the traversal paths of replayable
  * states in a state machine.
  *
  * @author akif.khan
  */
 @Entity
-@Table(name = "TraversalPathMappings")
-@IdClass(State.StatePK.class)
-public class TraversalPathMapping {
+@Table(name = "StateTraversalPath")
+@IdClass(StateTraversalPath.StateTraversalPathPK.class)
+public class StateTraversalPath {
 
     /**
      * Unique identifier of the state
@@ -53,10 +52,10 @@ public class TraversalPathMapping {
     private List<String> nextDependentEvents;
 
     /**
-     * List of state names in the traversal path of this stateId
+     * List of stateIds in the traversal path of this stateId
      */
     @Type(type = "ListJsonType")
-    private List<String> nextDependentStates;
+    private List<Long> nextDependentStates;
 
 
     /**
@@ -67,14 +66,14 @@ public class TraversalPathMapping {
     /**
      * Constructors
      */
-    protected TraversalPathMapping() {
+    protected StateTraversalPath() {
         super();
         nextDependentEvents = new LinkedList<>();
         nextDependentStates = new LinkedList<>();
     }
 
-    public TraversalPathMapping(String stateMachineId, Long stateId, List<String> nextDependentEvents,
-                                List<String> nextDependentStates) {
+    public StateTraversalPath(String stateMachineId, Long stateId, List<String> nextDependentEvents,
+                              List<Long> nextDependentStates) {
         this();
         this.stateMachineId = stateMachineId;
         this.stateId = stateId;
@@ -110,26 +109,26 @@ public class TraversalPathMapping {
         this.nextDependentEvents = nextDependentEvents;
     }
 
-    public List<String> getNextDependentStates() {
+    public List<Long> getNextDependentStates() {
         return nextDependentStates;
     }
 
-    public void setNextDependentStates(List<String> nextDependentStates) {
+    public void setNextDependentStates(List<Long> nextDependentStates) {
         this.nextDependentStates = nextDependentStates;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof TraversalPathMapping)) return false;
+        if (!(o instanceof StateTraversalPath)) return false;
 
-        TraversalPathMapping traversalPathMapping = (TraversalPathMapping) o;
+        StateTraversalPath stateTraversalPath = (StateTraversalPath) o;
 
-        if (!Objects.equals(createdAt, traversalPathMapping.createdAt))
+        if (!Objects.equals(createdAt, stateTraversalPath.createdAt))
             return false;
-        if (!Objects.equals(stateMachineId, traversalPathMapping.stateMachineId))
+        if (!Objects.equals(stateMachineId, stateTraversalPath.stateMachineId))
             return false;
-        return Objects.equals(stateId, traversalPathMapping.stateId);
+        return Objects.equals(stateId, stateTraversalPath.stateId);
     }
 
     @Override
@@ -152,9 +151,9 @@ public class TraversalPathMapping {
     }
 
     /**
-     * <code>TraversalPathMappingPK</code> is the composite primary key of "TraversalPathMapping" table in DB.
+     * <code>StateTraversalPathPK</code> is the composite primary key of "StateTraversalPath" table in DB.
      */
-    static class TraversalPathMappingPK implements Serializable {
+    static class StateTraversalPathPK implements Serializable {
 
         private Long stateId;
 
@@ -163,10 +162,10 @@ public class TraversalPathMapping {
         /**
          * for Hibernate
          */
-        public TraversalPathMappingPK() {
+        public StateTraversalPathPK() {
         }
 
-        public TraversalPathMappingPK(Long stateId, String stateMachineId) {
+        public StateTraversalPathPK(Long stateId, String stateMachineId) {
             this.stateId = stateId;
             this.stateMachineId = stateMachineId;
         }
@@ -178,12 +177,12 @@ public class TraversalPathMapping {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof TraversalPathMappingPK)) return false;
+            if (!(o instanceof StateTraversalPathPK)) return false;
 
-            TraversalPathMappingPK traversalPathMappingPK = (TraversalPathMappingPK) o;
+            StateTraversalPathPK stateTraversalPathPK = (StateTraversalPathPK) o;
 
-            if (!getStateId().equals(traversalPathMappingPK.getStateId())) return false;
-            return getStateMachineId().equals(traversalPathMappingPK.getStateMachineId());
+            if (!getStateId().equals(stateTraversalPathPK.getStateId())) return false;
+            return getStateMachineId().equals(stateTraversalPathPK.getStateMachineId());
 
         }
 

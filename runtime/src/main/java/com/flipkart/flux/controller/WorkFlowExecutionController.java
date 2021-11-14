@@ -33,6 +33,7 @@ import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.representation.ClientElbPersistenceService;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
+import com.flipkart.flux.utils.BreadthFirstSearchUtil;
 import com.flipkart.flux.utils.LoggingUtils;
 import com.google.common.collect.Sets;
 import org.apache.logging.log4j.LogManager;
@@ -289,54 +290,6 @@ public class WorkFlowExecutionController {
         return outputEvent != null ? objectMapper.readValue(outputEvent, EventDefinition.class).getName() : null;
     }
 
-    // TODO : Add description, test cases
-    // TODO : Will modify to return all states in the path
-    // BFS to check a path between 2 states
-    private boolean pathExists(Set<State> allStates, Context context, String stateMachineId, State initialState, State destinationState) {
-
-        Map<State, Boolean> visitedState = new HashMap<>();
-        LinkedList<State> queue = new LinkedList<>();
-
-        // initialise visited states
-        allStates.forEach((state -> {
-            visitedState.put(state, Boolean.FALSE);
-        }));
-        visitedState.put(initialState, Boolean.TRUE);
-        queue.add(initialState);
-
-        Set<State> nextDependantStates;
-
-        while (queue.size() != 0) {
-            State retrievedState = queue.poll();
-
-            if (retrievedState.getOutputEvent() != null) {
-                String outputEventName;
-
-                try {
-                    outputEventName = getOutputEventName(retrievedState.getOutputEvent());
-                } catch (IOException ex) {
-                    throw new RuntimeException("Error occurred while deserializing task outputEvent for stateMachineId: "
-                            + stateMachineId + " stateId: " + retrievedState.getId());
-                }
-
-                nextDependantStates = context.getDependantStates(outputEventName);
-
-                // TODO: Check for state object equals at object level, need to test.
-                for (State dependantState : nextDependantStates) {
-                    if(dependantState.getName().equals(destinationState.getName())) {
-                        return true;
-                    }
-
-                    if(!visitedState.get(dependantState)) {
-                        visitedState.put(dependantState, Boolean.TRUE);
-                        queue.add(dependantState);
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
     /**
      * TODO : Test cases needs to be added.
      * TODO : Use dependantStates as a tuple/pair of composite key <stateId, stateMachineId>
@@ -353,6 +306,8 @@ public class WorkFlowExecutionController {
     public void postReplayEvent(EventData eventData, StateMachine stateMachine) throws IllegalEventException, IOException {
 
         Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
+
+        BreadthFirstSearchUtil breadthFirstSearchUtil = new BreadthFirstSearchUtil();
 
         // TODO : Add a check on client side so as not to allow a replay event being a dependency of 2 or more states.
         //Get the dependant state on this replay event.
@@ -385,7 +340,8 @@ public class WorkFlowExecutionController {
         for (State state : stateMachine.getStates()) {
             // TODO : Need to check for equals method in State. Until then using state Name here.
             if (!dependantStateOnReplayEvent.getName().equals(state.getName())) {
-                if (pathExists(stateMachine.getStates(), context, stateMachine.getId(), dependantStateOnReplayEvent, state)) {
+                if(breadthFirstSearchUtil.pathExists(stateMachine.getStates(), context, stateMachine.getId(),
+                        dependantStateOnReplayEvent, state)) {
                     dependantStates.add(state);
 
                     String outputEventName = getOutputEventName(dependantStateOnReplayEvent.getOutputEvent());
