@@ -69,7 +69,7 @@ public interface StatesDAO {
      * @param executionVersion
      */
     void updateExecutionVersion(String stateMachineInstanceId, List<State> states, Long executionVersion);
-    
+
     /**
      * Retrieves a state by it's unique identifier
      */

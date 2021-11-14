@@ -64,12 +64,14 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public void updateStatus(String stateMachineInstanceId, List<State> states, Status status) {
         StringBuilder inClause = new StringBuilder();
-        inClause.append("(");
-        for (State state : states) {
-            inClause.append(state.getId() + ",");
+        if (states!=null && !states.isEmpty()) {
+            inClause.append(" and id in (");
+            for (State state : states) {
+                inClause.append(state.getId()).append(",");
+            }
         }
         inClause.deleteCharAt(inClause.length() - 1).append(")");
-        Query query = currentSession().createQuery("update State set status = :status where stateMachineId = :stateMachineId and id in ".concat(inClause.toString()));
+        Query query = currentSession().createQuery("update State set status = :status where stateMachineId = :stateMachineId".concat(inClause.toString()));
         query.setString("status", status != null ? status.toString() : null);
         query.setString("stateMachineId", stateMachineInstanceId);
         query.executeUpdate();
@@ -189,13 +191,16 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public void updateExecutionVersion(String stateMachineId, List<State> states, Long executionVersion) {
         StringBuilder inClause = new StringBuilder();
-        inClause.append("(,");
-        for (State state : states) {
-            inClause.append(state.getId() + ",");
+        if (states!=null && !states.isEmpty()) {
+            inClause.append(" and id in (,");
+            for (State state : states) {
+                inClause.append(state.getId()).append(",");
+            }
+            inClause.deleteCharAt(inClause.length() - 1).append(")");
         }
         inClause.deleteCharAt(inClause.length() - 1).append(")");
         Query query = currentSession().createQuery("update State set executionVersion= :executionVersion" +
-                " where stateMachineId=:stateMachineId and id in ".concat(inClause.toString()));
+                " where stateMachineId=:stateMachineId".concat(inClause.toString()));
         query.setLong("executionVersion", executionVersion);
         query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();
