@@ -39,7 +39,7 @@ public class LoggingUtils {
         try {
             MDC.remove(STATE_MACHINE_ID);
         } catch (Exception ex) {
-            LOGGER.error("MDC STATE_MACHINE_ID remove method have thrown exception with message " + ex);
+            LOGGER.error("MDC STATE_MACHINE_ID remove method have thrown exception with message ", ex);
         }
     }
 }
