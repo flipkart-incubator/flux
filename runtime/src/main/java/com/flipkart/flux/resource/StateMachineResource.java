@@ -173,7 +173,8 @@ public class StateMachineResource {
                     ex.getCause() != null ? ex.getCause().getMessage() : null).build();
 
         } catch (Exception ex) {
-            logger.error("Failed During Creating or Initiating StateMachine with id {} {}", stateMachineInstanceId, ex.getStackTrace());
+            logger.error("Failed During Creating StateMachine and StateTraversal or Initiating StateMachine with id {} {}",
+                    stateMachineInstanceId, ex.getStackTrace());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).entity(
                     ex.getCause() != null ? ex.getCause().getMessage() : null).build();
         }

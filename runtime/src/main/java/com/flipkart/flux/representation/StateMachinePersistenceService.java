@@ -107,12 +107,13 @@ public class StateMachinePersistenceService {
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public void createAndPersistStateTraversal(String stateMachineId, StateMachine stateMachine) {
 
+        // Inject this object
         SearchUtil searchUtil = new SearchUtil();
 
         Set<State> replayableStates = getReplayableStates(stateMachine.getStates());
 
         for (State replayableState : replayableStates) {
-            List<Long> nextDependentStateIds = searchUtil.getStatesInTraversalPath(stateMachine, replayableState);
+            List<Long> nextDependentStateIds = searchUtil.getStatesInTraversalPath(stateMachine, replayableState.getId());
             //store in db
             stateTraversalPathDAO.create(stateMachineId,
                     new StateTraversalPath(stateMachineId, replayableState.getId(), nextDependentStateIds));

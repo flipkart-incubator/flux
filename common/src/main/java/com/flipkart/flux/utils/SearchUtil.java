@@ -10,17 +10,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * <Code>SearchUtil</Code> This class is a util class performing breadth first search (BFS).
- * For a given state machine context, this util class checks for a path between two input states.
+ * For a given state machine context, this util class checks for a path from a given input initial state in a
+ * state machine and returns a list of all states in its traversal path.
  *
  * @author akif.khan
  */
@@ -31,80 +26,91 @@ public class SearchUtil {
      */
     private ObjectMapper objectMapper;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SearchUtil.class);
+    /**
+     * Map to store map for stateId and its corresponding outputEvent.
+     * It's required in BFS traversal to get next dependent state for a given state's outputEvent
+     */
+    private Map<Long, String> stateOutputEvents;
+
+    List<Long> traversalPathStateIds;
+
+    private static final Logger logger = LoggerFactory.getLogger(SearchUtil.class);
 
     public SearchUtil() {
         objectMapper = new ObjectMapper();
     }
 
-    public List<Long> getStatesInTraversalPath(StateMachine stateMachine, State initialState) {
+    public List<Long> getStatesInTraversalPath(StateMachine stateMachine, Long initialStateId) throws RuntimeException {
 
-        //create context and dependency graph
+        //create context and dependency graph < event -> dependent states >
         Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
 
-        List<Long> traversalPathStateIds = new ArrayList<>();
-        Set<Long> allStateIds = getAllStateIds(stateMachine.getStates());
+        buildStateOutputEventMap(stateMachine.getId(), stateMachine.getStates());
+
+        traversalPathStateIds = new ArrayList<>();
 
         for (State state : stateMachine.getStates()) {
-            if(pathExists(stateMachine.getStates(), context, stateMachine.getId(), initialState, state)) {
+            if(pathExists(context, initialStateId, state.getId())) {
                 traversalPathStateIds.add(state.getId());
             }
         }
-
         return traversalPathStateIds;
     }
 
-    private Set<Long> getAllStateIds(Set<State> states) {
+    private void buildStateOutputEventMap(String stateMachineId, Set<State> states) throws RuntimeException {
 
-        Set<Long> allStateIds = new HashSet<>();
+        stateOutputEvents = new HashMap<>();
+
         for (State state : states) {
-            allStateIds.add(state.getId());
+            try {
+                stateOutputEvents.put(state.getId(), getOutputEventName(state.getOutputEvent()));
+
+            } catch (IOException ex) {
+                throw new RuntimeException("Error occurred while deserializing task outputEvent for stateMachineId: "
+                        + stateMachineId + " stateId: " + state.getId());
+            }
         }
-        return allStateIds;
     }
+
 
     // TODO : Add description, test cases
     // TODO : Will modify to return all states in the path
     // BFS to check a path between 2 states
-    public boolean pathExists(Set<State> allStates, Context context, String stateMachineId, State initialState,
-                              State destinationState) {
+    public boolean pathExists(Context context, Long initialStateId,
+                              Long destinationStateId) {
 
-        Map<State, Boolean> visitedState = new HashMap<>();
-        LinkedList<State> queue = new LinkedList<>();
+        Map<Long, Boolean> visitedState = new HashMap<>();
+        LinkedList<Long> queue = new LinkedList<>();
 
         // initialise visited states
-        allStates.forEach((state -> {
-            visitedState.put(state, Boolean.FALSE);
-        }));
-        visitedState.put(initialState, Boolean.TRUE);
-        queue.add(initialState);
+        for (Map.Entry<Long,String> stateOutputEvent : stateOutputEvents.entrySet()) {
+            visitedState.put(stateOutputEvent.getKey(), Boolean.FALSE);
+        }
 
-        Set<State> nextDependantStates;
+        visitedState.put(initialStateId, Boolean.TRUE);
+        queue.add(initialStateId);
+
+        Set<Long> nextDependentStateIds;
 
         while (queue.size() != 0) {
-            State retrievedState = queue.poll();
+            Long retrievedStateId = queue.poll();
 
-            if (retrievedState.getOutputEvent() != null) {
+            if (stateOutputEvents.get(retrievedStateId) != null) {
                 String outputEventName;
 
-                try {
-                    outputEventName = getOutputEventName(retrievedState.getOutputEvent());
-                } catch (IOException ex) {
-                    throw new RuntimeException("Error occurred while deserializing task outputEvent for stateMachineId: "
-                            + stateMachineId + " stateId: " + retrievedState.getId());
-                }
+                outputEventName = stateOutputEvents.get(retrievedStateId);
 
-                nextDependantStates = context.getDependantStates(outputEventName);
+                nextDependentStateIds = context.getDependentStateIds(outputEventName);
 
                 // TODO: Check for state object equals at object level, need to test.
-                for (State dependantState : nextDependantStates) {
-                    if (dependantState.getName().equals(destinationState.getName())) {
+                for (Long dependentStateId : nextDependentStateIds) {
+                    if (dependentStateId.equals(destinationStateId)) {
                         return true;
                     }
 
-                    if (!visitedState.get(dependantState)) {
-                        visitedState.put(dependantState, Boolean.TRUE);
-                        queue.add(dependantState);
+                    if (!visitedState.get(dependentStateId)) {
+                        visitedState.put(dependentStateId, Boolean.TRUE);
+                        queue.add(dependentStateId);
                     }
                 }
             }
@@ -113,9 +119,11 @@ public class SearchUtil {
     }
 
     /**
-     * Helper method to JSON serialize the output event
+     * Helper method to JSON serialize the output event.
+     * This is required because in State's outputEvent value is stored as <EventName, EventType> tuple, in such
+     * cases this serializer helps to retrieve only EventName.
      */
-    private String getOutputEventName(String outputEvent) throws java.io.IOException {
+    private String getOutputEventName(String outputEvent) throws IOException {
         return outputEvent != null ? objectMapper.readValue(outputEvent, EventDefinition.class).getName() : null;
     }
 }

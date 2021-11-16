@@ -77,6 +77,26 @@ public abstract class Context {
     }
 
     /**
+     * Returns set of stateIds which are dependent on an event.
+     *
+     * @param eventName
+     * @return
+     */
+    public Set<Long> getDependentStateIds(String eventName) {
+        final Set<State> dependentStates = eventToStateDependencyGraph.get(eventName);
+
+        final Set<Long> dependentStateIds = new HashSet<>();
+
+        if (dependentStates == null) {
+            return Collections.emptySet();
+        }
+        for (State dependentState : dependentStates) {
+            dependentStateIds.add(dependentState.getId());
+        }
+        return dependentStateIds;
+    }
+
+    /**
      * Returns set of states which can be started when state machine starts for the first time.
      * @return initial states
      * @param triggeredEventNames Names of events that have already been received during the state machine definition

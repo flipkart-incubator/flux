@@ -340,8 +340,7 @@ public class WorkFlowExecutionController {
         for (State state : stateMachine.getStates()) {
             // TODO : Need to check for equals method in State. Until then using state Name here.
             if (!dependantStateOnReplayEvent.getName().equals(state.getName())) {
-                if(searchUtil.pathExists(stateMachine.getStates(), context, stateMachine.getId(),
-                        dependantStateOnReplayEvent, state)) {
+                if(searchUtil.pathExists(context, dependantStateOnReplayEvent.getId(), state.getId())) {
                     dependantStates.add(state);
 
                     String outputEventName = getOutputEventName(dependantStateOnReplayEvent.getOutputEvent());
