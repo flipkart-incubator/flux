@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * <code>StateTraversalPath</code> is used to store list of states and events in the traversal paths of replayable
+ * <code>StateTraversalPath</code> is used to store list of stateIds in the traversal path of replayable
  * states in a state machine.
  *
  * @author akif.khan
@@ -46,12 +46,6 @@ public class StateTraversalPath {
     private String stateMachineId;
 
     /**
-     * List of event names in the traversal path of this stateId
-     */
-    @Type(type = "ListJsonType")
-    private List<String> nextDependentEvents;
-
-    /**
      * List of stateIds in the traversal path of this stateId
      */
     @Type(type = "ListJsonType")
@@ -68,16 +62,13 @@ public class StateTraversalPath {
      */
     protected StateTraversalPath() {
         super();
-        nextDependentEvents = new LinkedList<>();
         nextDependentStates = new LinkedList<>();
     }
 
-    public StateTraversalPath(String stateMachineId, Long stateId, List<String> nextDependentEvents,
-                              List<Long> nextDependentStates) {
+    public StateTraversalPath(String stateMachineId, Long stateId, List<Long> nextDependentStates) {
         this();
         this.stateMachineId = stateMachineId;
         this.stateId = stateId;
-        this.nextDependentEvents = nextDependentEvents;
         this.nextDependentStates = nextDependentStates;
 
     }
@@ -99,14 +90,6 @@ public class StateTraversalPath {
 
     public void setStateMachineId(String stateMachineId) {
         this.stateMachineId = stateMachineId;
-    }
-
-    public List<String> getNextDependentEvents() {
-        return nextDependentEvents;
-    }
-
-    public void setNextDependentEvents(List<String> nextDependentEvents) {
-        this.nextDependentEvents = nextDependentEvents;
     }
 
     public List<Long> getNextDependentStates() {
@@ -144,7 +127,6 @@ public class StateTraversalPath {
         return "State{" +
                 "stateId=" + stateId +
                 ", stateMachineId=" + stateMachineId +
-                ", nextDependentEvents=" + nextDependentEvents +
                 ", nextDependentStates=" + nextDependentStates +
                 ", createdAt=" + createdAt +
                 '}';
