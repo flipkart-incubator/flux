@@ -29,7 +29,7 @@ import java.util.Objects;
  * @author akif.khan
  */
 @Entity
-@Table(name = "StateTraversalPath")
+@Table(name = "StateTraversalPaths")
 @IdClass(StateTraversalPath.StateTraversalPathPK.class)
 public class StateTraversalPath {
 

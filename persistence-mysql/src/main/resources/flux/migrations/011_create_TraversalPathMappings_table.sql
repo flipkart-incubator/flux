@@ -2,7 +2,7 @@
 
 --changeset akif.khan:1 runOnChange:false
 
-CREATE TABLE IF NOT EXISTS `StateTraversalPath` (
+CREATE TABLE IF NOT EXISTS `StateTraversalPaths` (
   `stateId` BIGINT NOT NULL ,
   `stateMachineId` VARCHAR (64) NOT NULL ,
   `nextDependentStates` VARCHAR(1000) DEFAULT NULL,
@@ -15,4 +15,4 @@ ROW_FORMAT=DEFAULT
 DEFAULT CHARSET=utf8
 AUTO_INCREMENT=1;
 
---rollback drop table StateTraversalPath;
+--rollback drop table StateTraversalPaths;

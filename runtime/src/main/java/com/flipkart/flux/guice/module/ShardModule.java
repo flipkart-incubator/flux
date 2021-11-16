@@ -268,7 +268,7 @@ public class ShardModule extends AbstractModule {
         configuration.addAnnotatedClass(State.class);
         configuration.addAnnotatedClass(StateMachine.class);
         configuration.addAnnotatedClass(ClientElb.class);
-
+        configuration.addAnnotatedClass(StateTraversalPath.class);
     }
 
     private Configuration getConfiguration(YamlConfiguration yamlConfiguration, String prefix, String host) {

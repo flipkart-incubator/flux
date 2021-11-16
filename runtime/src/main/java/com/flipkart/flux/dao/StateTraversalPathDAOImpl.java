@@ -14,21 +14,16 @@
 package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
-import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.domain.StateMachineStatus;
 import com.flipkart.flux.domain.StateTraversalPath;
-import com.flipkart.flux.persistence.*;
-import com.flipkart.flux.shard.ShardId;
+import com.flipkart.flux.persistence.DataSourceType;
+import com.flipkart.flux.persistence.SelectDataSource;
+import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.Storage;
 import com.google.inject.name.Named;
-import org.hibernate.Criteria;
-import org.hibernate.Query;
-import org.hibernate.criterion.Restrictions;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * <code>StateTraversalPathDAOImpl</code> is an implementation of {@link com.flipkart.flux.dao.iface.StateTraversalPathDAO}
@@ -46,16 +41,20 @@ public class StateTraversalPathDAOImpl extends AbstractDAO<StateTraversalPath> i
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public StateTraversalPath create(String StateMachineInstanceId, StateTraversalPath stateTraversalPath) {
+    public StateTraversalPath create(String stateMachineId, StateTraversalPath stateTraversalPath) {
         return super.save(stateTraversalPath);
     }
 
     @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public StateTraversalPath findById(String stateMachineId, Long stateId) {
         return null;
     }
 
     @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public List findByIdAndStateMachineId(String stateMachineId) {
         return null;
     }
