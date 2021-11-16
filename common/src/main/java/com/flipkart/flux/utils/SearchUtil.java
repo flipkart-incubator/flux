@@ -45,7 +45,7 @@ public class SearchUtil {
         //create context and dependency graph < event -> dependent states >
         Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
 
-        buildStateOutputEventMap(stateMachine.getId(), stateMachine.getStates());
+        buildStateToOutputEventMap(stateMachine.getId(), stateMachine.getStates());
 
         traversalPathStateIds = new ArrayList<>();
 
@@ -57,7 +57,7 @@ public class SearchUtil {
         return traversalPathStateIds;
     }
 
-    private void buildStateOutputEventMap(String stateMachineId, Set<State> states) throws RuntimeException {
+    private void buildStateToOutputEventMap(String stateMachineId, Set<State> states) throws RuntimeException {
 
         stateOutputEvents = new HashMap<>();
 
@@ -102,7 +102,7 @@ public class SearchUtil {
 
                 nextDependentStateIds = context.getDependentStateIds(outputEventName);
 
-                // TODO: Check for state object equals at object level, need to test.
+                // handle null nextDependentStateIds
                 for (Long dependentStateId : nextDependentStateIds) {
                     if (dependentStateId.equals(destinationStateId)) {
                         return true;

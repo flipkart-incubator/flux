@@ -37,5 +37,5 @@ public interface StateTraversalPathDAO {
     /**
      * Retrieves list of states with their respective traversal path for given stateMachineId
      */
-    List findByIdAndStateMachineId(String stateMachineId);
+    List<StateTraversalPath> findByStateMachineId(String stateMachineId);
 }
