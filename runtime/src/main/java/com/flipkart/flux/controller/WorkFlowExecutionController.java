@@ -33,7 +33,7 @@ import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.representation.ClientElbPersistenceService;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
-import com.flipkart.flux.utils.BreadthFirstSearchUtil;
+import com.flipkart.flux.utils.SearchUtil;
 import com.flipkart.flux.utils.LoggingUtils;
 import com.google.common.collect.Sets;
 import org.apache.logging.log4j.LogManager;
@@ -307,7 +307,7 @@ public class WorkFlowExecutionController {
 
         Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
 
-        BreadthFirstSearchUtil breadthFirstSearchUtil = new BreadthFirstSearchUtil();
+        SearchUtil searchUtil = new SearchUtil();
 
         // TODO : Add a check on client side so as not to allow a replay event being a dependency of 2 or more states.
         //Get the dependant state on this replay event.
@@ -340,7 +340,7 @@ public class WorkFlowExecutionController {
         for (State state : stateMachine.getStates()) {
             // TODO : Need to check for equals method in State. Until then using state Name here.
             if (!dependantStateOnReplayEvent.getName().equals(state.getName())) {
-                if(breadthFirstSearchUtil.pathExists(stateMachine.getStates(), context, stateMachine.getId(),
+                if(searchUtil.pathExists(stateMachine.getStates(), context, stateMachine.getId(),
                         dependantStateOnReplayEvent, state)) {
                     dependantStates.add(state);
 
@@ -657,7 +657,8 @@ public class WorkFlowExecutionController {
 
                     List<EventData> eventDatas;
                     // Reading only replay event's data, ignoring all other dependant event's data.
-                    if(currentEvent != null && currentEvent.getEventSource() == "replay") {
+                    if(currentEvent != null && currentEvent.getEventSource() != null &&
+                            currentEvent.getEventSource().equalsIgnoreCase("replay")) {
                         eventDatas = Collections.singletonList(new EventData(currentEvent.getName(),
                                 currentEvent.getType(), currentEvent.getEventData(), currentEvent.getEventSource(),
                                 currentEvent.getExecutionVersion()));

@@ -20,10 +20,12 @@ import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.domain.*;
 import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.Storage;
+import com.flipkart.flux.utils.SearchUtil;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -42,7 +44,7 @@ public class StateMachinePersistenceService {
 
     private StateMachinesDAO stateMachinesDAO;
     private AuditDAO auditDAO;
-
+    private StateTraversalPathDAO stateTraversalPathDAO;
     private EventPersistenceService eventPersistenceService;
     private final ObjectMapper objectMapper;
 
@@ -50,9 +52,12 @@ public class StateMachinePersistenceService {
 
     @Inject
     public StateMachinePersistenceService(StateMachinesDAO stateMachinesDAO, AuditDAO auditDAO,
-                                          EventPersistenceService eventPersistenceService, @Named("task.maxTaskRetryCount") Integer maxRetryCount) {
+                                          StateTraversalPathDAO stateTraversalPathDAO,
+                                          EventPersistenceService eventPersistenceService,
+                                          @Named("task.maxTaskRetryCount") Integer maxRetryCount) {
         this.stateMachinesDAO = stateMachinesDAO;
         this.auditDAO = auditDAO;
+        this.stateTraversalPathDAO = stateTraversalPathDAO;
         this.eventPersistenceService = eventPersistenceService;
         this.maxRetryCount = maxRetryCount;
         objectMapper = new ObjectMapper();
@@ -98,6 +103,33 @@ public class StateMachinePersistenceService {
         return stateMachine;
     }
 
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void createAndPersistStateTraversal(StateMachine stateMachine) {
+
+        SearchUtil searchUtil = new SearchUtil();
+
+        Set<State> replayableStates = getReplayableStates(stateMachine.getStates());
+
+        for (State replayableState : replayableStates) {
+            List<Long> nextDependentStateIds = searchUtil.getStatesInTraversalPath(stateMachine, replayableState);
+            //store in db
+            stateTraversalPathDAO.create(stateMachine.getId(),
+                    new StateTraversalPath(stateMachine.getId(), replayableState.getId(), nextDependentStateIds));
+
+        }
+    }
+
+    private Set<State> getReplayableStates(Set<State> states) {
+
+        Set<State> replayableStates = new HashSet<>();
+        for (State state : states) {
+            if(state.getReplayable())
+                replayableStates.add(state);
+        }
+        return replayableStates;
+    }
+    
     /**
      * creates event domain objects from event definitions.
      *

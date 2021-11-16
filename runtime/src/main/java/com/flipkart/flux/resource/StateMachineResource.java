@@ -189,6 +189,7 @@ public class StateMachineResource {
         try {
             // 1. Convert to StateMachine (domain object) and save in DB
             StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(stateMachineInstanceId, stateMachineDefinition);
+            stateMachinePersistenceService.createAndPersistStateTraversal(stateMachine);
             LoggingUtils.registerStateMachineIdForLogging(stateMachine.getId().toString());
             logger.info("Created state machine with Id: {}", stateMachine.getId());
             // 2. initialize and start State Machine

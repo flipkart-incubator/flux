@@ -21,10 +21,12 @@ import com.flipkart.flux.clientelb.dao.iface.ClientElbDAO;
 import com.flipkart.flux.dao.AuditDAOImpl;
 import com.flipkart.flux.dao.EventsDAOImpl;
 import com.flipkart.flux.dao.StateMachinesDAOImpl;
+import com.flipkart.flux.dao.StateTraversalPathDAOImpl;
 import com.flipkart.flux.dao.StatesDAOImpl;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.*;
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
@@ -76,7 +78,7 @@ public class ShardModule extends AbstractModule {
         bind(StateMachinesDAO.class).to(StateMachinesDAOImpl.class).in(Singleton.class);
         bind(StatesDAO.class).to(StatesDAOImpl.class).in(Singleton.class);
         bind(ClientElbDAO.class).to(ClientElbDAOImpl.class).in(Singleton.class);
-
+        bind(StateTraversalPathDAO.class).to(StateTraversalPathDAOImpl.class).in(Singleton.class);
 
         //bind Transactional Interceptor to intercept methods which are annotated with javax.transaction.Transactional
         Provider<SessionFactoryContext> provider = getProvider(Key.get(SessionFactoryContext.class, Names.named("fluxSessionFactoriesContext")));

@@ -18,6 +18,7 @@ import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
@@ -43,6 +44,9 @@ public class StateMachinePersistenceServiceTest {
     AuditDAO auditDAO;
 
     @Mock
+    StateTraversalPathDAO stateTraversalPathDAO;
+
+    @Mock
     EventPersistenceService eventPersistenceService;
 
     @Mock
@@ -51,7 +55,8 @@ public class StateMachinePersistenceServiceTest {
     @Test
     public void maxTaskRetryCountShouldBeTakenIfRetryCountIsHigher() {
         Integer maxTaskRetryCount = 10;
-        StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(stateMachinesDAO, auditDAO, eventPersistenceService, maxTaskRetryCount);
+        StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(
+                stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
         StateDefinition stateDefinition = new StateDefinition(1L, "state1", "desc", null, "task1", null, 13L, 1000L, Collections.emptyList(), null);
         StateMachineDefinition stateMachineDefinition = new StateMachineDefinition("desc", "state_machine_1",
                 1L, Collections.singleton(stateDefinition), null, null, "client_elb_id_1");
@@ -65,7 +70,8 @@ public class StateMachinePersistenceServiceTest {
     @Test
     public void retryCountShouldBeTakenIfItIsLessthanMaxAllowed() {
         Integer maxTaskRetryCount = 10;
-        StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(stateMachinesDAO, auditDAO, eventPersistenceService, maxTaskRetryCount);
+        StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(
+                stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
         StateDefinition stateDefinition = new StateDefinition(1L, "state1", "desc", null, "task1", null, 3L, 1000L, Collections.emptyList(), null);
         StateMachineDefinition stateMachineDefinition = new StateMachineDefinition("desc", "state_machine_1",
                 1L, Collections.singleton(stateDefinition), null, null, "client_elb_id_1");

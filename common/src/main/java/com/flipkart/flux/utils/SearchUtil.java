@@ -4,32 +4,63 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.domain.Context;
 import com.flipkart.flux.domain.State;
+import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.impl.RAMContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * <Code>BreadthFirstSearchUtil</Code> This class is a util class performing breadth first search (BFS).
+ * <Code>SearchUtil</Code> This class is a util class performing breadth first search (BFS).
  * For a given state machine context, this util class checks for a path between two input states.
  *
  * @author akif.khan
  */
-public class BreadthFirstSearchUtil {
+public class SearchUtil {
 
     /**
      * ObjectMapper instance to be used for all purposes in this class
      */
     private ObjectMapper objectMapper;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BreadthFirstSearchUtil.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SearchUtil.class);
 
-    public BreadthFirstSearchUtil() {
+    public SearchUtil() {
         objectMapper = new ObjectMapper();
+    }
+
+    public List<Long> getStatesInTraversalPath(StateMachine stateMachine, State initialState) {
+
+        //create context and dependency graph
+        Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
+
+        List<Long> traversalPathStateIds = new ArrayList<>();
+        Set<Long> allStateIds = getAllStateIds(stateMachine.getStates());
+
+        for (State state : stateMachine.getStates()) {
+            if(pathExists(stateMachine.getStates(), context, stateMachine.getId(), initialState, state)) {
+                traversalPathStateIds.add(state.getId());
+            }
+        }
+
+        return traversalPathStateIds;
+    }
+
+    private Set<Long> getAllStateIds(Set<State> states) {
+
+        Set<Long> allStateIds = new HashSet<>();
+        for (State state : states) {
+            allStateIds.add(state.getId());
+        }
+        return allStateIds;
     }
 
     // TODO : Add description, test cases
