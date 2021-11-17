@@ -516,11 +516,11 @@ public class StateMachineResource {
      */
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/redrivetask/{machineId}/taskId/{taskId}")
+    @Path("/redrivetask/{machineId}/taskId/{taskId}/taskExecutionVersion/{taskExecutionVersion}")
     @Timed
-    public Response redriveTask(@PathParam("machineId") String machineId, @PathParam("taskId") Long taskId) throws Exception {
+    public Response redriveTask(@PathParam("machineId") String machineId, @PathParam("taskId") Long taskId, @PathParam("taskExecutionVersion") Long executionVersion) throws Exception {
 
-        this.workFlowExecutionController.redriveTask(machineId, taskId);
+        this.workFlowExecutionController.redriveTask(machineId, taskId, executionVersion);
 
         return Response.status(Response.Status.ACCEPTED).build();
     }

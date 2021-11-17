@@ -14,7 +14,7 @@
 package com.flipkart.flux.redriver.service;
 
 import com.flipkart.flux.redriver.dao.MessageDao;
-import com.flipkart.flux.redriver.model.SmIdAndTaskIdPair;
+import com.flipkart.flux.redriver.model.SmIdAndTaskIdPairWithExecutionVersion;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,7 +34,8 @@ public class MessageManagerServiceTest {
 
     @Before
     public void setup() {
-
+        messageManagerService = new MessageManagerService(messageDao, 2, 500, 2, 500, 10);
+        messageManagerService.initialize();
     }
 
     @Test
@@ -42,17 +43,16 @@ public class MessageManagerServiceTest {
         messageManagerService = new MessageManagerService(messageDao, 50, 500, 10, 500, 10);
         messageManagerService.initialize(); // Will be called by polyguice in the production env
 
-        messageManagerService.scheduleForRemoval(sampleMachineId, 123l);
-        messageManagerService.scheduleForRemoval(sampleMachineId, 123l);
-        messageManagerService.scheduleForRemoval(sampleMachineId, 123l);
+        messageManagerService.scheduleForRemoval(sampleMachineId, 123l, 0l);
+        messageManagerService.scheduleForRemoval(sampleMachineId, 123l, 1l);
+        messageManagerService.scheduleForRemoval(sampleMachineId, 123l, 2l);
 
         verifyZeroInteractions(messageDao);
 
         Thread.sleep(700l);
-        ArrayList<SmIdAndTaskIdPair> firstBatch = new ArrayList<SmIdAndTaskIdPair>();
-        firstBatch.add(new SmIdAndTaskIdPair(sampleMachineId, 123l));
-        firstBatch.add(new SmIdAndTaskIdPair(sampleMachineId, 123l));
-        firstBatch.add(new SmIdAndTaskIdPair(sampleMachineId, 123l));
+        ArrayList firstBatch = new ArrayList<SmIdAndTaskIdPairWithExecutionVersion>();
+        firstBatch.add(new SmIdAndTaskIdPairWithExecutionVersion(sampleMachineId, 123l,0l));
+        firstBatch.add(new SmIdAndTaskIdPairWithExecutionVersion(sampleMachineId, 123l,1l));
 
         verify(messageDao,times(1)).deleteInBatch(firstBatch);
 
@@ -63,22 +63,22 @@ public class MessageManagerServiceTest {
         messageManagerService = new MessageManagerService(messageDao, 50, 500, 2, 500, 10);
         messageManagerService.initialize(); // Will be called by polyguice in the production env
 
-        messageManagerService.scheduleForRemoval(sampleMachineId, 121l);
-        messageManagerService.scheduleForRemoval(sampleMachineId, 122l);
-        messageManagerService.scheduleForRemoval(sampleMachineId, 123l);
+        messageManagerService.scheduleForRemoval(sampleMachineId, 121l,0l);
+        messageManagerService.scheduleForRemoval(sampleMachineId, 122l,0l);
+        messageManagerService.scheduleForRemoval(sampleMachineId, 123l,0l);
 
         verifyZeroInteractions(messageDao);
 
         Thread.sleep(700l);
-        ArrayList<SmIdAndTaskIdPair> firstBatch = new ArrayList<SmIdAndTaskIdPair>();
-        firstBatch.add(new SmIdAndTaskIdPair(sampleMachineId, 121l));
-        firstBatch.add(new SmIdAndTaskIdPair(sampleMachineId, 122l));
+        ArrayList firstBatch = new ArrayList<SmIdAndTaskIdPairWithExecutionVersion>();
+        firstBatch.add(new SmIdAndTaskIdPairWithExecutionVersion(sampleMachineId, 121l,0l));
+        firstBatch.add(new SmIdAndTaskIdPairWithExecutionVersion(sampleMachineId, 122l,0l));
 
         verify(messageDao,times(1)).deleteInBatch(firstBatch);
 
         Thread.sleep(700l);
-        ArrayList<SmIdAndTaskIdPair> secondBatch = new ArrayList<SmIdAndTaskIdPair>();
-        secondBatch.add(new SmIdAndTaskIdPair(sampleMachineId, 123l));
+        ArrayList secondBatch = new ArrayList<SmIdAndTaskIdPairWithExecutionVersion>();
+        secondBatch.add(new SmIdAndTaskIdPairWithExecutionVersion(sampleMachineId, 123l,0l));
         verify(messageDao,times(1)).deleteInBatch(secondBatch);
     }
 }

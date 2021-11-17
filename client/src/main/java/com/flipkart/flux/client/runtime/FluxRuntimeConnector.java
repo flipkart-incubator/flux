@@ -94,5 +94,5 @@ public interface FluxRuntimeConnector {
      * @param taskId the task/state identifier
      * @param stateMachineId stateMachine Id, to which the task belongs
      */
-    void redriveTask(String stateMachineId, Long taskId);
+    void redriveTask(String stateMachineId, Long taskId, Long taskExecutionVersion);
 }

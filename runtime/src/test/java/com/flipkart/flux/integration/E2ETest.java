@@ -169,9 +169,9 @@ public class E2ETest {
     public void verifyRedriverPolling() {
         dbClearRule.explicitClearTables();
         for (int i = 0; i < 100; i++)
-            redriverRegistry.registerTask(i * 1L, "smId", 0);
+            redriverRegistry.registerTask(i * 1L, "smId", 0, 0L);
         for (int i = 1; i <= 100; i++)
-            redriverRegistry.registerTask(1000L + i, "smId", (i * 10000000L));
+            redriverRegistry.registerTask(1000L + i, "smId", (i * 10000000L), 0L);
         Long total = messageDao.redriverCount();
         try {
             Thread.sleep(12000);

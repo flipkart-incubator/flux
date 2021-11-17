@@ -569,7 +569,7 @@ public class WorkFlowExecutionController {
             // TODO: Need to add dependent events for executed state in auditRecords.
             this.auditDAO.create(stateMachineId, auditRecord);
             if (deleteFromRedriver) {
-                this.redriverRegistry.deRegisterTask(stateMachineId, taskId);
+                this.redriverRegistry.deRegisterTask(stateMachineId, taskId, taskExecutionVersion);
             }
         }
         else {
@@ -705,7 +705,7 @@ public class WorkFlowExecutionController {
                     else {
                         redriverInterval = 2 * ((int) Math.pow(2, state.getRetryCount() + 1) * 1000 + (state.getRetryCount() + 1) * state.getTimeout());
                     }
-                    this.redriverRegistry.registerTask(state.getId(), state.getStateMachineId(), redriverInterval);
+                    this.redriverRegistry.registerTask(state.getId(), state.getStateMachineId(), redriverInterval, state.getExecutionVersion());
 
                     // Send the message to Akka Router
                     String taskName = state.getTask();
@@ -772,18 +772,18 @@ public class WorkFlowExecutionController {
     /**
      * Performs task execution if the task is stalled and no.of retries are not exhausted
      */
-    public void redriveTask(String machineId, Long taskId) {
+    public void redriveTask(String machineId, Long taskId, Long executionVersion) {
         try {
             State state = statesDAO.findById(machineId, taskId);
 
             if (state != null && isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() <= state.getRetryCount()) {
                 StateMachine stateMachine = retrieveStateMachine(state.getStateMachineId());
-                LoggingUtils.registerStateMachineIdForLogging(stateMachine.getId().toString());
-                logger.info("Redriving a task with Id: {} for state machine: {}", state.getId(), state.getStateMachineId());
+                LoggingUtils.registerStateMachineIdForLogging(stateMachine.getId());
+                logger.info("Redriving a task with Id: {} and execution version: {} for state machine: {}", state.getId(), executionVersion, state.getStateMachineId());
                 executeStates(stateMachine, Collections.singleton(state), true);
             } else {
                 //cleanup the tasks which can't be redrived from redriver db
-                this.redriverRegistry.deRegisterTask(machineId, taskId);
+                this.redriverRegistry.deRegisterTask(machineId, taskId, executionVersion);
             }
         } finally {
             LoggingUtils.deRegisterStateMachineIdForLogging();

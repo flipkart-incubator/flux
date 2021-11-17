@@ -168,8 +168,8 @@ public class WorkFlowExecutionControllerTest {
         // give time to execute
         Thread.sleep(2000);
 
-        verify(redriverRegistry).registerTask(2L, "standard-machine", 32800); //state with id 2 has 3 retries and 100ms timeout
-        verify(redriverRegistry).registerTask(4L, "standard-machine", 8400); //state with id 4 has 1 retries and 100ms timeout
+        verify(redriverRegistry).registerTask(2L, "standard-machine", 32800, 0L); //state with id 2 has 3 retries and 100ms timeout
+        verify(redriverRegistry).registerTask(4L, "standard-machine", 8400, 0L); //state with id 4 has 1 retries and 100ms timeout
     }
 
     @Test
@@ -351,6 +351,6 @@ public class WorkFlowExecutionControllerTest {
                         0, 1, "", true));
         verify(statesDAO).updateStatus("random-state-machine", 1L, Status.completed);
         verify(auditDAO).create("random-state-machine", new AuditRecord("random-state-machine", 1L, 1L, Status.completed, null , ""));
-        verify(redriverRegistry).deRegisterTask("random-state-machine",1L );
+        verify(redriverRegistry).deRegisterTask("random-state-machine",1L, 0L);
     }
 }

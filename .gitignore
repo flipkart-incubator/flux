@@ -9,5 +9,6 @@ target/
 .classpath
 .metadata/*
 .recommenders/*
+*.versionsBac
 logs
 /.metadata/

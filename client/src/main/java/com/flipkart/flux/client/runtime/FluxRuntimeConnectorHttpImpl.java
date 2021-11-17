@@ -242,9 +242,9 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
      * Interface method implementation. Posts to Flux Runtime API to redrive a task.
      */
     @Override
-    public void redriveTask(String stateMachineId, Long taskId) {
+    public void redriveTask(String stateMachineId, Long taskId, Long executionVersion) {
         CloseableHttpResponse httpResponse = null;
-        httpResponse = postOverHttp(null, "/redrivetask/" + stateMachineId + "/taskId/" + taskId);
+        httpResponse = postOverHttp(null, "/redrivetask/" + stateMachineId + "/taskId/" + taskId+"/taskExecutionVersion/"+executionVersion);
         HttpClientUtils.closeQuietly(httpResponse);
     }
 

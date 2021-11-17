@@ -17,8 +17,16 @@
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd"
-        >
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd"
+>
 
-    <includeAll path="persistence-mysql/src/main/resources/flux_scheduler/migrations" />
+    <changeSet id="001" author="raghav">
+        <validCheckSum>any</validCheckSum>
+        <sql>
+            ALTER TABLE ScheduledMessages ADD COLUMN `executionVersion` TINYINT UNSIGNED NOT NULL,DROP
+            PRIMARY KEY , ADD PRIMARY KEY (`taskId`,`stateMachineId`,`executionVersion`) ;
+        </sql>
+    </changeSet>
+
+    <includeAll path="persistence-mysql/src/main/resources/flux_scheduler/migrations"/>
 </databaseChangeLog>
