@@ -112,7 +112,10 @@ public class StateMachinePersistenceService {
      */
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public void createAndPersistStateTraversal(String stateMachineId, StateMachine stateMachine) {
+    public Map<Long, List<Long>> createAndPersistStateTraversal(String stateMachineId, StateMachine stateMachine) {
+
+        // Map to store result and return, this will help to test the functionality
+        Map<Long, List<Long>> replayStateTraversalPath = new HashMap<>();
 
         SearchUtil searchUtil = new SearchUtil();
 
@@ -125,10 +128,12 @@ public class StateMachinePersistenceService {
             List<Long> nextDependentStateIds = searchUtil.findStatesInTraversalPath(context, stateMachine,
                     replayableStateId);
 
-            //create and store traversal path for given replayable state
+        replayStateTraversalPath.put(replayableStateId, nextDependentStateIds);
+        //create and store traversal path for given replayable state
             stateTraversalPathDAO.create(stateMachineId,
                     new StateTraversalPath(stateMachineId, replayableStateId, nextDependentStateIds));
         }
+        return replayStateTraversalPath;
     }
 
     /**
