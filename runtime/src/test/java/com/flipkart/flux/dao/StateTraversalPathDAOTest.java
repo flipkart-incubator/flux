@@ -35,6 +35,7 @@ import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -72,8 +73,8 @@ public class StateTraversalPathDAOTest {
                 nextDependentStates);
         stateTraversalPathDAO.create(stateMachine.getId(), stateTraversalPath);
 
-        StateTraversalPath stateTraversalPath1 = stateTraversalPathDAO.findById(stateMachine.getId(), 1L);
-        assertThat(stateTraversalPath1).isEqualTo(stateTraversalPath);
+        Optional<StateTraversalPath> stateTraversalPath1 = stateTraversalPathDAO.findById(stateMachine.getId(), 1L);
+        assertThat(stateTraversalPath1.get()).isEqualTo(stateTraversalPath);
     }
 
     @Test
@@ -84,14 +85,14 @@ public class StateTraversalPathDAOTest {
         List<Long> nextDependentStates1 = new ArrayList<>();
         nextDependentStates1.add(2L);
         nextDependentStates1.add(3L);
-        final StateTraversalPath stateTraversalPath1 = new StateTraversalPath("standard-machine-replayable",
-                1L, nextDependentStates1);
+        final StateTraversalPath stateTraversalPath1 = new StateTraversalPath(
+                "standard-machine-replayable", 1L, nextDependentStates1);
         stateTraversalPathDAO.create(standardTestMachine.getId(), stateTraversalPath1);
 
         List<Long> nextDependentStates4 = new ArrayList<>();
         nextDependentStates1.add(3L);
-        final StateTraversalPath stateTraversalPath4 = new StateTraversalPath("standard-machine-replayable",
-                4L, nextDependentStates4);
+        final StateTraversalPath stateTraversalPath4 = new StateTraversalPath(
+                "standard-machine-replayable", 4L, nextDependentStates4);
         stateTraversalPathDAO.create(standardTestMachine.getId(), stateTraversalPath4);
 
         assertThat(stateTraversalPathDAO.findByStateMachineId(standardTestMachine.getId()))
@@ -102,5 +103,13 @@ public class StateTraversalPathDAOTest {
     public void testRetrieveByStateMachineId_forNoReplayableState() throws Exception {
 
         assertThat(stateTraversalPathDAO.findByStateMachineId("dummy_state_machine_id")).isEmpty();
+    }
+
+    @Test
+    public void testRetrieveByStateMachineIdAndStateId_forEmptyStateTraversalPath() throws Exception {
+
+        Optional<StateTraversalPath> emptyStateTraversalPath = stateTraversalPathDAO.findById(
+                "dummy_state_machine_id", 1L);
+        assertThat(emptyStateTraversalPath.isPresent()).isFalse();
     }
 }

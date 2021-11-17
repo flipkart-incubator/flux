@@ -16,6 +16,7 @@ package com.flipkart.flux.dao.iface;
 import com.flipkart.flux.domain.StateTraversalPath;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * <code>StateTraversalPathDAO</code> interface provides methods to perform CR operations on {@link StateTraversalPath}
@@ -32,7 +33,7 @@ public interface StateTraversalPathDAO {
     /**
      * Retrieves state traversal path for given stateMachineId and stateId
      */
-    StateTraversalPath findById(String stateMachineId, Long stateId);
+    Optional<StateTraversalPath> findById(String stateMachineId, Long stateId);
 
     /**
      * Retrieves list of states with their respective traversal path for given stateMachineId

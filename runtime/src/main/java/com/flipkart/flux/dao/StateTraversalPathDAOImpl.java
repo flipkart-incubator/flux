@@ -27,6 +27,7 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * <code>StateTraversalPathDAOImpl</code> is an implementation of {@link com.flipkart.flux.dao.iface.StateTraversalPathDAO}
@@ -51,7 +52,7 @@ public class StateTraversalPathDAOImpl extends AbstractDAO<StateTraversalPath> i
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public StateTraversalPath findById(String stateMachineId, Long stateId) {
+    public Optional<StateTraversalPath> findById(String stateMachineId, Long stateId) {
         Criteria criteria = currentSession().createCriteria(StateTraversalPath.class)
                 .add(Restrictions.eq("stateMachineId", stateMachineId))
                 .add(Restrictions.eq("stateId", stateId));
@@ -60,7 +61,7 @@ public class StateTraversalPathDAOImpl extends AbstractDAO<StateTraversalPath> i
         StateTraversalPath castedObject = null;
         if(object != null)
             castedObject = (StateTraversalPath) object;
-        return castedObject;
+        return Optional.ofNullable(castedObject);
     }
 
     @Override
