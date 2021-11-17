@@ -28,5 +28,5 @@
         </sql>
     </changeSet>
 
-    <includeAll path="persistence-mysql/src/main/resources/flux_scheduler/migrations"/>
+    <includeAll path="./src/main/resources/flux_scheduler/migrations"/>
 </databaseChangeLog>
