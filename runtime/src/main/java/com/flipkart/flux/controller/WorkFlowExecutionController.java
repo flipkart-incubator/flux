@@ -19,6 +19,7 @@ import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.*;
 import com.flipkart.flux.domain.Status;
@@ -74,6 +75,12 @@ public class WorkFlowExecutionController {
      * The DAO for AuditRecord related DB operations
      */
     private AuditDAO auditDAO;
+
+    /**
+     * The DAO for StateTraversalPath related DB operations
+     */
+    private StateTraversalPathDAO stateTraversalPathDAO;
+
     /*
      * Connector to forward the TaskAndEvents akka Message to client Remote Machine For Execution
      */
@@ -106,13 +113,16 @@ public class WorkFlowExecutionController {
      */
     @Inject
     public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO,
-                                       StatesDAO statesDAO, AuditDAO auditDAO, ExecutionNodeTaskDispatcher executionNodeTaskDispatcher,
+                                       StatesDAO statesDAO, AuditDAO auditDAO,
+                                       StateTraversalPathDAO stateTraversalPathDAO,
+                                       ExecutionNodeTaskDispatcher executionNodeTaskDispatcher,
                                        RedriverRegistry redriverRegistry, MetricsClient metricsClient,
                                        ClientElbPersistenceService clientElbPersistenceService) {
         this.eventsDAO = eventsDAO;
         this.stateMachinesDAO = stateMachinesDAO;
         this.statesDAO = statesDAO;
         this.auditDAO = auditDAO;
+        this.stateTraversalPathDAO = stateTraversalPathDAO;
         this.executionNodeTaskDispatcher = executionNodeTaskDispatcher;
         this.redriverRegistry = redriverRegistry;
         this.metricsClient = metricsClient;
@@ -316,8 +326,8 @@ public class WorkFlowExecutionController {
         // TODO : Add null check for dependantStateOnReplayEvent
         logger.info("This state {} depends on replay event {}", dependantStateOnReplayEvent.getName(), eventData.getName());
         if(!dependantStateOnReplayEvent.getReplayable() || dependantStateOnReplayEvent.getStatus() != Status.completed) {
-                throw new IllegalEventException("Dependant state:"+ dependantStateOnReplayEvent.getName() +" with stateMachineId:" +
-                        stateMachine.getId() +" and replay event:"+ eventData.getName() + " is not replayable.");
+            throw new IllegalEventException("Dependant state:"+ dependantStateOnReplayEvent.getName() +" with stateMachineId:" +
+                    stateMachine.getId() +" and replay event:"+ eventData.getName() + " is not replayable.");
         }
 
         // Build states set and events names list in topological path of replay event
@@ -336,47 +346,51 @@ public class WorkFlowExecutionController {
         // add previous executionVersion replay event to be marked as invalid.
         dependantEvents.add(eventData.getName());
 
-        /* Seems to be deadcode at this commit, will remove if there are no references changing it
         // Using BFS, for each state in State Machine, find path between initial dependant state -> current state
-        for (State state : stateMachine.getStates()) {
-            // TODO : Need to check for equals method in State. Until then using state Name here.
-            if (!dependantStateOnReplayEvent.getName().equals(state.getName())) {
-                if(Boolean.FALSE) {
-                    dependantStates.add(state);
+        Optional<StateTraversalPath> traversalPathStates = stateTraversalPathDAO.findById(
+                stateMachine.getId(), dependantStateId);
 
-                    String outputEventName = getOutputEventName(dependantStateOnReplayEvent.getOutputEvent());
-                    if(!dependantEvents.contains(outputEventName.toString()))
+        if(traversalPathStates.isPresent()) {
+
+            List<Long> nextDependentStateIds = traversalPathStates.get().getNextDependentStates();
+            for (Long stateId : nextDependentStateIds) {
+                String outputEvent = statesDAO.findById(stateMachine.getId(), stateId).getOutputEvent();
+
+                if(outputEvent != null) {
+                    String outputEventName = getOutputEventName(outputEvent);
+                    if (!dependantEvents.contains(outputEventName.toString()))
                         dependantEvents.add(outputEventName);
-
                 }
             }
-        }
-        */
+            logger.info("Building set of states and list of events in dependancy path of replay event:{} for SMId:{} is done.",
+                    eventData.getName(), stateMachine.getId());
 
-        logger.info("Building set of states and list of events in dependancy path of replay event:{} for SMId:{} is done.",
-                eventData.getName(), stateMachine.getId());
-        //Remove external events from being marked as invalid.
-        List<String> tempDependantEvents = new ArrayList<>();
-        tempDependantEvents.addAll(dependantEvents);
-        for (String eventName : tempDependantEvents) {
-            // Using default execution version "0L" because it's the only executionVersion which will have all
-            // event's entries
-            if(eventsDAO.findByStateMachineIdAndExecutionVersionAndName(stateMachine.getId(), eventName, 0L)
-                    .getEventSource().equals("external")) {
-                dependantEvents.remove(eventName);
+            //Remove external events from being marked as invalid.
+            List<String> tempDependantEvents = new ArrayList<>();
+            tempDependantEvents.addAll(dependantEvents);
+            for (String eventName : tempDependantEvents) {
+                // Using default execution version "0L" because it's the only executionVersion which will have all
+                // event's entries
+                if (eventsDAO.findByStateMachineIdAndExecutionVersionAndName(stateMachine.getId(), eventName, 0L)
+                        .getEventSource().equals("external")) {
+                    dependantEvents.remove(eventName);
+                }
             }
+            logger.info("Set of States:{} , List of Events:{}", dependantStates, dependantEvents);
+
+            // TODO : Handle error responses
+            Event currentEvent = persistAndProcessReplayEvent(eventData, dependantStates, dependantEvents, stateMachine.getId());
+
+            Set<State> executableStates = new HashSet<>();
+
+            // TODO : Need to call execute state from outside this transaction. We can register it in redriver.
+            dependantStateOnReplayEvent.setStatus(Status.initialized);
+            executableStates.add(dependantStateOnReplayEvent);
+            executeStates(stateMachine, executableStates, currentEvent, false);
+        } else {
+            throw new IllegalEventException("No traversal path found for replayable state id:" + dependantStateId +
+                    " and stateMachineId: " + stateMachine.getId());
         }
-        logger.info("Set of States:{} , List of Events:{}", dependantStates, dependantEvents);
-
-        // TODO : Handle error responses
-        Event currentEvent = persistAndProcessReplayEvent(eventData, dependantStates, dependantEvents, stateMachine.getId());
-
-        Set<State> executableStates = new HashSet<>();
-
-        // TODO : Need to call execute state from outside this transaction. We can register it in redriver.
-        dependantStateOnReplayEvent.setStatus(Status.initialized);
-        executableStates.add(dependantStateOnReplayEvent);
-        executeStates(stateMachine, executableStates, currentEvent, false);
     }
 
     /**

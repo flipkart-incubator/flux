@@ -82,10 +82,9 @@ public class SearchUtil {
      * @param stateOutputEvents
      * @return
      */
-    // TODO : make this method private
-    public Map<Long, Boolean> searchPaths(Context context, Long initialStateId,
-                                          Long destinationStateId, Map<Long, Boolean> visitedStateIds,
-                                          Map<Long, String> stateOutputEvents) {
+    private Map<Long, Boolean> searchPaths(Context context, Long initialStateId,
+                                           Long destinationStateId, Map<Long, Boolean> visitedStateIds,
+                                           Map<Long, String> stateOutputEvents) {
 
         Queue<LinkedList<Long>> queueOfPaths = new LinkedList<>();
         LinkedList<Long> currentPath = new LinkedList<>();

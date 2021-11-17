@@ -26,6 +26,7 @@ import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.*;
 import com.flipkart.flux.impl.message.TaskAndEvents;
@@ -65,6 +66,9 @@ public class WorkFlowExecutionControllerTest {
     AuditDAO auditDAO;
 
     @Mock
+    StateTraversalPathDAO stateTraversalPathDAO;
+
+    @Mock
     private RouterRegistry routerRegistry;
 
     @Mock
@@ -85,13 +89,12 @@ public class WorkFlowExecutionControllerTest {
     private ObjectMapper objectMapper;
     ActorSystem actorSystem;
 
-
-
     @Before
     public void setUp() throws Exception {
         Thread.sleep(1000);
         workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, auditDAO,
-                executionNodeTaskDispatcher, redriverRegistry, metricsClient, clientElbPersistenceService);
+                stateTraversalPathDAO, executionNodeTaskDispatcher, redriverRegistry, metricsClient,
+                clientElbPersistenceService);
         when(stateMachinesDAO.findById(anyString())).thenReturn(TestUtils.getStandardTestMachineWithId());
         when(clientElbPersistenceService.findByIdClientElb(anyString())).thenReturn("http://localhost:9997");
         actorSystem = ActorSystem.create("testActorSystem",ConfigFactory.load("testAkkaActorSystem"));
