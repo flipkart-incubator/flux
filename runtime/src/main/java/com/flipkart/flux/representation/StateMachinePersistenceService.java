@@ -139,7 +139,7 @@ public class StateMachinePersistenceService {
     private Set<Long> filterReplayableStates(Set<State> states) {
         Set<Long> replayableStateIds = new HashSet<>();
         for (State state : states) {
-            if(!state.getReplayable())
+            if(state.getReplayable())
                 replayableStateIds.add(state.getId());
         }
         return replayableStateIds;
