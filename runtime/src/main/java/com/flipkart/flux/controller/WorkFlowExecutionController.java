@@ -756,7 +756,7 @@ public class WorkFlowExecutionController {
         Set<String> receivedEvents = new HashSet<>(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId(stateMachineInstanceId));
 
         // Since replay event is optional, not required to check it's eventStatus. It's considered as dependency met.
-        Set<String> replayEvents = new HashSet<>(eventsDAO.findReplayEventsNamesBySMId(stateMachineInstanceId));
+        Set<String> replayEvents = new HashSet<>(eventsDAO.findAllReplayEventsNamesBySMId(stateMachineInstanceId));
         receivedEvents.addAll(replayEvents);
         // for each state
         // 1. get the dependencies (events)

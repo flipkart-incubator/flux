@@ -22,6 +22,7 @@ import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.Event.EventStatus;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.OrchestrationTaskModule;
@@ -37,8 +38,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -54,6 +57,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class EventsDAOTest {
 
     @InjectFromRole
+    private
     EventsDAO eventsDAO;
 
     @InjectFromRole
@@ -61,9 +65,10 @@ public class EventsDAOTest {
     public DbClearWithTestSMRule dbClearWithTestSMRule;
 
     @InjectFromRole
+    private
     StateMachinesDAO stateMachinesDAO;
 
-    ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
     @Before
     public void setup() {
@@ -111,6 +116,184 @@ public class EventsDAOTest {
         eventsDAO.create(event3.getStateMachineInstanceId(), event3);
 
         /* Actual test */
-        assertThat(eventsDAO.findByEventNamesAndSMId(standardTestMachine.getId(), Collections.<String>emptyList())).isEmpty();
+        assertThat(eventsDAO.findByEventNamesAndSMId(standardTestMachine.getId(), Collections.emptyList())).isEmpty();
+    }
+
+    @Test
+    public void testFindBySMInstanceId() throws Exception{
+        final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
+        stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
+        final Event event1 = new Event("event1", "someType", EventStatus.invalid, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event1.getStateMachineInstanceId(), event1);
+        final Event event2 = new Event("event2", "someType", EventStatus.invalid, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event1.getStateMachineInstanceId(), event2);
+        final Event event3 = new Event("event3", "someType", Event.EventStatus.pending, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event3.getStateMachineInstanceId(), event3);
+
+        /* Actual test should contain only the event that is not marked as invalid*/
+        assertThat(eventsDAO.findBySMInstanceId(standardTestMachine.getId())).containsExactly(event3);
+
+    }
+
+    @Test
+    public void testFindBySMIdAndName() throws Exception{
+        final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
+        stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
+        final Event event1 = new Event("event1", "someType", EventStatus.pending, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event1.getStateMachineInstanceId(), event1);
+        final Event event2 = new Event("event2", "someType", EventStatus.invalid, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event1.getStateMachineInstanceId(), event2);
+
+        // Should return event1 as it is not marked invalid
+        assertThat(eventsDAO.findBySMIdAndName(standardTestMachine.getId(),"event1")).isEqualTo(event1);
+
+        // should return empty as invalid events are filtered at query level
+        assertThat(eventsDAO.findBySMIdAndName(standardTestMachine.getId(),"event2")).isNull();
+
+    }
+
+
+    @Test
+    public void testFindTriggeredOrCancelledEventsNamesBySMId() throws Exception{
+        final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
+        stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
+        final Event event1 = new Event("event1", "someType", EventStatus.pending, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event1.getStateMachineInstanceId(), event1);
+        final Event event2 = new Event("event2", "someType", EventStatus.invalid, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event1.getStateMachineInstanceId(), event2);
+        final Event event3 = new Event("event3", "someType", EventStatus.triggered, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event1.getStateMachineInstanceId(), event3);
+
+        // Should return event3 as it is not marked triggered
+        assertThat(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId(standardTestMachine.getId())).containsExactly(event3.getName());
+
+        final Event event4 = new Event("event4", "someType", EventStatus.cancelled, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event1.getStateMachineInstanceId(), event4);
+
+        assertThat(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId(standardTestMachine.getId())).containsOnly("event3","event4");
+    }
+
+
+    @Test
+    public void testFindReplayEventsNamesBySMId() throws Exception{
+        final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
+        stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
+        final Event event1 = new Event("event1", "someType", EventStatus.pending, standardTestMachine.getId(), null, "replay");
+        eventsDAO.create(event1.getStateMachineInstanceId(), event1);
+        final Event event2 = new Event("event2", "someType", EventStatus.invalid, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event2.getStateMachineInstanceId(), event2);
+        final Event event3 = new Event("event3", "someType", EventStatus.triggered, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event3.getStateMachineInstanceId(), event3);
+        final Event event4 = new Event("event4", "someType", EventStatus.triggered, standardTestMachine.getId(), null, "replay");
+        eventsDAO.create(event4.getStateMachineInstanceId(), event4);
+        final Event event5 = new Event("event5", "someType", EventStatus.cancelled, standardTestMachine.getId(), null, "replay");
+        eventsDAO.create(event5.getStateMachineInstanceId(), event5);
+
+        assertThat(eventsDAO.findAllReplayEventsNamesBySMId(standardTestMachine.getId())).hasSize(3);
+        assertThat(eventsDAO.findAllReplayEventsNamesBySMId(standardTestMachine.getId())).containsOnly("event1","event4","event5");
+    }
+
+    @Test
+    public void testFindTriggeredEventsBySMId() throws Exception{
+        final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
+        stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
+        final Event event1 = new Event("event1", "someType", EventStatus.pending, standardTestMachine.getId(), null, "replay");
+        eventsDAO.create(event1.getStateMachineInstanceId(), event1);
+        final Event event2 = new Event("event2", "someType", EventStatus.invalid, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event2.getStateMachineInstanceId(), event2);
+        final Event event3 = new Event("event3", "someType", EventStatus.triggered, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event3.getStateMachineInstanceId(), event3);
+        final Event event4 = new Event("event4", "someType", EventStatus.triggered, standardTestMachine.getId(), null, "replay");
+        eventsDAO.create(event4.getStateMachineInstanceId(), event4);
+
+        assertThat(eventsDAO.findTriggeredEventsBySMId(standardTestMachine.getId())).containsOnly(event3,event4);
+    }
+
+    @Test
+    public void testFindTriggeredEventBySMIdAndName() throws Exception{
+
+        final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
+        stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
+        final Event event1 = new Event("event1", "someType", EventStatus.pending, standardTestMachine.getId(), null, "replay");
+        eventsDAO.create(event1.getStateMachineInstanceId(), event1);
+        final Event event2 = new Event("event2", "someType", EventStatus.invalid, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event2.getStateMachineInstanceId(), event2);
+        final Event event3 = new Event("event3", "someType", EventStatus.triggered, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event3.getStateMachineInstanceId(), event3);
+        final Event event4 = new Event("event4", "someType", EventStatus.triggered, standardTestMachine.getId(), null, "replay");
+        eventsDAO.create(event4.getStateMachineInstanceId(), event4);
+
+        Event retrievedEvent3 = eventsDAO.findTriggeredEventBySMIdAndName(standardTestMachine.getId(),"event3");
+        assertThat(retrievedEvent3).isEqualTo(event3);
+
+        Event retrievedEvent4 = eventsDAO.findTriggeredEventBySMIdAndName(standardTestMachine.getId(),"event4");
+        assertThat(retrievedEvent4).isEqualTo(event4);
+
+    }
+
+    @Test
+    public void testGetAllEventsNameAndStatus() throws Exception{
+
+        final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
+        stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
+        final Event event1 = new Event("event1", "someType", EventStatus.pending, standardTestMachine.getId(), null, "replay");
+        eventsDAO.create(event1.getStateMachineInstanceId(), event1);
+        final Event event2 = new Event("event2", "someType", EventStatus.invalid, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event1.getStateMachineInstanceId(), event2);
+        final Event event3 = new Event("event3", "someType", EventStatus.triggered, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event1.getStateMachineInstanceId(), event3);
+        final Event event4 = new Event("event4", "someType", EventStatus.triggered, standardTestMachine.getId(), null, "replay");
+        eventsDAO.create(event1.getStateMachineInstanceId(), event4);
+        final Event event5 = new Event("event5", "someType", EventStatus.cancelled, standardTestMachine.getId(), null, "replay");
+        eventsDAO.create(event1.getStateMachineInstanceId(), event5);
+
+        assertThat(eventsDAO.getAllEventsNameAndStatus(standardTestMachine.getId(),false)).hasSize(4);
+
+        assertThat(eventsDAO.getAllEventsNameAndStatus(standardTestMachine.getId(),true)).hasSize(4);
+    }
+
+    @Test
+    public void testMarkEventAsCancelled() throws Exception{
+        final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
+        stateMachinesDAO.create(standardTestMachine.getId(),standardTestMachine);
+        final Event event = new Event("event1","someType",EventStatus.pending,standardTestMachine.getId(),null,null);
+        eventsDAO.create(standardTestMachine.getId(),event);
+        eventsDAO.markEventAsCancelled(standardTestMachine.getId(),"event1");
+
+        assertThat(eventsDAO.findBySMIdAndName(standardTestMachine.getId(),"event1").getStatus()).isEqualTo(EventStatus.cancelled);
+
+    }
+
+    @Test
+    public void testMarkEventAsInvalid() throws Exception{
+        final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
+        stateMachinesDAO.create(standardTestMachine.getId(),standardTestMachine);
+        final Event event1 = new Event("event1","someType",EventStatus.pending,standardTestMachine.getId(),null,null);
+        eventsDAO.create(standardTestMachine.getId(),event1);
+        final Event event2 = new Event("event2", "someType", EventStatus.invalid, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event2.getStateMachineInstanceId(), event2);
+        final Event event3 = new Event("event3", "someType", EventStatus.triggered, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event3.getStateMachineInstanceId(), event3);
+        final Event event4 = new Event("event4", "someType", EventStatus.triggered, standardTestMachine.getId(), null, "replay");
+        eventsDAO.create(event4.getStateMachineInstanceId(), event4);
+        final Event event5 = new Event("event5", "someType", EventStatus.cancelled, standardTestMachine.getId(), null, "replay");
+        eventsDAO.create(event5.getStateMachineInstanceId(), event5);
+        final Event event6 = new Event("event6", "someType", EventStatus.triggered, standardTestMachine.getId(), null, null);
+        eventsDAO.create(event6.getStateMachineInstanceId(), event6);
+
+        List<String> invalidEventsList = new ArrayList<>();
+        invalidEventsList.add(event2.getName());
+        invalidEventsList.add(event3.getName());
+        invalidEventsList.add(event4.getName());
+
+        eventsDAO.markEventsAsInvalid(standardTestMachine.getId(), invalidEventsList);
+
+        assertThat(eventsDAO.findAllBySMIdAndName(standardTestMachine.getId(),"event1").get(0).getStatus()).isEqualTo(EventStatus.pending);
+        assertThat(eventsDAO.findAllBySMIdAndName(standardTestMachine.getId(),"event2").get(0).getStatus()).isEqualTo(EventStatus.invalid);
+        assertThat(eventsDAO.findAllBySMIdAndName(standardTestMachine.getId(),"event3").get(0).getStatus()).isEqualTo(EventStatus.invalid);
+        assertThat(eventsDAO.findAllBySMIdAndName(standardTestMachine.getId(),"event4").get(0).getStatus()).isEqualTo(EventStatus.invalid);
+        assertThat(eventsDAO.findAllBySMIdAndName(standardTestMachine.getId(),"event5").get(0).getStatus()).isEqualTo(EventStatus.cancelled);
+        assertThat(eventsDAO.findAllBySMIdAndName(standardTestMachine.getId(),"event6").get(0).getStatus()).isEqualTo(EventStatus.triggered);
+
     }
 }

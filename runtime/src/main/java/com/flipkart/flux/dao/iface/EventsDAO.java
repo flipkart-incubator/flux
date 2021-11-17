@@ -34,9 +34,13 @@ public interface EventsDAO {
     /** Retrieves all the events which belongs to a particular state machine instance*/
     List<Event> findBySMInstanceId(String stateMachineInstanceId);
 
-
     /** Retrieves Event by state machine instance id and event name */
-    List<Event> findBySMIdAndName(String stateMachineInstanceId, String eventName);
+    Event findBySMIdAndName(String stateMachineInstanceId, String eventName);
+
+    /**
+     * Retrieves all the events with the given name irrespective of its status
+     */
+    List<Event> findAllBySMIdAndName(String stateMachineInstanceId, String eventName);
 
     /** Retrieves Event by state machine instance id, event execution version and event name */
     Event findByStateMachineIdAndExecutionVersionAndName(String stateMachineInstanceId, String eventName, Long executionVersion);
@@ -45,7 +49,7 @@ public interface EventsDAO {
     List<String> findTriggeredOrCancelledEventsNamesBySMId(String stateMachineInstanceId);
 
     /** Retrieves list of events whose eventSource is replay and belongs to provided state machine */
-    List<String> findReplayEventsNamesBySMId(String stateMachineInstanceId);
+    List<String> findAllReplayEventsNamesBySMId(String stateMachineInstanceId);
 
     /** Retrieves list of events which are in triggered state and belongs to provided state machine */
     List<Event> findTriggeredEventsBySMId(String stateMachineInstanceId);

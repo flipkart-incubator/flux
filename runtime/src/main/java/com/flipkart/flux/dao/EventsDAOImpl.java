@@ -53,6 +53,11 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         super.update(event);
     }
 
+    /**
+     * Returns the list of events which are not marked as invalid
+     * @param stateMachineInstanceId Identifier for the state machine
+     * @return
+     */
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
@@ -63,15 +68,37 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
                 .list();
     }
 
+    /**
+     * Returns the list of events that are not marked invalid
+     * @param stateMachineInstanceId State Machine Identifier
+     * @param eventName Name of the event
+     * @return
+     */
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public List<Event> findBySMIdAndName(String stateMachineInstanceId, String eventName) {
+    public Event findBySMIdAndName(String stateMachineInstanceId, String eventName) {
         Criteria criteria = currentSession().createCriteria(Event.class)
                 .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("name", eventName))
+                //TODO: Check if we need to add check on invalid
                 .add(Restrictions.ne("status", Event.EventStatus.invalid));
-        return (List<Event>) criteria.list();
+        return (Event) criteria.uniqueResult();
+    }
+
+    /**
+     * Retrieves all the events with the given name irrespective of its status
+     * @param stateMachineInstanceId
+     * @param eventName
+     */
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE,storage = Storage.SHARDED)
+    public List<Event> findAllBySMIdAndName(String stateMachineInstanceId, String eventName) {
+        Criteria criteria = currentSession().createCriteria(Event.class)
+                .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
+                .add(Restrictions.eq("name", eventName));
+        return criteria.list();
     }
 
     // TODO : Modify query not to send invalid event. Need to add test cases around it.
@@ -83,10 +110,17 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         Criteria criteria = currentSession().createCriteria(Event.class)
                 .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("name", eventName))
+                //TODO: Check marking events as invalid is necessary
+                .add(Restrictions.ne("status", Event.EventStatus.invalid))
                 .add(Restrictions.eq("executionVersion", executionVersion));
         return (Event) criteria.uniqueResult();
     }
 
+    /**
+     * Returns the List of all event names that are either triggered or cancelled
+     * @param stateMachineInstanceId State Machine Identifier
+     * @return
+     */
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
@@ -101,20 +135,29 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         return criteria.list();
     }
 
+    /**
+     * @param stateMachineInstanceId State Machine Identifier
+     * @return Returns the valid list of replay event names
+     */
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public List<String> findReplayEventsNamesBySMId(String stateMachineInstanceId) {
+    public List<String> findAllReplayEventsNamesBySMId(String stateMachineInstanceId) {
 
         Criteria criteria = currentSession().createCriteria(Event.class)
                 .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("eventSource", "replay"))
+                //TODO: Check if marking events as invalid is necessary
                 .add(Restrictions.ne("status", Event.EventStatus.invalid))
                 .setProjection(Projections.property("name"));
         return criteria.list();
     }
 
-
+    /**
+     * Returns the list of the events that are in triggered state
+     * @param stateMachineInstanceId State achine identifier
+     * @return
+     */
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
@@ -171,7 +214,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     public Map<String, Event.EventStatus> getAllEventsNameAndStatus(String stateMachineInstanceId, boolean forUpdate) {
         SQLQuery sqlQuery = currentSession().createSQLQuery(
                 "Select name, status from Events where  status != 'invalid' and stateMachineInstanceId ='"
-                        + stateMachineInstanceId + (forUpdate ? "' for update" : "''"));
+                        + stateMachineInstanceId + (forUpdate ? "' for update" : "'"));
 
         List<Object[]> eventRows = sqlQuery.list();
         Map<String, Event.EventStatus> eventStatusMap = new HashMap<>();
