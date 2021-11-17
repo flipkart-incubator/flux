@@ -410,7 +410,7 @@ public class WorkFlowExecutionController {
 
         // TODO : This will be updated to return updated value in same call. Need to add tests for it.
         Long smExecutionVersion = stateMachinesDAO.findById(stateMachineId).getExecutionVersion() + 1;
-        stateMachinesDAO.incrementExecutionVersion(stateMachineId, smExecutionVersion);
+        stateMachinesDAO.updateExecutionVersion(stateMachineId, smExecutionVersion);
 
         ArrayList<State> states = new ArrayList<>(dependantStates);
         statesDAO.updateStatus(stateMachineId,states,Status.initialized);

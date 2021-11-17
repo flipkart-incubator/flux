@@ -92,7 +92,7 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public void incrementExecutionVersion(String stateMachineId, Long smExecutionVersion) {
+    public void updateExecutionVersion(String stateMachineId, Long smExecutionVersion) {
         Query query = currentSession().createQuery(
                 "update StateMachine set executionVersion = :executionVersion where id = :stateMachineId");
         query.setLong("executionVersion", smExecutionVersion);
