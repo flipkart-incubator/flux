@@ -30,8 +30,6 @@ public class SearchUtil {
 
     List<Long> traversalPathStateIds;
 
-    private static final Logger logger = LoggerFactory.getLogger(SearchUtil.class);
-
     public List<Long> findStatesInTraversalPath(Context context, StateMachine stateMachine, Long initialStateId) throws RuntimeException {
 
         // List of stateIds occured in the traversal path of input initial state
@@ -53,8 +51,8 @@ public class SearchUtil {
             }
         }
 
+        // For all states in a state machine which are not yet visited, compute path from given initial state
         for (State state : stateMachine.getStates()) {
-            // verify this initial dest equal check
             if(!visitedStateIds.get(state.getId())) {
                 if(initialStateId != state.getId()) {
                     visitedStateIds = searchPaths(context, initialStateId, state.getId(), visitedStateIds, stateOutputEvents);
@@ -73,10 +71,18 @@ public class SearchUtil {
         return traversalPathStateIds;
     }
 
-    // TODO : Add description, test cases
-    // TODO : Will modify to return all states in the path
-    // TODO : Make this private
-    // BFS to check a path between 2 states
+    /**
+     * Implementation of BFS search path algorithm. Given an initial and destination state,
+     * it computes and marks all the states (nodes) in the traversal path from initial -> destination state
+     * in a directed acyclic graph.
+     * @param context
+     * @param initialStateId
+     * @param destinationStateId
+     * @param visitedStateIds
+     * @param stateOutputEvents
+     * @return
+     */
+    // TODO : make this method private
     public Map<Long, Boolean> searchPaths(Context context, Long initialStateId,
                                           Long destinationStateId, Map<Long, Boolean> visitedStateIds,
                                           Map<Long, String> stateOutputEvents) {
@@ -102,7 +108,6 @@ public class SearchUtil {
             }
             nextDependentStateIds = context.getDependentStateIds(stateOutputEvents.get(lastStateId));
 
-            // handle null nextDependentStateIds
             for (Long dependentStateId : nextDependentStateIds) {
                 if(!currentPath.contains(dependentStateId)) {
                     LinkedList<Long> newPath = new LinkedList<>();

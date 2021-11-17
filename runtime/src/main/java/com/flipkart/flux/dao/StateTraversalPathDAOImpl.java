@@ -24,6 +24,7 @@ import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,12 +42,14 @@ public class StateTraversalPathDAOImpl extends AbstractDAO<StateTraversalPath> i
     }
 
     @Override
+    @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public StateTraversalPath create(String stateMachineId, StateTraversalPath stateTraversalPath) {
         return super.save(stateTraversalPath);
     }
 
     @Override
+    @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public StateTraversalPath findById(String stateMachineId, Long stateId) {
         Criteria criteria = currentSession().createCriteria(StateTraversalPath.class)
@@ -61,6 +64,7 @@ public class StateTraversalPathDAOImpl extends AbstractDAO<StateTraversalPath> i
     }
 
     @Override
+    @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public List<StateTraversalPath> findByStateMachineId(String stateMachineId) {
         Criteria criteria = currentSession().createCriteria(StateTraversalPath.class)

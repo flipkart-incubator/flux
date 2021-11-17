@@ -1,0 +1,68 @@
+/*
+ * Copyright 2012-2019, the original author or authors.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.flipkart.flux.rule;
+
+import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.domain.State;
+import com.flipkart.flux.domain.StateMachine;
+import org.junit.rules.ExternalResource;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * <code>TestReplayableSMRule</code> is a Junit Rule which creates a state machine with replayable state
+ * @author akif.khan
+ */
+@Singleton
+public class TestReplayableSMRule extends ExternalResource {
+
+    private final StateMachinesDAO stateMachinesDAO;
+
+    private StateMachine stateMachine;
+
+    @Inject
+    public TestReplayableSMRule(StateMachinesDAO stateMachinesDAO) {
+        this.stateMachinesDAO = stateMachinesDAO;
+    }
+
+    @Override
+    protected void before() throws Throwable {
+        String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
+        String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";
+        String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
+        State state1 = new State(2L, "state1", "desc1", onEntryHook, task, onExitHook,
+                null, 3L, 60L, "event1", null, null,
+                0l, "2", 1L, Boolean.TRUE);
+        List<String> dependencies = new ArrayList<>();
+        dependencies.add("event1");
+        State state2 = new State(2L, "state2", "desc2", onEntryHook, task, onExitHook,
+                dependencies, 3L, 60L, null, null, null,
+                0l, "2", 2L);
+        Set<State> states = new HashSet<>();
+        states.add(state1);
+        states.add(state2);
+        StateMachine stateMachine1 = new StateMachine("2", 2L, "SM_name", "SM_desc", states,
+                "client_elb_id_1");
+        stateMachine = stateMachinesDAO.create(stateMachine1.getId(), stateMachine1);
+    }
+
+    public StateMachine getStateMachineWithReplayableState() {
+        return stateMachine;
+    }
+}

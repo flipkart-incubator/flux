@@ -107,8 +107,6 @@ public class StateTraversalPath {
 
         StateTraversalPath stateTraversalPath = (StateTraversalPath) o;
 
-        if (!Objects.equals(createdAt, stateTraversalPath.createdAt))
-            return false;
         if (!Objects.equals(stateMachineId, stateTraversalPath.stateMachineId))
             return false;
         return Objects.equals(stateId, stateTraversalPath.stateId);
@@ -117,14 +115,13 @@ public class StateTraversalPath {
     @Override
     public int hashCode() {
         int result = stateMachineId != null ? stateMachineId.hashCode() : 0;
-        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
         result = 31 * result + (stateId != null ? stateId.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return "State{" +
+        return "StateTraversalPath{" +
                 "stateId=" + stateId +
                 ", stateMachineId=" + stateMachineId +
                 ", nextDependentStates=" + nextDependentStates +
