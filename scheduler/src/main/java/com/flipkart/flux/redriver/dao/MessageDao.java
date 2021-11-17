@@ -117,7 +117,7 @@ public class MessageDao {
     @Transactional
     @SelectDataSource(storage = Storage.SCHEDULER)
     public void delete(SmIdAndTaskIdPairWithExecutionVersion smIdAndTaskIdPairWithExecutionVersion) {
-        Query query = currentSession().createQuery("delete from ScheduledMessage where stateMachineId = :smId and taskId = :taskId and executionVersion =:executionVersion");
+        Query query = currentSession().createQuery("delete from ScheduledMessage where stateMachineId = :smId and taskId = :taskId and executionVersion = :executionVersion");
         query.setString("smId", smIdAndTaskIdPairWithExecutionVersion.getSmId());
         query.setLong("taskId", smIdAndTaskIdPairWithExecutionVersion.getTaskId());
         query.setLong("executionVersion",smIdAndTaskIdPairWithExecutionVersion.getExecutionVersion());
