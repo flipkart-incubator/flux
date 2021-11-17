@@ -26,7 +26,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.flipkart.flux.redriver.model.SmIdAndTaskIdPairWithExecutionVersion;
+import com.flipkart.flux.redriver.model.SmIdAndTaskIdWithExecutionVersion;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -56,7 +56,7 @@ public class MessageManagerService implements Initializable {
     private final Integer batchDeleteSize;
     private final Integer batchInsertInterval;
     private final Integer batchInsertSize;
-    private final ConcurrentLinkedQueue<SmIdAndTaskIdPairWithExecutionVersion> messagesToDelete;
+    private final ConcurrentLinkedQueue<SmIdAndTaskIdWithExecutionVersion> messagesToDelete;
     private final ConcurrentLinkedQueue<ScheduledMessage> messagesToInsertOrUpdate;
     private final InstrumentedScheduledExecutorService scheduledDeletionService;
     private final InstrumentedScheduledExecutorService scheduledInsertionService;
@@ -96,16 +96,16 @@ public class MessageManagerService implements Initializable {
     }
 
     public void scheduleForRemoval(String stateMachine, Long taskId, Long executionVersion) {
-        // persistenceExecutorService.execute(() -> messageDao.delete(new SmIdAndTaskIdPairWithExecutionVersion(stateMachine, taskId)));
-        messagesToDelete.add(new SmIdAndTaskIdPairWithExecutionVersion(stateMachine, taskId, executionVersion));
+        // persistenceExecutorService.execute(() -> messageDao.delete(new SmIdAndTaskIdWithExecutionVersion(stateMachine, taskId)));
+        messagesToDelete.add(new SmIdAndTaskIdWithExecutionVersion(stateMachine, taskId, executionVersion));
     }
 
     @Override
     public void initialize() {
         scheduledDeletionService.scheduleAtFixedRate(() -> {
             try {
-                SmIdAndTaskIdPairWithExecutionVersion currentMessageIdToDelete = null;
-                List messageIdsToDelete = new ArrayList<SmIdAndTaskIdPairWithExecutionVersion>(batchDeleteSize);
+                SmIdAndTaskIdWithExecutionVersion currentMessageIdToDelete = null;
+                List messageIdsToDelete = new ArrayList<SmIdAndTaskIdWithExecutionVersion>(batchDeleteSize);
                 while (messageIdsToDelete.size() < batchDeleteSize && (currentMessageIdToDelete = messagesToDelete.poll()) != null) {
                     messageIdsToDelete.add(currentMessageIdToDelete);
                 }

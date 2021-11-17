@@ -3,12 +3,12 @@ package com.flipkart.flux.redriver.model;
 /**
  * Created by amitkumar.o on 31/07/17.
  */
-public class SmIdAndTaskIdPairWithExecutionVersion {
+public class SmIdAndTaskIdWithExecutionVersion {
     private String smId;
     private Long taskId;
     private Long executionVersion;
 
-    public SmIdAndTaskIdPairWithExecutionVersion(String smId, Long taskId, Long executionVersion) {
+    public SmIdAndTaskIdWithExecutionVersion(String smId, Long taskId, Long executionVersion) {
         this.smId = smId;
         this.taskId = taskId;
         this.executionVersion = executionVersion;
@@ -41,9 +41,9 @@ public class SmIdAndTaskIdPairWithExecutionVersion {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof SmIdAndTaskIdPairWithExecutionVersion)) return false;
+        if (!(o instanceof SmIdAndTaskIdWithExecutionVersion)) return false;
 
-        SmIdAndTaskIdPairWithExecutionVersion that = (SmIdAndTaskIdPairWithExecutionVersion) o;
+        SmIdAndTaskIdWithExecutionVersion that = (SmIdAndTaskIdWithExecutionVersion) o;
 
         if (!getSmId().equals(that.getSmId())) return false;
         if(!(getExecutionVersion().equals(that.getExecutionVersion()))) return false;

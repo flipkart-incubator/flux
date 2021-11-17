@@ -62,10 +62,6 @@ public class ScheduledMessage implements Serializable {
         return executionVersion;
     }
 
-    public void setExecutionVersion(Long executionVersion) {
-        this.executionVersion = executionVersion;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -116,9 +112,10 @@ public class ScheduledMessage implements Serializable {
         /** for Hibernate */
         public ScheduledMessagePK() {}
 
-        public ScheduledMessagePK(Long taskId, String stateMachineId) {
+        public ScheduledMessagePK(Long taskId, String stateMachineId, Long executionVersion) {
             this.taskId = taskId;
             this.stateMachineId = stateMachineId;
+            this.executionVersion = executionVersion;
         }
 
         public Long getTaskId() {

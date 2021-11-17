@@ -23,7 +23,7 @@
     <changeSet id="001" author="raghav">
         <validCheckSum>any</validCheckSum>
         <sql>
-            ALTER TABLE ScheduledMessages ADD COLUMN `executionVersion` TINYINT UNSIGNED NOT NULL,DROP
+            ALTER TABLE ScheduledMessages ADD COLUMN `executionVersion` SMALLINT UNSIGNED NOT NULL,DROP
             PRIMARY KEY , ADD PRIMARY KEY (`taskId`,`stateMachineId`,`executionVersion`) ;
         </sql>
     </changeSet>

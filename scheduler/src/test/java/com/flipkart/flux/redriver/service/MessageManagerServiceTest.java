@@ -14,7 +14,7 @@
 package com.flipkart.flux.redriver.service;
 
 import com.flipkart.flux.redriver.dao.MessageDao;
-import com.flipkart.flux.redriver.model.SmIdAndTaskIdPairWithExecutionVersion;
+import com.flipkart.flux.redriver.model.SmIdAndTaskIdWithExecutionVersion;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,9 +50,9 @@ public class MessageManagerServiceTest {
         verifyZeroInteractions(messageDao);
 
         Thread.sleep(700l);
-        ArrayList firstBatch = new ArrayList<SmIdAndTaskIdPairWithExecutionVersion>();
-        firstBatch.add(new SmIdAndTaskIdPairWithExecutionVersion(sampleMachineId, 123l,0l));
-        firstBatch.add(new SmIdAndTaskIdPairWithExecutionVersion(sampleMachineId, 123l,1l));
+        ArrayList firstBatch = new ArrayList<SmIdAndTaskIdWithExecutionVersion>();
+        firstBatch.add(new SmIdAndTaskIdWithExecutionVersion(sampleMachineId, 123l,0l));
+        firstBatch.add(new SmIdAndTaskIdWithExecutionVersion(sampleMachineId, 123l,1l));
 
         verify(messageDao,times(1)).deleteInBatch(firstBatch);
 
@@ -70,15 +70,15 @@ public class MessageManagerServiceTest {
         verifyZeroInteractions(messageDao);
 
         Thread.sleep(700l);
-        ArrayList firstBatch = new ArrayList<SmIdAndTaskIdPairWithExecutionVersion>();
-        firstBatch.add(new SmIdAndTaskIdPairWithExecutionVersion(sampleMachineId, 121l,0l));
-        firstBatch.add(new SmIdAndTaskIdPairWithExecutionVersion(sampleMachineId, 122l,0l));
+        ArrayList firstBatch = new ArrayList<SmIdAndTaskIdWithExecutionVersion>();
+        firstBatch.add(new SmIdAndTaskIdWithExecutionVersion(sampleMachineId, 121l,0l));
+        firstBatch.add(new SmIdAndTaskIdWithExecutionVersion(sampleMachineId, 122l,0l));
 
         verify(messageDao,times(1)).deleteInBatch(firstBatch);
 
         Thread.sleep(700l);
-        ArrayList secondBatch = new ArrayList<SmIdAndTaskIdPairWithExecutionVersion>();
-        secondBatch.add(new SmIdAndTaskIdPairWithExecutionVersion(sampleMachineId, 123l,0l));
+        ArrayList secondBatch = new ArrayList<SmIdAndTaskIdWithExecutionVersion>();
+        secondBatch.add(new SmIdAndTaskIdWithExecutionVersion(sampleMachineId, 123l,0l));
         verify(messageDao,times(1)).deleteInBatch(secondBatch);
     }
 }

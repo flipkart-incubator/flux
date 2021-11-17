@@ -17,7 +17,7 @@ import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
-import com.flipkart.flux.redriver.model.SmIdAndTaskIdPairWithExecutionVersion;
+import com.flipkart.flux.redriver.model.SmIdAndTaskIdWithExecutionVersion;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
@@ -101,7 +101,7 @@ public class MessageDao {
      */
     @Transactional
     @SelectDataSource(storage = Storage.SCHEDULER)
-    public int deleteInBatch(List<SmIdAndTaskIdPairWithExecutionVersion> messageIdsToDelete) {
+    public int deleteInBatch(List<SmIdAndTaskIdWithExecutionVersion> messageIdsToDelete) {
         StringBuilder queryBuilder = new StringBuilder();
         queryBuilder.append("delete from ScheduledMessage where (stateMachineId,taskId, executionVersion) in (");
         messageIdsToDelete.forEach(smIdAndTaskIdPairWithExecutionVersion -> queryBuilder.append("(\'")
@@ -116,11 +116,11 @@ public class MessageDao {
 
     @Transactional
     @SelectDataSource(storage = Storage.SCHEDULER)
-    public void delete(SmIdAndTaskIdPairWithExecutionVersion smIdAndTaskIdPairWithExecutionVersion) {
+    public void delete(SmIdAndTaskIdWithExecutionVersion smIdAndTaskIdWithExecutionVersion) {
         Query query = currentSession().createQuery("delete from ScheduledMessage where stateMachineId = :smId and taskId = :taskId and executionVersion = :executionVersion");
-        query.setString("smId", smIdAndTaskIdPairWithExecutionVersion.getSmId());
-        query.setLong("taskId", smIdAndTaskIdPairWithExecutionVersion.getTaskId());
-        query.setLong("executionVersion",smIdAndTaskIdPairWithExecutionVersion.getExecutionVersion());
+        query.setString("smId", smIdAndTaskIdWithExecutionVersion.getSmId());
+        query.setLong("taskId", smIdAndTaskIdWithExecutionVersion.getTaskId());
+        query.setLong("executionVersion", smIdAndTaskIdWithExecutionVersion.getExecutionVersion());
         query.executeUpdate();
     }
 
