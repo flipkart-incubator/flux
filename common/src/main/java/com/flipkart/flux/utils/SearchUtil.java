@@ -9,113 +9,111 @@ import com.flipkart.flux.impl.RAMContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.util.*;
 
 /**
  * <Code>SearchUtil</Code> This class is a util class performing breadth first search (BFS).
- * For a given state machine context, this util class checks for a path from a given input initial state in a
- * state machine and returns a list of all states in its traversal path.
+ * For a given state machine context, this util class checks for a path from a given initial state in a
+ * state machine and returns list of all states in its traversal path.
  *
  * @author akif.khan
  */
+@Singleton
 public class SearchUtil {
 
     /**
      * ObjectMapper instance to be used for all purposes in this class
      */
-    private ObjectMapper objectMapper;
-
-    /**
-     * Map to store map for stateId and its corresponding outputEvent.
-     * It's required in BFS traversal to get next dependent state for a given state's outputEvent
-     */
-    private Map<Long, String> stateOutputEvents;
+    private static ObjectMapper objectMapper = new ObjectMapper();
 
     List<Long> traversalPathStateIds;
 
     private static final Logger logger = LoggerFactory.getLogger(SearchUtil.class);
 
-    public SearchUtil() {
-        objectMapper = new ObjectMapper();
-    }
+    public List<Long> findStatesInTraversalPath(Context context, StateMachine stateMachine, Long initialStateId) throws RuntimeException {
 
-    public List<Long> getStatesInTraversalPath(StateMachine stateMachine, Long initialStateId) throws RuntimeException {
+        // List of stateIds occured in the traversal path of input initial state
+        List<Long> traversalPathStateIds = new ArrayList<>();
 
-        //create context and dependency graph < event -> dependent states >
-        Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
+        // Map to mark visitedState in BFS path search, memoization for BFS path
+        Map<Long, Boolean> visitedStateIds = new HashMap<>();
 
-        buildStateToOutputEventMap(stateMachine.getId(), stateMachine.getStates());
-
-        traversalPathStateIds = new ArrayList<>();
+        // Map to store stateId and its corresponding outputEvent
+        Map<Long, String> stateOutputEvents = new HashMap<>();
 
         for (State state : stateMachine.getStates()) {
-            if(pathExists(context, initialStateId, state.getId())) {
-                traversalPathStateIds.add(state.getId());
+            try {
+                stateOutputEvents.put(state.getId(), getOutputEventName(state.getOutputEvent()));
+                visitedStateIds.put(state.getId(), Boolean.FALSE);
+            } catch (IOException ex) {
+                throw new RuntimeException("Error occurred while deserializing task outputEvent for stateMachineId: "
+                        + stateMachine.getId() + " stateId: " + state.getId());
+            }
+        }
+
+        for (State state : stateMachine.getStates()) {
+            // verify this initial dest equal check
+            if(!visitedStateIds.get(state.getId())) {
+                if(initialStateId != state.getId()) {
+                    visitedStateIds = searchPaths(context, initialStateId, state.getId(), visitedStateIds, stateOutputEvents);
+                }
+                else {
+                    visitedStateIds.put(state.getId(), Boolean.TRUE);
+                }
+            }
+        }
+
+        for (Map.Entry<Long, Boolean> isStateVisited : visitedStateIds.entrySet()) {
+            if(isStateVisited.getValue()) {
+                traversalPathStateIds.add(isStateVisited.getKey());
             }
         }
         return traversalPathStateIds;
     }
 
-    private void buildStateToOutputEventMap(String stateMachineId, Set<State> states) throws RuntimeException {
-
-        stateOutputEvents = new HashMap<>();
-
-        for (State state : states) {
-            try {
-                stateOutputEvents.put(state.getId(), getOutputEventName(state.getOutputEvent()));
-
-            } catch (IOException ex) {
-                throw new RuntimeException("Error occurred while deserializing task outputEvent for stateMachineId: "
-                        + stateMachineId + " stateId: " + state.getId());
-            }
-        }
-    }
-
-
     // TODO : Add description, test cases
     // TODO : Will modify to return all states in the path
+    // TODO : Make this private
     // BFS to check a path between 2 states
-    public boolean pathExists(Context context, Long initialStateId,
-                              Long destinationStateId) {
+    public Map<Long, Boolean> searchPaths(Context context, Long initialStateId,
+                                          Long destinationStateId, Map<Long, Boolean> visitedStateIds,
+                                          Map<Long, String> stateOutputEvents) {
 
-        Map<Long, Boolean> visitedState = new HashMap<>();
-        LinkedList<Long> queue = new LinkedList<>();
+        Queue<LinkedList<Long>> queueOfPaths = new LinkedList<>();
+        LinkedList<Long> currentPath = new LinkedList<>();
 
-        // initialise visited states
-        for (Map.Entry<Long,String> stateOutputEvent : stateOutputEvents.entrySet()) {
-            visitedState.put(stateOutputEvent.getKey(), Boolean.FALSE);
-        }
-
-        visitedState.put(initialStateId, Boolean.TRUE);
-        queue.add(initialStateId);
+        currentPath.add(initialStateId);
+        queueOfPaths.add(currentPath);
 
         Set<Long> nextDependentStateIds;
 
-        while (queue.size() != 0) {
-            Long retrievedStateId = queue.poll();
+        while (queueOfPaths.size() != 0) {
+            currentPath = queueOfPaths.poll();
+            Long lastStateId = currentPath.getLast();
 
-            if (stateOutputEvents.get(retrievedStateId) != null) {
-                String outputEventName;
+            if(lastStateId.equals(destinationStateId)) {
 
-                outputEventName = stateOutputEvents.get(retrievedStateId);
+                for (Long stateId : currentPath) {
+                    visitedStateIds.put(stateId, Boolean.TRUE);
+                }
+                continue;
+            }
+            nextDependentStateIds = context.getDependentStateIds(stateOutputEvents.get(lastStateId));
 
-                nextDependentStateIds = context.getDependentStateIds(outputEventName);
+            // handle null nextDependentStateIds
+            for (Long dependentStateId : nextDependentStateIds) {
+                if(!currentPath.contains(dependentStateId)) {
+                    LinkedList<Long> newPath = new LinkedList<>();
 
-                // handle null nextDependentStateIds
-                for (Long dependentStateId : nextDependentStateIds) {
-                    if (dependentStateId.equals(destinationStateId)) {
-                        return true;
-                    }
-
-                    if (!visitedState.get(dependentStateId)) {
-                        visitedState.put(dependentStateId, Boolean.TRUE);
-                        queue.add(dependentStateId);
-                    }
+                    newPath.addAll(currentPath);
+                    newPath.add(dependentStateId);
+                    queueOfPaths.add(newPath);
                 }
             }
         }
-        return false;
+        return visitedStateIds;
     }
 
     /**

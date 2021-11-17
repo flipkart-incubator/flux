@@ -336,11 +336,12 @@ public class WorkFlowExecutionController {
         // add previous executionVersion replay event to be marked as invalid.
         dependantEvents.add(eventData.getName());
 
+        /* Seems to be deadcode at this commit, will remove if there are no references changing it
         // Using BFS, for each state in State Machine, find path between initial dependant state -> current state
         for (State state : stateMachine.getStates()) {
             // TODO : Need to check for equals method in State. Until then using state Name here.
             if (!dependantStateOnReplayEvent.getName().equals(state.getName())) {
-                if(searchUtil.pathExists(context, dependantStateOnReplayEvent.getId(), state.getId())) {
+                if(Boolean.FALSE) {
                     dependantStates.add(state);
 
                     String outputEventName = getOutputEventName(dependantStateOnReplayEvent.getOutputEvent());
@@ -350,6 +351,8 @@ public class WorkFlowExecutionController {
                 }
             }
         }
+        */
+
         logger.info("Building set of states and list of events in dependancy path of replay event:{} for SMId:{} is done.",
                 eventData.getName(), stateMachine.getId());
         //Remove external events from being marked as invalid.
@@ -385,7 +388,6 @@ public class WorkFlowExecutionController {
      *  4. Create new event entries in pending status including replay event as triggered containing event data with executionVersion
      *     read in step 2.
      * @param eventData
-     * @param dependantStateOnReplayEvent
      * @param dependantStates
      * @param dependantEvents
      * @param stateMachineId

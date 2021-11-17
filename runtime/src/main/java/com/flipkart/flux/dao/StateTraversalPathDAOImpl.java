@@ -53,12 +53,10 @@ public class StateTraversalPathDAOImpl extends AbstractDAO<StateTraversalPath> i
                 .add(Restrictions.eq("stateMachineId", stateMachineId))
                 .add(Restrictions.eq("stateId", stateId));
         Object object = criteria.uniqueResult();
+        // TODO : Need to check to use Optional object
         StateTraversalPath castedObject = null;
         if(object != null)
             castedObject = (StateTraversalPath) object;
-        else
-            // add empty object here using Optional class
-            castedObject = null;
         return castedObject;
     }
 

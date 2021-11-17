@@ -22,6 +22,7 @@ import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.domain.*;
+import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.Storage;
@@ -103,32 +104,45 @@ public class StateMachinePersistenceService {
         return stateMachine;
     }
 
+    /**
+     * Computes traversal path for all replayable states in a state machine and stores in DB
+     * @param stateMachineId
+     * @param stateMachine
+     * @throws RuntimeException
+     */
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public void createAndPersistStateTraversal(String stateMachineId, StateMachine stateMachine) {
 
-        // Inject this object
         SearchUtil searchUtil = new SearchUtil();
 
-        Set<State> replayableStates = getReplayableStates(stateMachine.getStates());
+        //create context and dependency graph < event -> dependent states >
+        Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
 
-        for (State replayableState : replayableStates) {
-            List<Long> nextDependentStateIds = searchUtil.getStatesInTraversalPath(stateMachine, replayableState.getId());
-            //store in db
+        Set<Long> replayableStateIds = filterReplayableStates(stateMachine.getStates());
+
+        for (Long replayableStateId : replayableStateIds) {
+            List<Long> nextDependentStateIds = searchUtil.findStatesInTraversalPath(context, stateMachine,
+                    replayableStateId);
+
+            //create and store traversal path for given replayable state
             stateTraversalPathDAO.create(stateMachineId,
-                    new StateTraversalPath(stateMachineId, replayableState.getId(), nextDependentStateIds));
-
+                    new StateTraversalPath(stateMachineId, replayableStateId, nextDependentStateIds));
         }
     }
 
-    private Set<State> getReplayableStates(Set<State> states) {
-
-        Set<State> replayableStates = new HashSet<>();
+    /**
+     * For given set of states, filter states which are marked as replayable.
+     * @param states
+     * @return
+     */
+    private Set<Long> filterReplayableStates(Set<State> states) {
+        Set<Long> replayableStateIds = new HashSet<>();
         for (State state : states) {
-            if(state.getReplayable())
-                replayableStates.add(state);
+            if(!state.getReplayable())
+                replayableStateIds.add(state.getId());
         }
-        return replayableStates;
+        return replayableStateIds;
     }
     
     /**
