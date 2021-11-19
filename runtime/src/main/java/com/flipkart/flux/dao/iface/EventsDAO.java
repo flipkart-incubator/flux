@@ -43,13 +43,13 @@ public interface EventsDAO {
     List<Event> findAllBySMIdAndName(String stateMachineInstanceId, String eventName);
 
     /** Retrieves Event by state machine instance id, event execution version and event name */
-    Event findByStateMachineIdAndExecutionVersionAndName(String stateMachineInstanceId, String eventName, Long executionVersion);
+    Event findValidEventsByStateMachineIdAndExecutionVersionAndName(String stateMachineInstanceId, String eventName, Long executionVersion);
 
     /** Retrieves list of events which are in triggered/cancelled state and belongs to provided state machine */
     List<String> findTriggeredOrCancelledEventsNamesBySMId(String stateMachineInstanceId);
 
     /** Retrieves list of events whose eventSource is replay and belongs to provided state machine */
-    List<String> findAllReplayEventsNamesBySMId(String stateMachineInstanceId);
+    List<String> findAllValidReplayEventsNamesBySMId(String stateMachineInstanceId);
 
     /** Retrieves list of events which are in triggered state and belongs to provided state machine */
     List<Event> findTriggeredEventsBySMId(String stateMachineInstanceId);

@@ -83,7 +83,7 @@ public class EventsDAOTest {
                 objectMapper.writeValueAsString(data), "state1");
         eventsDAO.create(event.getStateMachineInstanceId(), event);
 
-        Event event1 = eventsDAO.findByStateMachineIdAndExecutionVersionAndName(event.getStateMachineInstanceId(), event.getName(),
+        Event event1 = eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName(event.getStateMachineInstanceId(), event.getName(),
                 0L);
         assertThat(event1).isEqualTo(event);
     }
@@ -189,8 +189,8 @@ public class EventsDAOTest {
         final Event event5 = new Event("event5", "someType", EventStatus.cancelled, standardTestMachine.getId(), null, "replay");
         eventsDAO.create(event5.getStateMachineInstanceId(), event5);
 
-        assertThat(eventsDAO.findAllReplayEventsNamesBySMId(standardTestMachine.getId())).hasSize(3);
-        assertThat(eventsDAO.findAllReplayEventsNamesBySMId(standardTestMachine.getId())).containsOnly("event1","event4","event5");
+        assertThat(eventsDAO.findAllValidReplayEventsNamesBySMId(standardTestMachine.getId())).hasSize(3);
+        assertThat(eventsDAO.findAllValidReplayEventsNamesBySMId(standardTestMachine.getId())).containsOnly("event1","event4","event5");
     }
 
     @Test

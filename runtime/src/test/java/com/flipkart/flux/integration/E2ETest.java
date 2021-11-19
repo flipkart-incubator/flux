@@ -147,7 +147,7 @@ public class E2ETest {
 
         /* Tests the propagation of FluxCancelPathException via event ParamEvent2 */
         String eventName = "com.flipkart.flux.integration.ParamEvent2";
-        assertThat(eventsDAO.findByStateMachineIdAndExecutionVersionAndName(smId, eventName, 0L).getStatus().toString().equalsIgnoreCase("cancelled"));
+        assertThat(eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName(smId, eventName, 0L).getStatus().toString().equalsIgnoreCase("cancelled"));
 
         /* Triggered events coming from States which do not throw FluxCancelPathException */
         assertThat(eventsDAO.findTriggeredEventsBySMId(smId)).hasSize(3);

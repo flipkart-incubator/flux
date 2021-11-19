@@ -256,7 +256,7 @@ public class StateMachineResource {
             if (triggerTime == null) {
                 logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
                 try {
-                    if(eventsDAO.findByStateMachineIdAndExecutionVersionAndName(machineId, eventData.getName(),
+                    if(eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName(machineId, eventData.getName(),
                             eventData.getExecutionVersion()).getStatus() != Event.EventStatus.invalid) {
                         if (eventData.getCancelled() != null && eventData.getCancelled()) {
                             workFlowExecutionController.handlePathCancellation(stateMachine.getId(), eventData);
@@ -308,15 +308,18 @@ public class StateMachineResource {
     ) throws Exception {
 
         try {
+            if (machineId == null || eventData == null)
+                return Response.status(Response.Status.BAD_REQUEST).entity("Please send valid values for machineId and EventData ").build();
+
             LoggingUtils.registerStateMachineIdForLogging(machineId);
             logger.info("Received replay event: {} for state machine id: {}", eventData.getName(), machineId);
             StateMachine stateMachine = null;
             stateMachine = stateMachinesDAO.findById(machineId);
             if (stateMachine == null) {
-                logger.error("stateMachine with id not found while processing replay event {} ", machineId,
+                logger.error("stateMachine with id: {} not found while processing replay event {} ", machineId,
                         eventData.getName());
-                throw new RuntimeException("StateMachine with id " + machineId + " not found while processing replay event "
-                        + eventData.getName());
+                return Response.status(Response.Status.NOT_FOUND).entity("StateMachine with id: " + machineId + " not found while processing replay event: "
+                        + eventData.getName()).build();
             }
             if (stateMachine.getStatus() == StateMachineStatus.cancelled) {
                 logger.info("Discarding replay event: {} as State machine: {} is in cancelled state",
@@ -328,7 +331,7 @@ public class StateMachineResource {
                 // TODO : Add a check to eventSource being "replay"
                 workFlowExecutionController.postReplayEvent(eventData, stateMachine);
                 return Response.status(Response.Status.ACCEPTED).build();
-            } catch (IllegalEventException ex) {
+            } catch (RuntimeException ex) {
                 // TODO: Need to add more catch blocks to handle different illegal event exceptions.
                 // TODO: Sending only one response type for now.
                 return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
@@ -418,14 +421,14 @@ public class StateMachineResource {
                 return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
                         "Event Data|Name|Source cannot be null.").build();
             }
-            Event event = eventsDAO.findByStateMachineIdAndExecutionVersionAndName(machineId, eventData.getName(),
+            Event event = eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName(machineId, eventData.getName(),
                     eventData.getExecutionVersion());
             if (event == null) {
                 logger.error("Event with input event Name {} doesn't exist.", eventData.getName());
                 return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(
                         "Event with input event Name doesn't exist.").build();
             }
-            if (eventsDAO.findByStateMachineIdAndExecutionVersionAndName(machineId, eventData.getName(),
+            if (eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName(machineId, eventData.getName(),
                     eventData.getExecutionVersion()).getStatus() != Event.EventStatus.triggered) {
                 return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
                         "Input event is not in triggered state.").build();

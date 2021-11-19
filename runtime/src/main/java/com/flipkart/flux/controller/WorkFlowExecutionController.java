@@ -368,7 +368,7 @@ public class WorkFlowExecutionController {
             for (String eventName : tempDependantEvents) {
                 // Using default execution version "0L" because it's the only executionVersion which will have all
                 // event's entries
-                if (eventsDAO.findByStateMachineIdAndExecutionVersionAndName(stateMachine.getId(), eventName, 0L)
+                if (eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName(stateMachine.getId(), eventName, 0L)
                         .getEventSource().equals("external")) {
                     dependantEvents.remove(eventName);
                 }
@@ -425,7 +425,7 @@ public class WorkFlowExecutionController {
         for (String eventName : dependantEvents) {
             // To retrieve event meta data (type) for creating new event with new smExecutionVersion
             // Retrieving for executionVersion 0 is fine because type of event doesn't change with executionVersion
-            Event currentEvent = eventsDAO.findByStateMachineIdAndExecutionVersionAndName(stateMachineId, eventName, 0L);
+            Event currentEvent = eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName(stateMachineId, eventName, 0L);
             Event event = new Event(currentEvent.getName(), currentEvent.getType(), Event.EventStatus.pending,
                     stateMachineId, null, null, smExecutionVersion);
             eventsDAO.create(stateMachineId, event);
@@ -459,7 +459,7 @@ public class WorkFlowExecutionController {
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Event persistEvent(String stateMachineInstanceId, EventData eventData) {
         //update event's data and status
-        Event event = eventsDAO.findByStateMachineIdAndExecutionVersionAndName(stateMachineInstanceId, eventData.getName(),
+        Event event = eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName(stateMachineInstanceId, eventData.getName(),
                 eventData.getExecutionVersion());
         if (event == null)
             throw new IllegalEventException("Event with stateMachineId: " + stateMachineInstanceId + ", event name: " + eventData.getName() + " not found");
@@ -756,7 +756,7 @@ public class WorkFlowExecutionController {
         Set<String> receivedEvents = new HashSet<>(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId(stateMachineInstanceId));
 
         // Since replay event is optional, not required to check it's eventStatus. It's considered as dependency met.
-        Set<String> replayEvents = new HashSet<>(eventsDAO.findAllReplayEventsNamesBySMId(stateMachineInstanceId));
+        Set<String> replayEvents = new HashSet<>(eventsDAO.findAllValidReplayEventsNamesBySMId(stateMachineInstanceId));
         receivedEvents.addAll(replayEvents);
         // for each state
         // 1. get the dependencies (events)

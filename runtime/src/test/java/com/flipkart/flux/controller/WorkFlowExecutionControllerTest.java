@@ -112,7 +112,7 @@ public class WorkFlowExecutionControllerTest {
     public void testEventPost_shouldForwardToTaskDispatcher() throws Exception {
         final EventData testEventData = new EventData("event0", "java.lang.String", "42", "runtime");
 
-        when(eventsDAO.findByStateMachineIdAndExecutionVersionAndName("standard-machine", "event0",
+        when(eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName("standard-machine", "event0",
                 0L)).thenReturn(new Event(
                         "event0", "java.lang.String", Event.EventStatus.pending,
                 "standard-machine", null, null));
@@ -132,7 +132,7 @@ public class WorkFlowExecutionControllerTest {
     @Test
     public void testEventPost_shouldNotFetchEventDataFromDBIfStateIsDependantOnSingleEvent() throws Exception {
         final EventData testEventData = new EventData("event1", "foo", "someStringData", "runtime");
-        when(eventsDAO.findByStateMachineIdAndExecutionVersionAndName("standard-machine", "event1",
+        when(eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName("standard-machine", "event1",
                 0L)).thenReturn(new Event(
                         "event1", "foo", Event.EventStatus.pending, "1",
                 null, null));
@@ -147,7 +147,7 @@ public class WorkFlowExecutionControllerTest {
     public void testEventPost_taskRedriveDelay() throws Exception {
         final EventData testEventData1 = new EventData("event1", "java.lang.String", "42", "runtime");
 
-        when(eventsDAO.findByStateMachineIdAndExecutionVersionAndName("standard-machine", "event1",
+        when(eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName("standard-machine", "event1",
                 0L)).thenReturn(new Event(
                         "event1", "java.lang.String", Event.EventStatus.pending, "1",
                 null, null));
@@ -157,7 +157,7 @@ public class WorkFlowExecutionControllerTest {
         workFlowExecutionController.postEvent(testEventData1, "standard-machine");
 
         final EventData testEventData0 = new EventData("event0", "java.lang.String", "42", "runtime");
-        when(eventsDAO.findByStateMachineIdAndExecutionVersionAndName("standard-machine", "event0",
+        when(eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName("standard-machine", "event0",
                 0L)).thenReturn(new Event("event0", "java.lang.String",
                 Event.EventStatus.pending, "1", null, null));
         EventData[] expectedEvents0 = new EventData[]{new EventData("event0", "java.lang.String", "42", "runtime")};
@@ -176,7 +176,7 @@ public class WorkFlowExecutionControllerTest {
     public void testEventPost_shouldNotSendExecuteTaskIfItIsAlreadyCompleted() throws Exception {
         final EventData testEventData = new EventData("event0", "java.lang.String", "42", "runtime");
 
-        when(eventsDAO.findByStateMachineIdAndExecutionVersionAndName("standard-machine", "event0",
+        when(eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName("standard-machine", "event0",
                 0L)).thenReturn(new Event("event0", "java.lang.String",
                 Event.EventStatus.pending, "1", null, null));
         when(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId("standard-machine")).thenReturn(Collections.singletonList("event0"));
@@ -197,7 +197,7 @@ public class WorkFlowExecutionControllerTest {
     public void testEventPost_shouldSendExecuteTaskIfItIsNotCompleted() throws Exception {
         final EventData testEventData = new EventData("event0", "java.lang.String", "42", "runtime");
 
-        when(eventsDAO.findByStateMachineIdAndExecutionVersionAndName("standard-machine", "event0",
+        when(eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName("standard-machine", "event0",
                 0L)).thenReturn(new Event("event0", "java.lang.String",
                 Event.EventStatus.pending, "1", null, null));
         when(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId("standard-machine")).thenReturn(Collections.singletonList("event0"));
@@ -218,7 +218,7 @@ public class WorkFlowExecutionControllerTest {
     public void testEventPost_shouldNotSendExecuteTaskIfItIsCancelled() throws Exception {
         final EventData testEventData = new EventData("event0", "java.lang.String", "42", "runtime");
 
-        when(eventsDAO.findByStateMachineIdAndExecutionVersionAndName("standard-machine", "event0",
+        when(eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName("standard-machine", "event0",
                 0L)).thenReturn(new Event("event0", "java.lang.String",
                 Event.EventStatus.pending, "1", null, null));
         when(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId("standard-machine")).thenReturn(Collections.singletonList("event0"));
