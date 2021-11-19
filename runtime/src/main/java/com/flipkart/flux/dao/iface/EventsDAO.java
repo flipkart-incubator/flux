@@ -16,6 +16,7 @@ package com.flipkart.flux.dao.iface;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.domain.Event;
+import org.hibernate.Session;
 
 import java.util.List;
 import java.util.Map;
@@ -46,6 +47,11 @@ public interface EventsDAO {
     /** Retrieves Event by state machine instance id, event execution version and event name */
     Event findValidEventsByStateMachineIdAndExecutionVersionAndName(String stateMachineInstanceId, String eventName, Long executionVersion);
 
+    /**
+     * @return all valid events for the list of names
+     */
+    List<Event> findAllValidEventsByStateMachineIdAndExecutionVersionAndName(String stateMachineInstanceId, List<String> eventNames, Long executionVersion);
+
     /** Retrieves list of events which are in triggered/cancelled state and belongs to provided state machine */
     List<String> findTriggeredOrCancelledEventsNamesBySMId(String stateMachineInstanceId);
 
@@ -70,4 +76,6 @@ public interface EventsDAO {
 
     /** Marks list of events as invalid */
     void markEventsAsInvalid(String stateMachineInstanceId, List<String> eventName);
+
+    void markEventsAsInvalid_NonTransactional(String stateMachineInstanceId, List<String> eventName, Session session);
 }

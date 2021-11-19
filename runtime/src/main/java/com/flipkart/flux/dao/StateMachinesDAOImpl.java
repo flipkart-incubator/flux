@@ -21,6 +21,7 @@ import com.flipkart.flux.shard.ShardId;
 import com.google.inject.name.Named;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
+import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 
 import javax.inject.Inject;
@@ -100,4 +101,12 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
         query.executeUpdate();
     }
 
+    @Override
+    public void updateExecutionVersion_NonTransactional(String stateMachineId, Long smExecutionVersion, Session session) {
+        Query query = session.createQuery(
+                "update StateMachine set executionVersion = :executionVersion where id = :stateMachineId");
+        query.setLong("executionVersion", smExecutionVersion);
+        query.setString("stateMachineId", stateMachineId);
+        query.executeUpdate();
+    }
 }

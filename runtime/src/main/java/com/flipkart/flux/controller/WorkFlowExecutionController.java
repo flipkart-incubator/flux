@@ -36,6 +36,7 @@ import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.utils.LoggingUtils;
 import com.google.common.collect.Sets;
+import com.google.gson.JsonParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -314,13 +315,17 @@ public class WorkFlowExecutionController {
      */
     public void postReplayEvent(EventData eventData, StateMachine stateMachine) throws IllegalEventException, IOException {
 
-        Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
-
         // TODO : Add a check on client side so as not to allow a replay event being a dependency of 2 or more states.
         //Get the dependant state on this replay event.
-        Long dependantStateId = statesDAO.findStateByDependentReplayEvent(stateMachine.getId(), eventData.getName());
-        State dependantStateOnReplayEvent = statesDAO.findById(stateMachine.getId(), dependantStateId);
-        // TODO : Add null check for dependantStateOnReplayEvent
+        List<State> dependentStates = statesDAO.findStatesByDependentEvent(stateMachine.getId(),eventData.getName());
+        if (dependentStates.size() > 1){
+            throw new IllegalEventException("More than 1 state is dependent on this replay event :"+eventData.getName());
+        } else if (dependentStates.isEmpty()) {
+            throw new IllegalEventException(
+                    "No dependent state found for the event: " + eventData.getName());
+        }
+        State dependantStateOnReplayEvent = dependentStates.get(0);
+        Long dependantStateId = dependantStateOnReplayEvent.getId();
         logger.info("This state {} depends on replay event {}", dependantStateOnReplayEvent.getName(), eventData.getName());
         if(!dependantStateOnReplayEvent.getReplayable() || dependantStateOnReplayEvent.getStatus() != Status.completed) {
             throw new IllegalEventException("Dependant state:"+ dependantStateOnReplayEvent.getName() +" with stateMachineId:" +
@@ -329,7 +334,6 @@ public class WorkFlowExecutionController {
 
         // Build states set and events names list in topological path of replay event
         // All these states and events will be marked as invalid.
-        // TODO: Need to add test cases for this.
         Set<State> dependantStates = new HashSet<>();
         List<String> dependantEvents = new ArrayList<>();
 
@@ -350,7 +354,20 @@ public class WorkFlowExecutionController {
         if(traversalPathStates.isPresent()) {
 
             List<Long> nextDependentStateIds = traversalPathStates.get().getNextDependentStates();
-            for (Long stateId : nextDependentStateIds) {
+            statesDAO.findAllStatesForGivenStateIds(stateMachine.getId(),nextDependentStateIds).parallelStream().forEach(state ->{
+                String outputEvent = state.getOutputEvent();
+                if(outputEvent != null) {
+                    String outputEventName;
+                    try {
+                        outputEventName = getOutputEventName(outputEvent);
+                    } catch (IOException e) {
+                        throw new JsonParseException("Unable to deserialize the value from DB. Error: "+e.getMessage());
+                    }
+                    if (outputEventName != null && !dependantEvents.contains(outputEventName))
+                        dependantEvents.add(outputEventName);
+                }
+            });
+            /*for (Long stateId : nextDependentStateIds) {
                 String outputEvent = statesDAO.findById(stateMachine.getId(), stateId).getOutputEvent();
 
                 if(outputEvent != null) {
@@ -358,23 +375,28 @@ public class WorkFlowExecutionController {
                     if (!dependantEvents.contains(outputEventName.toString()))
                         dependantEvents.add(outputEventName);
                 }
-            }
-            logger.info("Building set of states and list of events in dependancy path of replay event:{} for SMId:{} is done.",
+            }*/
+            logger.info("Building set of states and list of events in dependency path of replay event:{} for SMId:{} is done.",
                     eventData.getName(), stateMachine.getId());
 
             //Remove external events from being marked as invalid.
-            List<String> tempDependantEvents = new ArrayList<>();
-            tempDependantEvents.addAll(dependantEvents);
-            for (String eventName : tempDependantEvents) {
-                // Using default execution version "0L" because it's the only executionVersion which will have all
-                // event's entries
+            List<String> tempDependantEvents = new ArrayList<>(dependantEvents);
+            // Using default execution version "0L" because it's the only executionVersion which will have all
+            // event's entries
+            eventsDAO.findAllValidEventsByStateMachineIdAndExecutionVersionAndName(stateMachine.getId(),dependantEvents,0l)
+                    .parallelStream().forEach(event -> {
+                if (event.getEventSource().equalsIgnoreCase("external")){
+                    dependantEvents.remove(event.getName());
+                }
+            });
+
+            /*for (String eventName : tempDependantEvents) {
                 if (eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName(stateMachine.getId(), eventName, 0L)
                         .getEventSource().equals("external")) {
                     dependantEvents.remove(eventName);
                 }
-            }
-            logger.info("Set of States:{} , List of Events:{}", dependantStates, dependantEvents);
-
+            }*/
+            logger.info("Dependent Set of States: {} and dependent list of Events: {}", dependantStates, dependantEvents);
             // TODO : Handle error responses
             Event currentEvent = persistAndProcessReplayEvent(eventData, dependantStates, dependantEvents, stateMachine.getId());
 

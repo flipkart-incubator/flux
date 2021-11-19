@@ -19,6 +19,7 @@ import java.util.List;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.shard.ShardId;
+import org.hibernate.Session;
 
 /**
  * <code>StatesDAO</code> interface provides methods to perform CR operations on {@link State}
@@ -46,6 +47,8 @@ public interface StatesDAO {
      */
     void updateStatus(String stateMachineInstanceId, List<State> states, Status status);
 
+    void updateStatus_NonTransactional(String stateMachineInstanceId, List<State> states, Status status, Session session);
+
     /**
      * Updates rollback status of a state
      */
@@ -61,6 +64,8 @@ public interface StatesDAO {
      */
     void updateExecutionVersion(String stateMachineInstanceId, Long stateId, Long executionVersion);
 
+    void updateExecutionVersion_NonTransactional(String stateMachineInstanceId, List<State> states, Long executionVersion, Session session);
+
     /**
      * Updates the execution version for all the specified States in the given State Machine
      *
@@ -74,6 +79,11 @@ public interface StatesDAO {
      * Retrieves a state by it's unique identifier
      */
     State findById(String stateMachineInstanceId, Long id);
+
+    /**
+     * @return list of all the states for the given state ids
+     */
+    List<State> findAllStatesForGivenStateIds(String stateMachineInstanceId, List<Long> stateIds);
 
     /**
      * Scatter gather query for slaves

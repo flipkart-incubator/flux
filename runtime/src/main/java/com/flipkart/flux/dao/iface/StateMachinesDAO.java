@@ -16,6 +16,7 @@ package com.flipkart.flux.dao.iface;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.StateMachineStatus;
 import com.flipkart.flux.shard.ShardId;
+import org.hibernate.Session;
 
 import java.util.Set;
 
@@ -59,4 +60,6 @@ public interface StateMachinesDAO {
      * post replay event.
      */
     void updateExecutionVersion(String stateMachineInstanceId, Long smExecutionVersion);
+
+    void updateExecutionVersion_NonTransactional(String stateMachineInstanceId, Long smExecutionVersion, Session session);
 }
