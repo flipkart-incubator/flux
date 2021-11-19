@@ -256,25 +256,20 @@ public class StateMachineResource {
             if (triggerTime == null) {
                 logger.info("Received event: {} for state machine: {}", eventData.getName(), machineId);
                 try {
-                    if(eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName(machineId, eventData.getName(),
-                            eventData.getExecutionVersion()).getStatus() != Event.EventStatus.invalid) {
-                        if (eventData.getCancelled() != null && eventData.getCancelled()) {
-                            workFlowExecutionController.handlePathCancellation(stateMachine.getId(), eventData);
-                        } else {
-                            workFlowExecutionController.postEvent(eventData, stateMachine.getId());
-                        }
-                    }
-                    else {
-                        logger.info("Discarding event:{} with eventExecutionVersion:{} " +
-                                        "for state machine: {}. StateExecutionVersion, it's not valid anymore.",
-                                eventData.getName(), eventData.getExecutionVersion(), machineId);
+                    Event event = eventsDAO.findValidEventBySMIdAndName(machineId, eventData.getName());
+                    VersionedEventData versionedEventData = new VersionedEventData(eventData.getName(),
+                            eventData.getType(), eventData.getData(), eventData.getEventSource(),
+                            eventData.getCancelled(), event.getExecutionVersion());
+                    if (versionedEventData.getCancelled() != null && versionedEventData.getCancelled()) {
+                        workFlowExecutionController.handlePathCancellation(stateMachine.getId(), versionedEventData);
+                    } else {
+                        workFlowExecutionController.postEvent(versionedEventData, stateMachine.getId());
                     }
                     return Response.status(Response.Status.ACCEPTED).build();
                 } catch (IllegalEventException ex) {
                     return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage()).build();
                 }
             } else {
-                // TODO: Handle this path with execution version added.
                 logger.info("Received event: {} for state machine: {} with triggerTime: {}", eventData.getName(), machineId, triggerTime);
                 if (searchField == null || !searchField.equals(CORRELATION_ID))
                     return Response.status(Response.Status.BAD_REQUEST).entity("searchField=correlationId is missing in the request").build();
@@ -360,21 +355,20 @@ public class StateMachineResource {
             if (stateMachine == null) {
                 return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity("State machine with Id: " + machineId + " not found").build();
             }
-            EventData eventData = eventAndExecutionData.getEventData();
+            VersionedEventData versionedEventData = eventAndExecutionData.getVersionedEventData();
             ExecutionUpdateData executionUpdateData = eventAndExecutionData.getExecutionUpdateData();
             try {
                 if(executionUpdateData.getTaskExecutionVersion() == statesDAO.findById(
                         machineId, executionUpdateData.getTaskId()).getExecutionVersion()) {
                     logger.info("Received event:{} with eventExecutionVersion:{} from state: {} with stateExecutionVersion:{}" +
-                                    " for state machine: {}", eventData.getName(), eventData.getExecutionVersion(),
+                                    " for state machine: {}", versionedEventData.getName(), versionedEventData.getExecutionVersion(),
                             executionUpdateData.getTaskId(), executionUpdateData.getTaskExecutionVersion(), machineId);
-                    if (eventData.getCancelled() != null && eventData.getCancelled()) {
-                        // TODO: Handle this path with execution version added.
+                    if (versionedEventData.getCancelled() != null && versionedEventData.getCancelled()) {
                         workFlowExecutionController.updateTaskStatusAndHandlePathCancellation(machineId, eventAndExecutionData);
                     } else {
                         workFlowExecutionController.updateTaskStatus(machineId, executionUpdateData.getTaskId(),
                                 executionUpdateData.getTaskExecutionVersion(), executionUpdateData);
-                        workFlowExecutionController.postEvent(eventData, stateMachine.getId());
+                        workFlowExecutionController.postEvent(versionedEventData, stateMachine.getId());
                     }
                 }
                 else {
@@ -383,7 +377,7 @@ public class StateMachineResource {
                     logger.info("Discarding event:{} with eventExecutionVersion:{} from state: {} with " +
                                     "stateExecutionVersion:{}" +
                                     " for state machine: {}. StateExecutionVersion, it's not valid anymore.",
-                            eventData.getName(), eventData.getExecutionVersion(),
+                            versionedEventData.getName(), versionedEventData.getExecutionVersion(),
                             executionUpdateData.getTaskId(), executionUpdateData.getTaskExecutionVersion(), machineId);
                 }
             } catch (IllegalEventException ex) {
@@ -421,15 +415,13 @@ public class StateMachineResource {
                 return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
                         "Event Data|Name|Source cannot be null.").build();
             }
-            Event event = eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName(machineId, eventData.getName(),
-                    eventData.getExecutionVersion());
+            Event event = eventsDAO.findValidEventBySMIdAndName(machineId, eventData.getName());
             if (event == null) {
-                logger.error("Event with input event Name {} doesn't exist.", eventData.getName());
+                logger.error("Event with input event Name {} doesn't exist or is invalid.", eventData.getName());
                 return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(
-                        "Event with input event Name doesn't exist.").build();
+                        "Event with input event Name doesn't exist or is invalid.").build();
             }
-            if (eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName(machineId, eventData.getName(),
-                    eventData.getExecutionVersion()).getStatus() != Event.EventStatus.triggered) {
+            if (event.getStatus() != Event.EventStatus.triggered) {
                 return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
                         "Input event is not in triggered state.").build();
             }
@@ -437,7 +429,10 @@ public class StateMachineResource {
             /* List holds objects retrieved from States matching input machineId and eventName as [taskId, machineId, status] */
             List<Object[]> states = statesDAO.findStatesByDependentEvent(machineId, eventData.getName());
             if (validateEventUpdate(states)) {
-                workFlowExecutionController.updateEventData(machineId, eventData);
+                VersionedEventData versionedEventData = new VersionedEventData(eventData.getName(), eventData.getType(),
+                        eventData.getData(), eventData.getEventSource(), eventData.getCancelled(),
+                        event.getExecutionVersion());
+                workFlowExecutionController.updateEventData(machineId, versionedEventData);
                 for (Object[] state : states) {
                     Status stateStatus = (Status) state[2];
                     if (stateStatus == Status.initialized || stateStatus == Status.errored || stateStatus == Status.sidelined) {

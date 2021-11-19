@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2016, the original author or authors.
+ * Copyright 2012-2019, the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,17 +15,19 @@ package com.flipkart.flux.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
- * <code>EventData</code> represents the event which would be submitted to flux runtime from inside/outside world.
+ * <code>VersionedEventData</code> represents the event which would be submitted to flux runtime from inside world.
  * This is useful for data transfer purpose only.
  *
- * @author shyam.akirala
+ * @author akif.khan
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class EventData implements Serializable {
+public class VersionedEventData implements Serializable {
 
     /**
      * Name of the event
@@ -53,24 +55,39 @@ public class EventData implements Serializable {
     private Boolean isCancelled;
 
     /**
+     * Indicates execution version for this event
+     */
+    private Long executionVersion;
+
+    /**
      * Used by jackson
      */
-    EventData() {
+    VersionedEventData() {
     }
 
     /**
      * constructor
      */
-    public EventData(String name, String type, String data, String eventSource) {
-        this(name, type, data, eventSource, false);
+    public VersionedEventData(String name, String type, String data, String eventSource) {
+        this(name, type, data, eventSource, false, 0L);
     }
 
-    public EventData(String name, String type, String data, String eventSource, Boolean isCancelled) {
+    public VersionedEventData(String name, String type, String data, String eventSource, Long executionVersion) {
+        this(name, type, data, eventSource, false, executionVersion);
+    }
+
+    public VersionedEventData(String name, String type, String data, String eventSource, Boolean isCancelled) {
+        this(name, type, data, eventSource, isCancelled, 0L);
+    }
+
+    public VersionedEventData(String name, String type, String data, String eventSource, Boolean isCancelled,
+                              Long executionVersion) {
         this.name = name;
         this.type = type;
         this.data = data;
         this.eventSource = eventSource;
         this.isCancelled = isCancelled;
+        this.executionVersion = executionVersion;
     }
 
     /**
@@ -116,19 +133,29 @@ public class EventData implements Serializable {
         isCancelled = cancelled;
     }
 
+    public Long getExecutionVersion() {
+        return executionVersion;
+    }
+
+    public void setExecutionVersion(Long executionVersion) {
+        this.executionVersion = executionVersion;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        EventData eventData = (EventData) o;
+        VersionedEventData versionedEventData = (VersionedEventData) o;
 
-        if (!name.equals(eventData.name)) return false;
-        if (type != null ? !type.equals(eventData.type) : eventData.type != null) return false;
-        if (data != null ? !data.equals(eventData.data) : eventData.data != null) return false;
-        if (eventSource != null ? !eventSource.equals(eventData.eventSource) : eventData.eventSource != null)
+        if (!name.equals(versionedEventData.name)) return false;
+        if (!Objects.equals(type, versionedEventData.type)) return false;
+        if (!Objects.equals(data, versionedEventData.data)) return false;
+        if (!Objects.equals(eventSource, versionedEventData.eventSource))
             return false;
-        return isCancelled != null ? isCancelled.equals(eventData.isCancelled) : eventData.isCancelled == null;
+        if (!Objects.equals(executionVersion, versionedEventData.executionVersion))
+            return false;
+        return Objects.equals(isCancelled, versionedEventData.isCancelled);
     }
 
     @Override
@@ -137,17 +164,19 @@ public class EventData implements Serializable {
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (data != null ? data.hashCode() : 0);
         result = 31 * result + (eventSource != null ? eventSource.hashCode() : 0);
+        result = 31 * result + (executionVersion != null ? executionVersion.hashCode() : 0);
         result = 31 * result + (isCancelled != null ? isCancelled.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return "EventData{" +
+        return "VersionedEventData{" +
                 "name='" + name + '\'' +
                 ", type='" + type + '\'' +
                 ", data='" + data + '\'' +
                 ", eventSource='" + eventSource + '\'' +
+                ", executionVersion=" + executionVersion +
                 ", isCancelled=" + isCancelled +
                 '}';
     }

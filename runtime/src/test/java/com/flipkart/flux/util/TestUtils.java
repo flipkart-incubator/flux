@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
 import com.flipkart.flux.domain.Event;
@@ -227,7 +228,8 @@ public class TestUtils {
     }
 
     public static TaskExecutionMessage getStandardTaskExecutionMessage() throws Exception {
-        EventData[] expectedEvents = new EventData[]{new EventData("event0", "java.lang.String", "42", "runtime")};
+        VersionedEventData[] expectedEvents = new VersionedEventData[]{new VersionedEventData("event0",
+                "java.lang.String", "42", "runtime")};
         StateMachine sm = getStandardTestMachine();
         State state = sm.getStates().stream().filter((s) -> s.getId() == 4L).findFirst().orElse(null);
         TaskExecutionMessage msg = new TaskExecutionMessage();

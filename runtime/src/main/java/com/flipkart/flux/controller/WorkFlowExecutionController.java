@@ -170,7 +170,7 @@ public class WorkFlowExecutionController {
         updateTaskStatus(stateMachine.getId(), eventAndExecutionData.getExecutionUpdateData().getTaskId(),
                 eventAndExecutionData.getExecutionUpdateData().getTaskExecutionVersion(),
                 eventAndExecutionData.getExecutionUpdateData());
-        return persistEvent(stateMachine.getId(), eventAndExecutionData.getEventData());
+        return persistEvent(stateMachine.getId(), eventAndExecutionData.getVersionedEventData());
     }
 
     /**
@@ -182,7 +182,7 @@ public class WorkFlowExecutionController {
     public void updateTaskStatusAndHandlePathCancellation(String stateMachineId, EventAndExecutionData eventAndExecutionData) {
         Set<State> executableStates = updateTaskStatusAndCancelPath(stateMachineId, eventAndExecutionData);
         logger.info("Path cancellation is done for state machine: {} event: {} which has come from task: {}",
-                stateMachineId, eventAndExecutionData.getEventData().getName(), eventAndExecutionData.getExecutionUpdateData().getTaskId());
+                stateMachineId, eventAndExecutionData.getVersionedEventData().getName(), eventAndExecutionData.getExecutionUpdateData().getTaskId());
         StateMachine stateMachine = stateMachinesDAO.findById(stateMachineId);
         executeStates(stateMachine, executableStates, false);
     }
@@ -200,19 +200,19 @@ public class WorkFlowExecutionController {
         updateTaskStatus(stateMachineId, eventAndExecutionData.getExecutionUpdateData().getTaskId(),
                 eventAndExecutionData.getExecutionUpdateData().getTaskExecutionVersion(),
                 eventAndExecutionData.getExecutionUpdateData());
-        return cancelPath(stateMachineId, eventAndExecutionData.getEventData());
+        return cancelPath(stateMachineId, eventAndExecutionData.getVersionedEventData());
     }
 
     /**
      * Cancels paths which are dependant on the current event, and returns set of states which can be executed after the cancellation.
      *
      * @param stateMachineId
-     * @param eventData
+     * @param versionedEventData
      * @return executable states after cancellation
      */
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    protected Set<State> cancelPath(String stateMachineId, EventData eventData) {
+    protected Set<State> cancelPath(String stateMachineId, VersionedEventData versionedEventData) {
         Set<State> executableStates = new HashSet<>();
         StateMachine stateMachine = stateMachinesDAO.findById(stateMachineId);
         //create context and dependency graph
@@ -225,7 +225,7 @@ public class WorkFlowExecutionController {
         Queue<String> cancelledEvents = new LinkedList<>();
 
         // add the current event
-        cancelledEvents.add(eventData.getName());
+        cancelledEvents.add(versionedEventData.getName());
 
         // until the cancelled events is empty
         while (!cancelledEvents.isEmpty()) {
@@ -283,12 +283,12 @@ public class WorkFlowExecutionController {
      * This is called when an event is received with cancelled status. This cancels the particular path in state machine DAG.
      *
      * @param stateMachineId
-     * @param eventData
+     * @param versionedEventData
      */
-    public void handlePathCancellation(String stateMachineId, EventData eventData) {
-        Set<State> executableStates = cancelPath(stateMachineId, eventData);
+    public void handlePathCancellation(String stateMachineId, VersionedEventData versionedEventData) {
+        Set<State> executableStates = cancelPath(stateMachineId, versionedEventData);
         logger.info("Path cancellation is done for state machine: {} event: {}",
-                stateMachineId, eventData.getName());
+                stateMachineId, versionedEventData.getName());
         executeStates(stateMachinesDAO.findById(stateMachineId), executableStates, false);
     }
 
@@ -440,11 +440,11 @@ public class WorkFlowExecutionController {
     /**
      * Retrieves the states which are dependant on this event and starts the execution of eligible states (whose all dependencies are met).
      *
-     * @param eventData
+     * @param versionedEventData
      * @param stateMachineInstanceId
      */
-    public Set<State> postEvent(EventData eventData, String stateMachineInstanceId) {
-        Event event = persistEvent(stateMachineInstanceId, eventData);
+    public Set<State> postEvent(VersionedEventData versionedEventData, String stateMachineInstanceId) {
+        Event event = persistEvent(stateMachineInstanceId, versionedEventData);
         return processEvent(event, stateMachineInstanceId);
     }
 
@@ -452,20 +452,22 @@ public class WorkFlowExecutionController {
      * Persists Event data and changes event status
      *
      * @param stateMachineInstanceId
-     * @param eventData
+     * @param versionedEventData
      * @return
      */
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public Event persistEvent(String stateMachineInstanceId, EventData eventData) {
+    public Event persistEvent(String stateMachineInstanceId, VersionedEventData versionedEventData) {
         //update event's data and status
-        Event event = eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName(stateMachineInstanceId, eventData.getName(),
-                eventData.getExecutionVersion());
+        Event event = eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName(stateMachineInstanceId, versionedEventData.getName(),
+                versionedEventData.getExecutionVersion());
         if (event == null)
-            throw new IllegalEventException("Event with stateMachineId: " + stateMachineInstanceId + ", event name: " + eventData.getName() + " not found");
-        event.setStatus(eventData.getCancelled() != null && eventData.getCancelled() ? Event.EventStatus.cancelled : Event.EventStatus.triggered);
-        event.setEventData(eventData.getData());
-        event.setEventSource(eventData.getEventSource());
+            throw new IllegalEventException("Event with stateMachineId: " + stateMachineInstanceId + ", event name: "
+                    + versionedEventData.getName() + " not found");
+        event.setStatus(versionedEventData.getCancelled() != null && versionedEventData.getCancelled() ?
+                Event.EventStatus.cancelled : Event.EventStatus.triggered);
+        event.setEventData(versionedEventData.getData());
+        event.setEventSource(versionedEventData.getEventSource());
         eventsDAO.updateEvent(event.getStateMachineInstanceId(), event);
         return event;
     }
@@ -583,12 +585,12 @@ public class WorkFlowExecutionController {
      */
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public void updateEventData(String machineId, EventData eventData) {
-        persistEvent(machineId, eventData);
-        String EventUdpateAudit = "Event data updated for event: " + eventData.getName();
+    public void updateEventData(String machineId, VersionedEventData versionedEventData) {
+        persistEvent(machineId, versionedEventData);
+        String EventUdpateAudit = "Event data updated for event: " + versionedEventData.getName();
         this.auditDAO.create(machineId, new AuditRecord(machineId, Long.valueOf(0), Long.valueOf(0),
                 null, null, EventUdpateAudit));
-        logger.info("Updated event data persisted for event: {} and stateMachineId: {}", eventData.getName(), machineId);
+        logger.info("Updated event data persisted for event: {} and stateMachineId: {}", versionedEventData.getName(), machineId);
     }
 
     /**
@@ -667,25 +669,18 @@ public class WorkFlowExecutionController {
                 if (!(state.getStatus() == Status.completed || state.getStatus() == Status.cancelled ||
                 state.getStatus() == Status.invalid)) {
 
-                    List<EventData> eventDatas;
-                    // Reading only replay event's data, ignoring all other dependant event's data.
-                    if(currentEvent != null && currentEvent.getEventSource() != null &&
-                            currentEvent.getEventSource().equalsIgnoreCase("replay")) {
-                        eventDatas = Collections.singletonList(new EventData(currentEvent.getName(),
-                                currentEvent.getType(), currentEvent.getEventData(), currentEvent.getEventSource(),
-                                currentEvent.getExecutionVersion()));
-                    }
+                    List<VersionedEventData> eventDatas;
                     // If the state is dependant on only one event, that would be the event which came now, in that case don't make a call to DB
-                    else if (currentEvent != null && state.getDependencies() != null && state.getDependencies().size() == 1
+                    if (currentEvent != null && state.getDependencies() != null && state.getDependencies().size() == 1
                             && currentEvent.getName().equals(state.getDependencies().get(0))) {
-                        eventDatas = Collections.singletonList(new EventData(currentEvent.getName(),
+                        eventDatas = Collections.singletonList(new VersionedEventData(currentEvent.getName(),
                                 currentEvent.getType(), currentEvent.getEventData(), currentEvent.getEventSource(),
                                 currentEvent.getExecutionVersion()));
                     } else {
                         eventDatas = eventsDAO.findByEventNamesAndSMId(stateMachine.getId(), state.getDependencies());
                     }
                     final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
-                            state.getExecutionVersion(), eventDatas.toArray(new EventData[]{}),
+                            state.getExecutionVersion(), eventDatas.toArray(new VersionedEventData[]{}),
                             stateMachine.getId(), stateMachine.getName(), state.getOutputEvent(),
                             state.getRetryCount(), state.getAttemptedNoOfRetries());
                     if (state.getStatus().equals(Status.initialized) || state.getStatus().equals(Status.unsidelined)) {

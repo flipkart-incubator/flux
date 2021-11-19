@@ -314,7 +314,7 @@ public class StateMachineResourceTest {
         assertThat(eventSchedulerDao.retrieveOldest(1).get(0)).isEqualTo(new ScheduledEvent(
                 "magic_number_1", "event0", triggerTime,
                 "{\"name\":\"event0\",\"type\":\"java.lang.String\",\"data\":\"42\",\"eventSource\":null," +
-                        "\"executionVersion\":0,\"cancelled\":null}"));
+                        "\"cancelled\":null}"));
 
         //waiting for 7 seconds here, to match Event scheduler thread's initial delay of 10 sec (some boot up time + 7 seconds will surpass 10 sec)
         Thread.sleep(9000);

@@ -14,6 +14,7 @@
 package com.flipkart.flux.dao;
 
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.persistence.*;
@@ -77,7 +78,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public Event findBySMIdAndName(String stateMachineInstanceId, String eventName) {
+    public Event findValidEventBySMIdAndName(String stateMachineInstanceId, String eventName) {
         Criteria criteria = currentSession().createCriteria(Event.class)
                 .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("name", eventName))
@@ -180,7 +181,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public List<EventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames) {
+    public List<VersionedEventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames) {
         if (eventNames.isEmpty()) {
             return new ArrayList<>();
         }
@@ -195,12 +196,10 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
                 "and status != 'invalid' and name in (" + eventNamesString.toString()
                 + ") order by field(name, " + eventNamesString.toString() + ")").setParameter("SMID", stateMachineInstanceId);
         List<Event> readEvents = hqlQuery.list();
-        LinkedList<EventData> readEventsDTOs = new LinkedList<EventData>();
+        LinkedList<VersionedEventData> readEventsDTOs = new LinkedList<>();
         for (Event event : readEvents) {
-            // Skip replay event source, since it's an optional event.
-            if(event.getEventSource() != "replay") {
-                readEventsDTOs.add(new EventData(event.getName(), event.getType(), event.getEventData(), event.getEventSource()));
-            }
+            readEventsDTOs.add(new VersionedEventData(event.getName(), event.getType(), event.getEventData(),
+                    event.getEventSource(), event.getExecutionVersion()));
         }
         return readEventsDTOs;
     }

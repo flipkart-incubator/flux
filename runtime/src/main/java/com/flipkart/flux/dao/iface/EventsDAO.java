@@ -14,6 +14,7 @@
 package com.flipkart.flux.dao.iface;
 
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.domain.Event;
 
 import java.util.List;
@@ -34,8 +35,8 @@ public interface EventsDAO {
     /** Retrieves all the events which belongs to a particular state machine instance*/
     List<Event> findBySMInstanceId(String stateMachineInstanceId);
 
-    /** Retrieves Event by state machine instance id and event name */
-    Event findBySMIdAndName(String stateMachineInstanceId, String eventName);
+    /** Retrieves valid[pending/triggered/cancelled] Event by state machine instance id and event name */
+    Event findValidEventBySMIdAndName(String stateMachineInstanceId, String eventName);
 
     /**
      * Retrieves all the events with the given name irrespective of its status
@@ -59,7 +60,7 @@ public interface EventsDAO {
 
 
     /** Retrieves list of events by their names and state machine id */
-    List<EventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames );
+    List<VersionedEventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames);
 
     /** Retrieves all the events names and statuses. Selects for update if forUpdate is true */
     Map<String, Event.EventStatus> getAllEventsNameAndStatus(String stateMachineInstanceId, boolean forUpdate);

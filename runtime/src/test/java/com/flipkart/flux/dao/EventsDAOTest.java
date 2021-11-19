@@ -17,6 +17,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.dao.iface.EventsDAO;
@@ -93,10 +94,12 @@ public class EventsDAOTest {
         final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
         stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
         final Event event1 = new Event("event1", "someType", Event.EventStatus.pending, standardTestMachine.getId(), null, null);
-        final EventData eventData1 = new EventData(event1.getName(), event1.getType(), event1.getEventData(), event1.getEventSource());
+        final VersionedEventData eventData1 = new VersionedEventData(event1.getName(), event1.getType(),
+                event1.getEventData(), event1.getEventSource(), event1.getExecutionVersion());
         eventsDAO.create(event1.getStateMachineInstanceId(), event1);
         final Event event3 = new Event("event3", "someType", Event.EventStatus.pending, standardTestMachine.getId(), null, null);
-        final EventData eventData3 = new EventData(event3.getName(), event3.getType(), event3.getEventData(), event3.getEventSource());
+        final VersionedEventData eventData3 = new VersionedEventData(event3.getName(), event3.getType(),
+                event3.getEventData(), event3.getEventSource(), event3.getExecutionVersion());
         eventsDAO.create(event3.getStateMachineInstanceId(), event3);
 
         assertThat(eventsDAO.findByEventNamesAndSMId(standardTestMachine.getId(), new LinkedList<String>() {{
@@ -145,11 +148,10 @@ public class EventsDAOTest {
         eventsDAO.create(event1.getStateMachineInstanceId(), event2);
 
         // Should return event1 as it is not marked invalid
-        assertThat(eventsDAO.findBySMIdAndName(standardTestMachine.getId(),"event1")).isEqualTo(event1);
+        assertThat(eventsDAO.findValidEventBySMIdAndName(standardTestMachine.getId(),"event1")).isEqualTo(event1);
 
         // should return empty as invalid events are filtered at query level
-        assertThat(eventsDAO.findBySMIdAndName(standardTestMachine.getId(),"event2")).isNull();
-
+        assertThat(eventsDAO.findValidEventBySMIdAndName(standardTestMachine.getId(),"event2")).isNull();
     }
 
 
@@ -260,8 +262,7 @@ public class EventsDAOTest {
         eventsDAO.create(standardTestMachine.getId(),event);
         eventsDAO.markEventAsCancelled(standardTestMachine.getId(),"event1");
 
-        assertThat(eventsDAO.findBySMIdAndName(standardTestMachine.getId(),"event1").getStatus()).isEqualTo(EventStatus.cancelled);
-
+        assertThat(eventsDAO.findValidEventBySMIdAndName(standardTestMachine.getId(),"event1").getStatus()).isEqualTo(EventStatus.cancelled);
     }
 
     @Test

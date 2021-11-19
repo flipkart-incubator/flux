@@ -22,6 +22,7 @@ import java.util.Set;
 
 import javax.ws.rs.core.Response;
 
+import com.flipkart.flux.api.VersionedEventData;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -116,10 +117,11 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     }
 
     @Override
-    public void submitEventAndUpdateStatus(EventData eventData, String stateMachineId, ExecutionUpdateData executionUpdateData) {
+    public void submitEventAndUpdateStatus(VersionedEventData versionedEventData, String stateMachineId,
+                                           ExecutionUpdateData executionUpdateData) {
         CloseableHttpResponse httpResponse = null;
         try {
-            EventAndExecutionData eventAndExecutionData = new EventAndExecutionData(eventData, executionUpdateData);
+            EventAndExecutionData eventAndExecutionData = new EventAndExecutionData(versionedEventData, executionUpdateData);
             httpResponse = postOverHttp(eventAndExecutionData, "/" + stateMachineId + "/context/eventandstatus");
         } finally {
             HttpClientUtils.closeQuietly(httpResponse);
