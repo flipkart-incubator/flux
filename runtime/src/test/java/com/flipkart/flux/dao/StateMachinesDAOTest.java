@@ -95,8 +95,8 @@ public class StateMachinesDAOTest {
         stateMachinesDAO.updateExecutionVersion(standardTestMachine.getId(), 2l);
         assertThat(stateMachinesDAO.findById(standardTestMachine.getId()).getExecutionVersion()).isEqualTo(2);
 
-        stateMachinesDAO.updateExecutionVersion(standardTestMachine.getId(), 0l);
-        assertThat(stateMachinesDAO.findById(standardTestMachine.getId()).getExecutionVersion()).isEqualTo(0l);
+        stateMachinesDAO.updateExecutionVersion(standardTestMachine.getId(), -1L);
+        assertThat(stateMachinesDAO.findById(standardTestMachine.getId()).getExecutionVersion()).isEqualTo(-1L);
     }
 
     @Test(expected = DataException.class)

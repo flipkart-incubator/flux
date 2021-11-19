@@ -294,8 +294,6 @@ public class StateMachineResource {
      */
     @POST
     @Path("/{machineId}/context/replayevent")
-    @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     @Timed
     public Response submitReplayEvent(@PathParam("machineId") String machineId,
                                 @QueryParam("searchField") String searchField,

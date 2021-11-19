@@ -104,6 +104,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         return criteria.list();
     }
 
+    // TODO : This may throw NULL results. Check and remove invalid event check safely or handle null results.
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
@@ -274,8 +275,11 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         }
     }
 
+    // TODO : This query may overflow biffer size. Either do it on per event basis OR mark it only for 1 event
+    // TODO : because all other event version would be already invalid
     @Override
-    public void markEventsAsInvalid_NonTransactional(String stateMachineInstanceId, List<String> eventNames, Session session) {
+    public void markEventsAsInvalid_NonTransactional(String stateMachineInstanceId, List<String> eventNames,
+                Session session) {
         if (!eventNames.isEmpty()) {
             StringBuilder eventNamesString = new StringBuilder();
             for (int i = 0; i < eventNames.size(); i++) {

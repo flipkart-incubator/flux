@@ -102,6 +102,7 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     }
 
     @Override
+    // TODO : Ensure that this update occurs on a lock
     public void updateExecutionVersion_NonTransactional(String stateMachineId, Long smExecutionVersion, Session session) {
         Query query = session.createQuery(
                 "update StateMachine set executionVersion = :executionVersion where id = :stateMachineId");

@@ -47,7 +47,7 @@ public interface StatesDAO {
      */
     void updateStatus(String stateMachineInstanceId, List<State> states, Status status);
 
-    void updateStatus_NonTransactional(String stateMachineInstanceId, List<State> states, Status status, Session session);
+    void updateStatus_NonTransactional(String stateMachineInstanceId, List<Long> stateIds, Status status, Session session);
 
     /**
      * Updates rollback status of a state
@@ -64,7 +64,7 @@ public interface StatesDAO {
      */
     void updateExecutionVersion(String stateMachineInstanceId, Long stateId, Long executionVersion);
 
-    void updateExecutionVersion_NonTransactional(String stateMachineInstanceId, List<State> states, Long executionVersion, Session session);
+    void updateExecutionVersion_NonTransactional(String stateMachineInstanceId, List<Long> stateIds, Long executionVersion, Session session);
 
     /**
      * Updates the execution version for all the specified States in the given State Machine

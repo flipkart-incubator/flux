@@ -24,6 +24,7 @@ import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.*;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
+import com.flipkart.flux.exception.TraversalPathException;
 import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.impl.message.TaskAndEvents;
@@ -32,6 +33,7 @@ import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.representation.ClientElbPersistenceService;
+import com.flipkart.flux.representation.ReplayEventService;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.utils.LoggingUtils;
@@ -107,6 +109,7 @@ public class WorkFlowExecutionController {
      */
     private ClientElbPersistenceService clientElbPersistenceService;
 
+    private ReplayEventService replayEventService;
 
     /**
      * Constructor for this class
@@ -117,7 +120,8 @@ public class WorkFlowExecutionController {
                                        StateTraversalPathDAO stateTraversalPathDAO,
                                        ExecutionNodeTaskDispatcher executionNodeTaskDispatcher,
                                        RedriverRegistry redriverRegistry, MetricsClient metricsClient,
-                                       ClientElbPersistenceService clientElbPersistenceService) {
+                                       ClientElbPersistenceService clientElbPersistenceService,
+                                       ReplayEventService replayEventService) {
         this.eventsDAO = eventsDAO;
         this.stateMachinesDAO = stateMachinesDAO;
         this.statesDAO = statesDAO;
@@ -128,6 +132,7 @@ public class WorkFlowExecutionController {
         this.metricsClient = metricsClient;
         this.objectMapper = new ObjectMapper();
         this.clientElbPersistenceService = clientElbPersistenceService;
+        this.replayEventService = replayEventService;
     }
 
     /**
@@ -317,14 +322,14 @@ public class WorkFlowExecutionController {
 
         // TODO : Add a check on client side so as not to allow a replay event being a dependency of 2 or more states.
         //Get the dependant state on this replay event.
-        List<State> dependentStates = statesDAO.findStatesByDependentEvent(stateMachine.getId(),eventData.getName());
-        if (dependentStates.size() > 1){
+        List<State> replayableStates = statesDAO.findStatesByDependentEvent(stateMachine.getId(),eventData.getName());
+        if (replayableStates.size() > 1) {
             throw new IllegalEventException("More than 1 state is dependent on this replay event :"+eventData.getName());
-        } else if (dependentStates.isEmpty()) {
+        } else if (replayableStates.isEmpty()) {
             throw new IllegalEventException(
                     "No dependent state found for the event: " + eventData.getName());
         }
-        State dependantStateOnReplayEvent = dependentStates.get(0);
+        State dependantStateOnReplayEvent = replayableStates.get(0);
         Long dependantStateId = dependantStateOnReplayEvent.getId();
         logger.info("This state {} depends on replay event {}", dependantStateOnReplayEvent.getName(), eventData.getName());
         if(!dependantStateOnReplayEvent.getReplayable() || dependantStateOnReplayEvent.getStatus() != Status.completed) {
@@ -332,20 +337,12 @@ public class WorkFlowExecutionController {
                     stateMachine.getId() +" and replay event:"+ eventData.getName() + " is not replayable.");
         }
 
-        // Build states set and events names list in topological path of replay event
+        // Build states set and event names list in topological path of replay event
         // All these states and events will be marked as invalid.
-        Set<State> dependantStates = new HashSet<>();
-        List<String> dependantEvents = new ArrayList<>();
-
-        // add initial state dependant on replay event
-        dependantStates.add(dependantStateOnReplayEvent);
-
-        // add initial state's output event
-        String initialStateOutputEventName = getOutputEventName(dependantStateOnReplayEvent.getOutputEvent());
-        dependantEvents.add(initialStateOutputEventName);
+        List<String> traversalPathEvents = new ArrayList<>();
 
         // add previous executionVersion replay event to be marked as invalid.
-        dependantEvents.add(eventData.getName());
+        traversalPathEvents.add(eventData.getName());
 
         // Using BFS, for each state in State Machine, find path between initial dependant state -> current state
         Optional<StateTraversalPath> traversalPathStates = stateTraversalPathDAO.findById(
@@ -354,7 +351,8 @@ public class WorkFlowExecutionController {
         if(traversalPathStates.isPresent()) {
 
             List<Long> nextDependentStateIds = traversalPathStates.get().getNextDependentStates();
-            statesDAO.findAllStatesForGivenStateIds(stateMachine.getId(),nextDependentStateIds).parallelStream().forEach(state ->{
+            statesDAO.findAllStatesForGivenStateIds(
+                    stateMachine.getId(),nextDependentStateIds).parallelStream().forEach(state -> {
                 String outputEvent = state.getOutputEvent();
                 if(outputEvent != null) {
                     String outputEventName;
@@ -363,100 +361,32 @@ public class WorkFlowExecutionController {
                     } catch (IOException e) {
                         throw new JsonParseException("Unable to deserialize the value from DB. Error: "+e.getMessage());
                     }
-                    if (outputEventName != null && !dependantEvents.contains(outputEventName))
-                        dependantEvents.add(outputEventName);
-                }
-            });
-            /*for (Long stateId : nextDependentStateIds) {
-                String outputEvent = statesDAO.findById(stateMachine.getId(), stateId).getOutputEvent();
-
-                if(outputEvent != null) {
-                    String outputEventName = getOutputEventName(outputEvent);
-                    if (!dependantEvents.contains(outputEventName.toString()))
-                        dependantEvents.add(outputEventName);
-                }
-            }*/
-            logger.info("Building set of states and list of events in dependency path of replay event:{} for SMId:{} is done.",
-                    eventData.getName(), stateMachine.getId());
-
-            //Remove external events from being marked as invalid.
-            List<String> tempDependantEvents = new ArrayList<>(dependantEvents);
-            // Using default execution version "0L" because it's the only executionVersion which will have all
-            // event's entries
-            eventsDAO.findAllValidEventsByStateMachineIdAndExecutionVersionAndName(stateMachine.getId(),dependantEvents,0l)
-                    .parallelStream().forEach(event -> {
-                if (event.getEventSource().equalsIgnoreCase("external")){
-                    dependantEvents.remove(event.getName());
+                    if (outputEventName != null && !traversalPathEvents.contains(outputEventName)) {
+                        traversalPathEvents.add(outputEventName);
+                    }
                 }
             });
 
-            /*for (String eventName : tempDependantEvents) {
-                if (eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName(stateMachine.getId(), eventName, 0L)
-                        .getEventSource().equals("external")) {
-                    dependantEvents.remove(eventName);
-                }
-            }*/
-            logger.info("Dependent Set of States: {} and dependent list of Events: {}", dependantStates, dependantEvents);
-            // TODO : Handle error responses
-            Event currentEvent = persistAndProcessReplayEvent(eventData, dependantStates, dependantEvents, stateMachine.getId());
+            logger.info("Replay event: {}, Replayable state: {}, Traversal path States: {} and Traversal path Events: {}",
+                    eventData.getName(), dependantStateOnReplayEvent.getName(), traversalPathStates, traversalPathEvents);
+
+            // TODO : Handle error responses,
+            // TODO : May need return value to test
+            Event currentEvent = replayEventService.persistAndProcessReplayEvent(stateMachine.getId(), eventData,
+                    nextDependentStateIds, traversalPathEvents);
 
             Set<State> executableStates = new HashSet<>();
 
-            // TODO : Need to call execute state from outside this transaction. We can register it in redriver.
-            dependantStateOnReplayEvent.setStatus(Status.initialized);
+            dependantStateOnReplayEvent = statesDAO.findById(stateMachine.getId(),
+                    dependantStateOnReplayEvent.getId());
             executableStates.add(dependantStateOnReplayEvent);
-            executeStates(stateMachine, executableStates, currentEvent, false);
+            executeStates(stateMachine, executableStates,false);
         } else {
-            throw new IllegalEventException("No traversal path found for replayable state id:" + dependantStateId +
+            logger.error("No traversal path found for replayable state id:{} in stateMachineId:{} for event:{}.",
+                    dependantStateId, stateMachine.getId(), eventData.getName());
+            throw new TraversalPathException("No traversal path found for replayable state id:" + dependantStateId +
                     " and stateMachineId: " + stateMachine.getId());
         }
-    }
-
-    /**
-     * TODO : Rephrase this description
-     * In a Transaction :
-     *  1. Increment, update and read executionVersion for this State Machine.
-     *  2. Mark all states and Update executionVersion for all states(marked as invalid) retrieved in step 1.
-     *  3. Mark dependant events as invalid.
-     *  4. Create new event entries in pending status including replay event as triggered containing event data with executionVersion
-     *     read in step 2.
-     * @param eventData
-     * @param dependantStates
-     * @param dependantEvents
-     * @param stateMachineId
-     */
-    @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public Event persistAndProcessReplayEvent(EventData eventData, Set<State> dependantStates,
-                                              List<String> dependantEvents, String stateMachineId) {
-
-        // TODO : This will be updated to return updated value in same call. Need to add tests for it.
-        Long smExecutionVersion = stateMachinesDAO.findById(stateMachineId).getExecutionVersion() + 1;
-        stateMachinesDAO.updateExecutionVersion(stateMachineId, smExecutionVersion);
-
-        ArrayList<State> states = new ArrayList<>(dependantStates);
-        statesDAO.updateStatus(stateMachineId,states,Status.initialized);
-        statesDAO.updateExecutionVersion(stateMachineId,states,smExecutionVersion);
-
-        // TODO : This should be moved to EventPersistenceService
-        eventsDAO.markEventsAsInvalid(stateMachineId, dependantEvents);
-
-        // Remove replay event. Purpose was to mark all it's previous version invalid.
-        dependantEvents.remove(eventData.getName());
-
-        for (String eventName : dependantEvents) {
-            // To retrieve event meta data (type) for creating new event with new smExecutionVersion
-            // Retrieving for executionVersion 0 is fine because type of event doesn't change with executionVersion
-            Event currentEvent = eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName(stateMachineId, eventName, 0L);
-            Event event = new Event(currentEvent.getName(), currentEvent.getType(), Event.EventStatus.pending,
-                    stateMachineId, null, null, smExecutionVersion);
-            eventsDAO.create(stateMachineId, event);
-        }
-
-        //Persist replay event
-        Event replayEvent = new Event(eventData.getName(), eventData.getType(), Event.EventStatus.triggered, stateMachineId,
-                eventData.getData(), eventData.getEventSource(), smExecutionVersion);
-        return eventsDAO.create(stateMachineId, replayEvent);
     }
 
     /**

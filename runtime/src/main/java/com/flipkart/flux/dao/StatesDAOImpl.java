@@ -78,9 +78,12 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     }
 
     @Override
-    public void updateStatus_NonTransactional(String stateMachineInstanceId, List<State> states, Status status, Session session) {
-        String inClauseQuery = states.toString().replace("[","(").replace("]",")");
-        Query query = session.createQuery("update State set status = :status where stateMachineId = :stateMachineId and state in ".concat(inClauseQuery));
+    public void updateStatus_NonTransactional(String stateMachineInstanceId, List<Long> stateIds, Status status,
+                                              Session session) {
+        String inClauseQuery = stateIds.toString().replace("[","(").replace("]",")");
+        Query query = session.createQuery(
+                "update State set status = :status where stateMachineId = :stateMachineId and id in "
+                        .concat(inClauseQuery));
         query.setString("status", status != null ? status.toString() : null);
         query.setString("stateMachineId", stateMachineInstanceId);
         query.executeUpdate();
@@ -124,10 +127,11 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
      * @return list of all the states for the given state ids
      */
     @Override
-    public List<State> findAllStatesForGivenStateIds(String stateMachineInstanceId, List<Long> stateIds) {
-        String dbQueryForList = stateIds.toString().replace("[","(").replace("]",")");
-        Query query = currentSession().createQuery("select * from States where stateMachineId = :stateMachineInstanceId and id in "+dbQueryForList);
-        query.setString("stateMachineInstanceId",stateMachineInstanceId);
+    public List<State> findAllStatesForGivenStateIds(String stateMachineId, List<Long> stateIds) {
+        String inClause = stateIds.toString().replace("[","(").replace("]",")");
+        Query query = currentSession().createQuery(
+                "select * from States where stateMachineId = :stateMachineId and id in "+ inClause);
+        query.setString("stateMachineId",stateMachineId);
         return query.list();
     }
 
@@ -226,21 +230,13 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     }
 
     @Override
-    public void updateExecutionVersion_NonTransactional(String stateMachineInstanceId,
-                                                        List<State> states, Long executionVersion, Session session) {
-
-        StringBuilder inClause = new StringBuilder();
-        if (states!=null && !states.isEmpty()) {
-            inClause.append(" and id in (,");
-            for (State state : states) {
-                inClause.append(state.getId()).append(",");
-            }
-            inClause.deleteCharAt(inClause.length() - 1).append(")");
-        }
+    public void updateExecutionVersion_NonTransactional(String stateMachineId,
+                                                        List<Long> stateIds, Long executionVersion, Session session) {
+        String inClause = stateIds.toString().replace("[","(").replace("]",")");
         Query query = session.createQuery("update State set executionVersion= :executionVersion" +
-                " where stateMachineId=:stateMachineInstanceId".concat(inClause.toString()));
+                " where stateMachineId=:stateMachineId and id in ".concat(inClause.toString()));
         query.setLong("executionVersion", executionVersion);
-        query.setString("stateMachineInstanceId", stateMachineInstanceId);
+        query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
 }
