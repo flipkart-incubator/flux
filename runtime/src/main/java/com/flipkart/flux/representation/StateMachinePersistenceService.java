@@ -14,6 +14,7 @@
 package com.flipkart.flux.representation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.AuditEvent;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateDefinition;
@@ -99,7 +100,9 @@ public class StateMachinePersistenceService {
 
         //create audit records for all the states
         for (State state : stateMachine.getStates()) {
-            auditDAO.create(stateMachine.getId(), new AuditRecord(stateMachine.getId(), state.getId(), 0L, Status.initialized, null, null));
+            auditDAO.create(stateMachine.getId(), new AuditRecord(stateMachine.getId(), state.getId(), 0L,
+                    Status.initialized, null, null, 0L,
+                    getDependentEvents(state.getDependencies(), 0L)));
         }
         return stateMachine;
     }
@@ -201,5 +204,13 @@ public class StateMachinePersistenceService {
         } catch (Exception e) {
             throw new IllegalRepresentationException("Unable to create state domain object", e);
         }
+    }
+
+    private String getDependentEvents(List<String> stateDependentEventNames, Long eventExecutionVersion) {
+        List<AuditEvent> dependentEvents = new LinkedList<>();
+        for(String dependentEventName : stateDependentEventNames) {
+            dependentEvents.add(new AuditEvent(dependentEventName, eventExecutionVersion));
+        }
+        return dependentEvents.toString();
     }
 }

@@ -85,5 +85,13 @@ public interface EventsDAO {
     /** Marks list of events as invalid */
     void markEventsAsInvalid(String stateMachineInstanceId, List<String> eventName);
 
+    /**
+     * Creates Event using the parameter session and returns the saved object
+     */
+    Event create_NonTransactional(Event event, Session session);
+
+    /**
+     * Mark given event as invalid using passed parameter session object
+     */
     void markEventAsInvalid_NonTransactional(String stateMachineInstanceId, String eventName, Session session);
 }

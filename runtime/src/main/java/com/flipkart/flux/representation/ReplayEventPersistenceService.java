@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.constant.RuntimeConstants;
+import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
+import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.persistence.DataSourceType;
@@ -35,6 +37,7 @@ public class ReplayEventPersistenceService {
     private StateMachinesDAO stateMachinesDAO;
     private EventsDAO eventsDAO;
     private StatesDAO statesDAO;
+    private AuditDAO auditDAO;
     private SessionFactoryContext sessionFactoryContext;
 
     /**
@@ -44,11 +47,12 @@ public class ReplayEventPersistenceService {
 
     @Inject
     public ReplayEventPersistenceService(StateMachinesDAO stateMachinesDAO,
-                                         EventsDAO eventsDAO, StatesDAO statesDAO,
+                                         EventsDAO eventsDAO, StatesDAO statesDAO, AuditDAO auditDAO,
                                          @Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
         this.stateMachinesDAO = stateMachinesDAO;
         this.eventsDAO = eventsDAO;
         this.statesDAO = statesDAO;
+        this.auditDAO = auditDAO;
         this.sessionFactoryContext = sessionFactoryContext;
     }
 
@@ -73,6 +77,13 @@ public class ReplayEventPersistenceService {
         statesDAO.updateStatus_NonTransactional(stateMachineId, stateIds, Status.initialized, session);
         statesDAO.updateExecutionVersion_NonTransactional(stateMachineId, stateIds, smExecutionVersion, session);
 
+        //create audit records for all the states
+        for (Long stateId : stateIds) {
+            auditDAO.create_NonTransactional(new AuditRecord(stateMachineId, stateId, 0L,
+                            Status.initialized, null, null, smExecutionVersion, null),
+                    session);
+        }
+
         for (String outputEvent : dependantEvents) {
             String eventName, eventType;
             try {
@@ -84,7 +95,8 @@ public class ReplayEventPersistenceService {
             eventsDAO.markEventAsInvalid_NonTransactional(stateMachineId, eventName, session);
             Event event = new Event(eventName, eventType, Event.EventStatus.pending,
                     stateMachineId, null, null, smExecutionVersion);
-            eventsDAO.create(stateMachineId, event);
+            session.save(event);
+            eventsDAO.create_NonTransactional(event, session);
         }
 
         //Mark replay event as invalid and persist replay event
@@ -92,7 +104,7 @@ public class ReplayEventPersistenceService {
         String eventSource = replayEventData.getEventSource().concat(":" + RuntimeConstants.REPLAY_EVENT);
         Event replayEvent = new Event(replayEventData.getName(), replayEventData.getType(), Event.EventStatus.triggered,
                 stateMachineId, replayEventData.getData(), eventSource, smExecutionVersion);
-        return eventsDAO.create(stateMachineId, replayEvent);
+        return eventsDAO.create_NonTransactional(replayEvent, session);
     }
 
     /**

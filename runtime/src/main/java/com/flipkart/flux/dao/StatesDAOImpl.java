@@ -120,7 +120,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     public List<State> findAllStatesForGivenStateIds(String stateMachineId, List<Long> stateIds) {
         String inClause = stateIds.toString().replace("[","(").replace("]",")");
         Query query = currentSession().createQuery(
-                "select state from State state where stateMachineId = :stateMachineId and id in " + inClause);
+                "select s from State s where stateMachineId = :stateMachineId and id in " + inClause);
         query.setString("stateMachineId",stateMachineId);
         return query.list();
     }

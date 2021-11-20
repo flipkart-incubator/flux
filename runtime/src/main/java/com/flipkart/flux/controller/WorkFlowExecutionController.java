@@ -300,6 +300,10 @@ public class WorkFlowExecutionController {
     /**
      * Retrieves the state which are dependent on this replay event and starts the execution of eligible state
      * (replayable is true and there is only one state dependent on Replay Event triggered).
+     * 1. Verify eligible dependant state(replayable is true) on this replay event.
+     * 2. Retrieves set of states and events occurring in the topological path with trigger of replay event using BFS.
+     * 3. Process and persist replay event
+     * 4. Submit replay event to execute eligible dependent states(replayable is true) on this replay event.
      * @param eventData
      * @param stateMachine
      */
@@ -343,15 +347,16 @@ public class WorkFlowExecutionController {
                 }
             });
 
-            logger.info("Replay event: {}, Replayable state: {}, Traversal path States: {}" +
-                            " and Traversal path Events: {}", eventData.getName(),
-                    dependantStateOnReplayEvent.getName(), traversalPathStates, traversalPathEvents);
+            logger.info("StateMachineId: {}, Replay event: {}, Replayable state: {}, Traversal path State ids: {}" +
+                            " and Traversal path Event names: {}", stateMachine.getId(), eventData.getName(),
+                    dependantStateOnReplayEvent.getName(), nextDependentStateIds, traversalPathEvents);
 
             // TODO : Handle error responses
             Event currentEvent = replayEventPersistenceService.persistAndProcessReplayEvent(
                     stateMachine.getId(), eventData, nextDependentStateIds, traversalPathEvents);
 
             Set<State> executableStates = new HashSet<>();
+            // Fetching the replayable state again which is initialized in ReplayEventPersistenceService
             dependantStateOnReplayEvent = statesDAO.findById(stateMachine.getId(), dependantStateOnReplayEvent.getId());
             executableStates.add(dependantStateOnReplayEvent);
             executeStates(stateMachine, executableStates,false);

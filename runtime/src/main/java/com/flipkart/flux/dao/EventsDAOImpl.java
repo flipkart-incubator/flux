@@ -301,6 +301,12 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     }
 
     @Override
+    public Event create_NonTransactional(Event event, Session session) {
+        session.save(event);
+        return event;
+    }
+
+    @Override
     public void markEventAsInvalid_NonTransactional(String stateMachineInstanceId, String eventName, Session session) {
         Query query = currentSession().createQuery("update Event set status = :status where" +
                 " stateMachineInstanceId = :stateMachineInstanceId and name = :eventName");
