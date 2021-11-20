@@ -37,6 +37,8 @@ import java.util.Set;
  */
 public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements StateMachinesDAO {
 
+    public static final String FOR_UPDATE = "FOR UPDATE";
+
     @Inject
     public StateMachinesDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
         super(sessionFactoryContext);
@@ -84,26 +86,24 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public void updateStatus(String stateMachineId, StateMachineStatus status) {
-        Query query = currentSession().createQuery("update StateMachine set status = :status where id = :stateMachineId");
+        Query query = currentSession().createQuery(
+                "update StateMachine set status = :status where id = :stateMachineId");
         query.setString("status", status != null ? status.toString() : null);
         query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
 
     @Override
-    @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public void updateExecutionVersion(String stateMachineId, Long smExecutionVersion) {
+    public Long findByIdForUpdate_NonTransactional(String stateMachineId, Session session) {
         Query query = currentSession().createQuery(
-                "update StateMachine set executionVersion = :executionVersion where id = :stateMachineId");
-        query.setLong("executionVersion", smExecutionVersion);
-        query.setString("stateMachineId", stateMachineId);
-        query.executeUpdate();
+                "select executionVersion from StateMachines where id = :stateMachineId "+ FOR_UPDATE);
+        query.setString("stateMachineId",stateMachineId);
+        return (Long) query.uniqueResult();
     }
 
     @Override
-    // TODO : Ensure that this update occurs on a lock
-    public void updateExecutionVersion_NonTransactional(String stateMachineId, Long smExecutionVersion, Session session) {
+    public void updateExecutionVersion_NonTransactional(String stateMachineId, Long smExecutionVersion,
+                                                        Session session) {
         Query query = session.createQuery(
                 "update StateMachine set executionVersion = :executionVersion where id = :stateMachineId");
         query.setLong("executionVersion", smExecutionVersion);

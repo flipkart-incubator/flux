@@ -33,12 +33,11 @@ import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.representation.ClientElbPersistenceService;
-import com.flipkart.flux.representation.ReplayEventService;
+import com.flipkart.flux.representation.ReplayEventPersistenceService;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.utils.LoggingUtils;
 import com.google.common.collect.Sets;
-import com.google.gson.JsonParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -109,7 +108,7 @@ public class WorkFlowExecutionController {
      */
     private ClientElbPersistenceService clientElbPersistenceService;
 
-    private ReplayEventService replayEventService;
+    private ReplayEventPersistenceService replayEventPersistenceService;
 
     /**
      * Constructor for this class
@@ -121,7 +120,7 @@ public class WorkFlowExecutionController {
                                        ExecutionNodeTaskDispatcher executionNodeTaskDispatcher,
                                        RedriverRegistry redriverRegistry, MetricsClient metricsClient,
                                        ClientElbPersistenceService clientElbPersistenceService,
-                                       ReplayEventService replayEventService) {
+                                       ReplayEventPersistenceService replayEventPersistenceService) {
         this.eventsDAO = eventsDAO;
         this.stateMachinesDAO = stateMachinesDAO;
         this.statesDAO = statesDAO;
@@ -132,7 +131,7 @@ public class WorkFlowExecutionController {
         this.metricsClient = metricsClient;
         this.objectMapper = new ObjectMapper();
         this.clientElbPersistenceService = clientElbPersistenceService;
-        this.replayEventService = replayEventService;
+        this.replayEventPersistenceService = replayEventPersistenceService;
     }
 
     /**
@@ -299,52 +298,40 @@ public class WorkFlowExecutionController {
     }
 
     /**
-     * Helper method to JSON serialize the output event
-     */
-    private String getOutputEventName(String outputEvent) throws java.io.IOException {
-        return outputEvent != null ? objectMapper.readValue(outputEvent, EventDefinition.class).getName() : null;
-    }
-
-    /**
-     * TODO : Test cases needs to be added.
-     * TODO : Use dependantStates as a tuple/pair of composite key <stateId, stateMachineId>
-     * TODO : Rephrase this description
-     * Retrieves the states which are dependant on this replay event and starts the execution of eligible states (replayable is true).
-     * 0. Verify eligible dependant state(replayable is true) on this replay event.
-     * 1. Retrieves set of states and events occurring in the topological path with triggering of this replay event using BFS.
-     * 2. Process and persist replay event
-     * 3. Submit replay event to execute eligible dependent states(replayable is true) on this replay event.
-     *
+     * Retrieves the state which are dependent on this replay event and starts the execution of eligible state
+     * (replayable is true and there is only one state dependent on Replay Event triggered).
      * @param eventData
      * @param stateMachine
      */
-    public void postReplayEvent(EventData eventData, StateMachine stateMachine) throws IllegalEventException, IOException {
-
-        // TODO : Add a check on client side so as not to allow a replay event being a dependency of 2 or more states.
-        //Get the dependant state on this replay event.
+    public void postReplayEvent(EventData eventData, StateMachine stateMachine) throws IllegalEventException,
+            IOException {
         List<State> replayableStates = statesDAO.findStatesByDependentEvent(stateMachine.getId(),eventData.getName());
         if (replayableStates.size() > 1) {
-            throw new IllegalEventException("More than 1 state is dependent on this replay event :"+eventData.getName());
+            throw new IllegalEventException("More than 1 state is dependent on this replay event : "
+                    + eventData.getName());
         } else if (replayableStates.isEmpty()) {
             throw new IllegalEventException(
                     "No dependent state found for the event: " + eventData.getName());
         }
+        // Already validated that only one state is dependent on input Replay Event
         State dependantStateOnReplayEvent = replayableStates.get(0);
         Long dependantStateId = dependantStateOnReplayEvent.getId();
-        logger.info("This state {} depends on replay event {}", dependantStateOnReplayEvent.getName(), eventData.getName());
+        logger.info("State {} depends on replay event {}", dependantStateOnReplayEvent.getName(),
+                eventData.getName());
         if(!dependantStateOnReplayEvent.getReplayable() || dependantStateOnReplayEvent.getStatus() != Status.completed) {
-            throw new IllegalEventException("Dependant state:"+ dependantStateOnReplayEvent.getName() +" with stateMachineId:" +
-                    stateMachine.getId() +" and replay event:"+ eventData.getName() + " is not replayable.");
+            throw new IllegalEventException("Dependant state:"+ dependantStateOnReplayEvent.getName() +
+                    " with stateMachineId:" + stateMachine.getId() + " and replay event:" + eventData.getName() +
+                    " is not replayable.");
         }
 
-        // Build states set and event names list in topological path of replay event
-        // All these states and events will be marked as invalid.
+        // Holds list of events in TraversalPath of ReplayEvent. All these events are supposed to be marked as invalid.
         List<String> traversalPathEvents = new ArrayList<>();
 
-        // add previous executionVersion replay event to be marked as invalid.
+        // Add ReplayEvent, to mark it's already existing executionVersions as invalid.
         traversalPathEvents.add(eventData.getName());
 
-        // Using BFS, for each state in State Machine, find path between initial dependant state -> current state
+        // Retrieve StateTraversalPath for given Replayable State from database.
+        // This list has been created for ReplayableStates during StateMachine instance creation.
         Optional<StateTraversalPath> traversalPathStates = stateTraversalPathDAO.findById(
                 stateMachine.getId(), dependantStateId);
 
@@ -354,16 +341,8 @@ public class WorkFlowExecutionController {
             statesDAO.findAllStatesForGivenStateIds(
                     stateMachine.getId(),nextDependentStateIds).parallelStream().forEach(state -> {
                 String outputEvent = state.getOutputEvent();
-                if(outputEvent != null) {
-                    String outputEventName;
-                    try {
-                        outputEventName = getOutputEventName(outputEvent);
-                    } catch (IOException e) {
-                        throw new JsonParseException("Unable to deserialize the value from DB. Error: "+e.getMessage());
-                    }
-                    if (outputEventName != null && !traversalPathEvents.contains(outputEventName)) {
-                        traversalPathEvents.add(outputEventName);
-                    }
+                if(outputEvent != null && !traversalPathEvents.contains(outputEvent)) {
+                    traversalPathEvents.add(outputEvent);
                 }
             });
 
@@ -372,13 +351,10 @@ public class WorkFlowExecutionController {
 
             // TODO : Handle error responses,
             // TODO : May need return value to test
-            Event currentEvent = replayEventService.persistAndProcessReplayEvent(stateMachine.getId(), eventData,
+            Event currentEvent = replayEventPersistenceService.persistAndProcessReplayEvent(stateMachine.getId(), eventData,
                     nextDependentStateIds, traversalPathEvents);
 
             Set<State> executableStates = new HashSet<>();
-
-            dependantStateOnReplayEvent = statesDAO.findById(stateMachine.getId(),
-                    dependantStateOnReplayEvent.getId());
             executableStates.add(dependantStateOnReplayEvent);
             executeStates(stateMachine, executableStates,false);
         } else {

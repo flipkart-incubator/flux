@@ -19,7 +19,6 @@ import akka.actor.Props;
 import akka.testkit.TestActorRef;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.MockActorRef;
-import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.VersionedEventData;
@@ -34,7 +33,7 @@ import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.representation.ClientElbPersistenceService;
-import com.flipkart.flux.representation.ReplayEventService;
+import com.flipkart.flux.representation.ReplayEventPersistenceService;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.util.TestUtils;
@@ -86,7 +85,7 @@ public class WorkFlowExecutionControllerTest {
     private ClientElbPersistenceService clientElbPersistenceService;
 
     @Mock
-    private ReplayEventService replayEventService;
+    private ReplayEventPersistenceService replayEventPersistenceService;
 
     TestActorRef<MockActorRef> mockActor;
 
@@ -99,7 +98,7 @@ public class WorkFlowExecutionControllerTest {
         Thread.sleep(1000);
         workFlowExecutionController = new WorkFlowExecutionController(eventsDAO, stateMachinesDAO, statesDAO, auditDAO,
                 stateTraversalPathDAO, executionNodeTaskDispatcher, redriverRegistry, metricsClient,
-                clientElbPersistenceService, replayEventService);
+                clientElbPersistenceService, replayEventPersistenceService);
         when(stateMachinesDAO.findById(anyString())).thenReturn(TestUtils.getStandardTestMachineWithId());
         when(clientElbPersistenceService.findByIdClientElb(anyString())).thenReturn("http://localhost:9997");
         actorSystem = ActorSystem.create("testActorSystem",ConfigFactory.load("testAkkaActorSystem"));

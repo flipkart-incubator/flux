@@ -143,12 +143,20 @@ public class State {
                  List<String> dependencies, Long retryCount, Long timeout, String outputEvent, Status status,
                  Status rollbackStatus, Long attemptedNoOfRetries, String stateMachineId, Long id) {
         this(version, name, description, onEntryHook, task, onExitHook, dependencies, retryCount, timeout, outputEvent,
-                status, rollbackStatus, attemptedNoOfRetries, stateMachineId, id, Boolean.FALSE);
+                status, rollbackStatus, attemptedNoOfRetries, stateMachineId, id, Boolean.FALSE, 0L);
     }
 
     public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
                  List<String> dependencies, Long retryCount, Long timeout, String outputEvent, Status status,
                  Status rollbackStatus, Long attemptedNoOfRetries, String stateMachineId, Long id, Boolean replayable) {
+        this(version, name, description, onEntryHook, task, onExitHook, dependencies, retryCount, timeout, outputEvent,
+                status, rollbackStatus, attemptedNoOfRetries, stateMachineId, id, replayable, 0L);
+    }
+
+    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
+                 List<String> dependencies, Long retryCount, Long timeout, String outputEvent, Status status,
+                 Status rollbackStatus, Long attemptedNoOfRetries, String stateMachineId, Long id, Boolean replayable,
+                 Long executionVersion) {
         this();
         this.version = version;
         this.name = name;
@@ -165,7 +173,7 @@ public class State {
         this.attemptedNoOfRetries = attemptedNoOfRetries;
         this.stateMachineId = stateMachineId;
         this.id = id;
-        this.executionVersion = 0L;
+        this.executionVersion = executionVersion;
         this.replayable = replayable;
     }
 

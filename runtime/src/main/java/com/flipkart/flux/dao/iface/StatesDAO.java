@@ -103,10 +103,5 @@ public interface StatesDAO {
     /**
      * Retrieves all states for a particular state-machine-id and like input dependent-event-name.
      */
-    List findStatesByDependentEvent(String stateMachineId, String eventName);
-
-    /**
-     * Retrieves state-id for a particular state-machine-id and like input replay dependent-event-name.
-     */
-    Long findStateByDependentReplayEvent(String stateMachineId, String eventName);
+    List<State> findStatesByDependentEvent(String stateMachineId, String eventName);
 }

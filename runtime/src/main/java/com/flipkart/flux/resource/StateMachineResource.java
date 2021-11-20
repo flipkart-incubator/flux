@@ -425,19 +425,19 @@ public class StateMachineResource {
             }
             logger.info("Received event update request for event:{}", eventData.getName());
             /* List holds objects retrieved from States matching input machineId and eventName as [taskId, machineId, status] */
-            List<Object[]> states = statesDAO.findStatesByDependentEvent(machineId, eventData.getName());
+            List<State> states = statesDAO.findStatesByDependentEvent(machineId, eventData.getName());
             if (validateEventUpdate(states)) {
                 VersionedEventData versionedEventData = new VersionedEventData(eventData.getName(), eventData.getType(),
                         eventData.getData(), eventData.getEventSource(), eventData.getCancelled(),
                         event.getExecutionVersion());
                 workFlowExecutionController.updateEventData(machineId, versionedEventData);
-                for (Object[] state : states) {
-                    Status stateStatus = (Status) state[2];
+                for (State state : states) {
+                    Status stateStatus = state.getStatus();
                     if (stateStatus == Status.initialized || stateStatus == Status.errored || stateStatus == Status.sidelined) {
                         try {
-                            workFlowExecutionController.unsidelineState((String) state[1], (Long) state[0]);
+                            workFlowExecutionController.unsidelineState(state.getStateMachineId(), state.getId());
                         } catch (Exception ex) {
-                            logger.warn("Unable to unsideline for stateId:{} msg:{}", state[0], ex.getMessage());
+                            logger.warn("Unable to unsideline for stateId:{} msg:{}", state.getId(), ex.getMessage());
                         }
                     }
                 }
@@ -450,10 +450,10 @@ public class StateMachineResource {
                 "eligible for this event's update, try after some time.").build();
     }
 
-    public boolean validateEventUpdate(List<Object[]> states) {
+    public boolean validateEventUpdate(List<State> states) {
         boolean canUpdateEventData = false;
-        for (Object[] state : states) {
-            Status status = (Status) state[2];
+        for (State state : states) {
+            Status status = (Status) state.getStatus();
             if (status == Status.running) {
                 canUpdateEventData = false;
                 break;

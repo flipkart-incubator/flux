@@ -37,12 +37,10 @@ public interface StateMachinesDAO {
      */
     StateMachine findById(String stateMachineId);
 
-
     /**
      * Retrieves set of state machines by State machine's Name
      */
     Set<StateMachine> findByName(ShardId shardId, String stateMachineName);
-
 
     /**
      * Retrieves set of state machines by Name and version
@@ -55,11 +53,15 @@ public interface StateMachinesDAO {
     void updateStatus(String stateMachineId, StateMachineStatus status);
 
     /**
-     * // TODO : Modify this query to return updated value in same sql query. Add tests for the same.
-     * Increments the executionVersion of a stateMachine by 1, this will be picked up as an executionVersion for
+     * findById from StateMachine with "FOR UPDATE" flag to avoid dirty/stale reads by multiple transactions
+     * on same StateMachine instance's executionVersion. "FOR UPDATE" will make any other transaction trying to access
+     * same State machine instance's executionVersion wait until current transaction commit/roll-back
+     */
+    Long findByIdForUpdate_NonTransactional(String stateMachineInstanceId, Session session);
+
+    /**
+     * Updates value of executionVersion of a stateMachine, this will be picked up as an executionVersion for
      * post replay event.
      */
-    void updateExecutionVersion(String stateMachineInstanceId, Long smExecutionVersion);
-
     void updateExecutionVersion_NonTransactional(String stateMachineInstanceId, Long smExecutionVersion, Session session);
 }

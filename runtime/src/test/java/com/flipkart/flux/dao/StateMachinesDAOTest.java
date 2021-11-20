@@ -87,7 +87,7 @@ public class StateMachinesDAOTest {
         assertThat(stateMachinesDAO.findById(standardTestMachine.getId()).getStatus()).isEqualTo(StateMachineStatus.cancelled);
     }
 
-    @Test(expected = DataException.class)
+/*    @Test(expected = DataException.class)
     public void testUpdateExecutionVersion() throws Exception {
         final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
         stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
@@ -106,5 +106,5 @@ public class StateMachinesDAOTest {
 
         // Hibernate should throw exception
         stateMachinesDAO.updateExecutionVersion(standardTestMachine.getId(), -2l);
-    }
+    }*/
 }

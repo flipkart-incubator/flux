@@ -130,7 +130,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     public List<State> findAllStatesForGivenStateIds(String stateMachineId, List<Long> stateIds) {
         String inClause = stateIds.toString().replace("[","(").replace("]",")");
         Query query = currentSession().createQuery(
-                "select * from States where stateMachineId = :stateMachineId and id in "+ inClause);
+                "select state from State state where stateMachineId = :stateMachineId and id in " + inClause);
         query.setString("stateMachineId",stateMachineId);
         return query.list();
     }
@@ -177,24 +177,13 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public List findStatesByDependentEvent(String stateMachineId, String eventName) {
-        Query query;
-        String queryString = "select id, stateMachineId, status from State where stateMachineId = :stateMachineId" +
-                " and dependencies like :eventName";
-        query = currentSession().createQuery(queryString);
+    public List<State> findStatesByDependentEvent(String stateMachineId, String eventName) {
+        Query query = currentSession().createQuery(
+                "select state from State state where stateMachineId = :stateMachineId and" +
+                        " dependencies like :eventName");
         query.setString("stateMachineId", stateMachineId);
         query.setString("eventName", "%"+eventName+"%");
         return query.list();
-    }
-
-    @Override
-    @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public Long findStateByDependentReplayEvent(String stateMachineId, String eventName) {
-        SQLQuery query = currentSession().createSQLQuery(
-                "select id from States where `stateMachineId`= '" + stateMachineId + "' and dependencies like" +
-                        " '%" + eventName + "%'");
-        return ((BigInteger) query.uniqueResult()).longValue();
     }
 
     @Override
