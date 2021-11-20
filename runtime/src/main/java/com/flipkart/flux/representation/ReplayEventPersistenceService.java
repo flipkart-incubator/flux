@@ -3,6 +3,7 @@ package com.flipkart.flux.representation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
@@ -65,7 +66,6 @@ public class ReplayEventPersistenceService {
 
         Session session = sessionFactoryContext.getThreadLocalSession();
 
-        // TODO : Ensure that this row is locked throughout the transaction.  Need to add tests for it.
         Long smExecutionVersion = stateMachinesDAO.findByIdForUpdate_NonTransactional(stateMachineId, session) + 1;
         stateMachinesDAO.updateExecutionVersion_NonTransactional(stateMachineId, smExecutionVersion, session);
 
@@ -73,28 +73,25 @@ public class ReplayEventPersistenceService {
         statesDAO.updateStatus_NonTransactional(stateMachineId, stateIds, Status.initialized, session);
         statesDAO.updateExecutionVersion_NonTransactional(stateMachineId, stateIds, smExecutionVersion, session);
 
-        eventsDAO.markEventsAsInvalid_NonTransactional(stateMachineId, dependantEvents, session);
-
-        // Remove replay event. Purpose was to mark all it's previous version invalid.
-        dependantEvents.remove(replayEventData.getName());
-
-        dependantEvents.parallelStream().forEach(outputEvent -> {
+        for (String outputEvent : dependantEvents) {
             String eventName, eventType;
             try {
                 eventName = getOutputEventName(outputEvent);
                 eventType = getOutputEventType(outputEvent);
             } catch (IOException e) {
-                throw new JsonParseException("Unable to deserialize value from datastore. Error : "+e.getMessage());
+                throw new JsonParseException("Unable to deserialize outputEvent value. Error : " + e.getMessage());
             }
+            eventsDAO.markEventAsInvalid_NonTransactional(stateMachineId, eventName, session);
             Event event = new Event(eventName, eventType, Event.EventStatus.pending,
                     stateMachineId, null, null, smExecutionVersion);
             eventsDAO.create(stateMachineId, event);
-        });
+        }
 
-        //Persist replay event
-        // TODO: Use replay event source constant defined here
+        //Mark replay event as invalid and persist replay event
+        eventsDAO.markEventAsInvalid_NonTransactional(stateMachineId, replayEventData.getName(), session);
+        String eventSource = replayEventData.getEventSource().concat(":" + RuntimeConstants.REPLAY_EVENT);
         Event replayEvent = new Event(replayEventData.getName(), replayEventData.getType(), Event.EventStatus.triggered,
-                stateMachineId, replayEventData.getData(), replayEventData.getEventSource(), smExecutionVersion);
+                stateMachineId, replayEventData.getData(), eventSource, smExecutionVersion);
         return eventsDAO.create(stateMachineId, replayEvent);
     }
 

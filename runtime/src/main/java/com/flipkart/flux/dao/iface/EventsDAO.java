@@ -20,6 +20,7 @@ import org.hibernate.Session;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * <code>EventsDAO</code> interface provides methods to perform CR operations on {@link Event}
@@ -55,7 +56,9 @@ public interface EventsDAO {
     /** Retrieves list of events which are in triggered/cancelled state and belongs to provided state machine */
     List<String> findTriggeredOrCancelledEventsNamesBySMId(String stateMachineInstanceId);
 
-    /** Retrieves list of events whose eventSource is replay and belongs to provided state machine */
+    /** Retrieves valid event name matching input Event name whose eventSource is <code>RuntimeConstants.REPLAY_EVENT</code>
+     *  and belongs to provided state machine.
+     */
     List<String> findAllValidReplayEventsNamesBySMId(String stateMachineInstanceId);
 
     /** Retrieves list of events which are in triggered state and belongs to provided state machine */
@@ -68,6 +71,11 @@ public interface EventsDAO {
     /** Retrieves list of events by their names and state machine id */
     List<VersionedEventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames);
 
+    /** Retrieves valid event name matching input Event name whose eventSource is <code>RuntimeConstants.REPLAY_EVENT</code>
+     *  and belongs to provided state machine.
+     */
+    Optional<Event> findValidReplayEventBySMIdAndName(String stateMachineInstanceId, String eventName);
+
     /** Retrieves all the events names and statuses. Selects for update if forUpdate is true */
     Map<String, Event.EventStatus> getAllEventsNameAndStatus(String stateMachineInstanceId, boolean forUpdate);
 
@@ -77,5 +85,5 @@ public interface EventsDAO {
     /** Marks list of events as invalid */
     void markEventsAsInvalid(String stateMachineInstanceId, List<String> eventName);
 
-    void markEventsAsInvalid_NonTransactional(String stateMachineInstanceId, List<String> eventName, Session session);
+    void markEventAsInvalid_NonTransactional(String stateMachineInstanceId, String eventName, Session session);
 }

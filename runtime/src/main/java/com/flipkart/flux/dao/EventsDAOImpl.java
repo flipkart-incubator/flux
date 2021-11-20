@@ -15,11 +15,13 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.VersionedEventData;
+import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.persistence.*;
 import com.google.inject.name.Named;
 import org.hibernate.*;
+import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
@@ -157,7 +159,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     /**
      * @param stateMachineInstanceId State Machine Identifier
-     * @return Returns the valid list of replay event names
+     * @return Returns the list of replay event names
      */
     @Override
     @Transactional
@@ -166,10 +168,33 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
         Criteria criteria = currentSession().createCriteria(Event.class)
                 .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
-                .add(Restrictions.eq("eventSource", "replay"))
+                .add(Restrictions.ilike("eventSource", RuntimeConstants.REPLAY_EVENT, MatchMode.ANYWHERE))
                 .add(Restrictions.ne("status", Event.EventStatus.invalid))
                 .setProjection(Projections.property("name"));
         return criteria.list();
+    }
+
+    /**
+     *
+     * @param stateMachineInstanceId
+     * @param eventName
+     * @return
+     */
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public Optional<Event> findValidReplayEventBySMIdAndName(String stateMachineInstanceId, String eventName) {
+        Criteria criteria = currentSession().createCriteria(Event.class)
+                .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
+                .add(Restrictions.eq("name", eventName))
+                .add(Restrictions.ilike("eventSource", RuntimeConstants.REPLAY_EVENT, MatchMode.ANYWHERE))
+                .add(Restrictions.ne("status", Event.EventStatus.invalid));
+
+        Object object = criteria.uniqueResult();
+        Event castedObject = null;
+        if(object != null)
+            castedObject = (Event) object;
+        return Optional.ofNullable(castedObject);
     }
 
     /**
@@ -275,23 +300,13 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         }
     }
 
-    // TODO : This query may overflow biffer size. Either do it on per event basis OR mark it only for 1 event
-    // TODO : because all other event version would be already invalid
     @Override
-    public void markEventsAsInvalid_NonTransactional(String stateMachineInstanceId, List<String> eventNames,
-                Session session) {
-        if (!eventNames.isEmpty()) {
-            StringBuilder eventNamesString = new StringBuilder();
-            for (int i = 0; i < eventNames.size(); i++) {
-                eventNamesString.append("\'" + eventNames.get(i) + "\'");
-                if (i != eventNames.size() - 1)
-                    eventNamesString.append(", ");
-            }
-            Query query = session.createQuery("update Event set status = :status where" +
-                    " stateMachineInstanceId = :stateMachineInstanceId and name in (" + eventNamesString.toString() + ")");
-            query.setString("status", Event.EventStatus.invalid.toString());
-            query.setString("stateMachineInstanceId", stateMachineInstanceId);
-            query.executeUpdate();
-        }
+    public void markEventAsInvalid_NonTransactional(String stateMachineInstanceId, String eventName, Session session) {
+        Query query = currentSession().createQuery("update Event set status = :status where" +
+                " stateMachineInstanceId = :stateMachineInstanceId and name = :eventName");
+        query.setString("status", Event.EventStatus.invalid.toString());
+        query.setString("stateMachineInstanceId", stateMachineInstanceId);
+        query.setString("eventName", eventName);
+        query.executeUpdate();
     }
 }

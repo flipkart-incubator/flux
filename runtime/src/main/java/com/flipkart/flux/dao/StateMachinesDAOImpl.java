@@ -21,6 +21,7 @@ import com.flipkart.flux.shard.ShardId;
 import com.google.inject.name.Named;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
+import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 
@@ -37,7 +38,7 @@ import java.util.Set;
  */
 public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements StateMachinesDAO {
 
-    public static final String FOR_UPDATE = "FOR UPDATE";
+    public static final String FOR_UPDATE = "for update";
 
     @Inject
     public StateMachinesDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
@@ -95,10 +96,10 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
 
     @Override
     public Long findByIdForUpdate_NonTransactional(String stateMachineId, Session session) {
-        Query query = currentSession().createQuery(
+        SQLQuery sqlQuery = currentSession().createSQLQuery(
                 "select executionVersion from StateMachines where id = :stateMachineId "+ FOR_UPDATE);
-        query.setString("stateMachineId",stateMachineId);
-        return (Long) query.uniqueResult();
+        sqlQuery.setString("stateMachineId",stateMachineId);
+        return Long.valueOf(sqlQuery.uniqueResult().toString());
     }
 
     @Override

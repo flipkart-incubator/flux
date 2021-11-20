@@ -27,6 +27,11 @@ public class RuntimeConstants {
     public static final String DASHBOARD_CONTEXT_PATH = "/admin";
     public static final String API_CONTEXT_PATH = "/api";
 
+    /***
+     * default eventSource for replay event
+     */
+    public static final String REPLAY_EVENT = "flux_runtime_replay";
+
     /**
      * Root for dashboard webapp configs.
      */

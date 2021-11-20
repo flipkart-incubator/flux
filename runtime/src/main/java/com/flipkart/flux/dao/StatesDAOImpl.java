@@ -78,18 +78,6 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     }
 
     @Override
-    public void updateStatus_NonTransactional(String stateMachineInstanceId, List<Long> stateIds, Status status,
-                                              Session session) {
-        String inClauseQuery = stateIds.toString().replace("[","(").replace("]",")");
-        Query query = session.createQuery(
-                "update State set status = :status where stateMachineId = :stateMachineId and id in "
-                        .concat(inClauseQuery));
-        query.setString("status", status != null ? status.toString() : null);
-        query.setString("stateMachineId", stateMachineInstanceId);
-        query.executeUpdate();
-    }
-
-    @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public void updateRollbackStatus(String stateMachineId, Long stateId, Status rollbackStatus) {
@@ -127,6 +115,8 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
      * @return list of all the states for the given state ids
      */
     @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public List<State> findAllStatesForGivenStateIds(String stateMachineId, List<Long> stateIds) {
         String inClause = stateIds.toString().replace("[","(").replace("]",")");
         Query query = currentSession().createQuery(
@@ -226,6 +216,19 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
                 " where stateMachineId=:stateMachineId and id in ".concat(inClause.toString()));
         query.setLong("executionVersion", executionVersion);
         query.setString("stateMachineId", stateMachineId);
+        query.executeUpdate();
+    }
+
+    // TODO : Add test for this
+    @Override
+    public void updateStatus_NonTransactional(String stateMachineInstanceId, List<Long> stateIds, Status status,
+                                              Session session) {
+        String inClauseQuery = stateIds.toString().replace("[","(").replace("]",")");
+        Query query = session.createQuery(
+                "update State set status = :status where stateMachineId = :stateMachineId and id in "
+                        .concat(inClauseQuery));
+        query.setString("status", status != null ? status.toString() : null);
+        query.setString("stateMachineId", stateMachineInstanceId);
         query.executeUpdate();
     }
 }

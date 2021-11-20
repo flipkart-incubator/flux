@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.*;
 import com.flipkart.flux.client.runtime.EventProxyConnector;
+import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
 import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
 import com.flipkart.flux.dao.iface.AuditDAO;
@@ -287,8 +288,6 @@ public class StateMachineResource {
 
     /**
      * Used to post Data corresponding to a replay event.
-     * This data is independently posted (manually, for example)
-     *
      * @param machineId machineId the event is to be submitted against
      * @param eventData Json representation of event
      */
@@ -302,7 +301,8 @@ public class StateMachineResource {
 
         try {
             if (machineId == null || eventData == null)
-                return Response.status(Response.Status.BAD_REQUEST).entity("Please send valid values for machineId and EventData ").build();
+                return Response.status(Response.Status.BAD_REQUEST).entity(
+                        "Please send valid values for machineId and EventData ").build();
 
             LoggingUtils.registerStateMachineIdForLogging(machineId);
             logger.info("Received replay event: {} for state machine id: {}", eventData.getName(), machineId);
@@ -311,7 +311,8 @@ public class StateMachineResource {
             if (stateMachine == null) {
                 logger.error("stateMachine with id: {} not found while processing replay event {} ", machineId,
                         eventData.getName());
-                return Response.status(Response.Status.NOT_FOUND).entity("StateMachine with id: " + machineId + " not found while processing replay event: "
+                return Response.status(Response.Status.NOT_FOUND).entity(
+                        "StateMachine with id: " + machineId + " not found while processing replay event: "
                         + eventData.getName()).build();
             }
             if (stateMachine.getStatus() == StateMachineStatus.cancelled) {
@@ -321,9 +322,20 @@ public class StateMachineResource {
                         + stateMachine.getId() + " is in 'cancelled' state. Discarding the replay event.").build();
             }
             try {
-                // TODO : Add a check to eventSource being "replay"
-                workFlowExecutionController.postReplayEvent(eventData, stateMachine);
-                return Response.status(Response.Status.ACCEPTED).build();
+                Optional<Event> replayEvent = eventsDAO.findValidReplayEventBySMIdAndName(machineId,
+                        eventData.getName());
+                if(replayEvent.isPresent()) {
+                    workFlowExecutionController.postReplayEvent(eventData, stateMachine);
+                    return Response.status(Response.Status.ACCEPTED).build();
+                }
+                else {
+                    logger.error("Triggered input event {} doesn't exist as a replay event in database." +
+                                    " Replay Event is identified by eventSource suffix {}", eventData.getName(),
+                            RuntimeConstants.REPLAY_EVENT);
+                    return Response.status(Response.Status.FORBIDDEN).entity(
+                            "Triggered input event " + eventData.getName() + " doesn't exist as a replay event in database." +
+                                    " Replay Event is identified by eventSource suffix " + RuntimeConstants.REPLAY_EVENT).build();
+                }
             } catch (RuntimeException ex) {
                 // TODO: Need to add more catch blocks to handle different illegal event exceptions.
                 // TODO: Sending only one response type for now.
@@ -424,7 +436,6 @@ public class StateMachineResource {
                         "Input event is not in triggered state.").build();
             }
             logger.info("Received event update request for event:{}", eventData.getName());
-            /* List holds objects retrieved from States matching input machineId and eventName as [taskId, machineId, status] */
             List<State> states = statesDAO.findStatesByDependentEvent(machineId, eventData.getName());
             if (validateEventUpdate(states)) {
                 VersionedEventData versionedEventData = new VersionedEventData(eventData.getName(), eventData.getType(),

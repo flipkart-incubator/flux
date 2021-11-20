@@ -327,9 +327,6 @@ public class WorkFlowExecutionController {
         // Holds list of events in TraversalPath of ReplayEvent. All these events are supposed to be marked as invalid.
         List<String> traversalPathEvents = new ArrayList<>();
 
-        // Add ReplayEvent, to mark it's already existing executionVersions as invalid.
-        traversalPathEvents.add(eventData.getName());
-
         // Retrieve StateTraversalPath for given Replayable State from database.
         // This list has been created for ReplayableStates during StateMachine instance creation.
         Optional<StateTraversalPath> traversalPathStates = stateTraversalPathDAO.findById(
@@ -346,15 +343,16 @@ public class WorkFlowExecutionController {
                 }
             });
 
-            logger.info("Replay event: {}, Replayable state: {}, Traversal path States: {} and Traversal path Events: {}",
-                    eventData.getName(), dependantStateOnReplayEvent.getName(), traversalPathStates, traversalPathEvents);
+            logger.info("Replay event: {}, Replayable state: {}, Traversal path States: {}" +
+                            " and Traversal path Events: {}", eventData.getName(),
+                    dependantStateOnReplayEvent.getName(), traversalPathStates, traversalPathEvents);
 
-            // TODO : Handle error responses,
-            // TODO : May need return value to test
-            Event currentEvent = replayEventPersistenceService.persistAndProcessReplayEvent(stateMachine.getId(), eventData,
-                    nextDependentStateIds, traversalPathEvents);
+            // TODO : Handle error responses
+            Event currentEvent = replayEventPersistenceService.persistAndProcessReplayEvent(
+                    stateMachine.getId(), eventData, nextDependentStateIds, traversalPathEvents);
 
             Set<State> executableStates = new HashSet<>();
+            dependantStateOnReplayEvent = statesDAO.findById(stateMachine.getId(), dependantStateOnReplayEvent.getId());
             executableStates.add(dependantStateOnReplayEvent);
             executeStates(stateMachine, executableStates,false);
         } else {
