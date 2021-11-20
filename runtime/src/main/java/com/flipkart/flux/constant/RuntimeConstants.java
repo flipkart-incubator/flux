@@ -50,4 +50,6 @@ public class RuntimeConstants {
      * default value for clientElbId in StateMachineDefinition
      */
     public static final String DEFAULT_ELB_ID = "defaultElbId";
+
+    public static final Short MAX_REPLAYABLE_RETRIES = 5;
 }

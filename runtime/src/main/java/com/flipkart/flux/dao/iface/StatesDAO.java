@@ -104,4 +104,21 @@ public interface StatesDAO {
      * Retrieves all states for a particular state-machine-id and like input dependent-event-name.
      */
     List<State> findStatesByDependentEvent(String stateMachineId, String eventName);
+
+    /**
+     * Retrieves state-id for a particular state-machine-id and like input replay dependent-event-name.
+     */
+    Long findStateByDependentReplayEvent(String stateMachineId, String eventName);
+
+    /**
+     * Increments the attempted no.of retries of a replayable state by 1
+     */
+    void incrementReplayableRetries(String stateMachineInstanceId, Long stateId, Short replayableRetries);
+
+    /***
+     * sets the attempted no of retries to 0
+     * @param stateMachineId
+     * @param stateId
+     */
+    void updateReplayableRetries(String stateMachineId, Long stateId, Short replayableRetries);
 }

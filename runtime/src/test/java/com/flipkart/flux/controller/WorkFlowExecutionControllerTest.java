@@ -19,16 +19,21 @@ import akka.actor.Props;
 import akka.testkit.TestActorRef;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.MockActorRef;
+import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
+import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.*;
+import com.flipkart.flux.exception.IllegalEventException;
+import com.flipkart.flux.exception.ReplayableRetryExhaustException;
+import com.flipkart.flux.exception.TraversalPathException;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.flipkart.flux.metrics.iface.MetricsClient;
@@ -46,6 +51,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -68,6 +74,8 @@ public class WorkFlowExecutionControllerTest {
 
     @Mock
     StateTraversalPathDAO stateTraversalPathDAO;
+    TestActorRef<MockActorRef> mockActor;
+    ActorSystem actorSystem;
 
     @Mock
     private RouterRegistry routerRegistry;
@@ -87,11 +95,8 @@ public class WorkFlowExecutionControllerTest {
     @Mock
     private ReplayEventPersistenceService replayEventPersistenceService;
 
-    TestActorRef<MockActorRef> mockActor;
-
     private WorkFlowExecutionController workFlowExecutionController;
     private ObjectMapper objectMapper;
-    ActorSystem actorSystem;
 
     @Before
     public void setUp() throws Exception {
@@ -365,5 +370,61 @@ public class WorkFlowExecutionControllerTest {
         verify(statesDAO).updateStatus("random-state-machine", 1L, Status.completed);
         verify(auditDAO).create("random-state-machine", new AuditRecord("random-state-machine", 1L, 1L, Status.completed, null , ""));
         verify(redriverRegistry).deRegisterTask("random-state-machine",1L, 0L);
+    }
+
+    @Test(expected = ReplayableRetryExhaustException.class)
+    public void testPostReplayEventExhaustedAttemptedRetryCount() throws IllegalEventException, IOException {
+
+        String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
+        String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";
+        String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
+        final Event TestReplayEvent = new Event("event3", "someType", Event.EventStatus.pending, "ReplayEventTestStateMachine", null, RuntimeConstants.REPLAY_EVENT);
+        List<String> dependencies = new ArrayList<>();
+        dependencies.add(TestReplayEvent.getName());
+        State state1 = new State(2L, "state1", "desc1", onEntryHook, task, onExitHook, Collections.emptyList(), 3L, 60L, null, null, null, 0l, "ReplayEventTestStateMachine", 1L);
+        State state2 = new State(2L, "state2", "desc2", onEntryHook, task, onExitHook, dependencies, 3L, 60L, null, Status.completed, null, 0l, "ReplayEventTestStateMachine", 2L, (short) 5, (short) 5, Boolean.TRUE);
+        Set<State> states = new HashSet<>();
+        states.add(state1);
+        states.add(state2);
+        StateMachine stateMachine1 = new StateMachine("ReplayEventTestStateMachine", 2L, "SM_name", "SM_desc", states,
+                "client_elb_id_1");
+        Event event = eventsDAO.create(TestReplayEvent.getStateMachineInstanceId(), TestReplayEvent);
+        stateMachinesDAO.create(stateMachine1.getId(), stateMachine1);
+        when(statesDAO.findStateByDependentReplayEvent("ReplayEventTestStateMachine", TestReplayEvent.getName())).thenReturn(state2.getId());
+        when(statesDAO.findById("ReplayEventTestStateMachine", 2L)).thenReturn(state2);
+        when(stateTraversalPathDAO.findById(stateMachine1.getId(), state2.getId())).thenReturn(Optional.empty());
+        EventData eventData = new EventData(TestReplayEvent.getName(), TestReplayEvent.getType(), TestReplayEvent.getEventData(), TestReplayEvent.getEventSource());
+        workFlowExecutionController.postReplayEvent(eventData, stateMachine1);
+
+    }
+
+    @Test(expected = TraversalPathException.class)
+    public void testPostReplayEvent() throws IllegalEventException, IOException {
+
+        String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
+        String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";
+        String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
+        final Event testReplayEvent = new Event("event3", "someType", Event.EventStatus.pending, "ReplayEventTestStateMachine1", null, RuntimeConstants.REPLAY_EVENT);
+        final Event event1 = new Event("event1", "someEvent", Event.EventStatus.pending, "ReplayEventTestStateMachine1", null, null);
+
+        List<String> dependencies = new ArrayList<>();
+        dependencies.add(testReplayEvent.getName());
+        String outputEvent1 = objectMapper.writeValueAsString(new EventDefinition("event1", "SomeEvent"));
+        State state1 = new State(2L, "state1", "desc1", onEntryHook, task, onExitHook, Collections.emptyList(), 3L, 60L, outputEvent1, null, null, 0l, "ReplayEventTestStateMachine1", 1L);
+        State state2 = new State(2L, "state2", "desc2", onEntryHook, task, onExitHook, dependencies, 3L, 60L, outputEvent1, Status.completed, null, 0l, "ReplayEventTestStateMachine1", 2L, (short) 5, (short) 2, Boolean.TRUE);
+        Set<State> states = new HashSet<>();
+        states.add(state1);
+        states.add(state2);
+        StateMachine stateMachine1 = new StateMachine("ReplayEventTestStateMachine1", 2L, "SM_name", "SM_desc", states,
+                "client_elb_id_1");
+        when(statesDAO.findStateByDependentReplayEvent(stateMachine1.getId(), testReplayEvent.getName())).thenReturn(state2.getId());
+        when(statesDAO.findById(stateMachine1.getId(), state2.getId())).thenReturn(state2);
+        when(eventsDAO.findValidEventBySMIdAndName(stateMachine1.getId(), testReplayEvent.getName())).thenReturn(testReplayEvent);
+        when(eventsDAO.findValidEventBySMIdAndName(stateMachine1.getId(), event1.getName())).thenReturn(event1);
+        when(stateTraversalPathDAO.findById(stateMachine1.getId(), state2.getId())).thenReturn(Optional.empty());
+        EventData eventData = new EventData(testReplayEvent.getName(), testReplayEvent.getType(), testReplayEvent.getEventData(), testReplayEvent.getEventSource());
+        workFlowExecutionController.postReplayEvent(eventData, stateMachine1);
+        verify(statesDAO).incrementReplayableRetries("ReplayEventTestStateMachine1", 2L, (short) 10);
+
     }
 }

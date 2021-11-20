@@ -79,6 +79,7 @@ runtime:
 
 task:
   maxTaskRetryCount: 10
+  maxTaskReplayableRetryCount: 5
 
 elbCache:
   maxSize: 50

@@ -13,11 +13,18 @@
 
 package com.flipkart.flux.representation;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.client.FluxClientComponentModule;
+import com.flipkart.flux.client.FluxClientInterceptorModule;
+import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
@@ -25,26 +32,31 @@ import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
+import com.flipkart.flux.guice.module.ContainerModule;
+import com.flipkart.flux.guice.module.OrchestrationTaskModule;
+import com.flipkart.flux.guice.module.ShardModule;
+import com.flipkart.flux.module.RuntimeTestModule;
+import com.flipkart.flux.runner.Modules;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 /**
  * @author shyam.akirala
  */
 @RunWith(MockitoJUnitRunner.class)
+@Modules(orchestrationModules = {FluxClientComponentModule.class, ShardModule.class, RuntimeTestModule.class, ContainerModule.class,
+        OrchestrationTaskModule.class, FluxClientInterceptorModule.class})
 public class StateMachinePersistenceServiceTest {
 
     @Mock
@@ -62,6 +74,12 @@ public class StateMachinePersistenceServiceTest {
     @Mock
     ObjectMapper objectMapper;
 
+    @Before
+    public void setup() {
+        objectMapper = new ObjectMapper();
+    }
+
+
     @Test
     public void maxTaskRetryCountShouldBeTakenIfRetryCountIsHigher() {
         Integer maxTaskRetryCount = 10;
@@ -78,7 +96,7 @@ public class StateMachinePersistenceServiceTest {
         State state = new State(1L, "state1", "desc", null, "task1",
                 null, Collections.emptyList(), 10L, 1000L, null,
                 Status.initialized, null, 0L, "sample-state-machine-id",
-                1L );
+                1L);
         verify(stateMachinesDAO).create("sample-state-machine-id", new StateMachine(
                 "sample-state-machine-id", 1L, "state_machine_1", "desc",
                 Collections.singleton(state), "client_elb_id_1"));
@@ -106,6 +124,85 @@ public class StateMachinePersistenceServiceTest {
                 Collections.singleton(state), "client_elb_id_1"));
     }
 
+    @Test
+    public void testConvertStateDefinitionToState() throws Exception {
+
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition_test.json"));
+        Integer maxTaskRetryCount = 10;
+        StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
+        Event event1 = new Event("event1", "java.lang.String", Event.EventStatus.pending,
+                null, null, null, 0L);
+        Event event2 = new Event("event2", "java.lang.String", Event.EventStatus.pending,
+                null, null, null, 0L);
+        EventDefinition eventDefinition1 = new EventDefinition("event1", "java.lang.String");
+        EventDefinition eventDefinition2 = new EventDefinition("event2", "java.lang.String");
+        when(eventPersistenceService.convertEventDefinitionToEvent(eventDefinition1)).thenReturn(event1);
+        when(eventPersistenceService.convertEventDefinitionToEvent(eventDefinition2)).thenReturn(event2);
+
+        StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
+        stateMachinePersistenceService.createStateMachine(stateMachineDefinition.getCorrelationId(), stateMachineDefinition);
+        State state = new State(1L, "test_state2", "desc2", "com.flipkart.flux.dao.DummyOnEntryHook",
+                "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_java.lang.String_version1", "com.flipkart.flux.dao.DummyOnExitHook",
+                Collections.singletonList(event1.getName()), 3L, 100L, "{\"name\":\"event2\",\"type\":\"java.lang.String\",\"eventSource\":null}", Status.initialized, null,
+                0L, "magic_number_1", 1L);
+        verify(stateMachinesDAO).create("magic_number_1", new StateMachine("magic_number_1", 1L, "test_state_machine", "desc", Collections.singleton(state), "defaultElbId"));
+
+    }
+
+    @Test
+    public void testConvertStateDefinitionToStateWithReplayable() throws Exception {
+
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition_single_replayable_state.json"));
+        Integer maxTaskRetryCount = 10;
+        StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
+        Event event1 = new Event("event1", "java.lang.String", Event.EventStatus.pending,
+                null, null, null, 0L);
+        Event event2 = new Event("event2", "java.lang.String", Event.EventStatus.pending,
+                null, null, null, 0L);
+        EventDefinition eventDefinition1 = new EventDefinition("event1", "java.lang.String");
+        EventDefinition eventDefinition2 = new EventDefinition("event2", "java.lang.String");
+        when(eventPersistenceService.convertEventDefinitionToEvent(eventDefinition1)).thenReturn(event1);
+        when(eventPersistenceService.convertEventDefinitionToEvent(eventDefinition2)).thenReturn(event2);
+
+        StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
+        stateMachinePersistenceService.createStateMachine(stateMachineDefinition.getCorrelationId(), stateMachineDefinition);
+        State state = new State(1L, "test_state2", "desc2", "com.flipkart.flux.dao.DummyOnEntryHook",
+                "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_java.lang.String_version1", "com.flipkart.flux.dao.DummyOnExitHook",
+                Collections.singletonList(event1.getName()), 3L, 100L, "{\"name\":\"event2\",\"type\":\"java.lang.String\",\"eventSource\":null}", Status.initialized, null,
+                0L, "magic_number_1", 1L, (short) 5, (short) 0, Boolean.TRUE);
+        verify(stateMachinesDAO).create("magic_number_1", new StateMachine("magic_number_1", 1L, "test_state_machine", "desc", Collections.singleton(state), "defaultElbId"));
+
+    }
+
+    @Test
+    public void testConvertStateDefinitionToStateWithReplayableRetriesGreaterThanThreshold() throws Exception {
+
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_replayableRetries_greater_than_threshold.json"));
+        Integer maxTaskRetryCount = 10;
+        StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
+        Event event1 = new Event("event1", "java.lang.String", Event.EventStatus.pending,
+                null, null, null, 0L);
+        Event event2 = new Event("event2", "java.lang.String", Event.EventStatus.pending,
+                null, null, null, 0L);
+        EventDefinition eventDefinition1 = new EventDefinition("event1", "java.lang.String");
+        EventDefinition eventDefinition2 = new EventDefinition("event2", "java.lang.String");
+        when(eventPersistenceService.convertEventDefinitionToEvent(eventDefinition1)).thenReturn(event1);
+        when(eventPersistenceService.convertEventDefinitionToEvent(eventDefinition2)).thenReturn(event2);
+
+        StateMachinePersistenceService stateMachinePersistenceService
+                = new StateMachinePersistenceService(stateMachinesDAO, auditDAO, stateTraversalPathDAO,
+                eventPersistenceService, maxTaskRetryCount);
+        StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(
+                stateMachineDefinition.getCorrelationId(), stateMachineDefinition);
+        State replayableState = null;
+        for (State state: stateMachine.getStates()) {
+            if(state.getReplayable()) {
+                replayableState = state;
+            }
+        }
+        assertThat(replayableState.getMaxReplayableRetries()).isEqualTo(RuntimeConstants.MAX_REPLAYABLE_RETRIES);
+    }
+
     /**
      *   Example workflow to test State Traversal Path creation using BFS search util.
      *   Replayable states : [t1, t4, t8, t9]
@@ -130,6 +227,7 @@ public class StateMachinePersistenceServiceTest {
      *
      * @return
      */
+    //TODO: Check the state Definition constructor
     private StateMachineDefinition createStateMachineDefinitionWithReplayableStates() {
 
         Set<StateDefinition> stateDefinitions = new HashSet<>();
@@ -313,4 +411,36 @@ public class StateMachinePersistenceServiceTest {
             }
         }
     }
+
+    @Test
+    public void validateMultipleStatesWithSameReplayEvent() throws IOException {
+        Integer maxTaskRetryCount = 10;
+        StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(
+                stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
+                "state_machine_definition_5.json"));
+        StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
+        StateMachineDefinition stateMachineDefinition1 = stateMachinePersistenceService.validateMultipleStatesWithSameReplayEvent(stateMachineDefinition);
+        Set<StateDefinition> states = stateMachineDefinition1.getStates();
+        states.forEach(state -> {
+            if (state.getName().equals("test_state2") || state.getName().equals("test_state3"))
+                assertThat(state.isReplayable()).isEqualTo(false);
+        });
+    }
+
+    @Test
+    public void testValidateStateWithMultipleReplayEvent() throws IOException {
+        Integer maxTaskRetryCount = 10;
+        StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(
+                stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition_4.json"));
+        StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
+        StateMachineDefinition stateMachineDefinition1 = stateMachinePersistenceService.validateStateWithMultipleReplayEvent(stateMachineDefinition);
+        Set<StateDefinition> states = stateMachineDefinition1.getStates();
+        states.forEach(state -> {
+            if (state.getName().equals("test_state2"))
+                assertThat(state.isReplayable()).isEqualTo(false);
+        });
+    }
+
 }

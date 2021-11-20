@@ -12,7 +12,6 @@
 
     <groupId>com.flipkart.flux</groupId>
     <artifactId>model</artifactId>
-    <version>1.2.1</version>
     <name>model</name>
     <url>http://maven.apache.org</url>
 

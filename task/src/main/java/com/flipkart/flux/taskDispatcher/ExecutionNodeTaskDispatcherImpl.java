@@ -96,7 +96,7 @@ public class ExecutionNodeTaskDispatcherImpl implements ExecutionNodeTaskDispatc
                         EntityUtils.toString(httpResponse.getEntity()));
             }
         } catch (IOException e) {
-            logger.error("Posting over http errored. StatusCode: {}, smId:{} taskId:{}  Message: {}",
+            logger.error("Posting over http errored. smId: {}, taskId:{} Message:{}  Exception: {}",
                     taskExecutionMessage.getAkkaMessage().getStateMachineId(),
                     taskExecutionMessage.getAkkaMessage().getTaskId(),
                     e.getMessage(), e);

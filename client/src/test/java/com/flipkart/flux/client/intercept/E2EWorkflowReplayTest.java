@@ -45,7 +45,7 @@ public class E2EWorkflowReplayTest {
     public void testSubmissionOfWorkflowWithReplayEvents() throws Exception {
         simpleWorkflowForReplayTest.simpleDummyWorkflowWithReplayEvent(new SimpleWorkflowForReplayTest.IntegerEvent(2));
         final StateMachineDefinition submittedDefinition = dummyFluxRuntimeResource.smToCountMap.keySet().stream().findFirst().get();
-        assertThat(submittedDefinition.getStates()).hasSize(6);
+        assertThat(submittedDefinition.getStates()).hasSize(7);
         final Stream<String> eventDefNames = submittedDefinition.getStates().stream().
                 flatMap(stateDefinition -> stateDefinition.getDependencies().stream()).map(EventDefinition::getName);
         assertThat(eventDefNames.distinct().toArray()).containsOnlyOnce(SimpleWorkflowForReplayTest.INTEGER_REPLAY_EVENT_NAME + "0",

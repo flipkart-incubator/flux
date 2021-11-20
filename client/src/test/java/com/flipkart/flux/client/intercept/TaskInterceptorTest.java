@@ -16,6 +16,7 @@ package com.flipkart.flux.client.intercept;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.client.constant.ClientConstants;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.IntegerEvent;
 import com.flipkart.flux.client.intercept.SimpleWorkflowForTest.StringEvent;
 import com.flipkart.flux.client.model.Event;
@@ -197,13 +198,13 @@ public class TaskInterceptorTest {
 
         /* verification */
         final List<EventDefinition> expectedDependency = new LinkedList<EventDefinition>() {{
-            add(new EventDefinition("someReplayEvent", "com.flipkart.flux.client.intercept.SimpleWorkflowForReplayTest$StringEvent"));
+            add(new EventDefinition("someReplayEvent", "com.flipkart.flux.client.intercept.SimpleWorkflowForReplayTest$StringEvent", ClientConstants.REPLAY_EVENT));
             add(new EventDefinition(INTEGER_REPLAY_EVENT_NAME + "0", "com.flipkart.flux.client.intercept.SimpleWorkflowForReplayTest$IntegerEvent"));
         }};
         final EventDefinition expectedOutput = new EventDefinition("com.flipkart.flux.client.intercept.SimpleWorkflowForReplayTest$StringEvent1","com.flipkart.flux.client.intercept.SimpleWorkflowForReplayTest$StringEvent");
         verify(localContext, times(1)).
                 registerNewState(1l, "waitForReplayEvent", null, null,
-                        new MethodId(invokedMethod).toString()+_VERSION+"1", 2l, 2000l, true,expectedDependency, expectedOutput);
+                        new MethodId(invokedMethod).toString()+_VERSION+"1", 2l, 2000l, true,expectedDependency, expectedOutput, (short) 5);
     }
 
     @Test(expected = IllegalInvocationException.class)
@@ -236,9 +237,23 @@ public class TaskInterceptorTest {
         verify(localContext,times(1)).checkExistingDefinition(new EventDefinition("someExternalEvent","com.flipkart.flux.client.intercept.SimpleWorkflowForTest$IntegerEvent"));
     }
 
+    @Test
+    public void testReplayEvents_checkWithLocalContextForExistingDefs() throws Throwable {
+        /* setup */
+        setupMockLocalContext();
+        /* Invocation 1 */
+        final Method method1 = simpleWorkflowForReplayTest.getClass().getDeclaredMethod("waitForReplayEvent", SimpleWorkflowForReplayTest.StringEvent.class, SimpleWorkflowForReplayTest.IntegerEvent.class);
+        taskInterceptor.invoke(TestUtil.dummyInvocation(method1, new Object[]{null, new IntegerEvent(1)}));
+
+        /* Invocation 2 - the method is annotated with replayEvent with same name and same type, so we're good */
+        final Method method2 = simpleWorkflowForReplayTest.getClass().getDeclaredMethod("waitForReplayEvent", SimpleWorkflowForReplayTest.StringEvent.class);
+        taskInterceptor.invoke(TestUtil.dummyInvocation(method2, new Object[]{null}));
+
+        verify(localContext, times(2)).checkExistingDefinition(new EventDefinition("someReplayEvent", "com.flipkart.flux.client.intercept.SimpleWorkflowForReplayTest$StringEvent", ClientConstants.REPLAY_EVENT));
+    }
+
     private void setupMockLocalContext() {
         final AtomicInteger eventCounter = new AtomicInteger(0);
         doAnswer(invocation -> (((Event)invocation.getArguments()[0]).name())+eventCounter.getAndIncrement()).when(localContext).generateEventName(any(Event.class));
     }
-
 }

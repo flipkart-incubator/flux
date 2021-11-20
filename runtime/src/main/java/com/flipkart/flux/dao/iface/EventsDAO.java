@@ -24,20 +24,29 @@ import java.util.Optional;
 
 /**
  * <code>EventsDAO</code> interface provides methods to perform CR operations on {@link Event}
+ *
  * @author shyam.akirala
  */
 public interface EventsDAO {
 
-    /** Creates Event in the db, and returns the saved object*/
+    /**
+     * Creates Event in the db, and returns the saved object
+     */
     Event create(String stateMachineInstanceId, Event event);
 
-    /** Updates the event */
+    /**
+     * Updates the event
+     */
     void updateEvent(String stateMachineInstanceId, Event event);
 
-    /** Retrieves all the events which belongs to a particular state machine instance*/
+    /**
+     * Retrieves all the events which belongs to a particular state machine instance
+     */
     List<Event> findBySMInstanceId(String stateMachineInstanceId);
 
-    /** Retrieves valid[pending/triggered/cancelled] Event by state machine instance id and event name */
+    /**
+     * Retrieves valid[pending/triggered/cancelled] Event by state machine instance id and event name
+     */
     Event findValidEventBySMIdAndName(String stateMachineInstanceId, String eventName);
 
     /**
@@ -45,7 +54,9 @@ public interface EventsDAO {
      */
     List<Event> findAllBySMIdAndName(String stateMachineInstanceId, String eventName);
 
-    /** Retrieves Event by state machine instance id, event execution version and event name */
+    /**
+     * Retrieves Event by state machine instance id, event execution version and event name
+     */
     Event findValidEventsByStateMachineIdAndExecutionVersionAndName(String stateMachineInstanceId, String eventName, Long executionVersion);
 
     /**
@@ -53,36 +64,56 @@ public interface EventsDAO {
      */
     List<Event> findAllValidEventsByStateMachineIdAndExecutionVersionAndName(String stateMachineInstanceId, List<String> eventNames, Long executionVersion);
 
-    /** Retrieves list of events which are in triggered/cancelled state and belongs to provided state machine */
+    /**
+     * Retrieves list of events which are in triggered/cancelled state and belongs to provided state machine
+     */
     List<String> findTriggeredOrCancelledEventsNamesBySMId(String stateMachineInstanceId);
 
-    /** Retrieves valid event name matching input Event name whose eventSource is <code>RuntimeConstants.REPLAY_EVENT</code>
-     *  and belongs to provided state machine.
+    /**
+     * Retrieves valid event name matching input Event name whose eventSource is <code>RuntimeConstants.REPLAY_EVENT</code>
+     * and belongs to provided state machine.
      */
     List<String> findAllValidReplayEventsNamesBySMId(String stateMachineInstanceId);
 
-    /** Retrieves list of events which are in triggered state and belongs to provided state machine */
+    /**
+     * Retrieves list of events which are in triggered state and belongs to provided state machine
+     */
     List<Event> findTriggeredEventsBySMId(String stateMachineInstanceId);
 
-    /** Retrieves event which is in triggered state, event name and belongs to provided state machine */
+    /**
+     * Retrieves event which is in triggered state, event name and belongs to provided state machine
+     */
     Event findTriggeredEventBySMIdAndName(String stateMachineInstanceId, String eventName);
 
-
-    /** Retrieves list of events by their names and state machine id */
+    /**
+     * Retrieves list of events by their names and state machine id
+     */
     List<VersionedEventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames);
 
-    /** Retrieves valid event name matching input Event name whose eventSource is <code>RuntimeConstants.REPLAY_EVENT</code>
-     *  and belongs to provided state machine.
+    /**
+     * Deletes the list of invalid events
+     */
+    void deleteInvalidEvents(String stateMachineInstanceId, List<String> eventNames);
+
+    /**
+     * Retrieves valid event name matching input Event name whose eventSource is <code>RuntimeConstants.REPLAY_EVENT</code>
+     * and belongs to provided state machine.
      */
     Optional<Event> findValidReplayEventBySMIdAndName(String stateMachineInstanceId, String eventName);
 
-    /** Retrieves all the events names and statuses. Selects for update if forUpdate is true */
+    /**
+     * Retrieves all the events names and statuses. Selects for update if forUpdate is true
+     */
     Map<String, Event.EventStatus> getAllEventsNameAndStatus(String stateMachineInstanceId, boolean forUpdate);
 
-    /** Marks an event as cancelled */
+    /**
+     * Marks an event as cancelled
+     */
     void markEventAsCancelled(String stateMachineInstanceId, String eventName);
 
-    /** Marks list of events as invalid */
+    /**
+     * Marks list of events as invalid
+     */
     void markEventsAsInvalid(String stateMachineInstanceId, List<String> eventName);
 
     /**

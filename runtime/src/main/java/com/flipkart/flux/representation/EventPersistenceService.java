@@ -16,12 +16,13 @@ package com.flipkart.flux.representation;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 /**
- * <code>EventPersistenceService</code> class converts user provided Event entity definition to domain type object and stores in DB.
+ * <code>EventPersistenceService</code> class converts user provided Event entity definition to
+ * domain type object and stores in DB.
+ *
  * @author shyam.akirala
  */
 @Singleton
@@ -36,21 +37,28 @@ public class EventPersistenceService {
 
     /**
      * Converts {@link EventDefinition} to domain object {@link Event}
-     * @param eventDefinition
+     *
      * @return event domain object
      */
+    //TODO: Add test cases
     public Event convertEventDefinitionToEvent(EventDefinition eventDefinition) {
-        return new Event(eventDefinition.getName(), eventDefinition.getType(), Event.EventStatus.pending,
+        if (eventDefinition.getEventSource() != null) {
+            return new Event(eventDefinition.getName(), eventDefinition.getType(),
+                    Event.EventStatus.pending,
+                    null, null, eventDefinition.getEventSource(),
+                    0L);
+        }
+        return new Event(eventDefinition.getName(), eventDefinition.getType(),
+                Event.EventStatus.pending,
                 null, null, null, 0L);
     }
 
     /**
      * Persists the event in the DB.
-     * @param event
+     *
      * @return created event
      */
     public Event persistEvent(Event event) {
         return eventsDAO.create(event.getStateMachineInstanceId(), event);
     }
-
 }

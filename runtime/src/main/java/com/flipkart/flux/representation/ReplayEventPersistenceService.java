@@ -8,7 +8,6 @@ import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
-import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.persistence.DataSourceType;
@@ -17,17 +16,17 @@ import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.Storage;
 import com.google.gson.JsonParseException;
 import com.google.inject.name.Named;
-import org.hibernate.Session;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import javax.transaction.Transactional;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import javax.transaction.Transactional;
+import org.hibernate.Session;
 
 /**
  * @author raghavender.m
+ * @author akif.khan
  * Used as a business layer to interpret Replay event's trigger, and perform DB operations on states and events
  * in triggered ReplayEvent's traversal path.
  */
@@ -74,15 +73,15 @@ public class ReplayEventPersistenceService {
         stateMachinesDAO.updateExecutionVersion_NonTransactional(stateMachineId, smExecutionVersion, session);
 
         ArrayList<Long> stateIds = new ArrayList<>(dependantStateIds);
-        statesDAO.updateStatus_NonTransactional(stateMachineId, stateIds, Status.initialized, session);
-        statesDAO.updateExecutionVersion_NonTransactional(stateMachineId, stateIds, smExecutionVersion, session);
+        statesDAO.updateStatus_NonTransactional(stateMachineId,stateIds, Status.initialized, session);
+        statesDAO.updateExecutionVersion_NonTransactional(stateMachineId,stateIds,smExecutionVersion, session);
 
         //create audit records for all the states
-        for (Long stateId : stateIds) {
-            auditDAO.create_NonTransactional(new AuditRecord(stateMachineId, stateId, 0L,
-                            Status.initialized, null, null, smExecutionVersion, null),
-                    session);
-        }
+//      for (Long stateId : stateIds) {
+//          auditDAO.create_NonTransactional(new AuditRecord(stateMachineId, stateId, 0L,
+//                  Status.initialized, null, null, smExecutionVersion, null),
+//                  session);
+//      }
 
         for (String outputEvent : dependantEvents) {
             String eventName, eventType;
@@ -101,7 +100,14 @@ public class ReplayEventPersistenceService {
 
         //Mark replay event as invalid and persist replay event
         eventsDAO.markEventAsInvalid_NonTransactional(stateMachineId, replayEventData.getName(), session);
-        String eventSource = replayEventData.getEventSource().concat(":" + RuntimeConstants.REPLAY_EVENT);
+        String eventSource;
+        if(!replayEventData.getEventSource().contains(RuntimeConstants.REPLAY_EVENT)) {
+            eventSource = replayEventData.getEventSource()
+                    .concat(":" + RuntimeConstants.REPLAY_EVENT);
+        }
+        else {
+            eventSource = replayEventData.getEventSource();
+        }
         Event replayEvent = new Event(replayEventData.getName(), replayEventData.getType(), Event.EventStatus.triggered,
                 stateMachineId, replayEventData.getData(), eventSource, smExecutionVersion);
         return eventsDAO.create_NonTransactional(replayEvent, session);

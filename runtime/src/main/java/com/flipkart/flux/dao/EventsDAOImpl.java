@@ -34,7 +34,13 @@ import java.util.*;
  *
  * @author shyam.akirala
  */
+// TODO: For all queries, added restriction not to retrieve invalid statuses events. Need to add test cases for it.
 public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
+
+    private static final String TABLE_NAME = "Event";
+    private static final String COLUMN_STATE_MACHINE_INSTANCE_ID = "stateMachineInstanceId";
+    private static final String COLUMN_STATUS = "status";
+    private static final String COLUMN_NAME = "name";
 
     @Inject
     public EventsDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
@@ -314,5 +320,26 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         query.setString("stateMachineInstanceId", stateMachineInstanceId);
         query.setString("eventName", eventName);
         query.executeUpdate();
+    }
+
+    //TODO: Check and validate query + Test cases
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void deleteInvalidEvents(String stateMachineInstanceId, List<String> eventNames) {
+        if (!eventNames.isEmpty()) {
+            StringBuilder eventNamesString = new StringBuilder();
+            for (int i = 0; i < eventNames.size(); i++) {
+                eventNamesString.append("\'" + eventNames.get(i) + "\'");
+                if (i != eventNames.size() - 1)
+                    eventNamesString.append(", ");
+            }
+            Query query = currentSession().createQuery("delete from " + TABLE_NAME + " where "
+                    + COLUMN_STATE_MACHINE_INSTANCE_ID + " = :stateMachineInstanceId and " + COLUMN_NAME + " in (" + eventNamesString.toString() + ")"
+                    + " and " + COLUMN_STATUS + " = :status");
+            query.setString("status", Event.EventStatus.invalid.toString());
+            query.setString("stateMachineInstanceId", stateMachineInstanceId);
+            query.executeUpdate();
+        }
     }
 }
