@@ -18,6 +18,7 @@ import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.persistence.*;
 import com.google.inject.name.Named;
 import org.hibernate.Criteria;
+import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 
 import javax.inject.Inject;
@@ -57,5 +58,11 @@ public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public AuditRecord findById(String stateMachineId, Long id) {
         return super.findById(AuditRecord.class, id);
+    }
+
+    @Override
+    public AuditRecord create_NonTransactional(AuditRecord auditRecord, Session session) {
+        session.save(auditRecord);
+        return auditRecord;
     }
 }

@@ -54,24 +54,28 @@ public class AuditRecord {
 
     private Long taskExecutionVersion;
 
-    @Type(type = "ListJsonType")
-    private List<String> eventDependencies;
+    private String eventDependencies;
 
     /** Audit log creation time */
     private Timestamp createdAt;
 
     /** Constructors */
-    protected AuditRecord(){}
-    public AuditRecord(String stateMachineInstanceId, Long stateId, Long retryAttempt, Status stateStatus, Status stateRollbackStatus,
-                       String errors) {
+    public AuditRecord(String stateMachineInstanceId, Long stateId, Long retryAttempt, Status stateStatus,
+                       Status stateRollbackStatus, String errors) {
+        this(stateMachineInstanceId, stateId, retryAttempt, stateStatus, stateRollbackStatus, errors,
+                0L, "");
+    }
+
+    public AuditRecord(String stateMachineInstanceId, Long stateId, Long retryAttempt, Status stateStatus,
+                       Status stateRollbackStatus, String errors, Long taskExecutionVersion, String eventDependencies) {
         this.stateMachineInstanceId = stateMachineInstanceId;
         this.stateId = stateId;
         this.retryAttempt = retryAttempt;
         this.stateStatus = stateStatus;
         this.stateRollbackStatus = stateRollbackStatus;
         this.errors = errors;
-        this.taskExecutionVersion = 0L;
-        this.eventDependencies = null;
+        this.taskExecutionVersion = taskExecutionVersion;
+        this.eventDependencies = eventDependencies;
     }
 
     /** Accessor/Mutator methods*/
@@ -126,11 +130,11 @@ public class AuditRecord {
         this.taskExecutionVersion = taskExecutionVersion;
     }
 
-    public List<String> getEventDependencies() {
+    public String getEventDependencies() {
         return eventDependencies;
     }
 
-    public void setEventDependencies(List<String> eventDependencies) {
+    public void setEventDependencies(String eventDependencies) {
         this.eventDependencies = eventDependencies;
     }
 
@@ -143,12 +147,13 @@ public class AuditRecord {
 
         if (retryAttempt != null ? !retryAttempt.equals(that.retryAttempt) : that.retryAttempt != null) return false;
         if (stateId != null ? !stateId.equals(that.stateId) : that.stateId != null) return false;
-        if (stateMachineInstanceId != null ? !stateMachineInstanceId.equals(that.stateMachineInstanceId) : that.stateMachineInstanceId != null)
+        if (stateMachineInstanceId != null ? !stateMachineInstanceId.equals(
+                that.stateMachineInstanceId) : that.stateMachineInstanceId != null)
             return false;
         if (stateRollbackStatus != that.stateRollbackStatus) return false;
         if (stateStatus != that.stateStatus) return false;
         if (taskExecutionVersion != that.taskExecutionVersion) return false;
-
+        if (eventDependencies != that.eventDependencies) return false;
         return true;
     }
 
@@ -160,6 +165,7 @@ public class AuditRecord {
         result = 31 * result + (stateStatus != null ? stateStatus.hashCode() : 0);
         result = 31 * result + (stateRollbackStatus != null ? stateRollbackStatus.hashCode() : 0);
         result = 31 * result + (taskExecutionVersion != null ? taskExecutionVersion.hashCode() : 0);
+        result = 31 * result + (eventDependencies != null ? eventDependencies.hashCode() : 0);
         return result;
     }
 

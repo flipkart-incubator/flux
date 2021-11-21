@@ -122,6 +122,8 @@ public class FluxInitializer {
                 if (!(args[1].equals("flux") || args[1].equals("flux_scheduler"))) {
                     throw new RuntimeException("<migrate> works only for 'flux' or 'flux_scheduler'");
                 }
+                //using the default role as orchestration for migration
+                fluxRole = FluxRuntimeRole.ORCHESTRATION;
                 fluxInitializer.migrate(args[1]);
                 break;
             default:

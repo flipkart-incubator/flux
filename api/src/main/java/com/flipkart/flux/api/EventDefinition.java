@@ -13,12 +13,10 @@
 
 package com.flipkart.flux.api;
 
-import java.util.Objects;
-
 /**
- * <code>EventDefinition</code> defines an event to the system
- * An event is a named object of a certain type (say a java.lang.String with name foo)
- * 
+ * <code>EventDefinition</code> defines an event to the system An event is a named object of a
+ * certain type (say a java.lang.String with name foo)
+ *
  * @author Yogesh
  * @author regunath.balasubramanian
  * @author shyam.akirala
@@ -26,55 +24,96 @@ import java.util.Objects;
  */
 public class EventDefinition {
 
-    /** Name of the event*/
+    /**
+     * Name of the event
+     */
     private String name;
 
-    /** Type of the event*/
+    /**
+     * Type of the event
+     */
     private String type;
 
-	/* To be used only by jackson */
-	EventDefinition() {
-	}
+    /***
+     * Source of the event
+     */
+    private String eventSource;
 
-	/** Constructor*/
-	public EventDefinition(String name, String type) {
-		super();
-		this.name = name;
+    /* To be used only by jackson */
+    EventDefinition() {
+    }
+
+    /**
+     * Constructor
+     */
+    public EventDefinition(String name, String type) {
+        // using null. As Event source is stored as null in DB.
+        this(name, type, null);
+    }
+
+    public EventDefinition(String name, String type, String eventSource) {
+        super();
+        this.name = name;
         this.type = type;
-	}
+        this.eventSource = eventSource;
+    }
 
-    /** Accessors/Mutators for member variables*/
+    /**
+     * Accessors/Mutators for member variables
+     */
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
+
     public String getType() {
         return type;
     }
+
     public void setType(String type) {
         this.type = type;
     }
 
+    public String getEventSource() {
+        return eventSource;
+    }
+
+    public void setEventSource(String eventSource) {
+        this.eventSource = eventSource;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof EventDefinition))
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof EventDefinition)) {
             return false;
+        }
 
         EventDefinition that = (EventDefinition) o;
 
-        if (!Objects.equals(name, that.name))
+        if (name != null ? !name.equals(that.name) : that.name != null) {
             return false;
+        }
+        if (type != null ? !type.equals(that.type) : that.type != null) {
+            return false;
+        }
+        if (eventSource != null ? !eventSource.equals(that.eventSource) : that.eventSource != null) {
+            return false;
+        }
 
-        return Objects.equals(type, that.type);
+        return true;
     }
 
     @Override
     public int hashCode() {
         int result = name != null ? name.hashCode() : 0;
         result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (eventSource != null ? eventSource.hashCode() : 0);
         return result;
     }
 
@@ -83,6 +122,7 @@ public class EventDefinition {
         return "EventDefinition{" +
                 "name='" + name + '\'' +
                 ", type='" + type + '\'' +
+                ", eventSource='" + eventSource + '\'' +
                 '}';
     }
 }

@@ -18,4 +18,8 @@ workflowClasses: ["com.flipkart.flux.examples.decision.NotificationService",
                   "com.flipkart.flux.examples.benchmark.LatentArithmeticOperations",
                   "com.flipkart.flux.examples.benchmark.PaymentGatewayTasks",
                   "com.flipkart.flux.examples.benchmark.PaymentGatewayWF",
-                  "com.flipkart.flux.examples.eventupdate.EventUpdateWorkflow"]
+                  "com.flipkart.flux.examples.eventupdate.EventUpdateWorkflow",
+                  "com.flipkart.flux.examples.replayevents.validateStateWithMultipleReplayEvent.SampleReplayEventOnStateWithMultipleReplayEvent",
+                  "com.flipkart.flux.examples.replayevents.validateSameReplayEventOnMoreThanOneState.SameReplayEventOnMoreThanOneState",
+                  "com.flipkart.flux.examples.replayevents.ReplayEventWorkflow",
+                  "com.flipkart.flux.examples.replayevents.ReplayEventWorkflow2"]

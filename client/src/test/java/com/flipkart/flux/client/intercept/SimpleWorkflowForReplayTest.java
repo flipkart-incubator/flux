@@ -21,14 +21,15 @@ public class SimpleWorkflowForReplayTest {
         final StringEvent someString = simpleStringModifyingTask(anotherString);
         someTaskWithIntegerAndString(newString, someInteger);
         someTaskWithIntegerAndString(someString, anotherInteger);
+        waitForReplayEvent((StringEvent) null);
     }
 
-    @Task(version = 1, retries = 2, timeout = 2000l, replayable = true)
+    @Task(version = 1, retries = 2, timeout = 2000l, isReplayable = true)
     public StringEvent waitForReplayEvent(@ReplayEvent("someReplayEvent") StringEvent someString, IntegerEvent integerEvent) {
         return new StringEvent(integerEvent.anInteger.toString() + someString);
     }
 
-    @Task(version = 1, retries = 2, timeout = 2000l, replayable = true)
+    @Task(version = 1, retries = 2, timeout = 2000l, isReplayable = true)
     public StringEvent waitForReplayEvent(@ReplayEvent("someReplayEvent") StringEvent someString) {
         return new StringEvent("randomBs" + someString);
     }

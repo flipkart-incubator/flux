@@ -210,6 +210,10 @@
             stateName.appendChild(document.createTextNode("State Name"));
             tr.appendChild(stateName);
 
+            var taskExecutionVersion = document.createElement("th");
+            taskExecutionVersion.appendChild(document.createTextNode("State Execution Version"));
+            tr.appendChild(taskExecutionVersion);
+
             var retryAttempt = document.createElement("th");
             retryAttempt.appendChild(document.createTextNode("Retry Attempt"));
             tr.appendChild(retryAttempt);
@@ -243,6 +247,10 @@
 
                 td = document.createElement("td");
                 td.appendChild(document.createTextNode(stateIdToNameMap[auditRecord.stateId]));
+                tr.appendChild(td);
+
+                var td = document.createElement("td");
+                td.appendChild(document.createTextNode(auditRecord.taskExecutionVersion));
                 tr.appendChild(td);
 
                 td = document.createElement("td");

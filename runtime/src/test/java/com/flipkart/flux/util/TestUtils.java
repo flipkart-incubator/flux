@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
 import com.flipkart.flux.domain.Event;
@@ -38,10 +39,29 @@ public class TestUtils {
         List<String> state4Events = new LinkedList<String>() {{
             add("event0");
         }};
-        State state1 = new State(1l, "test_state1", "desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_version1", "com.flipkart.flux.dao.DummyOnExitHook", Collections.emptyList(), 5l, 100l, toStr(getOutputEvent("event1", String.class)), Status.completed, null, 0l, stateMachineId, 1L);
-        State state2 = new State(1l, "test_state2", "desc2", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_java.lang.String_version1", "com.flipkart.flux.dao.DummyOnExitHook", Collections.singletonList("event1"), 3l, 100l, toStr(getOutputEvent("event2", String.class)), Status.completed, null, 0l, stateMachineId, 2L);
-        State state3 = new State(1l, "test_state3", "desc3", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_testTask_void_java.lang.String_java.lang.Integer_version1", "com.flipkart.flux.dao.DummyOnExitHook", state3Events, 3l, 100l, null, Status.initialized, null, 0l, stateMachineId, 3L);
-        State state4 = new State(1l, "test_state4", "desc4", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", "com.flipkart.flux.dao.DummyOnExitHook", state4Events, 1l, 100l, toStr(getOutputEvent("event3", Integer.class)), Status.initialized, null, 0l, stateMachineId, 4L);
+        State state1 = new State(1l, "test_state1", "desc1",
+                "com.flipkart.flux.dao.DummyOnEntryHook",
+                "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_version1",
+                "com.flipkart.flux.dao.DummyOnExitHook", Collections.emptyList(), 5l, 100l,
+                toStr(getOutputEvent("event1", String.class)), Status.completed, null,
+                0l, stateMachineId, 1L);
+        State state2 = new State(1l, "test_state2", "desc2",
+                "com.flipkart.flux.dao.DummyOnEntryHook",
+                "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_java.lang.String_version1",
+                "com.flipkart.flux.dao.DummyOnExitHook", Collections.singletonList("event1"), 3l,
+                100l, toStr(getOutputEvent("event2", String.class)), Status.completed, null,
+                0l, stateMachineId, 2L);
+        State state3 = new State(1l, "test_state3", "desc3",
+                "com.flipkart.flux.dao.DummyOnEntryHook",
+                "com.flipkart.flux.dao.TestWorkflow_testTask_void_java.lang.String_java.lang.Integer_version1",
+                "com.flipkart.flux.dao.DummyOnExitHook", state3Events, 3l, 100l,
+                null, Status.initialized, null, 0l, stateMachineId, 3L);
+        State state4 = new State(1l, "test_state4", "desc4",
+                "com.flipkart.flux.dao.DummyOnEntryHook",
+                "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1",
+                "com.flipkart.flux.dao.DummyOnExitHook", state4Events, 1l, 100l,
+                toStr(getOutputEvent("event3", Integer.class)), Status.initialized, null,
+                0l, stateMachineId, 4L);
         Set<State> states = new HashSet<State>() {{
             add(state1);
             add(state2);
@@ -64,10 +84,81 @@ public class TestUtils {
         List<String> state4Events = new LinkedList<String>() {{
             add("event0");
         }};
-        State state1 = new State(1l, "test_state1", "desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_version1", "com.flipkart.flux.dao.DummyOnExitHook", Collections.emptyList(), 5l, 100l, toStr(getOutputEvent("event1", String.class)), Status.initialized, null, 0l, stateMachineId, 1L);
-        State state2 = new State(1l, "test_state2", "desc2", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_java.lang.String_version1", "com.flipkart.flux.dao.DummyOnExitHook", Collections.singletonList("event1"), 3l, 100l, toStr(getOutputEvent("event2", String.class)), Status.initialized, null, 0l, stateMachineId, 2L);
-        State state3 = new State(1l, "test_state3", "desc3", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_testTask_void_java.lang.String_java.lang.Integer_version1", "com.flipkart.flux.dao.DummyOnExitHook", state3Events, 3l, 100l, null, Status.initialized, null, 0l, stateMachineId, 3L);
-        State state4 = new State(1l, "test_state4", "desc4", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1", "com.flipkart.flux.dao.DummyOnExitHook", state4Events, 1l, 100l, toStr(getOutputEvent("event3", Integer.class)), Status.initialized, null, 0l, stateMachineId, 4L);
+        State state1 = new State(1l, "test_state1", "desc1",
+                "com.flipkart.flux.dao.DummyOnEntryHook",
+                "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_version1",
+                "com.flipkart.flux.dao.DummyOnExitHook", Collections.emptyList(), 5l, 100l,
+                toStr(getOutputEvent("event1", String.class)), Status.initialized, null,
+                0l, stateMachineId, 1L);
+        State state2 = new State(1l, "test_state2", "desc2",
+                "com.flipkart.flux.dao.DummyOnEntryHook",
+                "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_java.lang.String_version1",
+                "com.flipkart.flux.dao.DummyOnExitHook", Collections.singletonList("event1"), 3l,
+                100l, toStr(getOutputEvent("event2", String.class)), Status.initialized, null,
+                0l, stateMachineId, 2L);
+        State state3 = new State(1l, "test_state3", "desc3",
+                "com.flipkart.flux.dao.DummyOnEntryHook",
+                "com.flipkart.flux.dao.TestWorkflow_testTask_void_java.lang.String_java.lang.Integer_version1",
+                "com.flipkart.flux.dao.DummyOnExitHook", state3Events, 3l, 100l,
+                null, Status.initialized, null, 0l, stateMachineId, 3L);
+        State state4 = new State(1l, "test_state4", "desc4",
+                "com.flipkart.flux.dao.DummyOnEntryHook",
+                "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1",
+                "com.flipkart.flux.dao.DummyOnExitHook", state4Events, 1l, 100l,
+                toStr(getOutputEvent("event3", Integer.class)), Status.initialized, null,
+                0l, stateMachineId, 4L);
+        setProperty(state1, "id", 1L);
+        setProperty(state2, "id", 2L);
+        setProperty(state3, "id", 3L);
+        setProperty(state4, "id", 4L);
+        Set<State> states = new HashSet<State>() {{
+            add(state1);
+            add(state2);
+            add(state3);
+            add(state4);
+        }};
+        StateMachine stateMachine = new StateMachine(stateMachineId, 1l, "test_state_machine",
+                "desc", states, "defaultElbId");
+        return stateMachine;
+    }
+
+    /**
+     * Returns a dummy State machine with one of the states set to replayable
+     */
+    public static StateMachine getStandardTestMachineWithReplayableState() throws Exception {
+        String stateMachineId = "standard-machine-replayable";
+        List<String> state3Events = new LinkedList<String>() {{
+            add("event2");
+            add("event3");
+        }};
+        List<String> state4Events = new LinkedList<String>() {{
+            add("event0");
+        }};
+        // Replayable State
+        State state1 = new State(1l, "test_state1", "desc1",
+                "com.flipkart.flux.dao.DummyOnEntryHook",
+                "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_version1",
+                "com.flipkart.flux.dao.DummyOnExitHook", Collections.emptyList(), 5l, 100l,
+                toStr(getOutputEvent("event1", String.class)), Status.initialized, null,
+                0l, stateMachineId, 1L, Boolean.TRUE);
+        State state2 = new State(1l, "test_state2", "desc2",
+                "com.flipkart.flux.dao.DummyOnEntryHook",
+                "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_java.lang.String_version1",
+                "com.flipkart.flux.dao.DummyOnExitHook", Collections.singletonList("event1"), 3l,
+                100l, toStr(getOutputEvent("event2", String.class)), Status.initialized, null,
+                0l, stateMachineId, 2L);
+        State state3 = new State(1l, "test_state3", "desc3",
+                "com.flipkart.flux.dao.DummyOnEntryHook",
+                "com.flipkart.flux.dao.TestWorkflow_testTask_void_java.lang.String_java.lang.Integer_version1",
+                "com.flipkart.flux.dao.DummyOnExitHook", state3Events, 3l, 100l,
+                null, Status.initialized, null, 0l, stateMachineId, 3L);
+        // Replayable State
+        State state4 = new State(1l, "test_state4", "desc4",
+                "com.flipkart.flux.dao.DummyOnEntryHook",
+                "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1",
+                "com.flipkart.flux.dao.DummyOnExitHook", state4Events, 1l, 100l,
+                toStr(getOutputEvent("event3", Integer.class)), Status.initialized, null,
+                0l, stateMachineId, 4L, Boolean.TRUE);
         setProperty(state1, "id", 1L);
         setProperty(state2, "id", 2L);
         setProperty(state3, "id", 3L);
@@ -137,7 +228,8 @@ public class TestUtils {
     }
 
     public static TaskExecutionMessage getStandardTaskExecutionMessage() throws Exception {
-        EventData[] expectedEvents = new EventData[]{new EventData("event0", "java.lang.String", "42", "runtime")};
+        VersionedEventData[] expectedEvents = new VersionedEventData[]{new VersionedEventData("event0",
+                "java.lang.String", "42", "runtime")};
         StateMachine sm = getStandardTestMachine();
         State state = sm.getStates().stream().filter((s) -> s.getId() == 4L).findFirst().orElse(null);
         TaskExecutionMessage msg = new TaskExecutionMessage();

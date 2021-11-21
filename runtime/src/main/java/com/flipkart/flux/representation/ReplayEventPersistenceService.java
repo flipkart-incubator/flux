@@ -1,0 +1,129 @@
+package com.flipkart.flux.representation;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.constant.RuntimeConstants;
+import com.flipkart.flux.dao.iface.AuditDAO;
+import com.flipkart.flux.dao.iface.EventsDAO;
+import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.dao.iface.StatesDAO;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.persistence.DataSourceType;
+import com.flipkart.flux.persistence.SelectDataSource;
+import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.Storage;
+import com.google.gson.JsonParseException;
+import com.google.inject.name.Named;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import javax.transaction.Transactional;
+import org.hibernate.Session;
+
+/**
+ * @author raghavender.m
+ * @author akif.khan
+ * Used as a business layer to interpret Replay event's trigger, and perform DB operations on states and events
+ * in triggered ReplayEvent's traversal path.
+ */
+@Singleton
+public class ReplayEventPersistenceService {
+
+    private StateMachinesDAO stateMachinesDAO;
+    private EventsDAO eventsDAO;
+    private StatesDAO statesDAO;
+    private AuditDAO auditDAO;
+    private SessionFactoryContext sessionFactoryContext;
+
+    /**
+     * ObjectMapper instance to be used for all purposes in this class
+     */
+    private static ObjectMapper objectMapper = new ObjectMapper();
+
+    @Inject
+    public ReplayEventPersistenceService(StateMachinesDAO stateMachinesDAO,
+                                         EventsDAO eventsDAO, StatesDAO statesDAO, AuditDAO auditDAO,
+                                         @Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
+        this.stateMachinesDAO = stateMachinesDAO;
+        this.eventsDAO = eventsDAO;
+        this.statesDAO = statesDAO;
+        this.auditDAO = auditDAO;
+        this.sessionFactoryContext = sessionFactoryContext;
+    }
+
+    /**
+     * Persists and process triggered Replay Event in a single Transaction.
+     * @param replayEventData
+     * @param dependantStateIds
+     * @param dependantEvents
+     * @param stateMachineId
+     */
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public Event persistAndProcessReplayEvent(String stateMachineId, EventData replayEventData,
+                                              List<Long> dependantStateIds, List<String> dependantEvents) {
+
+        Session session = sessionFactoryContext.getThreadLocalSession();
+
+        Long smExecutionVersion = stateMachinesDAO.findByIdForUpdate_NonTransactional(stateMachineId, session) + 1;
+        stateMachinesDAO.updateExecutionVersion_NonTransactional(stateMachineId, smExecutionVersion, session);
+
+        ArrayList<Long> stateIds = new ArrayList<>(dependantStateIds);
+        statesDAO.updateStatus_NonTransactional(stateMachineId,stateIds, Status.initialized, session);
+        statesDAO.updateExecutionVersion_NonTransactional(stateMachineId,stateIds,smExecutionVersion, session);
+
+        //create audit records for all the states
+//      for (Long stateId : stateIds) {
+//          auditDAO.create_NonTransactional(new AuditRecord(stateMachineId, stateId, 0L,
+//                  Status.initialized, null, null, smExecutionVersion, null),
+//                  session);
+//      }
+
+        for (String outputEvent : dependantEvents) {
+            String eventName, eventType;
+            try {
+                eventName = getOutputEventName(outputEvent);
+                eventType = getOutputEventType(outputEvent);
+            } catch (IOException e) {
+                throw new JsonParseException("Unable to deserialize outputEvent value. Error : " + e.getMessage());
+            }
+            eventsDAO.markEventAsInvalid_NonTransactional(stateMachineId, eventName, session);
+            Event event = new Event(eventName, eventType, Event.EventStatus.pending,
+                    stateMachineId, null, null, smExecutionVersion);
+            session.save(event);
+            eventsDAO.create_NonTransactional(event, session);
+        }
+
+        //Mark replay event as invalid and persist replay event
+        eventsDAO.markEventAsInvalid_NonTransactional(stateMachineId, replayEventData.getName(), session);
+        String eventSource;
+        if(!replayEventData.getEventSource().contains(RuntimeConstants.REPLAY_EVENT)) {
+            eventSource = replayEventData.getEventSource()
+                    .concat(":" + RuntimeConstants.REPLAY_EVENT);
+        }
+        else {
+            eventSource = replayEventData.getEventSource();
+        }
+        Event replayEvent = new Event(replayEventData.getName(), replayEventData.getType(), Event.EventStatus.triggered,
+                stateMachineId, replayEventData.getData(), eventSource, smExecutionVersion);
+        return eventsDAO.create_NonTransactional(replayEvent, session);
+    }
+
+    /**
+     * Helper method to JSON serialize the output event for output event name
+     */
+    private String getOutputEventName(String outputEvent) throws IOException {
+        return outputEvent != null ? objectMapper.readValue(outputEvent, EventDefinition.class).getName() : null;
+    }
+
+    /**
+     * Helper method to JSON serialize the output event for output event type
+     */
+    private String getOutputEventType(String outputEvent) throws IOException {
+        return outputEvent != null ? objectMapper.readValue(outputEvent, EventDefinition.class).getType() : null;
+    }
+}

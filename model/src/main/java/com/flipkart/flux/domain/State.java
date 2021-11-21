@@ -38,18 +38,22 @@ import java.util.Set;
 public class State {
 
     /**
+     * Constants for storing replay retries attempted and maximum allowed for a replayable state.
+     */
+    private static final short DEFAULT_ATTEMPTED_REPLAYABLE_RETRIES = 0;
+    private static final short MAX_REPLAYABLE_RETRIES = 5;
+
+    /* Defined by the User */
+    /**
      * Unique identifier of the state
      */
     @Id
     private Long id;
-
     /**
      * Id of the state machine to which this state belongs
      */
     @Id
     private String stateMachineId;
-
-    /* Defined by the User */
     /**
      * Version for this State
      */
@@ -83,6 +87,7 @@ public class State {
      * Timeout for state transition
      */
     private Long timeout;
+
     /**
      * List of event names this state is dependent on
      */
@@ -129,7 +134,14 @@ public class State {
      */
     @Column(updatable = false)
     private Timestamp updatedAt;
-
+    /***
+     * The number of retries attempted for a replayable state
+     */
+    private Short attemptedNumOfReplayableRetries;
+    /***
+     * The max retry count for a replayable event
+     */
+    private Short maxReplayableRetries;
 
     /**
      * Constructors
@@ -139,16 +151,31 @@ public class State {
         dependencies = new LinkedList<>();
     }
 
-    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
-                 List<String> dependencies, Long retryCount, Long timeout, String outputEvent, Status status,
-                 Status rollbackStatus, Long attemptedNoOfRetries, String stateMachineId, Long id) {
+    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, List<String> dependencies,
+                 Long retryCount, Long timeout, String outputEvent, Status status, Status rollbackStatus,
+                 Long attemptedNoOfRetries, String stateMachineId, Long id) {
         this(version, name, description, onEntryHook, task, onExitHook, dependencies, retryCount, timeout, outputEvent,
-                status, rollbackStatus, attemptedNoOfRetries, stateMachineId, id, Boolean.FALSE);
+                status, rollbackStatus, attemptedNoOfRetries, stateMachineId, id, MAX_REPLAYABLE_RETRIES, DEFAULT_ATTEMPTED_REPLAYABLE_RETRIES, Boolean.FALSE, 0L);
     }
 
-    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
-                 List<String> dependencies, Long retryCount, Long timeout, String outputEvent, Status status,
-                 Status rollbackStatus, Long attemptedNoOfRetries, String stateMachineId, Long id, Boolean replayable) {
+    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, List<String> dependencies,
+                 Long retryCount, Long timeout, String outputEvent, Status status, Status rollbackStatus,
+                 Long attemptedNoOfRetries, String stateMachineId, Long id, Boolean replayable) {
+        this(version, name, description, onEntryHook, task, onExitHook, dependencies, retryCount, timeout, outputEvent,
+                status, rollbackStatus, attemptedNoOfRetries, stateMachineId, id, MAX_REPLAYABLE_RETRIES, DEFAULT_ATTEMPTED_REPLAYABLE_RETRIES, replayable, 0L);
+    }
+
+    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, List<String> dependencies,
+                 Long retryCount, Long timeout, String outputEvent, Status status, Status rollbackStatus,
+                 Long attemptedNoOfRetries, String stateMachineId, Long id, Short maxReplayableRetries, Short attemptedNumOfReplayableRetries, Boolean replayable) {
+        this(version, name, description, onEntryHook, task, onExitHook, dependencies, retryCount, timeout, outputEvent,
+                status, rollbackStatus, attemptedNoOfRetries, stateMachineId, id, maxReplayableRetries, attemptedNumOfReplayableRetries, replayable, 0L);
+    }
+
+    public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, List<String> dependencies,
+                 Long retryCount, Long timeout, String outputEvent, Status status, Status rollbackStatus,
+                 Long attemptedNoOfRetries, String stateMachineId, Long id, Short maxReplayableRetryCount, Short attemptedNumOfReplayableRetries,
+                 Boolean replayable, Long executionVersion) {
         this();
         this.version = version;
         this.name = name;
@@ -165,7 +192,9 @@ public class State {
         this.attemptedNoOfRetries = attemptedNoOfRetries;
         this.stateMachineId = stateMachineId;
         this.id = id;
-        this.executionVersion = 0L;
+        this.executionVersion = executionVersion;
+        this.maxReplayableRetries = maxReplayableRetryCount;
+        this.attemptedNumOfReplayableRetries = attemptedNumOfReplayableRetries;
         this.replayable = replayable;
     }
 
@@ -282,20 +311,22 @@ public class State {
         this.rollbackStatus = rollbackStatus;
     }
 
-    public Long getAttemptedNoOfRetries() {
+    public Long getAttemptedNumOfRetries() {
         return attemptedNoOfRetries;
     }
 
-    public void setAttemptedNoOfRetries(Long attemptedNoOfRetries) {
+    public void setAttemptedNumOfRetries(Long attemptedNoOfRetries) {
         this.attemptedNoOfRetries = attemptedNoOfRetries;
     }
 
     public Timestamp getCreatedAt() {
         return createdAt;
     }
+
     public Timestamp getUpdatedAt() {
         return updatedAt;
     }
+
     public String getOutputEvent() {
         return outputEvent;
     }
@@ -316,33 +347,90 @@ public class State {
         this.replayable = replayable;
     }
 
+    public short getMaxReplayableRetries() {
+        return maxReplayableRetries;
+    }
+
+    public void setMaxReplayableRetries(short maxReplayableRetries) {
+        this.maxReplayableRetries = maxReplayableRetries;
+    }
+
+    public short getAttemptedNumOfReplayableRetries() {
+        return attemptedNumOfReplayableRetries;
+    }
+
+    public void setAttemptedNumOfReplayableRetries(short attemptedNumOfReplayableRetries) {
+        this.attemptedNumOfReplayableRetries = attemptedNumOfReplayableRetries;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof State)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof State)) {
+            return false;
+        }
 
         State state = (State) o;
 
-        if (createdAt != null ? !createdAt.equals(state.createdAt) : state.createdAt != null) return false;
-        if (description != null ? !description.equals(state.description) : state.description != null) return false;
-        if (name != null ? !name.equals(state.name) : state.name != null) return false;
-        if (attemptedNoOfRetries != null ? !attemptedNoOfRetries.equals(state.attemptedNoOfRetries) : state.attemptedNoOfRetries != null)
+        if (createdAt != null ? !createdAt.equals(state.createdAt) : state.createdAt != null) {
             return false;
-        if (onEntryHook != null ? !onEntryHook.equals(state.onEntryHook) : state.onEntryHook != null) return false;
-        if (onExitHook != null ? !onExitHook.equals(state.onExitHook) : state.onExitHook != null) return false;
-        if (outputEvent != null ? !outputEvent.equals(state.outputEvent) : state.outputEvent != null) return false;
-        if (retryCount != null ? !retryCount.equals(state.retryCount) : state.retryCount != null) return false;
-        if (rollbackStatus != state.rollbackStatus) return false;
-        if (stateMachineId != null ? !stateMachineId.equals(state.stateMachineId) : state.stateMachineId != null)
+        }
+        if (description != null ? !description.equals(state.description) : state.description != null) {
             return false;
-        if (status != state.status) return false;
-        if (task != null ? !task.equals(state.task) : state.task != null) return false;
-        if (timeout != null ? !timeout.equals(state.timeout) : state.timeout != null) return false;
-        if (updatedAt != null ? !updatedAt.equals(state.updatedAt) : state.updatedAt != null) return false;
-        if (version != null ? !version.equals(state.version) : state.version != null) return false;
-        if (executionVersion != null ? !executionVersion.equals(state.executionVersion) : state.executionVersion != null)
+        }
+        if (name != null ? !name.equals(state.name) : state.name != null) {
             return false;
-        if (replayable != null ? !replayable.equals(state.replayable) : state.replayable != null) return false;
+        }
+        if (attemptedNoOfRetries != null ? !attemptedNoOfRetries.equals(state.attemptedNoOfRetries) : state.attemptedNoOfRetries != null) {
+            return false;
+        }
+        if (onEntryHook != null ? !onEntryHook.equals(state.onEntryHook) : state.onEntryHook != null) {
+            return false;
+        }
+        if (onExitHook != null ? !onExitHook.equals(state.onExitHook) : state.onExitHook != null) {
+            return false;
+        }
+        if (outputEvent != null ? !outputEvent.equals(state.outputEvent) : state.outputEvent != null) {
+            return false;
+        }
+        if (retryCount != null ? !retryCount.equals(state.retryCount) : state.retryCount != null) {
+            return false;
+        }
+        if (rollbackStatus != state.rollbackStatus) {
+            return false;
+        }
+        if (stateMachineId != null ? !stateMachineId.equals(state.stateMachineId) : state.stateMachineId != null) {
+            return false;
+        }
+        if (status != state.status) {
+            return false;
+        }
+        if (task != null ? !task.equals(state.task) : state.task != null) {
+            return false;
+        }
+        if (timeout != null ? !timeout.equals(state.timeout) : state.timeout != null) {
+            return false;
+        }
+        if (updatedAt != null ? !updatedAt.equals(state.updatedAt) : state.updatedAt != null) {
+            return false;
+        }
+        if (version != null ? !version.equals(state.version) : state.version != null) {
+            return false;
+        }
+        if (executionVersion != null ? !executionVersion.equals(state.executionVersion) : state.executionVersion != null) {
+            return false;
+        }
+        if (replayable != null ? !replayable.equals(state.replayable) : state.replayable != null) {
+            return false;
+        }
+        if (attemptedNumOfReplayableRetries != null ? !attemptedNumOfReplayableRetries.equals(state.attemptedNumOfReplayableRetries) : state.attemptedNumOfReplayableRetries != null) {
+            return false;
+        }
+        if (maxReplayableRetries != null ? !maxReplayableRetries.equals(state.maxReplayableRetries) : state.maxReplayableRetries != null) {
+            return false;
+        }
 
         return true;
     }
@@ -366,6 +454,8 @@ public class State {
         result = 31 * result + (replayable != null ? replayable.hashCode() : 0);
         result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
         result = 31 * result + (updatedAt != null ? updatedAt.hashCode() : 0);
+        result = 31 * result + (attemptedNumOfReplayableRetries != null ? attemptedNumOfReplayableRetries.hashCode() : 0);
+        result = 31 * result + (maxReplayableRetries != null ? maxReplayableRetries.hashCode() : 0);
         return result;
     }
 
@@ -391,6 +481,8 @@ public class State {
                 ", replayable=" + replayable +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
+                ", attemptedNumOfReplayableRetries=" + attemptedNumOfReplayableRetries +
+                ", maxReplayableRetries=" + maxReplayableRetries +
                 '}';
     }
 
@@ -418,16 +510,25 @@ public class State {
             return id;
         }
 
+        public void setId(Long id) {
+            this.id = id;
+        }
+
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof StatePK)) return false;
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof StatePK)) {
+                return false;
+            }
 
             StatePK statePK = (StatePK) o;
 
-            if (!getId().equals(statePK.getId())) return false;
+            if (!getId().equals(statePK.getId())) {
+                return false;
+            }
             return getStateMachineId().equals(statePK.getStateMachineId());
-
         }
 
         @Override
@@ -435,10 +536,6 @@ public class State {
             int result = getId().hashCode();
             result = 31 * result + getStateMachineId().hashCode();
             return result;
-        }
-
-        public void setId(Long id) {
-            this.id = id;
         }
 
         public String getStateMachineId() {

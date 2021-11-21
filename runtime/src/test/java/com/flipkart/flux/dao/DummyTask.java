@@ -14,6 +14,7 @@
 package com.flipkart.flux.dao;
 
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.api.core.Task;
 import com.flipkart.flux.utils.Pair;
@@ -24,7 +25,7 @@ import com.flipkart.flux.utils.Pair;
 public class DummyTask implements Task {
 
     @Override
-    public Pair<Object, FluxError> execute(EventData[] events) {
+    public Pair<Object, FluxError> execute(VersionedEventData[] events) {
         //DO SOMETHING
         return null;
     }

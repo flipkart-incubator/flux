@@ -14,14 +14,20 @@
 
 package com.flipkart.flux.client.runtime;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.SharedMetricRegistries;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventAndExecutionData;
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.ExecutionUpdateData;
+import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.api.VersionedEventData;
+import com.flipkart.flux.client.constant.ClientConstants;
+import com.google.common.annotations.VisibleForTesting;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-
 import javax.ws.rs.core.Response;
-
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -35,19 +41,6 @@ import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.SharedMetricRegistries;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.EventAndExecutionData;
-import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.EventDefinition;
-import com.flipkart.flux.api.ExecutionUpdateData;
-import com.flipkart.flux.api.StateDefinition;
-import com.flipkart.flux.api.StateMachineDefinition;
-import com.flipkart.flux.utils.Pair;
-import com.google.common.annotations.VisibleForTesting;
-
 /**
  * RuntimeConnector that connects to runtime over HTTP
  * Internally, this uses Unirest as of now. This makes it difficult to write unit tests for this class,
@@ -59,10 +52,9 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
 
     private static Logger logger = LogManager.getLogger(FluxRuntimeConnectorHttpImpl.class);
 
-    public static final int MAX_TOTAL = 400;
-    public static final int MAX_PER_ROUTE = 50;
-    public static final String EXTERNAL = "external";
-    public static final String REPLAY = "replay";
+    private static final int MAX_TOTAL = 400;
+    private static final int MAX_PER_ROUTE = 50;
+    private static final String EXTERNAL = "external";
     private final CloseableHttpClient closeableHttpClient;
     private final String fluxEndpoint;
     private final ObjectMapper objectMapper;
@@ -86,22 +78,26 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         syncConnectionManager.setMaxTotal(MAX_TOTAL);
         syncConnectionManager.setDefaultMaxPerRoute(MAX_PER_ROUTE);
 
-        closeableHttpClient = HttpClientBuilder.create().setDefaultRequestConfig(clientConfig).setConnectionManager(syncConnectionManager)
+        closeableHttpClient = HttpClientBuilder.create().setDefaultRequestConfig(clientConfig)
+                .setConnectionManager(syncConnectionManager)
                 .build();
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            HttpClientUtils.closeQuietly(closeableHttpClient);
-        }));
+        Runtime.getRuntime()
+                .addShutdownHook(new Thread(() -> HttpClientUtils.closeQuietly(closeableHttpClient)));
         this.metricRegistry = metricRegistry;
     }
 
-
+    /***
+     * The method submits a new workflow after validating states
+     * Two validations have been added
+     * One validates that a state should have only one replay event
+     * Other validates that no two states can have same replay event as its dependency
+     * @param stateMachineDef
+     */
     @Override
     public void submitNewWorkflow(StateMachineDefinition stateMachineDef) {
         CloseableHttpResponse httpResponse = null;
         try {
-//        	stateMachineDef = validationForMultipleTaskWithSameName(stateMachineDef);
-//            stateMachineDef = validationForMultipleReplayEventWithSameName(stateMachineDef);
             httpResponse = postOverHttp(stateMachineDef, "");
             if (logger.isDebugEnabled()) {
                 try {
@@ -116,10 +112,11 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     }
 
     @Override
-    public void submitEventAndUpdateStatus(EventData eventData, String stateMachineId, ExecutionUpdateData executionUpdateData) {
+    public void submitEventAndUpdateStatus(VersionedEventData versionedEventData, String stateMachineId,
+                                           ExecutionUpdateData executionUpdateData) {
         CloseableHttpResponse httpResponse = null;
         try {
-            EventAndExecutionData eventAndExecutionData = new EventAndExecutionData(eventData, executionUpdateData);
+            EventAndExecutionData eventAndExecutionData = new EventAndExecutionData(versionedEventData, executionUpdateData);
             httpResponse = postOverHttp(eventAndExecutionData, "/" + stateMachineId + "/context/eventandstatus");
         } finally {
             HttpClientUtils.closeQuietly(httpResponse);
@@ -137,6 +134,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
             final EventData eventData = new EventData(name, eventType, objectMapper.writeValueAsString(data), eventSource);
             httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/events?searchField=correlationId");
         } catch (JsonProcessingException e) {
+            logger.error("Posting over http errored. Message: {}", e.getMessage(), e);
             throw new RuntimeException(e);
         } finally {
             HttpClientUtils.closeQuietly(httpResponse);
@@ -146,12 +144,13 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     @Override
     public void submitReplayEvent(String name, Object data, String correlationId) {
         final String eventType = data.getClass().getName();
-        String eventSource = REPLAY;
+        String eventSource = ClientConstants.REPLAY_EVENT;
         CloseableHttpResponse httpResponse = null;
         try {
             final EventData eventData = new EventData(name, eventType, objectMapper.writeValueAsString(data), eventSource);
-            httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/replayevents?searchField=correlationId");
+            httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/replayevent?searchField=correlationId");
         } catch (JsonProcessingException e) {
+            logger.error("Posting over http errored. Message: {}", e.getMessage(), e);
             throw new RuntimeException(e);
         } finally {
             HttpClientUtils.closeQuietly(httpResponse);
@@ -176,6 +175,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
                 httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/events?searchField=correlationId");
             }
         } catch (JsonProcessingException e) {
+            logger.error("Posting over http errored. Message: {}", e.getMessage(), e);
             throw new RuntimeException(e);
         } finally {
             HttpClientUtils.closeQuietly(httpResponse);
@@ -194,6 +194,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
             httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/eventupdate");
 
         } catch (JsonProcessingException e) {
+            logger.error("Posting over http errored. Message: {}", e.getMessage(), e);
             throw new RuntimeException(e);
         } finally {
             HttpClientUtils.closeQuietly(httpResponse);
@@ -207,6 +208,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
             final EventData eventData = new EventData(eventName, null, null, null, true);
             httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/events?searchField=correlationId");
         } catch (Exception e) {
+            logger.error("Posting over http errored. Message: {}", e.getMessage(), e);
             throw new RuntimeException(e);
         } finally {
             HttpClientUtils.closeQuietly(httpResponse);
@@ -242,9 +244,9 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
      * Interface method implementation. Posts to Flux Runtime API to redrive a task.
      */
     @Override
-    public void redriveTask(String stateMachineId, Long taskId) {
+    public void redriveTask(String stateMachineId, Long taskId, Long executionVersion) {
         CloseableHttpResponse httpResponse = null;
-        httpResponse = postOverHttp(null, "/redrivetask/" + stateMachineId + "/taskId/" + taskId);
+        httpResponse = postOverHttp(null, "/redrivetask/" + stateMachineId + "/taskId/" + taskId + "/taskExecutionVersion/" + executionVersion);
         HttpClientUtils.closeQuietly(httpResponse);
     }
 
@@ -258,7 +260,6 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         try {
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             objectMapper.writeValue(byteArrayOutputStream, dataToPost);
-
             httpPostRequest.setEntity(new ByteArrayEntity(byteArrayOutputStream.toByteArray(), ContentType.APPLICATION_JSON));
             httpResponse = closeableHttpClient.execute(httpPostRequest);
             final int statusCode = httpResponse.getStatusLine().getStatusCode();
@@ -290,77 +291,4 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         }
         return httpResponse;
     }
-
-    /***
-     * This method Validates if a task is used multiple times in a workflow its replayable parameter cannot be set to true
-     * For the states which are used multiple times in a work flow are marked as replayable false
-     * @param stateMachineDefinition
-     * @return
-     */
-    //todo log error, add lambda expression and tests for same
-    private StateMachineDefinition validationForMultipleTaskWithSameName (StateMachineDefinition stateMachineDefinition) {
-        HashMap< Pair<String, List<EventDefinition>>, Integer> countForTasks = new HashMap<>();
-        Integer count = 1;
-        Set<StateDefinition> setOfStates = stateMachineDefinition.getStates();
-        for (StateDefinition state : setOfStates) {
-            Pair<String, List<EventDefinition>> pair = new Pair<String, List<EventDefinition>>(state.getTask(), state.getDependencies());
-            if(countForTasks.get(pair) != null) {
-                int getCount = countForTasks.get(pair);
-                countForTasks.put(pair, getCount+1);
-
-            }
-            else {
-                countForTasks.put(pair, count);
-            }
-        }
-        for (StateDefinition state : setOfStates) {
-            Pair<String, List<EventDefinition>> pair = new Pair<String, List<EventDefinition>>(state.getTask(),state.getDependencies());
-            int getCount = countForTasks.get(pair);
-            if (getCount > 1)
-                state.setReplayable(false);
-        }
-        return stateMachineDefinition;
-    }
-
-
-    /***
-     * This method Validates if the same replayEvent is used multiple times in a workflow.
-     * For the states which get replay event of the same name are marked as replayable false
-     * @param stateMachineDefinition
-     * @return
-     */
-    //todo log error, add lambda expression and tests for same
-    private StateMachineDefinition validationForMultipleReplayEventWithSameName (StateMachineDefinition stateMachineDefinition) {
-        HashMap< Pair<String, String>, Integer> countForReplayEvent = new HashMap<>();
-        Integer count = 1;
-        Set<StateDefinition> setOfStates = stateMachineDefinition.getStates();
-        for (StateDefinition state : setOfStates) {
-
-            if (state.isReplayable()){
-
-                List<EventDefinition> dependentEvents = state.getDependencies();
-
-                for (EventDefinition dependentEvent : dependentEvents){
-                    Pair<String,String> pair = new Pair<String,String>(dependentEvent.getName(), dependentEvent.getType() );
-                    if(countForReplayEvent.get(pair) != null) {
-                        int getCount = countForReplayEvent.get(pair);
-                        countForReplayEvent.put(pair, getCount+1);
-                    }
-                    else {
-                        countForReplayEvent.put(pair, count);
-                    }
-                }
-            }
-        }
-        for (StateDefinition state : setOfStates) {
-            List<EventDefinition> dependentEvents = state.getDependencies();
-            for (EventDefinition dependentEvent : dependentEvents){
-                Pair<String,String> pair = new Pair<String,String>(dependentEvent.getName(), dependentEvent.getType() );
-                int getCount = countForReplayEvent.get(pair);
-                if (getCount > 1)
-                    state.setReplayable(false);
-            }
-        }
-        return stateMachineDefinition;
-    }    
 }

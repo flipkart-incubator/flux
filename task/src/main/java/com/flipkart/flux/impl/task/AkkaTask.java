@@ -29,6 +29,7 @@ import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.Status;
+import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.api.core.Task;
 import com.flipkart.flux.client.exception.FluxRetriableException;
@@ -149,7 +150,7 @@ public class AkkaTask extends UntypedActor {
                         if (outputEvent != null) {
                             // after successful task execution, post the generated output event for further processing, also update status as part of same call
                             fluxRuntimeConnector.submitEventAndUpdateStatus(
-                                    new EventData(outputEvent.getName(), outputEvent.getType(),
+                                    new VersionedEventData(outputEvent.getName(), outputEvent.getType(),
                                             outputEvent.getEventData(), outputEvent.getEventSource(),
                                             outputEvent.getStatus() == Event.EventStatus.cancelled,
                                             outputEvent.getExecutionVersion()),

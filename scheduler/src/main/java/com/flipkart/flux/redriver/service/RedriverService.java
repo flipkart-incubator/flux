@@ -121,9 +121,10 @@ public class RedriverService {
                 tasksRedrived.add(
                         asyncRedriveService.submit(() -> {
                             try {
-                                redriverRegistry.redriveTask(e.getStateMachineId(), e.getTaskId());
+                                redriverRegistry.redriveTask(e.getStateMachineId(), e.getTaskId(), e.getExecutionVersion());
                             } catch (Exception ex) {
-                                logger.error("Something went wrong in redriving task:{} smId:{}", e.getTaskId(), e.getStateMachineId(), ex);
+                                logger.error("Something went wrong in redriving task:{} smId:{} with execution Version:{}, Error: {}", e.getTaskId(),
+                                        e.getStateMachineId(), e.getExecutionVersion(), ex.getStackTrace());
                             }
                         }));
             });

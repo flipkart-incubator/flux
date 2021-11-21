@@ -19,7 +19,7 @@ package com.flipkart.flux.api;
  */
 public class EventAndExecutionData {
 
-    private EventData eventData;
+    private VersionedEventData versionedEventData;
 
     private ExecutionUpdateData executionUpdateData;
 
@@ -27,14 +27,14 @@ public class EventAndExecutionData {
 	/* For use by Jackson for deserialization*/
     public EventAndExecutionData() {}
 
-    public EventAndExecutionData(EventData eventData, ExecutionUpdateData executionUpdateData) {
-        this.eventData = eventData;
+    public EventAndExecutionData(VersionedEventData versionedEventData, ExecutionUpdateData executionUpdateData) {
+        this.versionedEventData = versionedEventData;
         this.executionUpdateData = executionUpdateData;
     }
 
     /** Accessors*/
-    public EventData getEventData() {
-        return eventData;
+    public VersionedEventData getVersionedEventData() {
+        return versionedEventData;
     }
     public ExecutionUpdateData getExecutionUpdateData() {
         return executionUpdateData;

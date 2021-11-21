@@ -19,6 +19,7 @@ import java.util.List;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.shard.ShardId;
+import org.hibernate.Session;
 
 /**
  * <code>StatesDAO</code> interface provides methods to perform CR operations on {@link State}
@@ -46,6 +47,8 @@ public interface StatesDAO {
      */
     void updateStatus(String stateMachineInstanceId, List<State> states, Status status);
 
+    void updateStatus_NonTransactional(String stateMachineInstanceId, List<Long> stateIds, Status status, Session session);
+
     /**
      * Updates rollback status of a state
      */
@@ -61,6 +64,8 @@ public interface StatesDAO {
      */
     void updateExecutionVersion(String stateMachineInstanceId, Long stateId, Long executionVersion);
 
+    void updateExecutionVersion_NonTransactional(String stateMachineInstanceId, List<Long> stateIds, Long executionVersion, Session session);
+
     /**
      * Updates the execution version for all the specified States in the given State Machine
      *
@@ -74,6 +79,11 @@ public interface StatesDAO {
      * Retrieves a state by it's unique identifier
      */
     State findById(String stateMachineInstanceId, Long id);
+
+    /**
+     * @return list of all the states for the given state ids
+     */
+    List<State> findAllStatesForGivenStateIds(String stateMachineInstanceId, List<Long> stateIds);
 
     /**
      * Scatter gather query for slaves
@@ -93,10 +103,22 @@ public interface StatesDAO {
     /**
      * Retrieves all states for a particular state-machine-id and like input dependent-event-name.
      */
-    List findStatesByDependentEvent(String stateMachineId, String eventName);
+    List<State> findStatesByDependentEvent(String stateMachineId, String eventName);
 
     /**
      * Retrieves state-id for a particular state-machine-id and like input replay dependent-event-name.
      */
     Long findStateByDependentReplayEvent(String stateMachineId, String eventName);
+
+    /**
+     * Increments the attempted no.of retries of a replayable state by 1
+     */
+    void incrementReplayableRetries(String stateMachineInstanceId, Long stateId, Short replayableRetries);
+
+    /***
+     * sets the attempted no of retries to 0
+     * @param stateMachineId
+     * @param stateId
+     */
+    void updateReplayableRetries(String stateMachineId, Long stateId, Short replayableRetries);
 }

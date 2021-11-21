@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class EventProxyConnector extends FluxRuntimeConnectorHttpImpl {
 
     public static Logger logger = LogManager.getLogger(EventProxyConnector.class);
+    private static final String EXTERNAL = "external";
 
     @Inject
     public EventProxyConnector(@Named("eventProxyForMigration.endpoint") String endpoint, FluxClientConfiguration fluxClientConfiguration) {

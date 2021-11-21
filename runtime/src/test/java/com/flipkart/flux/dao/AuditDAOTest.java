@@ -65,7 +65,9 @@ public class AuditDAOTest {
             state = (State) ob;
             break;
         }
-        AuditRecord auditRecord = new AuditRecord(stateMachine.getId(), (state != null) ? state.getId() : null, 0L, Status.completed, null, null);
+        AuditRecord auditRecord = new AuditRecord(stateMachine.getId(), (state != null) ? state.getId() : null,
+                0L, Status.completed, null, null, 0L,
+                null);
         Long recordId = auditDAO.create(stateMachine.getId(), auditRecord).getId();
 
         AuditRecord auditRecord1 = auditDAO.findById(stateMachine.getId(), recordId);

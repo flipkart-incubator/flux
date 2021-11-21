@@ -12,7 +12,6 @@
 
     <groupId>com.flipkart.flux</groupId>
     <artifactId>runtime</artifactId>
-    <version>1.2.1</version>
     <name>runtime</name>
     <url>http://maven.apache.org</url>
 

@@ -14,6 +14,7 @@
 package com.flipkart.flux.dao.iface;
 
 import com.flipkart.flux.domain.AuditRecord;
+import org.hibernate.Session;
 
 import java.util.List;
 
@@ -38,4 +39,9 @@ public interface AuditDAO {
      * Retrieves Audit record by it's unique identifier
      */
     public AuditRecord findById(String stateMachineId, Long id);
+
+    /**
+     * Creates Audit record using the parameter session and returns the saved object
+     */
+    AuditRecord create_NonTransactional(AuditRecord auditRecord, Session session);
 }

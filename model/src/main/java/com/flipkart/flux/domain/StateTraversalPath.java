@@ -23,13 +23,13 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * <code>StateTraversalPath</code> is used to store list of states and events in the traversal paths of replayable
+ * <code>StateTraversalPath</code> is used to store list of stateIds in the traversal path of replayable
  * states in a state machine.
  *
  * @author akif.khan
  */
 @Entity
-@Table(name = "StateTraversalPath")
+@Table(name = "StateTraversalPaths")
 @IdClass(StateTraversalPath.StateTraversalPathPK.class)
 public class StateTraversalPath {
 
@@ -44,12 +44,6 @@ public class StateTraversalPath {
      */
     @Id
     private String stateMachineId;
-
-    /**
-     * List of event names in the traversal path of this stateId
-     */
-    @Type(type = "ListJsonType")
-    private List<String> nextDependentEvents;
 
     /**
      * List of stateIds in the traversal path of this stateId
@@ -68,16 +62,13 @@ public class StateTraversalPath {
      */
     protected StateTraversalPath() {
         super();
-        nextDependentEvents = new LinkedList<>();
         nextDependentStates = new LinkedList<>();
     }
 
-    public StateTraversalPath(String stateMachineId, Long stateId, List<String> nextDependentEvents,
-                              List<Long> nextDependentStates) {
+    public StateTraversalPath(String stateMachineId, Long stateId, List<Long> nextDependentStates) {
         this();
         this.stateMachineId = stateMachineId;
         this.stateId = stateId;
-        this.nextDependentEvents = nextDependentEvents;
         this.nextDependentStates = nextDependentStates;
 
     }
@@ -101,14 +92,6 @@ public class StateTraversalPath {
         this.stateMachineId = stateMachineId;
     }
 
-    public List<String> getNextDependentEvents() {
-        return nextDependentEvents;
-    }
-
-    public void setNextDependentEvents(List<String> nextDependentEvents) {
-        this.nextDependentEvents = nextDependentEvents;
-    }
-
     public List<Long> getNextDependentStates() {
         return nextDependentStates;
     }
@@ -124,8 +107,6 @@ public class StateTraversalPath {
 
         StateTraversalPath stateTraversalPath = (StateTraversalPath) o;
 
-        if (!Objects.equals(createdAt, stateTraversalPath.createdAt))
-            return false;
         if (!Objects.equals(stateMachineId, stateTraversalPath.stateMachineId))
             return false;
         return Objects.equals(stateId, stateTraversalPath.stateId);
@@ -134,17 +115,15 @@ public class StateTraversalPath {
     @Override
     public int hashCode() {
         int result = stateMachineId != null ? stateMachineId.hashCode() : 0;
-        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
         result = 31 * result + (stateId != null ? stateId.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return "State{" +
+        return "StateTraversalPath{" +
                 "stateId=" + stateId +
                 ", stateMachineId=" + stateMachineId +
-                ", nextDependentEvents=" + nextDependentEvents +
                 ", nextDependentStates=" + nextDependentStates +
                 ", createdAt=" + createdAt +
                 '}';
