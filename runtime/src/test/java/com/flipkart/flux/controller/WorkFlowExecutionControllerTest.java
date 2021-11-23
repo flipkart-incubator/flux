@@ -427,4 +427,15 @@ public class WorkFlowExecutionControllerTest {
         verify(statesDAO).incrementReplayableRetries("ReplayEventTestStateMachine1", 2L, (short) 10);
 
     }
+
+    @Test
+    public void testRedriveTask_InvalidExecutionNumber(){
+        when(statesDAO.findById("random-state-machine", 1L)).thenReturn(
+                new State(1L, "random-state", null, null, null, null,
+                        new ArrayList<>(), 0L, 1000L, null, Status.initialized,
+                        null, 0L, "random-state-machine", 1L,(short) 3,(short) 0,true,2l));
+
+        workFlowExecutionController.redriveTask("random-state-machine", 1L,0l);
+        verifyNoMoreInteractions(redriverRegistry);
+    }
 }
