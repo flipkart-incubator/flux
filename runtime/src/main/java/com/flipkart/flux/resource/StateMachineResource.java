@@ -344,7 +344,6 @@ public class StateMachineResource {
                             .build();
                 }
             } else {
-                // TODO: Handle this path with execution version added.
                 logger.info("Received event: {} for state machine: {} with triggerTime: {}",
                         eventData.getName(), machineId, triggerTime);
                 if (searchField == null || !searchField.equals(CORRELATION_ID)) {
@@ -416,10 +415,10 @@ public class StateMachineResource {
                         .build();
             }
             try {
-                // TODO : Add a check to eventSource being "replay"
                 Optional<Event> replayEvent = eventsDAO.findValidReplayEventBySMIdAndName(machineId,
                         eventData.getName());
                 if (replayEvent.isPresent()) {
+                    logger.debug("Found replay event: {} with execution version: {} for SMId: {} ",eventData.getName(),replayEvent.get().getExecutionVersion(),machineId);
                     workFlowExecutionController.postReplayEvent(eventData, stateMachine);
                     return Response.status(Response.Status.ACCEPTED).build();
                 } else {
@@ -583,8 +582,8 @@ public class StateMachineResource {
                         try {
                             workFlowExecutionController.unsidelineState(state.getStateMachineId(), state.getId());
                         } catch (Exception ex) {
-                            logger.warn("Unable to unsideline for stateId:{} msg:{}", state.getId(),
-                                    ex.getMessage());
+                            logger.warn("Unable to unsideline for stateId:{}, execution version:{} msg:{}", state.getId(),
+                                    state.getExecutionVersion(), ex.getMessage());
                         }
                     }
                 }
@@ -884,10 +883,7 @@ public class StateMachineResource {
             LoggingUtils.registerStateMachineIdForLogging(stateMachineId);
             Optional<StateTraversalPath> traversalPathStates = stateTraversalPathDAO.findById(
                     stateMachineId, stateId);
-            // TODO: get the list of states which are dependent on the state whose attemptednoofretries we are updating
-            //TODO: Revisit
             if (traversalPathStates.isPresent()) {
-                //TODO: Check if dependency contains the current state
                 List<Long> stateIds = traversalPathStates.get().getNextDependentStates();
                 List<String> eventNames = new ArrayList<>();
                 for (State s : statesDAO.findAllStatesForGivenStateIds(stateMachineId, stateIds)) {

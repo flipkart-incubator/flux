@@ -54,12 +54,13 @@ public class ExecutionApiResource {
     public Response receiveTaskAndExecutionData(TaskExecutionMessage taskExecutionMessage) {
         TaskAndEvents msg = taskExecutionMessage.getAkkaMessage();
         String routerName = taskExecutionMessage.getRouterName();
-        logger.info("Received taskExecutionMessage for stateMachine {} taskId {} taskName {}",
-                msg.getStateMachineId(), msg.getTaskId(), msg.getTaskName());
+        logger.info("Received taskExecutionMessage for stateMachine {} taskId {} taskName {} tastExecutionVersion: {}",
+                msg.getStateMachineId(), msg.getTaskId(), msg.getTaskName(), msg.getTaskExecutionVersion());
         try {
             ActorRef router = routerRegistry.getRouter(routerName);
             if (router != null) {
-                logger.info("Sending msg to router: {} to execute state machine: {} task: {}", router.path(), msg.getStateMachineId(), msg.getTaskId());
+                logger.info("Sending msg to router: {} to execute state machine: {} task: {} with execution version: {}",
+                        router.path(), msg.getStateMachineId(), msg.getTaskId(), msg.getTaskExecutionVersion());
                 router.tell(msg, ActorRef.noSender());
                 metricsClient.incCounter(new StringBuilder().
                         append("stateMachine.").

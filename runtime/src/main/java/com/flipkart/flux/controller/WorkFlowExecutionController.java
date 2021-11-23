@@ -351,7 +351,6 @@ public class WorkFlowExecutionController {
             throw new ReplayableRetryExhaustException("Dependant state:" + dependantStateOnReplayEvent.getName() + " with stateMachineId:" +
                     stateMachine.getId() + " and replay event:" + eventData.getName() + " is not replayable as the no of retries have been exhausted.");
         } else {
-            //TODO: Increment the counter
             statesDAO.incrementReplayableRetries(stateMachine.getId(), dependantStateId, (short) (dependantStateOnReplayEvent.getAttemptedNumOfReplayableRetries() + 1));
         }
         // TODO : Add null check for dependantStateOnReplayEvent
@@ -429,6 +428,7 @@ public class WorkFlowExecutionController {
         event.setEventData(versionedEventData.getData());
         event.setEventSource(versionedEventData.getEventSource());
         eventsDAO.updateEvent(event.getStateMachineInstanceId(), event);
+        logger.debug("successfully persisted event: {} with execution version: {} for SMId: {}",versionedEventData.getName(),versionedEventData.getExecutionVersion(), stateMachineInstanceId);
         return event;
     }
 
@@ -538,11 +538,11 @@ public class WorkFlowExecutionController {
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public void updateEventData(String machineId, VersionedEventData versionedEventData) {
         persistEvent(machineId, versionedEventData);
-        String EventUdpateAudit = "Event data updated for event: " + versionedEventData.getName();
+        String eventUpdateAudit = "Event data updated for event: " + versionedEventData.getName();
         this.auditDAO.create(machineId, new AuditRecord(machineId, Long.valueOf(0), Long.valueOf(0),
-                null, null, EventUdpateAudit));
-        logger.info("Updated event data persisted for event: {} and stateMachineId: {}", versionedEventData.getName(),
-                machineId);
+                null, null, eventUpdateAudit));
+        logger.info("Updated event data persisted for event: {} and stateMachineId: {} with execution version: {}", versionedEventData.getName(),
+                machineId,versionedEventData.getExecutionVersion());
     }
 
     /**
@@ -573,8 +573,8 @@ public class WorkFlowExecutionController {
         Set<State> checkExecutableState = new HashSet<>();
         checkExecutableState.add(askedState);
         if (getExecutableStates(checkExecutableState, stateMachineId).isEmpty()) {
-            logger.error("Cannot unsideline state: {}, at least one of the dependent events is in pending status.",
-                    askedState.getName());
+            logger.error("Cannot unsideline state: {} with execution version: {}, at least one of the dependent events is in pending status.",
+                    askedState.getName(),askedState.getExecutionVersion());
             return;
         } else if (askedState.getStatus() == Status.initialized || askedState.getStatus() == Status.sidelined
                 || askedState.getStatus() == Status.errored) {
@@ -650,6 +650,7 @@ public class WorkFlowExecutionController {
                         redriverInterval = 2 * ((int) Math.pow(2, state.getRetryCount() + 1) * 1000 + (state.getRetryCount() + 1) * state.getTimeout());
                     }
                     this.redriverRegistry.registerTask(state.getId(), state.getStateMachineId(), redriverInterval, state.getExecutionVersion());
+                    logger.info("Registered the state: {} with execution version: {} for SMId: {} in redriver",state.getId(),state.getExecutionVersion(),state.getStateMachineId());
 
                     // Send the message to Akka Router
                     String taskName = state.getTask();
@@ -666,16 +667,16 @@ public class WorkFlowExecutionController {
                     int statusCode = executionNodeTaskDispatcher.forwardExecutionMessage(endPoint, taskExecutionMessage);
                     long finishTime = System.currentTimeMillis();
                     if (statusCode == 202) {
-                        logger.info("Successfully forwarded the taskExecutionMsg for smId:{} taskId:{} for" +
+                        logger.info("Successfully forwarded the taskExecutionMsg for smId:{} taskId:{} and execution version: {} for" +
                                         " remoteExecution to host {} took {}ms", msg.getStateMachineId(),
-                                msg.getTaskId(), endPoint, finishTime - startTime);
+                                msg.getTaskId(),msg.getTaskExecutionVersion(), endPoint, finishTime - startTime);
                     } else {
-                        logger.error("Failed to succesfully send task for Execution smId:{} taskId:{}," +
+                        logger.error("Failed to successfully send task for Execution smId:{} taskId:{}, execution version: {}" +
                                         " should be retried by Redriver after {} ms.",
-                                msg.getStateMachineId(), msg.getTaskId(), redriverInterval);
+                                msg.getStateMachineId(), msg.getTaskId(), msg.getTaskExecutionVersion(), redriverInterval);
                     }
                 } else {
-                    logger.info("State machine: {} Task: {} execution request got discarded as the task is {}", state.getStateMachineId(), state.getId(), state.getStatus());
+                    logger.info("State machine: {}, Task: {}, Task Execution Version: {} execution request got discarded as the task is {}", state.getStateMachineId(), state.getId(), state.getExecutionVersion(),state.getStatus());
                 }
             }));
         } finally {
@@ -717,9 +718,10 @@ public class WorkFlowExecutionController {
         try {
             State state = statesDAO.findById(machineId, taskId);
 
-            //TODO: Add validations for incorrect state and state machine inputs
             if (!state.getExecutionVersion().equals(executionVersion)) {
-                logger.info("The execution version: {} is invalid for the state machine: {} with state Id: {} and execution version: {}", executionVersion, machineId, state.getId(), state.getExecutionVersion());
+                logger.info("The execution version: {} to redrive is invalid for the state machine: {} with state Id: {} and execution version: {}",executionVersion,machineId, state.getId(), state.getExecutionVersion());
+                //cleanup the tasks which can't be redrived from redriver db
+                this.redriverRegistry.deRegisterTask(machineId, taskId, executionVersion);
             } else {
                 //TODO: Add validations for incorrect state and state machine inputs
                 if (isTaskRedrivable(state.getStatus()) && state.getAttemptedNumOfRetries() <= state.getRetryCount()) {
@@ -764,6 +766,7 @@ public class WorkFlowExecutionController {
      * @param stateId
      */
     public void resetAttemptedNumberOfRetries(String stateMachineId, Long stateId) {
+        logger.info("Resetting the replayable retries for stateId: {} in SMId: {}", stateId, stateMachineId);
         statesDAO.updateReplayableRetries(stateMachineId, stateId, (short) 0);
     }
 
@@ -773,6 +776,7 @@ public class WorkFlowExecutionController {
      * @param eventNames
      */
     public void deleteInvalidEvents(String stateMachineId, List<String> eventNames) {
+        logger.info("Deleting the events: {} in SMId: {}",eventNames, stateMachineId);
         eventsDAO.deleteInvalidEvents(stateMachineId, eventNames);
     }
 
