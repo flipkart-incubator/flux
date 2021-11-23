@@ -381,14 +381,17 @@ public class StateMachineResource {
     ) throws Exception {
 
         try {
-            if (machineId == null || eventData == null) {
+            if (machineId == null || eventData == null || machineId.isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST).entity(
                         "Please send valid values for machineId and EventData ").build();
             }
             LoggingUtils.registerStateMachineIdForLogging(machineId);
             if (eventData.getEventSource() != null) {
-                String eventSource = eventData.getEventSource() + ":" + RuntimeConstants.REPLAY_EVENT;
-                eventData.setEventSource(eventSource);
+                String eventSource;
+                if(!eventData.getEventSource().contains(RuntimeConstants.REPLAY_EVENT)) {
+                    eventSource = eventData.getEventSource() + ":" + RuntimeConstants.REPLAY_EVENT;
+                    eventData.setEventSource(eventSource);
+                }
             } else {
                 eventData.setEventSource(RuntimeConstants.REPLAY_EVENT);
             }
@@ -419,9 +422,12 @@ public class StateMachineResource {
                 Optional<Event> replayEvent = eventsDAO.findValidReplayEventBySMIdAndName(machineId,
                         eventData.getName());
                 if (replayEvent.isPresent()) {
-                    logger.debug("Found replay event: {} with execution version: {} for SMId: {} ",eventData.getName(),replayEvent.get().getExecutionVersion(),machineId);
+                    logger.debug("Found replay event: {} with execution version: {} for SMId: {} ",
+                            eventData.getName(), replayEvent.get().getExecutionVersion(), machineId);
                     workFlowExecutionController.postReplayEvent(eventData, stateMachine);
-                    return Response.status(Response.Status.ACCEPTED).build();
+                    return Response.status(Response.Status.ACCEPTED).entity("Successfully submitted "
+                            + "ReplayEvent: " + eventData.getName() +". Check Flux-Dashboard for this StateMachine Id: "
+                            + machineId).build();
                 } else {
                     logger.error("Triggered input event {} doesn't exist as a replay event in database." +
                                     " Replay Event is identified by eventSource suffix {}", eventData.getName(),
@@ -442,7 +448,7 @@ public class StateMachineResource {
                         .build();
             } catch (RuntimeException ex) {
                 logger.error("Error in processing the request. Error: {}", ex.getMessage());
-                return Response.status(Response.Status.NOT_FOUND.getStatusCode())
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
                         .entity(ex.getMessage())
                         .build();
             }
@@ -1101,9 +1107,8 @@ public class StateMachineResource {
      */
     //TODO: verify event source again
     private Boolean checkIfEventDataIsEmpty(EventData eventData) {
-        if (eventData.getName().isEmpty() || eventData.getType().isEmpty() || eventData.getData()
-                .isEmpty() || eventData.getName() == null || eventData.getType() == null
-                || eventData.getData() == null) {
+        if (eventData.getName() == null || eventData.getType() == null || eventData.getData() == null
+                || eventData.getName().isEmpty() || eventData.getType().isEmpty() || eventData.getData().isEmpty()) {
             return Boolean.TRUE;
         }
         return Boolean.FALSE;

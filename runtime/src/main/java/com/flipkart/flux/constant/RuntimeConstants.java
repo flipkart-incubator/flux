@@ -30,7 +30,7 @@ public class RuntimeConstants {
     /***
      * default eventSource for replay event
      */
-    public static final String REPLAY_EVENT = "flux_runtime_replay";
+    public static final String REPLAY_EVENT = "flux_runtime_replay_internal";
 
     /**
      * Root for dashboard webapp configs.
