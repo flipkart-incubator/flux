@@ -414,7 +414,7 @@ public class StateMachineResource {
             if (stateMachine.getStatus() == StateMachineStatus.cancelled) {
                 logger.info("Discarding replay event: {} as State machine: {} is in cancelled state",
                         eventData.getName(), stateMachine.getId());
-                return Response.status(Response.Status.ACCEPTED.getStatusCode())
+                return Response.status(Response.Status.PRECONDITION_FAILED.getStatusCode())
                         .entity("State machine with Id: "
                                 + stateMachine.getId() + " is in 'cancelled' state. Discarding the replay event.")
                         .build();

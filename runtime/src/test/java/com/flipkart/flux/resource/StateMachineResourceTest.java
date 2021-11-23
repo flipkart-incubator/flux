@@ -911,4 +911,35 @@ public class StateMachineResourceTest {
                 .isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
         assertThat(eventPostResponse.getBody()).isEqualTo("Event Data cannot be empty");
     }
+
+    @Test
+    public void testPostReplayEvent_withNoStateMachine() throws Exception {
+        String eventJson = IOUtils
+                .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        final HttpResponse<String> eventPostResponse = Unirest.post(
+                STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/replayevent")
+                .header("Content-Type", "application/json").body(eventJson).asString();
+        assertThat(eventPostResponse.getStatus())
+                .isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void testPostReplayEvent_withCancelledStateMachine() throws Exception {
+        String stateMachineDefinitionJson = IOUtils.toString(
+                this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        Unirest.post(STATE_MACHINE_RESOURCE_URL)
+                .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
+        Thread.sleep(100);
+
+        Unirest.put(STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/cancel")
+                .asString();
+
+        String eventJson = IOUtils
+                .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        final HttpResponse<String> eventPostResponse = Unirest.post(
+                STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/replayevent")
+                .header("Content-Type", "application/json").body(eventJson).asString();
+        assertThat(eventPostResponse.getStatus())
+                .isEqualTo(Response.Status.PRECONDITION_FAILED.getStatusCode());
+    }
 }
