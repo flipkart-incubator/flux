@@ -351,7 +351,7 @@ public class WorkFlowExecutionControllerTest {
         workFlowExecutionController.updateTaskStatus("random-state-machine", 1L, 0L,
                 new ExecutionUpdateData("random-state-machine", "someStateMachine",
                         "someTask", 1L, com.flipkart.flux.api.Status.running,
-                        0, 1, "", false));
+                        0, 1, "", false, ""));
         verify(statesDAO).updateStatus("random-state-machine", 1L, Status.running);
         verify(auditDAO).create("random-state-machine", new AuditRecord("random-state-machine", 1L, 1L, Status.running, null , ""));
         verifyNoMoreInteractions(redriverRegistry);
@@ -366,7 +366,7 @@ public class WorkFlowExecutionControllerTest {
         workFlowExecutionController.updateTaskStatus("random-state-machine", 1L, 0L,
                 new ExecutionUpdateData("random-state-machine", "someStateMachine",
                         "someTask", 1L, com.flipkart.flux.api.Status.completed,
-                        0, 1, "", true));
+                        0, 1, "", true, ""));
         verify(statesDAO).updateStatus("random-state-machine", 1L, Status.completed);
         verify(auditDAO).create("random-state-machine", new AuditRecord("random-state-machine", 1L, 1L, Status.completed, null , ""));
         verify(redriverRegistry).deRegisterTask("random-state-machine",1L, 0L);

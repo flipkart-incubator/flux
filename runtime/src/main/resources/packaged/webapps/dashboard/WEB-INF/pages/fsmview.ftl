@@ -214,6 +214,11 @@
             taskExecutionVersion.appendChild(document.createTextNode("State Execution Version"));
             tr.appendChild(taskExecutionVersion);
 
+            var eventDependencies = document.createElement("th");
+            eventDependencies.appendChild(document.createTextNode(
+              "Dependent Events Execution Version {EventName, ExecutionVersion}"));
+            tr.appendChild(eventDependencies);
+
             var retryAttempt = document.createElement("th");
             retryAttempt.appendChild(document.createTextNode("Retry Attempt"));
             tr.appendChild(retryAttempt);
@@ -251,6 +256,10 @@
 
                 var td = document.createElement("td");
                 td.appendChild(document.createTextNode(auditRecord.taskExecutionVersion));
+                tr.appendChild(td);
+
+                var td = document.createElement("td");
+                td.appendChild(document.createTextNode(auditRecord.eventDependencies));
                 tr.appendChild(td);
 
                 td = document.createElement("td");

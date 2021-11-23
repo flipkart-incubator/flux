@@ -283,7 +283,7 @@ public class StateMachinePersistenceService {
             // Limit MaxReplayableRetries for a state to RuntimeConstants.MAX_REPLAYABLE_RETRIES
             if (stateDefinition.getMaxReplayableRetries() != null && stateDefinition.getMaxReplayableRetries() > RuntimeConstants.MAX_REPLAYABLE_RETRIES) {
                 stateDefinition.setMaxReplayableRetries(RuntimeConstants.MAX_REPLAYABLE_RETRIES);
-                logger.info("MaxReplayableRetries has been reset to {} for state {}. Value provided by user was"
+                logger.warn("MaxReplayableRetries has been reset to {} for state {}. Value provided by user was"
                         + " higher than threshold", RuntimeConstants.MAX_REPLAYABLE_RETRIES, stateDefinition.getName());
             }
 

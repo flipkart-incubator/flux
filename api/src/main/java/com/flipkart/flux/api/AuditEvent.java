@@ -94,9 +94,9 @@ public class AuditEvent implements Serializable {
 
     @Override
     public String toString() {
-        return "AuditEvent{" +
-                "name='" + name + '\'' +
-                ", executionVersion=" + executionVersion +
+        return "{" +
+                "'" + name + '\'' +
+                ", " + executionVersion +
                 '}';
     }
 }
