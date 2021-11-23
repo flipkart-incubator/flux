@@ -119,7 +119,7 @@ public class StatesDAOTest {
         State state1 =
                 new State(2L, "state1", "desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.singletonList("ReplayEvent"), 3L, 60L, null, Status.completed, null, 0l, "1", 1L, (short) 5, (short) 2, Boolean.TRUE);
         statesDAO.updateState(stateMachine.getId(), state1);
-        Long stateId = statesDAO.findStateByDependentReplayEvent(stateMachine.getId(), "ReplayEvent");
+        Long stateId = statesDAO.findStateIdByEventName(stateMachine.getId(), "ReplayEvent");
         assertThat(stateId).isEqualTo(1L);
     }
 

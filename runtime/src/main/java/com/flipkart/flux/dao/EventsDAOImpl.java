@@ -314,7 +314,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     @Override
     public void markEventAsInvalid_NonTransactional(String stateMachineInstanceId, String eventName, Session session) {
-        Query query = currentSession().createQuery("update Event set status = :status where" +
+        Query query = session.createQuery("update Event set status = :status where" +
                 " stateMachineInstanceId = :stateMachineInstanceId and name = :eventName");
         query.setString("status", Event.EventStatus.invalid.toString());
         query.setString("stateMachineInstanceId", stateMachineInstanceId);

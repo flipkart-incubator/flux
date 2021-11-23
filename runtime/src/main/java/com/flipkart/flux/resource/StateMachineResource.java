@@ -392,7 +392,7 @@ public class StateMachineResource {
                 eventData.setEventSource(RuntimeConstants.REPLAY_EVENT);
             }
             if (checkIfEventDataIsEmpty(eventData)) {
-                return Response.status(Response.Status.BAD_REQUEST).build();
+                return Response.status(Response.Status.BAD_REQUEST).entity("Event Data cannot be empty").build();
             }
             logger.info("Received replay event: {} for state machine id: {}", eventData.getName(),
                     machineId);

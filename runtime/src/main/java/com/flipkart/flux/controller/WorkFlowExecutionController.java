@@ -332,7 +332,7 @@ public class WorkFlowExecutionController {
     public void postReplayEvent(EventData eventData, StateMachine stateMachine) throws IllegalEventException, ReplayableRetryExhaustException,
             IOException {
 
-        Long dependantStateId = statesDAO.findStateByDependentReplayEvent(stateMachine.getId(), eventData.getName());
+        Long dependantStateId = statesDAO.findStateIdByEventName(stateMachine.getId(), eventData.getName());
         if (dependantStateId == null) {
             throw new IllegalEventException(
                     "No dependent state found for the event : " + eventData.getName());
@@ -393,7 +393,7 @@ public class WorkFlowExecutionController {
         } else {
             logger.error("No traversal path found for replayable state id:{} in stateMachineId:{} for event:{}.",
                     dependantStateId, stateMachine.getId(), eventData.getName());
-            throw new TraversalPathException("No traversal path found for replayable state id:" + dependantStateId +
+            throw new TraversalPathException("No traversal path found for replayable state id: " + dependantStateId +
                     " and stateMachineId: " + stateMachine.getId());
         }
     }

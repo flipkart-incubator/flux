@@ -23,6 +23,10 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 
 import static com.flipkart.flux.constant.RuntimeConstants.DEFAULT_DEPENDENT_EVENTS_MESSAGE;
@@ -46,6 +50,7 @@ public class ReplayEventPersistenceService {
      * ObjectMapper instance to be used for all purposes in this class
      */
     private static ObjectMapper objectMapper = new ObjectMapper();
+    private static final Logger logger = LogManager.getLogger(ReplayEventPersistenceService.class);
 
     @Inject
     public ReplayEventPersistenceService(StateMachinesDAO stateMachinesDAO,
@@ -72,7 +77,11 @@ public class ReplayEventPersistenceService {
 
         Session session = sessionFactoryContext.getThreadLocalSession();
 
-        Long smExecutionVersion = stateMachinesDAO.findByIdForUpdate_NonTransactional(stateMachineId, session) + 1;
+        if(session == null){
+            throw new HibernateException("Unable to initialize hibernate Session");
+        }
+
+        Long smExecutionVersion = stateMachinesDAO.findExecutionVersionBySMIdForUpdate_NonTransactional(stateMachineId, session) + 1;
         stateMachinesDAO.updateExecutionVersion_NonTransactional(stateMachineId, smExecutionVersion, session);
 
         ArrayList<Long> stateIds = new ArrayList<>(dependantStateIds);
@@ -85,19 +94,25 @@ public class ReplayEventPersistenceService {
                             Status.initialized, null, null, smExecutionVersion, DEFAULT_DEPENDENT_EVENTS_MESSAGE),
                     session);
         }
-        
+
         for (String outputEvent : dependantEvents) {
             String eventName, eventType;
             try {
                 eventName = getOutputEventName(outputEvent);
                 eventType = getOutputEventType(outputEvent);
-            } catch (IOException e) {
-                throw new JsonParseException("Unable to deserialize outputEvent value. Error : " + e.getMessage());
+            } catch (JsonParseException e) {
+                logger.error("Unable to deserialise output event value. Error: {}",e.getMessage());
+                throw new RuntimeException("Unable to deserialize outputEvent value. Error : " + e.getMessage());
+            } catch (Exception e){
+                logger.error("Exception. Error: {}",e.getMessage());
+                throw new RuntimeException("Exception in processing. Error : " + e.getMessage());
+            }
+            if (eventName == null || eventType == null){
+                throw new RuntimeException("Event Name or Event Type cannot be null");
             }
             eventsDAO.markEventAsInvalid_NonTransactional(stateMachineId, eventName, session);
             Event event = new Event(eventName, eventType, Event.EventStatus.pending,
                     stateMachineId, null, null, smExecutionVersion);
-            session.save(event);
             eventsDAO.create_NonTransactional(event, session);
         }
 
@@ -119,7 +134,7 @@ public class ReplayEventPersistenceService {
     /**
      * Helper method to JSON serialize the output event for output event name
      */
-    private String getOutputEventName(String outputEvent) throws IOException {
+    private String getOutputEventName(String outputEvent) throws JsonParseException, IOException {
         return outputEvent != null ? objectMapper.readValue(outputEvent, EventDefinition.class).getName() : null;
     }
 

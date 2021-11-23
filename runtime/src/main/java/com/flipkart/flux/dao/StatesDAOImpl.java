@@ -200,7 +200,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public Long findStateByDependentReplayEvent(String stateMachineId, String eventName) {
+    public Long findStateIdByEventName(String stateMachineId, String eventName) {
         SQLQuery query = currentSession().createSQLQuery(
                 "select id from States where `stateMachineId`= '" + stateMachineId + "' and dependencies like" +
                         " '%" + eventName + "%'");
@@ -232,20 +232,22 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
             }
             inClause.deleteCharAt(inClause.length() - 1).append(")");
         }
-        inClause.deleteCharAt(inClause.length() - 1).append(")");
+
         Query query = currentSession().createQuery("update State set executionVersion= :executionVersion" +
-                " where stateMachineId=:stateMachineId".concat(inClause.toString()));
+                " where stateMachineId= :stateMachineId".concat(inClause.toString()));
         query.setLong("executionVersion", executionVersion);
         query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
 
+    // TODO : Add test for this
     @Override
     public void updateExecutionVersion_NonTransactional(String stateMachineId,
                                                         List<Long> stateIds, Long executionVersion, Session session) {
+
         String inClause = stateIds.toString().replace("[","(").replace("]",")");
         Query query = session.createQuery("update State set executionVersion= :executionVersion" +
-                " where stateMachineId=:stateMachineId and id in ".concat(inClause.toString()));
+                " where stateMachineId= :stateMachineId and id in ".concat(inClause.toString()));
         query.setLong("executionVersion", executionVersion);
         query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();

@@ -108,7 +108,7 @@ public interface StatesDAO {
     /**
      * Retrieves state-id for a particular state-machine-id and like input replay dependent-event-name.
      */
-    Long findStateByDependentReplayEvent(String stateMachineId, String eventName);
+    Long findStateIdByEventName(String stateMachineId, String eventName);
 
     /**
      * Increments the attempted no.of retries of a replayable state by 1

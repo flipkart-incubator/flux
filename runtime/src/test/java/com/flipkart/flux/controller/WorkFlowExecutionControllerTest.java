@@ -390,7 +390,7 @@ public class WorkFlowExecutionControllerTest {
                 "client_elb_id_1");
         Event event = eventsDAO.create(TestReplayEvent.getStateMachineInstanceId(), TestReplayEvent);
         stateMachinesDAO.create(stateMachine1.getId(), stateMachine1);
-        when(statesDAO.findStateByDependentReplayEvent("ReplayEventTestStateMachine", TestReplayEvent.getName())).thenReturn(state2.getId());
+        when(statesDAO.findStateIdByEventName("ReplayEventTestStateMachine", TestReplayEvent.getName())).thenReturn(state2.getId());
         when(statesDAO.findById("ReplayEventTestStateMachine", 2L)).thenReturn(state2);
         when(stateTraversalPathDAO.findById(stateMachine1.getId(), state2.getId())).thenReturn(Optional.empty());
         EventData eventData = new EventData(TestReplayEvent.getName(), TestReplayEvent.getType(), TestReplayEvent.getEventData(), TestReplayEvent.getEventSource());
@@ -417,7 +417,7 @@ public class WorkFlowExecutionControllerTest {
         states.add(state2);
         StateMachine stateMachine1 = new StateMachine("ReplayEventTestStateMachine1", 2L, "SM_name", "SM_desc", states,
                 "client_elb_id_1");
-        when(statesDAO.findStateByDependentReplayEvent(stateMachine1.getId(), testReplayEvent.getName())).thenReturn(state2.getId());
+        when(statesDAO.findStateIdByEventName(stateMachine1.getId(), testReplayEvent.getName())).thenReturn(state2.getId());
         when(statesDAO.findById(stateMachine1.getId(), state2.getId())).thenReturn(state2);
         when(eventsDAO.findValidEventBySMIdAndName(stateMachine1.getId(), testReplayEvent.getName())).thenReturn(testReplayEvent);
         when(eventsDAO.findValidEventBySMIdAndName(stateMachine1.getId(), event1.getName())).thenReturn(event1);
