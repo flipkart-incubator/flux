@@ -122,7 +122,8 @@ public class ReplayEventPersistenceServiceTest {
         dependentStateIds_2.add(6L);
 
         List<String> dependentEvents_2 = new ArrayList<>();
-        dependentEvents_2.add("{\"name\":\"e3\",\"type\":\"dummyType\"}");
+        dependentEvents_2.add(objectMapper.writeValueAsString(new EventDefinition(
+                "e3", "dummyType")));
 
         Event replayEvent2 = replayEventPersistenceService.persistAndProcessReplayEvent(stateMachine.getId(),
                 replayEventData2, dependentStateIds_2, dependentEvents_2);

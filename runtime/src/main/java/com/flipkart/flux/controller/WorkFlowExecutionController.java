@@ -364,7 +364,6 @@ public class WorkFlowExecutionController {
         Optional<StateTraversalPath> traversalPathStates = stateTraversalPathDAO.findById(
                 stateMachine.getId(), dependantStateId);
         if (traversalPathStates.isPresent()) {
-            // TODO: Need to add test cases for this.
             List<Long> nextDependentStateIds = traversalPathStates.get().getNextDependentStates();
             statesDAO.findAllStatesForGivenStateIds(
                     stateMachine.getId(), nextDependentStateIds).forEach(state -> {
