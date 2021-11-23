@@ -43,6 +43,7 @@ import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.exception.RedriverException;
 import com.flipkart.flux.exception.ReplayEventException;
 import com.flipkart.flux.exception.ReplayableRetryExhaustException;
+import com.flipkart.flux.exception.TraversalPathException;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.persistence.DataSourceType;
@@ -445,6 +446,16 @@ public class StateMachineResource {
             } catch (ReplayEventException e) {
                 logger.error("Error in processing the event: {}. Error: {}",eventData.getName(),e.getMessage());
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).entity(e.getMessage())
+                        .build();
+            } catch (IllegalEventException ex) {
+                logger.error("Error in processing the request. Error: {}", ex.getMessage());
+                return Response.status(Response.Status.FORBIDDEN.getStatusCode())
+                        .entity(ex.getMessage())
+                        .build();
+            } catch (TraversalPathException ex) {
+                logger.error("Error in processing the request. Error: {}", ex.getMessage());
+                return Response.status(Response.Status.NOT_FOUND.getStatusCode())
+                        .entity(ex.getMessage())
                         .build();
             } catch (RuntimeException ex) {
                 logger.error("Error in processing the request. Error: {}", ex.getMessage());
