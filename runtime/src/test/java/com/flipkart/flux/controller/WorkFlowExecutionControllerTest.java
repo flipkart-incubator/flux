@@ -429,6 +429,35 @@ public class WorkFlowExecutionControllerTest {
 
     }
 
+    @Test(expected = IllegalEventException.class)
+    public void testPostReplayEventWithNoDependentState() throws IllegalEventException, IOException {
+
+        String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
+        String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";
+        String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
+        final Event testReplayEvent = new Event("event3", "someType",
+                Event.EventStatus.pending, "ReplayEventTestStateMachine1",
+                null, RuntimeConstants.REPLAY_EVENT);
+
+        List<String> dependencies = new ArrayList<>();
+        dependencies.add(testReplayEvent.getName());
+        String outputEvent1 = objectMapper.writeValueAsString(new EventDefinition("event1",
+                "SomeEvent"));
+        State state1 = new State(2L, "state1", "desc1", onEntryHook, task,
+                onExitHook, Collections.emptyList(), 3L, 60L, outputEvent1, null,
+                null, 0l, "ReplayEventTestStateMachine1",
+                1L);
+        Set<State> states = new HashSet<>();
+        states.add(state1);
+        StateMachine stateMachine1 = new StateMachine("ReplayEventTestStateMachine1", 2L,
+                "SM_name", "SM_desc", states,
+                "client_elb_id_1");
+        when(statesDAO.findStateIdByEventName(stateMachine1.getId(), testReplayEvent.getName())).thenReturn(null);
+        EventData eventData = new EventData(testReplayEvent.getName(), testReplayEvent.getType(),
+                testReplayEvent.getEventData(), testReplayEvent.getEventSource());
+        workFlowExecutionController.postReplayEvent(eventData, stateMachine1);
+    }
+
     @Test(expected = RedriverException.class)
     public void testRedriveTask_InvalidExecutionNumber(){
         when(statesDAO.findById("random-state-machine", 1L)).thenReturn(

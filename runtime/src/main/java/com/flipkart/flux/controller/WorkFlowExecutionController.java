@@ -331,8 +331,9 @@ public class WorkFlowExecutionController {
      * @param eventData
      * @param stateMachine
      */
-    public void postReplayEvent(EventData eventData, StateMachine stateMachine) throws IllegalEventException, ReplayableRetryExhaustException,
-            ReplayEventException, IOException {
+    public void postReplayEvent(EventData eventData, StateMachine stateMachine)
+            throws IllegalEventException, ReplayableRetryExhaustException, ReplayEventException,
+            IOException {
 
         Long dependantStateId = statesDAO.findStateIdByEventName(stateMachine.getId(), eventData.getName());
         if (dependantStateId == null) {
@@ -354,7 +355,6 @@ public class WorkFlowExecutionController {
         } else {
             statesDAO.incrementReplayableRetries(stateMachine.getId(), dependantStateId, (short) (dependantStateOnReplayEvent.getAttemptedNumOfReplayableRetries() + 1));
         }
-        // TODO : Add null check for dependantStateOnReplayEvent
 
         // Holds list of events in TraversalPath of ReplayEvent. All these events are supposed to be marked as invalid.
         List<String> traversalPathEvents = new ArrayList<>();

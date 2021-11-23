@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.rule;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.domain.Event;
@@ -24,6 +26,8 @@ import org.junit.rules.ExternalResource;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.io.IOError;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -44,10 +48,13 @@ public class TestReplayableSMRule extends ExternalResource {
 
     private StateMachine stateMachine1, stateMachine2;
 
+    private ObjectMapper objectMapper;
+
     @Inject
     public TestReplayableSMRule(StateMachinesDAO stateMachinesDAO, EventsDAO eventsDAO) {
         this.stateMachinesDAO = stateMachinesDAO;
         this.eventsDAO = eventsDAO;
+        objectMapper = new ObjectMapper();
     }
 
     @Override
@@ -111,14 +118,14 @@ public class TestReplayableSMRule extends ExternalResource {
         return stateMachine;
     }
 
-    private StateMachine getStateMachine2() {
+    private StateMachine getStateMachine2() throws IOException {
         String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
         String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";
         String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
 
         List<String> deps_t1 = new ArrayList<>();
         deps_t1.add("e0");
-        String oe1 = "{\"name\":\"e1\",\"type\":\"dummyType\"}";
+        String oe1 = objectMapper.writeValueAsString(new EventDefinition("e1", "dummyType"));
         State t1 = new State(2L, "t1", "desc1", onEntryHook, task, onExitHook,
                 deps_t1, 3L, 60L, oe1, Status.completed, null,
                 0l, "id2", 1L, Boolean.FALSE);
@@ -126,7 +133,7 @@ public class TestReplayableSMRule extends ExternalResource {
         List<String> deps_t2 = new ArrayList<>();
         deps_t2.add("e1");
         deps_t2.add("re1");
-        String oe2 = "{\"name\":\"e2\",\"type\":\"dummyType\"}";
+        String oe2 = objectMapper.writeValueAsString(new EventDefinition("e2", "dummyType"));
         State t2 = new State(2L, "t2", "desc2", onEntryHook, task, onExitHook,
                 deps_t2, 3L, 60L, oe2, Status.completed, null,
                 0l, "id2", 2L, MAX_REPLAYABLE_RETRIES,
@@ -135,7 +142,7 @@ public class TestReplayableSMRule extends ExternalResource {
         List<String> deps_t3 = new ArrayList<>();
         deps_t3.add("e1");
         deps_t3.add("re2");
-        String oe3 = "{\"name\":\"e3\",\"type\":\"dummyType\"}";
+        String oe3 = objectMapper.writeValueAsString(new EventDefinition("e3", "dummyType"));
         State t3 = new State(2L, "t3", "desc2", onEntryHook, task, onExitHook,
                 deps_t3, 3L, 60L, oe3, Status.completed, null,
                 0l, "id2", 3L, MAX_REPLAYABLE_RETRIES,
@@ -143,7 +150,7 @@ public class TestReplayableSMRule extends ExternalResource {
 
         List<String> deps_t4 = new ArrayList<>();
         deps_t4.add("e2");
-        String oe4 = "{\"name\":\"e4\",\"type\":\"dummyType\"}";
+        String oe4 = objectMapper.writeValueAsString(new EventDefinition("e4", "dummyType"));
         State t4 = new State(2L, "t4", "desc1", onEntryHook, task, onExitHook,
                 deps_t4, 3L, 60L, oe4, Status.completed, null,
                 0l, "id2", 4L, Boolean.FALSE);

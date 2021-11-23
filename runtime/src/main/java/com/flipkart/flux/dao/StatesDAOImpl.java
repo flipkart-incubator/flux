@@ -207,7 +207,6 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         return ((BigInteger) query.uniqueResult()).longValue();
     }
 
-    // TODO : modify this to update for multiple stateIds in a single sql query.
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)

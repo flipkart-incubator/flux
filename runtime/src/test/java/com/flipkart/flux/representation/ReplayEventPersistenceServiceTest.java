@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.constant.RuntimeConstants;
@@ -84,8 +85,10 @@ public class ReplayEventPersistenceServiceTest {
         dependentStateIds_1.add(5L);
 
         List<String> dependentEvents_1 = new ArrayList<>();
-        dependentEvents_1.add("{\"name\":\"e2\",\"type\":\"dummyType\"}");
-        dependentEvents_1.add("{\"name\":\"e4\",\"type\":\"dummyType\"}");
+        dependentEvents_1.add(objectMapper.writeValueAsString(new EventDefinition(
+                "e2", "dummyType")));
+        dependentEvents_1.add(objectMapper.writeValueAsString(new EventDefinition(
+                "e4", "dummyType")));
 
         Event replayEvent1 = replayEventPersistenceService.persistAndProcessReplayEvent(stateMachine.getId(),
                 replayEventData1, dependentStateIds_1, dependentEvents_1);
