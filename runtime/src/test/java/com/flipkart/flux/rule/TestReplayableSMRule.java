@@ -83,7 +83,7 @@ public class TestReplayableSMRule extends ExternalResource {
         eventsDAO.create(stateMachineId, e4);
 
         Event re1 = new Event("re1", "replayEvent", EventStatus.pending, stateMachineId,
-                null,null);
+                null,null, 10L);
         eventsDAO.create(stateMachineId, re1);
 
         Event re2 = new Event("re2", "replayEvent", EventStatus.pending, stateMachineId,

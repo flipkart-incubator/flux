@@ -24,6 +24,8 @@ import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,25 +70,80 @@ public class ReplayEventPersistenceServiceTest {
     }
 
     @Test
-    public void testReplayEventPersistence() throws Exception {
+    public void testReplayEventPersistenceAndExecutionVersionUpdate() throws Exception {
 
         StateMachine stateMachine = dbClearWithTestSMRule.getStateMachineWithMultipleReplayableStates();
 
-        EventData replayEventData = new EventData("re1", "replayEvent", "re1_EventData",
+        // Test with trigger of replayEvent "re1"
+        EventData replayEventData1 = new EventData("re1", "replayEvent", "re1_EventData",
                 RuntimeConstants.REPLAY_EVENT, Boolean.FALSE);
 
-        List<Long> dependentStateIds = new ArrayList<>();
-        dependentStateIds.add(2L);
-        dependentStateIds.add(4L);
-        dependentStateIds.add(5L);
+        List<Long> dependentStateIds_1 = new ArrayList<>();
+        dependentStateIds_1.add(2L);
+        dependentStateIds_1.add(4L);
+        dependentStateIds_1.add(5L);
 
-        List<String> dependentEvents = new ArrayList<>();
-        dependentEvents.add("{\"name\":\"e2\",\"type\":\"dummyType\"}");
-        dependentEvents.add("{\"name\":\"e4\",\"type\":\"dummyType\"}");
+        List<String> dependentEvents_1 = new ArrayList<>();
+        dependentEvents_1.add("{\"name\":\"e2\",\"type\":\"dummyType\"}");
+        dependentEvents_1.add("{\"name\":\"e4\",\"type\":\"dummyType\"}");
 
-        Event replayEvent = replayEventPersistenceService.persistAndProcessReplayEvent(stateMachine.getId(),
-                replayEventData, dependentStateIds, dependentEvents);
-        assertThat(replayEvent.getStatus()).isEqualTo(EventStatus.triggered);
-        // Add more assertions
+        Event replayEvent1 = replayEventPersistenceService.persistAndProcessReplayEvent(stateMachine.getId(),
+                replayEventData1, dependentStateIds_1, dependentEvents_1);
+
+        assertThat(replayEvent1.getStatus()).isEqualTo(EventStatus.triggered);
+        assertThat(replayEvent1.getEventSource()).isEqualTo(RuntimeConstants.REPLAY_EVENT);
+
+        // Initialised replayEvent with executionVersion = 10. ExecutionVersion added should always be
+        // incremented from State Machine ExecutionVersion which is by default 0 always.
+        assertThat(replayEvent1.getExecutionVersion()).isEqualTo(1L);
+
+        assertThat(statesDAO.findById(stateMachine.getId(), 1L).getExecutionVersion()).isNotEqualTo(1L);
+        assertThat(statesDAO.findById(stateMachine.getId(), 2L).getExecutionVersion()).isEqualTo(1L);
+        assertThat(statesDAO.findById(stateMachine.getId(), 3L).getExecutionVersion()).isNotEqualTo(1L);
+        assertThat(statesDAO.findById(stateMachine.getId(), 4L).getExecutionVersion()).isEqualTo(1L);
+        assertThat(statesDAO.findById(stateMachine.getId(), 5L).getExecutionVersion()).isEqualTo(1L);
+        assertThat(statesDAO.findById(stateMachine.getId(), 6L).getExecutionVersion()).isNotEqualTo(1L);
+
+        // Cummulative of all Valid Events
+        assertThat(eventsDAO.findBySMInstanceId(stateMachine.getId()).size()).isEqualTo(7);
+        assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "re1").size()).isEqualTo(2);
+        assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "e2").size()).isEqualTo(2);
+        assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "e4").size()).isEqualTo(2);
+
+        // Test with trigger of replayEvent "re2"
+        EventData replayEventData2 = new EventData("re2", "replayEvent", "re2_EventData",
+                RuntimeConstants.REPLAY_EVENT, Boolean.FALSE);
+        List<Long> dependentStateIds_2 = new ArrayList<>();
+        dependentStateIds_2.add(3L);
+        dependentStateIds_2.add(5L);
+        dependentStateIds_2.add(6L);
+
+        List<String> dependentEvents_2 = new ArrayList<>();
+        dependentEvents_2.add("{\"name\":\"e3\",\"type\":\"dummyType\"}");
+
+        Event replayEvent2 = replayEventPersistenceService.persistAndProcessReplayEvent(stateMachine.getId(),
+                replayEventData2, dependentStateIds_2, dependentEvents_2);
+
+        assertThat(replayEvent2.getStatus()).isEqualTo(EventStatus.triggered);
+        assertThat(replayEvent2.getEventSource()).isEqualTo(RuntimeConstants.REPLAY_EVENT);
+
+        assertThat(replayEvent2.getExecutionVersion()).isEqualTo(2L);
+
+        assertThat(statesDAO.findById(stateMachine.getId(), 1L).getExecutionVersion()).isEqualTo(0L);
+        assertThat(statesDAO.findById(stateMachine.getId(), 2L).getExecutionVersion()).isEqualTo(1L);
+        assertThat(statesDAO.findById(stateMachine.getId(), 3L).getExecutionVersion()).isEqualTo(2L);
+        assertThat(statesDAO.findById(stateMachine.getId(), 4L).getExecutionVersion()).isEqualTo(1L);
+        assertThat(statesDAO.findById(stateMachine.getId(), 5L).getExecutionVersion()).isEqualTo(2L);
+        assertThat(statesDAO.findById(stateMachine.getId(), 6L).getExecutionVersion()).isEqualTo(2L);
+
+        // Cummulative of all Valid Events
+        assertThat(eventsDAO.findBySMInstanceId(stateMachine.getId()).size()).isEqualTo(7);
+        assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "re2").size()).isEqualTo(2);
+        assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "e3").size()).isEqualTo(2);
+    }
+
+    @Test
+    public void testConcurrentStateMachineExecutionVersionUpdate() throws Exception {
+        // TODO : add Test case here
     }
 }
