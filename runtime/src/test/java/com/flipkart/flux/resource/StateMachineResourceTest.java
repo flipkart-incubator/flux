@@ -942,4 +942,24 @@ public class StateMachineResourceTest {
         assertThat(eventPostResponse.getStatus())
                 .isEqualTo(Response.Status.PRECONDITION_FAILED.getStatusCode());
     }
+
+    @Test
+    public void testPostReplayEvent_withNoReplayEvent() throws Exception {
+        String stateMachineDefinitionJson = IOUtils.toString(
+                this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        Unirest.post(STATE_MACHINE_RESOURCE_URL)
+                .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
+        Thread.sleep(100);
+        String eventJson = IOUtils
+                .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        final HttpResponse<String> eventPostResponse = Unirest.post(
+                STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/replayevent")
+                .header("Content-Type", "application/json").body(eventJson).asString();
+        assertThat(eventPostResponse.getStatus())
+                .isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
+        assertThat(eventPostResponse.getBody()).isEqualTo("Triggered input event event0"
+                + " doesn't exist as a replay event in database." +
+                " Replay Event is identified by eventSource suffix "
+                + RuntimeConstants.REPLAY_EVENT);
+    }
 }

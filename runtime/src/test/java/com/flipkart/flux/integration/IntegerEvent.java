@@ -27,6 +27,10 @@ public class IntegerEvent implements Event {
         this.anInteger = anInteger;
     }
 
+    public Integer getAnInteger(){
+        return anInteger;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
