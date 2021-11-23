@@ -718,13 +718,13 @@ public class WorkFlowExecutionController {
         try {
             State state = statesDAO.findById(machineId, taskId);
 
-            if (!state.getExecutionVersion().equals(executionVersion)) {
+            if (state != null && !state.getExecutionVersion().equals(executionVersion)) {
                 logger.info("The execution version: {} to redrive is invalid for the state machine: {} with state Id: {} and execution version: {}",executionVersion,machineId, state.getId(), state.getExecutionVersion());
                 //cleanup the tasks which can't be redrived from redriver db
                 this.redriverRegistry.deRegisterTask(machineId, taskId, executionVersion);
             } else {
                 //TODO: Add validations for incorrect state and state machine inputs
-                if (isTaskRedrivable(state.getStatus()) && state.getAttemptedNumOfRetries() <= state.getRetryCount()) {
+                if (state != null && isTaskRedrivable(state.getStatus()) && state.getAttemptedNumOfRetries() <= state.getRetryCount()) {
                     StateMachine stateMachine = retrieveStateMachine(state.getStateMachineId());
                     LoggingUtils.registerStateMachineIdForLogging(stateMachine.getId().toString());
                     logger.info("Redriving a task with Id: {} and execution version: {} for state machine: {}", state.getId(), executionVersion, state.getStateMachineId());

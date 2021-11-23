@@ -436,6 +436,6 @@ public class WorkFlowExecutionControllerTest {
                         null, 0L, "random-state-machine", 1L,(short) 3,(short) 0,true,2l));
 
         workFlowExecutionController.redriveTask("random-state-machine", 1L,0l);
-        verifyNoMoreInteractions(redriverRegistry);
+        verify(redriverRegistry,times(1)).deRegisterTask("random-state-machine",1L,0L);
     }
 }
