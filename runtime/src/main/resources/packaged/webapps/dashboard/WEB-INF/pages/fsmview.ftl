@@ -266,9 +266,43 @@
                 tr.appendChild(td);
 
                 var td = document.createElement("td");
-                td.appendChild(document.createTextNode(auditRecord.eventDependencies));
-                tr.appendChild(td);
+                // Create a hyperlink for each dependency in the event Dependencies
+                var eventDependenciesArray = [];
+                try {
+                    eventDependenciesArray = JSON.parse(auditRecord.eventDependencies);
+                    console.log(eventDependenciesArray);
+                    // move all of this to a function
+                    // var arr = [];
+                    for (var index = 0; index < eventDependenciesArray.length; index++) {
+                        console.log("index: " + index + " value: " + eventDependenciesArray[index]);
+                        var stateName = Object.keys(eventDependenciesArray[index])[0];
+                        var execVersion = eventDependenciesArray[index][stateName];
+                        stateName = stateName.split(".")[stateName.split(".").length - 1];
+                        console.log("stateName: " + stateName + " execVersion: " + execVersion);
+                        console.log(eventDependenciesArray[index]);
+                        var link = document.createElement('a');
+                        var linkText = document.createTextNode(execVersion);
+                        link.appendChild(linkText);
+                        link.title = "click to get the event data";
+                        link.setAttribute('href','http://www.google.com');
+                        link.setAttribute('target','_blank');
+                        // create Json object with state name and exec version and push that into array
+                        // arr.push("{".concat(stateName).concat(":"));
+                        td.appendChild(document.createTextNode("{".concat(stateName).concat(":")));
+                        td.appendChild(link);
+                        td.appendChild(document.createTextNode("}"));
+                    }
+                    // td.appendChild(document.createTextNode(arr));
+                    tr.appendChild(td);
+                } catch (err) {
+                    console.log("unable to parse Object: '" + auditRecord.eventDependencies
+                    + "'. Error message: " + err);
+                    td.appendChild(document.createTextNode(auditRecord.eventDependencies));
+                    tr.appendChild(td);
+                }
 
+                // td.appendChild(document.createTextNode(auditRecord.eventDependencies));
+                // tr.appendChild(td);
                 td = document.createElement("td");
                 td.appendChild(document.createTextNode(auditRecord.retryAttempt));
                 tr.appendChild(td);

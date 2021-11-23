@@ -94,9 +94,10 @@ public class AuditEvent implements Serializable {
 
     @Override
     public String toString() {
+        // Using ':' instead of comma so this can be parsed as Json object
         return "{" +
-                "'" + name + '\'' +
-                ", " + executionVersion +
+                "\"" + name + '\"' +
+                ": " + executionVersion +
                 '}';
     }
 }
