@@ -99,7 +99,7 @@ public class SchedulerModule extends AbstractModule {
         //register hibernate custom types
         configuration.registerTypeOverride(new BlobType(), new String[]{"BlobType"});
         configuration.registerTypeOverride(new StoreFQNType(), new String[]{"StoreFQNOnly"});
-        configuration.registerTypeOverride(new ListJsonType(), new String[]{"ListJsonType"});
+        configuration.registerTypeOverride(new ListJsonType(Object.class), new String[]{"ListJsonType"});
 
         configuration.addAnnotatedClass(ScheduledMessage.class);
         configuration.addAnnotatedClass(ScheduledEvent.class);

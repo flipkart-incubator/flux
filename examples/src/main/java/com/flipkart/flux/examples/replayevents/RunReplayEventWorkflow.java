@@ -13,7 +13,7 @@ import com.google.inject.Injector;
  * @author vartika.bhatia on 10/06/2019
  * @author akif.khan
  */
-public class RunRepalyEventWorkflow {
+public class RunReplayEventWorkflow {
 
     public static void main(String args[]) throws InterruptedException {
 
@@ -21,7 +21,7 @@ public class RunRepalyEventWorkflow {
         final Injector injector = Guice.createInjector(new FluxClientComponentModule(), new FluxClientInterceptorModule());
         ReplayEventWorkflow replayEventWorkflow = injector.getInstance(ReplayEventWorkflow.class);
         FluxRuntimeConnector fluxHttpConnector = injector.getInstance(FluxRuntimeConnector.class);
-        String correlation_id_1 = "example_replay_event_workflow_69";
+        String correlation_id_1 = "example_replay_event_workflow_100";
         replayEventWorkflow.create(new StartEvent(correlation_id_1));
 
         System.out.println("[Main] Sleeping for 2 seconds before posting replay event to flux"
@@ -32,7 +32,7 @@ public class RunRepalyEventWorkflow {
         System.out.println("[Main] Posted replay event to flux runtime, the workflow should have continued");
 
         ReplayEventWorkflow2 replayEventWorkflow2 = injector.getInstance(ReplayEventWorkflow2.class);
-        String correlation_id_2 = "example_replay_event_workflow_70";
+        String correlation_id_2 = "example_replay_event_workflow_71";
         replayEventWorkflow2.create(new StartEvent(correlation_id_2));
 
         for (int i = 0; i < 6; i++) {

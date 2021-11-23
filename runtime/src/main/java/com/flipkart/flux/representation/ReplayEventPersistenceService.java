@@ -8,6 +8,7 @@ import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
+import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.persistence.DataSourceType;
@@ -77,11 +78,11 @@ public class ReplayEventPersistenceService {
         statesDAO.updateExecutionVersion_NonTransactional(stateMachineId,stateIds,smExecutionVersion, session);
 
         //create audit records for all the states
-//      for (Long stateId : stateIds) {
-//          auditDAO.create_NonTransactional(new AuditRecord(stateMachineId, stateId, 0L,
-//                  Status.initialized, null, null, smExecutionVersion, null),
-//                  session);
-//      }
+        for (Long stateId : stateIds) {
+            auditDAO.create_NonTransactional(new AuditRecord(stateMachineId, stateId, 0L,
+                            Status.initialized, null, null, smExecutionVersion, null),
+                    session);
+        }
 
         for (String outputEvent : dependantEvents) {
             String eventName, eventType;
