@@ -25,6 +25,8 @@ import javax.inject.Singleton;
 import javax.transaction.Transactional;
 import org.hibernate.Session;
 
+import static com.flipkart.flux.constant.RuntimeConstants.DEFAULT_DEPENDENT_EVENTS_MESSAGE;
+
 /**
  * @author raghavender.m
  * @author akif.khan
@@ -80,10 +82,10 @@ public class ReplayEventPersistenceService {
         //create audit records for all the states
         for (Long stateId : stateIds) {
             auditDAO.create_NonTransactional(new AuditRecord(stateMachineId, stateId, 0L,
-                            Status.initialized, null, null, smExecutionVersion, null),
+                            Status.initialized, null, null, smExecutionVersion, DEFAULT_DEPENDENT_EVENTS_MESSAGE),
                     session);
         }
-
+        
         for (String outputEvent : dependantEvents) {
             String eventName, eventType;
             try {

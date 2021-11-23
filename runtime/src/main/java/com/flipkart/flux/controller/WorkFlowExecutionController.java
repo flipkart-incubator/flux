@@ -385,8 +385,11 @@ public class WorkFlowExecutionController {
 
             // Fetching the replayable state again which is initialized in ReplayEventPersistenceService
             dependantStateOnReplayEvent = statesDAO.findById(stateMachine.getId(), dependantStateOnReplayEvent.getId());
-            executableStates.add(dependantStateOnReplayEvent);
-            executeStates(stateMachine, executableStates, false);
+            // Register the replayable state with redriver for execution
+            long redriverInterval = 0;
+            this.redriverRegistry.registerTask(dependantStateOnReplayEvent.getId(),
+                    dependantStateOnReplayEvent.getStateMachineId(), redriverInterval,
+                    dependantStateOnReplayEvent.getExecutionVersion());
         } else {
             logger.error("No traversal path found for replayable state id:{} in stateMachineId:{} for event:{}.",
                     dependantStateId, stateMachine.getId(), eventData.getName());
@@ -427,7 +430,6 @@ public class WorkFlowExecutionController {
                 Event.EventStatus.cancelled : Event.EventStatus.triggered);
         event.setEventData(versionedEventData.getData());
         event.setEventSource(versionedEventData.getEventSource());
-        //TODO: Check if this call is made on only one event
         eventsDAO.updateEvent(event.getStateMachineInstanceId(), event);
         return event;
     }
