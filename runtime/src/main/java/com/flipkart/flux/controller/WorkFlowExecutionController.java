@@ -792,4 +792,28 @@ public class WorkFlowExecutionController {
         String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition);
         return routerName;
     }
+
+    public void persistDiscardedEvent(String machineId, VersionedEventData versionedEventData){
+        List<Event> allEvents = eventsDAO.findAllBySMIdAndName(machineId,versionedEventData.getName());
+
+        if (allEvents.isEmpty()){
+            logger.error("The event: {} for SMId: {} not Found",versionedEventData.getName(), machineId);
+        }
+
+        //The filter's result in one entry only always
+        Optional<Event> invalidEvent = allEvents.stream()
+                .filter(event -> event.getExecutionVersion().equals(versionedEventData.getExecutionVersion()))
+                .filter(event -> event.getStatus().equals(Event.EventStatus.invalid))
+                .findFirst();
+
+        if (invalidEvent.isPresent()){
+            Event updatedEvent = new Event(invalidEvent.get().getName(),invalidEvent.get().getType(),
+                    invalidEvent.get().getStatus(),machineId,
+                    versionedEventData.getData(),invalidEvent.get().getEventSource(),
+                    invalidEvent.get().getExecutionVersion());
+            eventsDAO.updateEvent(machineId,updatedEvent);
+        }else {
+            logger.error("The discarded event: {} for SMId: {} not Found",versionedEventData.getName(), machineId);
+        }
+    }
 }

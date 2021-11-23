@@ -499,8 +499,8 @@ public class StateMachineResource {
                         workFlowExecutionController.postEvent(versionedEventData, stateMachine.getId());
                     }
                 } else {
-                    // TODO: This is an event for invalid state(execution version no more valid), hence discarded.
-                    // TODO: We can store this event data for audit purpose.
+                    // This is an event for invalid state(execution version no more valid), hence discarded.
+                    // We can store this event data for audit purpose.
                     // TODO: Add test for this scenario.
                     logger.info("Discarding event:{} with eventExecutionVersion:{} from state: {} with " +
                                     "stateExecutionVersion:{}" +
@@ -508,6 +508,8 @@ public class StateMachineResource {
                             versionedEventData.getName(), versionedEventData.getExecutionVersion(),
                             executionUpdateData.getTaskId(), executionUpdateData.getTaskExecutionVersion(),
                             machineId);
+                    //Persist the event with the new event data from akka
+                    workFlowExecutionController.persistDiscardedEvent(machineId, versionedEventData);
                 }
             } catch (IllegalEventException ex) {
                 return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage())
