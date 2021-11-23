@@ -34,6 +34,7 @@ import com.flipkart.flux.domain.StateMachineStatus;
 import com.flipkart.flux.domain.StateTraversalPath;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
+import com.flipkart.flux.exception.RedriverException;
 import com.flipkart.flux.exception.ReplayEventException;
 import com.flipkart.flux.exception.ReplayableRetryExhaustException;
 import com.flipkart.flux.exception.TraversalPathException;
@@ -344,7 +345,7 @@ public class WorkFlowExecutionController {
         if (!dependantStateOnReplayEvent.getReplayable() || dependantStateOnReplayEvent.getStatus() != Status.completed) {
             throw new IllegalEventException("Dependant state:" + dependantStateOnReplayEvent.getName() +
                     " with stateMachineId:" + stateMachine.getId() + " and replay event:" + eventData.getName() +
-                    " is not replayable.");
+                    " and status: "+dependantStateOnReplayEvent.getStatus()+" is not replayable.");
         }
 
         if (dependantStateOnReplayEvent.getAttemptedNumOfReplayableRetries() >= dependantStateOnReplayEvent.getMaxReplayableRetries()) {
@@ -719,9 +720,12 @@ public class WorkFlowExecutionController {
             State state = statesDAO.findById(machineId, taskId);
 
             if (state != null && !state.getExecutionVersion().equals(executionVersion)) {
-                logger.info("The execution version: {} to redrive is invalid for the state machine: {} with state Id: {} and execution version: {}",executionVersion,machineId, state.getId(), state.getExecutionVersion());
+                logger.info("The execution version: {} to redrive is invalid for the state machine: "
+                                + "{} with state Id: {} and execution version: {}",executionVersion,machineId,
+                        state.getId(), state.getExecutionVersion());
                 //cleanup the tasks which can't be redrived from redriver db
                 this.redriverRegistry.deRegisterTask(machineId, taskId, executionVersion);
+                throw new RedriverException("The execution version: "+executionVersion+" to redrive is invalid for the state machine: "+machineId+" with state Id: "+state.getId()+" and execution version: "+ state.getExecutionVersion());
             } else {
                 //TODO: Add validations for incorrect state and state machine inputs
                 if (state != null && isTaskRedrivable(state.getStatus()) && state.getAttemptedNumOfRetries() <= state.getRetryCount()) {

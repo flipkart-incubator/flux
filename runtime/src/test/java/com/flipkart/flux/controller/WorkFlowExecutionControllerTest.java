@@ -32,6 +32,7 @@ import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.*;
 import com.flipkart.flux.exception.IllegalEventException;
+import com.flipkart.flux.exception.RedriverException;
 import com.flipkart.flux.exception.ReplayableRetryExhaustException;
 import com.flipkart.flux.exception.TraversalPathException;
 import com.flipkart.flux.impl.message.TaskAndEvents;
@@ -428,7 +429,7 @@ public class WorkFlowExecutionControllerTest {
 
     }
 
-    @Test
+    @Test(expected = RedriverException.class)
     public void testRedriveTask_InvalidExecutionNumber(){
         when(statesDAO.findById("random-state-machine", 1L)).thenReturn(
                 new State(1L, "random-state", null, null, null, null,

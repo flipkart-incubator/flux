@@ -59,4 +59,6 @@ public class RuntimeConstants {
      * available dependent event.
      */
     public static final String DEFAULT_DEPENDENT_EVENTS_MESSAGE = "Computed at Runtime";
+
+    public static final int ERROR_MSG_LENGTH_IN_AUDIT = 995;
 }

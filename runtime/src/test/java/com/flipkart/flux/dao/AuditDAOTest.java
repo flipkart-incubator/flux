@@ -15,6 +15,8 @@ package com.flipkart.flux.dao;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.flipkart.flux.constant.RuntimeConstants;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -72,5 +74,41 @@ public class AuditDAOTest {
 
         AuditRecord auditRecord1 = auditDAO.findById(stateMachine.getId(), recordId);
         assertThat(auditRecord1).isEqualTo(auditRecord);
+    }
+
+    @Test
+    public void testCreateWithErrorMessageMoreThan1000Chars() throws Exception{
+        StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
+        State state = null;
+        for (Object ob : stateMachine.getStates()) {
+            state = (State) ob;
+            break;
+        }
+        String error = RandomStringUtils.randomAlphanumeric(1002);
+        AuditRecord auditRecord = new AuditRecord(stateMachine.getId(), (state != null) ? state.getId() : null,
+                0L, Status.completed, null, error, 0L,
+                null);
+        Long recordId = auditDAO.create(stateMachine.getId(), auditRecord).getId();
+
+        AuditRecord auditRecord1 = auditDAO.findById(stateMachine.getId(), recordId);
+        assertThat(auditRecord1.getErrors().length()).isEqualTo(RuntimeConstants.ERROR_MSG_LENGTH_IN_AUDIT);
+    }
+
+    @Test
+    public void testCreateWithErrorMessageLessThan1000Chars() throws Exception{
+        StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
+        State state = null;
+        for (Object ob : stateMachine.getStates()) {
+            state = (State) ob;
+            break;
+        }
+        String errorMsg = RandomStringUtils.randomAlphanumeric(30);
+        AuditRecord auditRecord = new AuditRecord(stateMachine.getId(), (state != null) ? state.getId() : null,
+                0L, Status.completed, null, errorMsg, 0L,
+                null);
+        Long recordId = auditDAO.create(stateMachine.getId(), auditRecord).getId();
+
+        AuditRecord auditRecord1 = auditDAO.findById(stateMachine.getId(), recordId);
+        assertThat(auditRecord1.getErrors()).isEqualTo(errorMsg);
     }
 }

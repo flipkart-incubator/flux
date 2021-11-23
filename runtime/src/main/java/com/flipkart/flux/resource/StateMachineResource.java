@@ -40,6 +40,7 @@ import com.flipkart.flux.domain.StateMachineStatus;
 import com.flipkart.flux.domain.StateTraversalPath;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
+import com.flipkart.flux.exception.RedriverException;
 import com.flipkart.flux.exception.ReplayEventException;
 import com.flipkart.flux.exception.ReplayableRetryExhaustException;
 import com.flipkart.flux.impl.RAMContext;
@@ -759,7 +760,11 @@ public class StateMachineResource {
                                 @PathParam("taskId") Long taskId, @PathParam("taskExecutionVersion") Long executionVersion)
             throws Exception {
 
-        this.workFlowExecutionController.redriveTask(machineId, taskId, executionVersion);
+        try{
+            this.workFlowExecutionController.redriveTask(machineId, taskId, executionVersion);
+        }catch (RedriverException e){
+            return Response.status(Response.Status.PRECONDITION_FAILED).entity(e.getMessage()).build();
+        }
 
         return Response.status(Response.Status.ACCEPTED).build();
     }

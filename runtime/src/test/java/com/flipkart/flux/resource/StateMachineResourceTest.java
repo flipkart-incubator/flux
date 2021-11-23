@@ -879,4 +879,19 @@ public class StateMachineResourceTest {
                 .header("Content-Type", "application/json").body(eventJson).asString();
         assertThat(httpResponse.getStatus()).isEqualTo(HttpStatus.SC_ACCEPTED);
     }
+
+    @Test
+    public void testRedriveTask_InvalidExecutionVersion() throws Exception{
+        final StateMachine sm = stateMachinePersistenceService.createStateMachine("magic_number_1",
+                objectMapper.readValue(
+                        this.getClass().getClassLoader().getResource("state_machine_definition.json"),
+                        StateMachineDefinition.class));
+        String stateMachineId = sm.getId();
+        final HttpResponse<String> httpResponse = Unirest.post(
+                //Using hard coded stateId : 3 and execution version: 2 which doesn't exist
+                STATE_MACHINE_RESOURCE_URL + "/redrivetask/"+stateMachineId+"/taskId/3/taskExecutionVersion/2")
+                .asString();
+
+        assertThat(httpResponse.getStatus()).isEqualTo(HttpStatus.SC_PRECONDITION_FAILED);
+    }
 }
