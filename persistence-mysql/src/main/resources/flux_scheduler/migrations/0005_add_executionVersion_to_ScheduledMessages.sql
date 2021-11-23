@@ -4,5 +4,5 @@
 
 ALTER TABLE `ScheduledMessages`
   DROP PRIMARY KEY,
-  ADD COLUMN `executionVersion` SMALLINT UNSIGNED DEFAULT 0,
+  ADD COLUMN `executionVersion` INT UNSIGNED NOT NULL DEFAULT 0,
   ADD PRIMARY KEY (`taskId`,`stateMachineId`,`executionVersion`);
