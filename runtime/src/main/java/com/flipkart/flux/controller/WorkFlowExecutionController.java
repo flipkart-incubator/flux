@@ -342,6 +342,10 @@ public class WorkFlowExecutionController {
         }
         // Already validated that only one state is dependent on input Replay Event
         State dependantStateOnReplayEvent = statesDAO.findById(stateMachine.getId(), dependantStateId);
+        if (dependantStateOnReplayEvent == null) {
+            throw new IllegalEventException(
+                    "No dependent state found for the event : " + eventData.getName());
+        }
         logger.info("This state {} depends on replay event {}", dependantStateOnReplayEvent.getName(), eventData.getName());
         if (!dependantStateOnReplayEvent.getReplayable() || dependantStateOnReplayEvent.getStatus() != Status.completed) {
             throw new IllegalEventException("Dependant state:" + dependantStateOnReplayEvent.getName() +

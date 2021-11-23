@@ -909,5 +909,6 @@ public class StateMachineResourceTest {
                 .header("Content-Type", "application/json").body(eventJson).asString();
         assertThat(eventPostResponse.getStatus())
                 .isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(eventPostResponse.getBody()).isEqualTo("Event Data cannot be empty");
     }
 }

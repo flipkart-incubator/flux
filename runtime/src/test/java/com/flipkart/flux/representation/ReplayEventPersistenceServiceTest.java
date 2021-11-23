@@ -94,11 +94,14 @@ public class ReplayEventPersistenceServiceTest {
                 replayEventData1, dependentStateIds_1, dependentEvents_1);
 
         assertThat(replayEvent1.getStatus()).isEqualTo(EventStatus.triggered);
-        assertThat(replayEvent1.getEventSource()).isEqualTo(RuntimeConstants.REPLAY_EVENT);
+        assertThat(replayEvent1.getEventSource()).contains(RuntimeConstants.REPLAY_EVENT);
 
         // Initialised replayEvent with executionVersion = 10. ExecutionVersion added should always be
         // incremented from State Machine ExecutionVersion which is by default 0 always.
         assertThat(replayEvent1.getExecutionVersion()).isEqualTo(1L);
+
+        // Asserting increment in executionVersion for StateMachine instance
+        assertThat(stateMachinesDAO.findById(stateMachine.getId()).getExecutionVersion()).isEqualTo(1L);
 
         assertThat(statesDAO.findById(stateMachine.getId(), 1L).getExecutionVersion()).isNotEqualTo(1L);
         assertThat(statesDAO.findById(stateMachine.getId(), 2L).getExecutionVersion()).isEqualTo(1L);
@@ -107,7 +110,8 @@ public class ReplayEventPersistenceServiceTest {
         assertThat(statesDAO.findById(stateMachine.getId(), 5L).getExecutionVersion()).isEqualTo(1L);
         assertThat(statesDAO.findById(stateMachine.getId(), 6L).getExecutionVersion()).isNotEqualTo(1L);
 
-        // Cummulative of all Valid Events
+        // Cummulative of all Valid Events. It also tests for events in traversal path cummulative for
+        // both invalid/valid events.
         assertThat(eventsDAO.findBySMInstanceId(stateMachine.getId()).size()).isEqualTo(7);
         assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "re1").size()).isEqualTo(2);
         assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "e2").size()).isEqualTo(2);
@@ -129,9 +133,12 @@ public class ReplayEventPersistenceServiceTest {
                 replayEventData2, dependentStateIds_2, dependentEvents_2);
 
         assertThat(replayEvent2.getStatus()).isEqualTo(EventStatus.triggered);
-        assertThat(replayEvent2.getEventSource()).isEqualTo(RuntimeConstants.REPLAY_EVENT);
+        assertThat(replayEvent2.getEventSource()).contains(RuntimeConstants.REPLAY_EVENT);
 
         assertThat(replayEvent2.getExecutionVersion()).isEqualTo(2L);
+
+        // Asserting increment in executionVersion for StateMachine instance
+        assertThat(stateMachinesDAO.findById(stateMachine.getId()).getExecutionVersion()).isEqualTo(2L);
 
         assertThat(statesDAO.findById(stateMachine.getId(), 1L).getExecutionVersion()).isEqualTo(0L);
         assertThat(statesDAO.findById(stateMachine.getId(), 2L).getExecutionVersion()).isEqualTo(1L);
@@ -140,7 +147,8 @@ public class ReplayEventPersistenceServiceTest {
         assertThat(statesDAO.findById(stateMachine.getId(), 5L).getExecutionVersion()).isEqualTo(2L);
         assertThat(statesDAO.findById(stateMachine.getId(), 6L).getExecutionVersion()).isEqualTo(2L);
 
-        // Cummulative of all Valid Events
+        // Cummulative of all Valid Events. It also tests for events in traversal path cummulative for
+        // both invalid/valid events.
         assertThat(eventsDAO.findBySMInstanceId(stateMachine.getId()).size()).isEqualTo(7);
         assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "re2").size()).isEqualTo(2);
         assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "e3").size()).isEqualTo(2);

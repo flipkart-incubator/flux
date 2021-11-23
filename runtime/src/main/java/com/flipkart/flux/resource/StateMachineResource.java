@@ -385,6 +385,9 @@ public class StateMachineResource {
                 return Response.status(Response.Status.BAD_REQUEST).entity(
                         "Please send valid values for machineId and EventData ").build();
             }
+            if (checkIfEventDataIsEmpty(eventData)) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Event Data cannot be empty").build();
+            }
             LoggingUtils.registerStateMachineIdForLogging(machineId);
             if (eventData.getEventSource() != null) {
                 String eventSource;
@@ -394,9 +397,6 @@ public class StateMachineResource {
                 }
             } else {
                 eventData.setEventSource(RuntimeConstants.REPLAY_EVENT);
-            }
-            if (checkIfEventDataIsEmpty(eventData)) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("Event Data cannot be empty").build();
             }
             logger.info("Received replay event: {} for state machine id: {}", eventData.getName(),
                     machineId);
