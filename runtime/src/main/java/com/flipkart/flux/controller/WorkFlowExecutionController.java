@@ -34,6 +34,7 @@ import com.flipkart.flux.domain.StateMachineStatus;
 import com.flipkart.flux.domain.StateTraversalPath;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
+import com.flipkart.flux.exception.ReplayEventException;
 import com.flipkart.flux.exception.ReplayableRetryExhaustException;
 import com.flipkart.flux.exception.TraversalPathException;
 import com.flipkart.flux.exception.UnknownStateMachine;
@@ -330,7 +331,7 @@ public class WorkFlowExecutionController {
      * @param stateMachine
      */
     public void postReplayEvent(EventData eventData, StateMachine stateMachine) throws IllegalEventException, ReplayableRetryExhaustException,
-            IOException {
+            ReplayEventException, IOException {
 
         Long dependantStateId = statesDAO.findStateIdByEventName(stateMachine.getId(), eventData.getName());
         if (dependantStateId == null) {
@@ -377,11 +378,8 @@ public class WorkFlowExecutionController {
                             " and Traversal path Event names: {}", stateMachine.getId(), eventData.getName(),
                     dependantStateOnReplayEvent.getName(), nextDependentStateIds, traversalPathEvents);
 
-            // TODO : Handle error responses
-            Event currentEvent = replayEventPersistenceService.persistAndProcessReplayEvent(
+            replayEventPersistenceService.persistAndProcessReplayEvent(
                     stateMachine.getId(), eventData, nextDependentStateIds, traversalPathEvents);
-
-            Set<State> executableStates = new HashSet<>();
 
             // Fetching the replayable state again which is initialized in ReplayEventPersistenceService
             dependantStateOnReplayEvent = statesDAO.findById(stateMachine.getId(), dependantStateOnReplayEvent.getId());

@@ -11,6 +11,7 @@ import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.exception.ReplayEventException;
 import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.SessionFactoryContext;
@@ -73,7 +74,7 @@ public class ReplayEventPersistenceService {
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Event persistAndProcessReplayEvent(String stateMachineId, EventData replayEventData,
-                                              List<Long> dependantStateIds, List<String> dependantEvents) {
+                                              List<Long> dependantStateIds, List<String> dependantEvents) throws ReplayEventException {
 
         Session session = sessionFactoryContext.getThreadLocalSession();
 
@@ -102,13 +103,14 @@ public class ReplayEventPersistenceService {
                 eventType = getOutputEventType(outputEvent);
             } catch (JsonParseException e) {
                 logger.error("Unable to deserialise output event value. Error: {}",e.getMessage());
-                throw new RuntimeException("Unable to deserialize outputEvent value. Error : " + e.getMessage());
+                throw new ReplayEventException("Unable to deserialize outputEvent value. Error : " + e.getMessage());
             } catch (Exception e){
                 logger.error("Exception. Error: {}",e.getMessage());
-                throw new RuntimeException("Exception in processing. Error : " + e.getMessage());
+                throw new ReplayEventException("Exception in processing. Error : " + e.getMessage());
             }
             if (eventName == null || eventType == null){
-                throw new RuntimeException("Event Name or Event Type cannot be null");
+                logger.error("Event Name: {} or Event Type: {} cannot be null ",eventName,eventType);
+                throw new ReplayEventException("Event Name or Event Type cannot be null");
             }
             eventsDAO.markEventAsInvalid_NonTransactional(stateMachineId, eventName, session);
             Event event = new Event(eventName, eventType, Event.EventStatus.pending,
