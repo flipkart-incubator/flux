@@ -312,7 +312,8 @@ public class StateMachinePersistenceService {
     private String getDependentEvents(List<String> stateDependentEventNames, Long eventExecutionVersion) {
         List<AuditEvent> dependentEvents = new LinkedList<>();
         for(String dependentEventName : stateDependentEventNames) {
-            dependentEvents.add(new AuditEvent(dependentEventName, eventExecutionVersion));
+            String eventDisplayName = (dependentEventName.substring(dependentEventName.lastIndexOf(".") + 1));
+            dependentEvents.add(new AuditEvent(eventDisplayName, eventExecutionVersion));
         }
         return dependentEvents.toString();
     }

@@ -216,7 +216,7 @@
 
             var eventDependencies = document.createElement("th");
             eventDependencies.appendChild(document.createTextNode(
-              "Dependent Events Execution Version {EventName, ExecutionVersion}"));
+                "Dependent Events {Name, ExecutionVersion}"));
             tr.appendChild(eventDependencies);
 
             var retryAttempt = document.createElement("th");

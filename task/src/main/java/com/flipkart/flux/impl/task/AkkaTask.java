@@ -309,7 +309,9 @@ public class AkkaTask extends UntypedActor {
     private String getDependentEvents(TaskAndEvents taskAndEvents) {
         List<AuditEvent> dependentEvents = new LinkedList<>();
         for(VersionedEventData versionedEventData : taskAndEvents.getEvents()) {
-            dependentEvents.add(new AuditEvent(versionedEventData.getName(), versionedEventData.getExecutionVersion()));
+            String eventDisplayName = (
+                    versionedEventData.getName().substring(versionedEventData.getName().lastIndexOf(".") + 1));
+            dependentEvents.add(new AuditEvent(eventDisplayName, versionedEventData.getExecutionVersion()));
         }
         return dependentEvents.toString();
     }
