@@ -40,6 +40,7 @@ import com.flipkart.flux.domain.StateMachineStatus;
 import com.flipkart.flux.domain.StateTraversalPath;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
+import com.flipkart.flux.exception.ReplayEventException;
 import com.flipkart.flux.exception.ReplayableRetryExhaustException;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.metrics.iface.MetricsClient;
@@ -432,12 +433,17 @@ public class StateMachineResource {
                                     + RuntimeConstants.REPLAY_EVENT).build();
                 }
             } catch (ReplayableRetryExhaustException ex) {
+                logger.error("Replayable retries exceeded. Error: {}", ex.getMessage());
                 return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(ex.getMessage())
                         .build();
+            } catch (ReplayEventException e) {
+                logger.error("Error in processing the event: {}. Error: {}",eventData.getName(),e.getMessage());
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).entity(e.getMessage())
+                        .build();
             } catch (RuntimeException ex) {
-                // TODO: Need to add more catch blocks to handle different illegal event exceptions.
-                // TODO: Sending only one response type for now.
-                return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage())
+                logger.error("Error in processing the request. Error: {}", ex.getMessage());
+                return Response.status(Response.Status.NOT_FOUND.getStatusCode())
+                        .entity(ex.getMessage())
                         .build();
             }
         } finally {
