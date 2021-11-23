@@ -139,6 +139,13 @@
                             <textarea readonly rows="15" cols="50" id="event-data-txt-box" style="height: 262px;width: 550px;max-height: 262px;overflow-y: auto;resize: none;" data-role="none"></textarea>
                         </div>
                         <div>
+                          <div>
+                            <span style="text-align: left">Execution Version:</span>
+                          </div>
+                          <div>
+                            <span style="text-align: left;" id="event-execution-version-label"></span>
+                          </div>
+                          <br>
                             <div>
                                 <span style="text-align: left">Status:</span>
                             </div>
@@ -508,15 +515,22 @@
             $('#event-data-select').append('<option value="" disabled selected value>--select Event--</option>');
             var count=0;
             for(var i=0;i<data.initStateEdges.length;i++){
-                eventNameDataMap[data.initStateEdges[i].label] = {eventData: data.initStateEdges[i].eventData, status: data.initStateEdges[i].status, updatedAt: data.initStateEdges[i].updatedAt};
+                            eventNameDataMap[data.initStateEdges[i].label] = {
+                              eventData: data.initStateEdges[i].eventData.split("#")[0],
+                              executionVersion: data.initStateEdges[i].eventData.split("#")[1],
+                              status: data.initStateEdges[i].status,
+                              updatedAt: data.initStateEdges[i].updatedAt};
                 eventNames[count] = data.initStateEdges[i].label;
                 count++;
             }
             for(var stateIdentifier in data.fsmGraphData) {
                 if(data.fsmGraphData[stateIdentifier].label != "") {
-                    eventNameDataMap[data.fsmGraphData[stateIdentifier].label] = { eventData: data.fsmGraphData[stateIdentifier]["eventData"],
-                        status: data.fsmGraphData[stateIdentifier]["status"],
-                        updatedAt: data.fsmGraphData[stateIdentifier]["updatedAt"]};
+                    eventNameDataMap[data.fsmGraphData[stateIdentifier].label] = {
+                      eventData: data.fsmGraphData[stateIdentifier]["eventData"].split("#")[0],
+                      executionVersion: data.fsmGraphData[stateIdentifier]["eventData"].split("#")[1],
+                      status: data.fsmGraphData[stateIdentifier]["status"],
+                      updatedAt: data.fsmGraphData[stateIdentifier]["updatedAt"]
+                    };
                     eventNames[count] = data.fsmGraphData[stateIdentifier].label;
                     count++;
                 }
@@ -565,6 +579,7 @@
 
         function clearEventInfoModalParams() {
             $("#event-data-txt-box").empty();
+            $("#event-execution-version-label").empty();
             $("#event-status-label").empty();
             $("#event-updated-at-label").empty();
         }
@@ -575,6 +590,7 @@
                 clearEventInfoModalParams();
                 var selectedEventName = $(this).find("option:selected").val();
                 $("#event-data-txt-box").append(eventNameDataMap[selectedEventName].eventData);
+                $("#event-execution-version-label").append(eventNameDataMap[selectedEventName].executionVersion);
                 $("#event-status-label").append(eventNameDataMap[selectedEventName].status);
                 $("#event-updated-at-label").append(getFormattedDate(new Date(eventNameDataMap[selectedEventName].updatedAt)));
             });

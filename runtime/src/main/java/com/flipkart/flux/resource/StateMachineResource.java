@@ -1027,7 +1027,8 @@ public class StateMachineResource {
                 fsmGraph.addVertex(vertex,
                         new FsmGraphEdge(getEventDisplayName(outputEvent.getName()),
                                 outputEvent.getStatus().name(), outputEvent.getEventSource(),
-                                outputEvent.getEventData(), outputEvent.getUpdatedAt()));
+                                outputEvent.getEventData()+"#"+outputEvent.getExecutionVersion(),
+                                outputEvent.getUpdatedAt()));
                 final Set<State> dependantStates = ramContext.getDependantStates(outputEvent.getName());
                 dependantStates.forEach((aState) -> fsmGraph.addOutgoingEdge(vertex, aState.getId()));
                 allOutputEventNames
@@ -1057,7 +1058,8 @@ public class StateMachineResource {
             final FsmGraphEdge initEdge = new FsmGraphEdge(
                     this.getEventDisplayName(workflowTriggeredEventName),
                     correspondingEvent.getStatus().name(), correspondingEvent.getEventSource(),
-                    correspondingEvent.getEventData(), correspondingEvent.getUpdatedAt());
+                    correspondingEvent.getEventData()+"#"+correspondingEvent.getExecutionVersion(),
+                    correspondingEvent.getUpdatedAt());
             final Set<State> dependantStates = ramContext.getDependantStates(workflowTriggeredEventName);
             dependantStates.forEach((state) -> initEdge.addOutgoingVertex(state.getId()));
             fsmGraph.addInitStateEdge(initEdge);
