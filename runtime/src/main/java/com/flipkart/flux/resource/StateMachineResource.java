@@ -521,10 +521,11 @@ public class StateMachineResource {
                     // TODO: Add test for this scenario.
                     logger.info("Discarding event:{} with eventExecutionVersion:{} from state: {} with " +
                                     "stateExecutionVersion:{}" +
-                                    " for state machine: {}. StateExecutionVersion, it's not valid anymore.",
+                                    " for state machine: {}. StateExecutionVersion, it's not valid anymore."
+                                    + " EventData will be saved in datastore for audit purpose with eventExecutionVersion:{}.",
                             versionedEventData.getName(), versionedEventData.getExecutionVersion(),
                             executionUpdateData.getTaskId(), executionUpdateData.getTaskExecutionVersion(),
-                            machineId);
+                            machineId, versionedEventData.getExecutionVersion());
                     //Persist the event with the new event data from akka
                     workFlowExecutionController.persistDiscardedEvent(machineId, versionedEventData);
                 }

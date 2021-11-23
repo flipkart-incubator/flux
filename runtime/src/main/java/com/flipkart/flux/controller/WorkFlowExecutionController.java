@@ -812,8 +812,8 @@ public class WorkFlowExecutionController {
 
         if (invalidEvent.isPresent()){
             Event updatedEvent = new Event(invalidEvent.get().getName(),invalidEvent.get().getType(),
-                    invalidEvent.get().getStatus(),machineId,
-                    versionedEventData.getData(),invalidEvent.get().getEventSource(),
+                    invalidEvent.get().getStatus(), machineId,
+                    versionedEventData.getData(), versionedEventData.getEventSource(),
                     invalidEvent.get().getExecutionVersion());
             eventsDAO.updateEvent(machineId,updatedEvent);
         }else {
