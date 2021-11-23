@@ -13,9 +13,13 @@
 
 package com.flipkart.flux.rule;
 
+import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.Event.EventStatus;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.Status;
 import org.junit.rules.ExternalResource;
 
 import javax.inject.Inject;
@@ -24,6 +28,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static com.flipkart.flux.constant.RuntimeConstants.MAX_REPLAYABLE_RETRIES;
 
 /**
  * <code>TestReplayableSMRule</code> is a Junit Rule which creates a state machine with replayable state
@@ -34,15 +40,58 @@ public class TestReplayableSMRule extends ExternalResource {
 
     private final StateMachinesDAO stateMachinesDAO;
 
-    private StateMachine stateMachine;
+    private final EventsDAO eventsDAO;
+
+    private StateMachine stateMachine1, stateMachine2;
 
     @Inject
-    public TestReplayableSMRule(StateMachinesDAO stateMachinesDAO) {
+    public TestReplayableSMRule(StateMachinesDAO stateMachinesDAO, EventsDAO eventsDAO) {
         this.stateMachinesDAO = stateMachinesDAO;
+        this.eventsDAO = eventsDAO;
     }
 
     @Override
     protected void before() throws Throwable {
+        StateMachine stateMachine_1 = getStateMachine1();
+        stateMachine1 = stateMachinesDAO.create(stateMachine_1.getId(), stateMachine_1);
+
+        StateMachine stateMachine_2 = getStateMachine2();
+        stateMachine2 = stateMachinesDAO.create(stateMachine_2.getId(), stateMachine_2);
+        stateMachine2CreateAllEvents(stateMachine2.getId());
+
+    }
+
+    private void stateMachine2CreateAllEvents(String stateMachineId) {
+        Event e0 = new Event("e0", "dummyType", EventStatus.triggered, stateMachineId,
+                "e0_Data","client");
+        eventsDAO.create(stateMachineId, e0);
+
+        Event e1 = new Event("e1", "dummyType", EventStatus.triggered, stateMachineId,
+                "e1_Data","managedRuntime");
+        eventsDAO.create(stateMachineId, e1);
+
+        Event e2 = new Event("e2", "dummyType", EventStatus.triggered, stateMachineId,
+                "e2_Data","managedRuntime");
+        eventsDAO.create(stateMachineId, e2);
+
+        Event e3 = new Event("e3", "dummyType", EventStatus.triggered, stateMachineId,
+                "e3_Data","managedRuntime");
+        eventsDAO.create(stateMachineId, e3);
+
+        Event e4 = new Event("e4", "dummyType", EventStatus.triggered, stateMachineId,
+                "e4_Data","managedRuntime");
+        eventsDAO.create(stateMachineId, e4);
+
+        Event re1 = new Event("re1", "replayEvent", EventStatus.pending, stateMachineId,
+                null,null);
+        eventsDAO.create(stateMachineId, re1);
+
+        Event re2 = new Event("re2", "replayEvent", EventStatus.pending, stateMachineId,
+                null,null);
+        eventsDAO.create(stateMachineId, re2);
+    }
+
+    private StateMachine getStateMachine1() {
         String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
         String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";
         String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
@@ -57,12 +106,78 @@ public class TestReplayableSMRule extends ExternalResource {
         Set<State> states = new HashSet<>();
         states.add(state1);
         states.add(state2);
-        StateMachine stateMachine1 = new StateMachine("2", 2L, "SM_name", "SM_desc", states,
+        StateMachine stateMachine = new StateMachine("2", 2L, "SM_name", "SM_desc", states,
                 "client_elb_id_1");
-        stateMachine = stateMachinesDAO.create(stateMachine1.getId(), stateMachine1);
+        return stateMachine;
+    }
+
+    private StateMachine getStateMachine2() {
+        String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
+        String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";
+        String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
+
+        List<String> deps_t1 = new ArrayList<>();
+        deps_t1.add("e0");
+        String oe1 = "{\"name\":\"e1\",\"type\":\"dummyType\"}";
+        State t1 = new State(2L, "t1", "desc1", onEntryHook, task, onExitHook,
+                deps_t1, 3L, 60L, oe1, Status.completed, null,
+                0l, "id2", 1L, Boolean.FALSE);
+
+        List<String> deps_t2 = new ArrayList<>();
+        deps_t2.add("e1");
+        deps_t2.add("re1");
+        String oe2 = "{\"name\":\"e2\",\"type\":\"dummyType\"}";
+        State t2 = new State(2L, "t2", "desc2", onEntryHook, task, onExitHook,
+                deps_t2, 3L, 60L, oe2, Status.completed, null,
+                0l, "id2", 2L, MAX_REPLAYABLE_RETRIES,
+                (short)0, Boolean.TRUE, 0L);
+
+        List<String> deps_t3 = new ArrayList<>();
+        deps_t3.add("e1");
+        deps_t3.add("re2");
+        String oe3 = "{\"name\":\"e3\",\"type\":\"dummyType\"}";
+        State t3 = new State(2L, "t3", "desc2", onEntryHook, task, onExitHook,
+                deps_t3, 3L, 60L, oe3, Status.completed, null,
+                0l, "id2", 3L, MAX_REPLAYABLE_RETRIES,
+                (short)0, Boolean.TRUE, 0L);
+
+        List<String> deps_t4 = new ArrayList<>();
+        deps_t4.add("e2");
+        String oe4 = "{\"name\":\"e4\",\"type\":\"dummyType\"}";
+        State t4 = new State(2L, "t4", "desc1", onEntryHook, task, onExitHook,
+                deps_t4, 3L, 60L, oe4, Status.completed, null,
+                0l, "id2", 4L, Boolean.FALSE);
+
+        List<String> deps_t5 = new ArrayList<>();
+        deps_t5.add("e3");
+        deps_t5.add("e4");
+        State t5 = new State(2L, "t5", "desc1", onEntryHook, task, onExitHook,
+                deps_t5, 3L, 60L, null, Status.completed, null,
+                0l, "id2", 5L, Boolean.FALSE);
+
+        List<String> deps_t6 = new ArrayList<>();
+        deps_t6.add("e3");
+        State t6 = new State(2L, "t6", "desc1", onEntryHook, task, onExitHook,
+                deps_t6, 3L, 60L, null, Status.completed, null,
+                0l, "id2", 6L, Boolean.FALSE);
+
+        Set<State> states = new HashSet<>();
+        states.add(t1);
+        states.add(t2);
+        states.add(t3);
+        states.add(t4);
+        states.add(t5);
+        states.add(t6);
+        StateMachine stateMachine = new StateMachine("id2", 2L, "SM_name", "SM_desc", states,
+                "client_elb_id_1");
+        return stateMachine;
     }
 
     public StateMachine getStateMachineWithReplayableState() {
-        return stateMachine;
+        return stateMachine1;
+    }
+
+    public StateMachine getStateMachine2WithReplayableState() {
+        return stateMachine2;
     }
 }

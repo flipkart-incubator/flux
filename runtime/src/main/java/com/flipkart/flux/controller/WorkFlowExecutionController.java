@@ -516,14 +516,10 @@ public class WorkFlowExecutionController {
     public void updateExecutionStatus(String stateMachineId, Long taskId, Long taskExecutionVersion, Status status,
                                       long retryCount, long currentRetryCount, String errorMessage,
                                       boolean deleteFromRedriver, String dependentAuditEvents){
-        // TODO: Handle deletion from redriver when executionVersion is added to redriver table.
-        // TODO: Once this check is handled in all it's callers, it can be removed from here.
         if (taskExecutionVersion.equals(this.statesDAO.findById(stateMachineId, taskId).getExecutionVersion())) {
             this.statesDAO.updateStatus(stateMachineId, taskId, status);
             AuditRecord auditRecord = new AuditRecord(stateMachineId, taskId, currentRetryCount, status,
                     null, errorMessage, taskExecutionVersion, dependentAuditEvents);
-//            auditRecord.setTaskExecutionVersion(taskExecutionVersion);
-            // TODO: Need to add dependent events for executed state in auditRecords.
             this.auditDAO.create(stateMachineId, auditRecord);
             if (deleteFromRedriver) {
                 this.redriverRegistry.deRegisterTask(stateMachineId, taskId, taskExecutionVersion);
