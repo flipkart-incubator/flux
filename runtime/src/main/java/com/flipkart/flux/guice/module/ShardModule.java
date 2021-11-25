@@ -260,7 +260,8 @@ public class ShardModule extends AbstractModule {
         //register hibernate custom types
         configuration.registerTypeOverride(new BlobType(), new String[]{"BlobType"});
         configuration.registerTypeOverride(new StoreFQNType(), new String[]{"StoreFQNOnly"});
-        configuration.registerTypeOverride(new ListJsonType(), new String[]{"ListJsonType"});
+        configuration.registerTypeOverride(new ListJsonType(Object.class), new String[]{"ListJsonType"});
+        configuration.registerTypeOverride(new ListJsonType(Long.class), new String[]{"LongListJsonType"});
 
         //add annotated classes to configuration
         configuration.addAnnotatedClass(AuditRecord.class);

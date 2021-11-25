@@ -1,0 +1,6 @@
+{
+  "name": "RE2",
+  "type": "com.flipkart.flux.integration.IntegerEvent",
+  "data": "50",
+  "eventSource": "ExternalReplayEvent"
+}

@@ -40,7 +40,10 @@ import com.flipkart.flux.domain.StateMachineStatus;
 import com.flipkart.flux.domain.StateTraversalPath;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
+import com.flipkart.flux.exception.RedriverException;
+import com.flipkart.flux.exception.ReplayEventException;
 import com.flipkart.flux.exception.ReplayableRetryExhaustException;
+import com.flipkart.flux.exception.TraversalPathException;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.metrics.iface.MetricsClient;
 import com.flipkart.flux.persistence.DataSourceType;
@@ -343,7 +346,6 @@ public class StateMachineResource {
                             .build();
                 }
             } else {
-                // TODO: Handle this path with execution version added.
                 logger.info("Received event: {} for state machine: {} with triggerTime: {}",
                         eventData.getName(), machineId, triggerTime);
                 if (searchField == null || !searchField.equals(CORRELATION_ID)) {
@@ -380,19 +382,22 @@ public class StateMachineResource {
     ) throws Exception {
 
         try {
-            if (machineId == null || eventData == null) {
+            if (machineId == null || eventData == null || machineId.isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST).entity(
                         "Please send valid values for machineId and EventData ").build();
             }
+            if (checkIfEventDataIsEmpty(eventData)) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Event Data cannot be empty").build();
+            }
             LoggingUtils.registerStateMachineIdForLogging(machineId);
             if (eventData.getEventSource() != null) {
-                String eventSource = eventData.getEventSource() + ":" + RuntimeConstants.REPLAY_EVENT;
-                eventData.setEventSource(eventSource);
+                String eventSource;
+                if(!eventData.getEventSource().contains(RuntimeConstants.REPLAY_EVENT)) {
+                    eventSource = eventData.getEventSource() + ":" + RuntimeConstants.REPLAY_EVENT;
+                    eventData.setEventSource(eventSource);
+                }
             } else {
                 eventData.setEventSource(RuntimeConstants.REPLAY_EVENT);
-            }
-            if (checkIfEventDataIsEmpty(eventData)) {
-                return Response.status(Response.Status.BAD_REQUEST).build();
             }
             logger.info("Received replay event: {} for state machine id: {}", eventData.getName(),
                     machineId);
@@ -409,18 +414,21 @@ public class StateMachineResource {
             if (stateMachine.getStatus() == StateMachineStatus.cancelled) {
                 logger.info("Discarding replay event: {} as State machine: {} is in cancelled state",
                         eventData.getName(), stateMachine.getId());
-                return Response.status(Response.Status.ACCEPTED.getStatusCode())
+                return Response.status(Response.Status.PRECONDITION_FAILED.getStatusCode())
                         .entity("State machine with Id: "
                                 + stateMachine.getId() + " is in 'cancelled' state. Discarding the replay event.")
                         .build();
             }
             try {
-                // TODO : Add a check to eventSource being "replay"
                 Optional<Event> replayEvent = eventsDAO.findValidReplayEventBySMIdAndName(machineId,
                         eventData.getName());
                 if (replayEvent.isPresent()) {
+                    logger.debug("Found replay event: {} with execution version: {} for SMId: {} ",
+                            eventData.getName(), replayEvent.get().getExecutionVersion(), machineId);
                     workFlowExecutionController.postReplayEvent(eventData, stateMachine);
-                    return Response.status(Response.Status.ACCEPTED).build();
+                    return Response.status(Response.Status.ACCEPTED).entity("Successfully submitted "
+                            + "ReplayEvent: " + eventData.getName() +". Check Flux-Dashboard for this StateMachine Id: "
+                            + machineId).build();
                 } else {
                     logger.error("Triggered input event {} doesn't exist as a replay event in database." +
                                     " Replay Event is identified by eventSource suffix {}", eventData.getName(),
@@ -432,12 +440,27 @@ public class StateMachineResource {
                                     + RuntimeConstants.REPLAY_EVENT).build();
                 }
             } catch (ReplayableRetryExhaustException ex) {
+                logger.error("Replayable retries exceeded. Error: {}", ex.getMessage());
                 return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(ex.getMessage())
                         .build();
+            } catch (ReplayEventException e) {
+                logger.error("Error in processing the event: {}. Error: {}",eventData.getName(),e.getMessage());
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).entity(e.getMessage())
+                        .build();
+            } catch (IllegalEventException ex) {
+                logger.error("Error in processing the request. Error: {}", ex.getMessage());
+                return Response.status(Response.Status.FORBIDDEN.getStatusCode())
+                        .entity(ex.getMessage())
+                        .build();
+            } catch (TraversalPathException ex) {
+                logger.error("Error in processing the request. Error: {}", ex.getMessage());
+                return Response.status(Response.Status.NOT_FOUND.getStatusCode())
+                        .entity(ex.getMessage())
+                        .build();
             } catch (RuntimeException ex) {
-                // TODO: Need to add more catch blocks to handle different illegal event exceptions.
-                // TODO: Sending only one response type for now.
-                return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage())
+                logger.error("Error in processing the request. Error: {}", ex.getMessage());
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                        .entity(ex.getMessage())
                         .build();
             }
         } finally {
@@ -493,15 +516,18 @@ public class StateMachineResource {
                         workFlowExecutionController.postEvent(versionedEventData, stateMachine.getId());
                     }
                 } else {
-                    // TODO: This is an event for invalid state(execution version no more valid), hence discarded.
-                    // TODO: We can store this event data for audit purpose.
+                    // This is an event for invalid state(execution version no more valid), hence discarded.
+                    // We can store this event data for audit purpose.
                     // TODO: Add test for this scenario.
                     logger.info("Discarding event:{} with eventExecutionVersion:{} from state: {} with " +
                                     "stateExecutionVersion:{}" +
-                                    " for state machine: {}. StateExecutionVersion, it's not valid anymore.",
+                                    " for state machine: {}. StateExecutionVersion, it's not valid anymore."
+                                    + " EventData will be saved in datastore for audit purpose with eventExecutionVersion:{}.",
                             versionedEventData.getName(), versionedEventData.getExecutionVersion(),
                             executionUpdateData.getTaskId(), executionUpdateData.getTaskExecutionVersion(),
-                            machineId);
+                            machineId, versionedEventData.getExecutionVersion());
+                    //Persist the event with the new event data from akka
+                    workFlowExecutionController.persistDiscardedEvent(machineId, versionedEventData);
                 }
             } catch (IllegalEventException ex) {
                 return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage())
@@ -577,8 +603,8 @@ public class StateMachineResource {
                         try {
                             workFlowExecutionController.unsidelineState(state.getStateMachineId(), state.getId());
                         } catch (Exception ex) {
-                            logger.warn("Unable to unsideline for stateId:{} msg:{}", state.getId(),
-                                    ex.getMessage());
+                            logger.warn("Unable to unsideline for stateId:{}, execution version:{} msg:{}", state.getId(),
+                                    state.getExecutionVersion(), ex.getMessage());
                         }
                     }
                 }
@@ -754,7 +780,11 @@ public class StateMachineResource {
                                 @PathParam("taskId") Long taskId, @PathParam("taskExecutionVersion") Long executionVersion)
             throws Exception {
 
-        this.workFlowExecutionController.redriveTask(machineId, taskId, executionVersion);
+        try{
+            this.workFlowExecutionController.redriveTask(machineId, taskId, executionVersion);
+        }catch (RedriverException e){
+            return Response.status(Response.Status.PRECONDITION_FAILED).entity(e.getMessage()).build();
+        }
 
         return Response.status(Response.Status.ACCEPTED).build();
     }
@@ -878,10 +908,7 @@ public class StateMachineResource {
             LoggingUtils.registerStateMachineIdForLogging(stateMachineId);
             Optional<StateTraversalPath> traversalPathStates = stateTraversalPathDAO.findById(
                     stateMachineId, stateId);
-            // TODO: get the list of states which are dependent on the state whose attemptednoofretries we are updating
-            //TODO: Revisit
             if (traversalPathStates.isPresent()) {
-                //TODO: Check if dependency contains the current state
                 List<Long> stateIds = traversalPathStates.get().getNextDependentStates();
                 List<String> eventNames = new ArrayList<>();
                 for (State s : statesDAO.findAllStatesForGivenStateIds(stateMachineId, stateIds)) {
@@ -1000,7 +1027,8 @@ public class StateMachineResource {
                 fsmGraph.addVertex(vertex,
                         new FsmGraphEdge(getEventDisplayName(outputEvent.getName()),
                                 outputEvent.getStatus().name(), outputEvent.getEventSource(),
-                                outputEvent.getEventData(), outputEvent.getUpdatedAt()));
+                                outputEvent.getEventData()+"#"+outputEvent.getExecutionVersion(),
+                                outputEvent.getUpdatedAt()));
                 final Set<State> dependantStates = ramContext.getDependantStates(outputEvent.getName());
                 dependantStates.forEach((aState) -> fsmGraph.addOutgoingEdge(vertex, aState.getId()));
                 allOutputEventNames
@@ -1030,7 +1058,8 @@ public class StateMachineResource {
             final FsmGraphEdge initEdge = new FsmGraphEdge(
                     this.getEventDisplayName(workflowTriggeredEventName),
                     correspondingEvent.getStatus().name(), correspondingEvent.getEventSource(),
-                    correspondingEvent.getEventData(), correspondingEvent.getUpdatedAt());
+                    correspondingEvent.getEventData()+"#"+correspondingEvent.getExecutionVersion(),
+                    correspondingEvent.getUpdatedAt());
             final Set<State> dependantStates = ramContext.getDependantStates(workflowTriggeredEventName);
             dependantStates.forEach((state) -> initEdge.addOutgoingVertex(state.getId()));
             fsmGraph.addInitStateEdge(initEdge);
@@ -1092,9 +1121,8 @@ public class StateMachineResource {
      */
     //TODO: verify event source again
     private Boolean checkIfEventDataIsEmpty(EventData eventData) {
-        if (eventData.getName().isEmpty() || eventData.getType().isEmpty() || eventData.getData()
-                .isEmpty() || eventData.getName() == null || eventData.getType() == null
-                || eventData.getData() == null) {
+        if (eventData.getName() == null || eventData.getType() == null || eventData.getData() == null
+                || eventData.getName().isEmpty() || eventData.getType().isEmpty() || eventData.getData().isEmpty()) {
             return Boolean.TRUE;
         }
         return Boolean.FALSE;

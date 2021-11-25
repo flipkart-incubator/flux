@@ -1,0 +1,6 @@
+{
+  "name": "RE1",
+  "type": "com.flipkart.flux.integration.IntegerEvent",
+  "data": "42",
+  "eventSource": null
+}

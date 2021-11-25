@@ -61,4 +61,9 @@ public class DbClearWithTestSMRule extends ExternalResource {
     public StateMachine getStateMachineWithReplayableState() {
         return this.testReplayableSMRule.getStateMachineWithReplayableState();
     }
+
+    /** Returns test state machine with multiple replayable states */
+    public StateMachine getStateMachineWithMultipleReplayableStates() {
+        return this.testReplayableSMRule.getStateMachine2WithReplayableState();
+    }
 }

@@ -95,7 +95,7 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     }
 
     @Override
-    public Long findByIdForUpdate_NonTransactional(String stateMachineId, Session session) {
+    public Long findExecutionVersionBySMIdForUpdate_NonTransactional(String stateMachineId, Session session) {
         SQLQuery sqlQuery = currentSession().createSQLQuery(
                 "select executionVersion from StateMachines where id = :stateMachineId "+ FOR_UPDATE);
         sqlQuery.setString("stateMachineId",stateMachineId);

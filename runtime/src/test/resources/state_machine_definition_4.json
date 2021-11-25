@@ -36,12 +36,12 @@
         {
           "name": "replayEvent1",
           "type": "java.lang.String",
-          "eventSource": "flux_runtime_replay"
+          "eventSource": "flux_runtime_replay_internal",
         },
         {
           "name": "replayEvent2",
           "type": "java.lang.String",
-          "eventSource": "flux_runtime_replay"
+          "eventSource": "flux_runtime_replay_internal"
         }
       ],
       "retryCount": "3",

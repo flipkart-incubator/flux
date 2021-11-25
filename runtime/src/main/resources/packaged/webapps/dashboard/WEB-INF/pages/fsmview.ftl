@@ -139,6 +139,13 @@
                             <textarea readonly rows="15" cols="50" id="event-data-txt-box" style="height: 262px;width: 550px;max-height: 262px;overflow-y: auto;resize: none;" data-role="none"></textarea>
                         </div>
                         <div>
+                          <div>
+                            <span style="text-align: left">Execution Version:</span>
+                          </div>
+                          <div>
+                            <span style="text-align: left;" id="event-execution-version-label"></span>
+                          </div>
+                          <br>
                             <div>
                                 <span style="text-align: left">Status:</span>
                             </div>
@@ -214,6 +221,11 @@
             taskExecutionVersion.appendChild(document.createTextNode("State Execution Version"));
             tr.appendChild(taskExecutionVersion);
 
+            var eventDependencies = document.createElement("th");
+            eventDependencies.appendChild(document.createTextNode(
+                "Dependent Events {Name, ExecutionVersion}"));
+            tr.appendChild(eventDependencies);
+
             var retryAttempt = document.createElement("th");
             retryAttempt.appendChild(document.createTextNode("Retry Attempt"));
             tr.appendChild(retryAttempt);
@@ -253,6 +265,44 @@
                 td.appendChild(document.createTextNode(auditRecord.taskExecutionVersion));
                 tr.appendChild(td);
 
+                var td = document.createElement("td");
+                // Create a hyperlink for each dependency in the event Dependencies
+                var eventDependenciesArray = [];
+                try {
+                    eventDependenciesArray = JSON.parse(auditRecord.eventDependencies);
+                    console.log(eventDependenciesArray);
+                    // move all of this to a function
+                    // var arr = [];
+                    for (var index = 0; index < eventDependenciesArray.length; index++) {
+                        console.log("index: " + index + " value: " + eventDependenciesArray[index]);
+                        var stateName = Object.keys(eventDependenciesArray[index])[0];
+                        var execVersion = eventDependenciesArray[index][stateName];
+                        stateName = stateName.split(".")[stateName.split(".").length - 1];
+                        console.log("stateName: " + stateName + " execVersion: " + execVersion);
+                        console.log(eventDependenciesArray[index]);
+                        var link = document.createElement('a');
+                        var linkText = document.createTextNode(execVersion);
+                        link.appendChild(linkText);
+                        link.title = "click to get the event data";
+                        link.setAttribute('href','http://www.google.com');
+                        link.setAttribute('target','_blank');
+                        // create Json object with state name and exec version and push that into array
+                        // arr.push("{".concat(stateName).concat(":"));
+                        td.appendChild(document.createTextNode("{".concat(stateName).concat(":")));
+                        td.appendChild(link);
+                        td.appendChild(document.createTextNode("}"));
+                    }
+                    // td.appendChild(document.createTextNode(arr));
+                    tr.appendChild(td);
+                } catch (err) {
+                    console.log("unable to parse Object: '" + auditRecord.eventDependencies
+                    + "'. Error message: " + err);
+                    td.appendChild(document.createTextNode(auditRecord.eventDependencies));
+                    tr.appendChild(td);
+                }
+
+                // td.appendChild(document.createTextNode(auditRecord.eventDependencies));
+                // tr.appendChild(td);
                 td = document.createElement("td");
                 td.appendChild(document.createTextNode(auditRecord.retryAttempt));
                 tr.appendChild(td);
@@ -499,15 +549,22 @@
             $('#event-data-select').append('<option value="" disabled selected value>--select Event--</option>');
             var count=0;
             for(var i=0;i<data.initStateEdges.length;i++){
-                eventNameDataMap[data.initStateEdges[i].label] = {eventData: data.initStateEdges[i].eventData, status: data.initStateEdges[i].status, updatedAt: data.initStateEdges[i].updatedAt};
+                            eventNameDataMap[data.initStateEdges[i].label] = {
+                              eventData: data.initStateEdges[i].eventData.split("#")[0],
+                              executionVersion: data.initStateEdges[i].eventData.split("#")[1],
+                              status: data.initStateEdges[i].status,
+                              updatedAt: data.initStateEdges[i].updatedAt};
                 eventNames[count] = data.initStateEdges[i].label;
                 count++;
             }
             for(var stateIdentifier in data.fsmGraphData) {
                 if(data.fsmGraphData[stateIdentifier].label != "") {
-                    eventNameDataMap[data.fsmGraphData[stateIdentifier].label] = { eventData: data.fsmGraphData[stateIdentifier]["eventData"],
-                        status: data.fsmGraphData[stateIdentifier]["status"],
-                        updatedAt: data.fsmGraphData[stateIdentifier]["updatedAt"]};
+                    eventNameDataMap[data.fsmGraphData[stateIdentifier].label] = {
+                      eventData: data.fsmGraphData[stateIdentifier]["eventData"].split("#")[0],
+                      executionVersion: data.fsmGraphData[stateIdentifier]["eventData"].split("#")[1],
+                      status: data.fsmGraphData[stateIdentifier]["status"],
+                      updatedAt: data.fsmGraphData[stateIdentifier]["updatedAt"]
+                    };
                     eventNames[count] = data.fsmGraphData[stateIdentifier].label;
                     count++;
                 }
@@ -556,6 +613,7 @@
 
         function clearEventInfoModalParams() {
             $("#event-data-txt-box").empty();
+            $("#event-execution-version-label").empty();
             $("#event-status-label").empty();
             $("#event-updated-at-label").empty();
         }
@@ -566,6 +624,7 @@
                 clearEventInfoModalParams();
                 var selectedEventName = $(this).find("option:selected").val();
                 $("#event-data-txt-box").append(eventNameDataMap[selectedEventName].eventData);
+                $("#event-execution-version-label").append(eventNameDataMap[selectedEventName].executionVersion);
                 $("#event-status-label").append(eventNameDataMap[selectedEventName].status);
                 $("#event-updated-at-label").append(getFormattedDate(new Date(eventNameDataMap[selectedEventName].updatedAt)));
             });

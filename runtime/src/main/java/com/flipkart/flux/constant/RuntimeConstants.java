@@ -30,7 +30,7 @@ public class RuntimeConstants {
     /***
      * default eventSource for replay event
      */
-    public static final String REPLAY_EVENT = "flux_runtime_replay";
+    public static final String REPLAY_EVENT = "flux_runtime_replay_internal";
 
     /**
      * Root for dashboard webapp configs.
@@ -44,7 +44,7 @@ public class RuntimeConstants {
     /**
      * default timeout for a task
      */
-    public static final Long defaultTaskTimeout = 1000l; //todo: move it to configuration file
+    public static final Long defaultTaskTimeout = 1000l;
 
     /**
      * default value for clientElbId in StateMachineDefinition
@@ -52,4 +52,13 @@ public class RuntimeConstants {
     public static final String DEFAULT_ELB_ID = "defaultElbId";
 
     public static final Short MAX_REPLAYABLE_RETRIES = 5;
+
+    /**
+     * Default message for initialised replayable traversal pat states. Execution Version for
+     * dependent events in replayable traversal path is computed at runtime based on valid
+     * available dependent event.
+     */
+    public static final String DEFAULT_DEPENDENT_EVENTS_MESSAGE = "Computed at Runtime";
+
+    public static final int ERROR_MSG_LENGTH_IN_AUDIT = 995;
 }

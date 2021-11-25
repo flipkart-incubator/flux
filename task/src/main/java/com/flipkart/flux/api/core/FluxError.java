@@ -68,22 +68,25 @@ public class FluxError extends RuntimeException {
 		private Long taskId;
 		private Long maxRetries;
 		private Long attemptedNoOfRetries;
+		private String dependentAuditEvents;
 		private Long taskExecutionVersion;
 
-        public ExecutionContextMeta(String stateMachineId, String stateMachineName, String taskName, Long taskId,
-                                    Long maxRetries, Long attemptedNoOfRetries) {
-            this(stateMachineId, stateMachineName, taskName, taskId, maxRetries, attemptedNoOfRetries,
-                    0L);
-        }
+		public ExecutionContextMeta(String stateMachineId, String stateMachineName, String taskName, Long taskId,
+									Long maxRetries, Long attemptedNoOfRetries, String dependentAuditEvents) {
+			this(stateMachineId, stateMachineName, taskName, taskId, maxRetries, attemptedNoOfRetries,
+					dependentAuditEvents,0L);
+		}
 
 		public ExecutionContextMeta(String stateMachineId, String stateMachineName, String taskName, Long taskId,
-                                    Long maxRetries, Long attemptedNoOfRetries, Long taskExecutionVersion) {
+									Long maxRetries, Long attemptedNoOfRetries, String dependentAuditEvents,
+									Long taskExecutionVersion) {
 			this.stateMachineId = stateMachineId;
 			this.stateMachineName = stateMachineName;
 			this.taskName = taskName;
 			this.taskId = taskId;
 			this.maxRetries = maxRetries;
 			this.attemptedNoOfRetries = attemptedNoOfRetries;
+			this.dependentAuditEvents = dependentAuditEvents;
 			this.taskExecutionVersion = taskExecutionVersion;
 		}
 		public String getStateMachineId() {
@@ -95,6 +98,11 @@ public class FluxError extends RuntimeException {
 		public String getTaskName(){
 		    return taskName;
 		}
+
+		public String getDependentAuditEvents() {
+			return dependentAuditEvents;
+		}
+
 		public Long getTaskId() {
 			return taskId;
 		}
@@ -104,9 +112,9 @@ public class FluxError extends RuntimeException {
 		public Long getAttemptedNoOfRetries() {
 			return attemptedNoOfRetries;
 		}
-        public Long getTaskExecutionVersion() {
-            return taskExecutionVersion;
-        }
+		public Long getTaskExecutionVersion() {
+			return taskExecutionVersion;
+		}
 	}
 	
 	/**

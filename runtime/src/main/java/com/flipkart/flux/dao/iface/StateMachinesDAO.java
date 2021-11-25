@@ -57,7 +57,7 @@ public interface StateMachinesDAO {
      * on same StateMachine instance's executionVersion. "FOR UPDATE" will make any other transaction trying to access
      * same State machine instance's executionVersion wait until current transaction commit/roll-back
      */
-    Long findByIdForUpdate_NonTransactional(String stateMachineInstanceId, Session session);
+    Long findExecutionVersionBySMIdForUpdate_NonTransactional(String stateMachineInstanceId, Session session);
 
     /**
      * Updates value of executionVersion of a stateMachine, this will be picked up as an executionVersion for

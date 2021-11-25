@@ -16,6 +16,7 @@ package com.flipkart.flux.type;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionType;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.internal.util.SerializationHelper;
@@ -35,9 +36,21 @@ import java.util.List;
  *
  * @author shyam.akirala
  */
-public class ListJsonType implements UserType, Serializable {
+public class ListJsonType<T> implements UserType, Serializable {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    private final Class<T> elementClass;
+    private final CollectionType listType;
+
+    public ListJsonType(Class<T> elementClass) {
+        this.elementClass = elementClass;
+        if(elementClass != Object.class) {
+            this.listType = MAPPER.getTypeFactory().constructCollectionType(List.class, elementClass);
+        } else {
+            this.listType = null;
+        }
+    }
 
     @Override
     public int[] sqlTypes() {
@@ -46,7 +59,7 @@ public class ListJsonType implements UserType, Serializable {
 
     @Override
     public Class<?> returnedClass() {
-        return Object.class;
+        return List.class;
     }
 
     @Override
@@ -77,7 +90,7 @@ public class ListJsonType implements UserType, Serializable {
         String value = rs.getString(names[0]);
 
         if (value == null) {
-            return new LinkedList<String>();
+            return new LinkedList<T>();
         }
 
         try {
@@ -116,8 +129,15 @@ public class ListJsonType implements UserType, Serializable {
     }
 
     protected Object deSerialize(String value) throws IOException {
-        return MAPPER.readValue(value, new TypeReference<List<Object>>() {
-        });
+        Object obj;
+        if(listType == null) {
+            obj = MAPPER.readValue(value, new TypeReference<List<Object>>() {
+            });
+        }
+        else {
+            obj = MAPPER.readValue(value, listType);
+        }
+        return obj;
     }
 
     protected String serialize(Object value) throws JsonProcessingException {

@@ -648,7 +648,7 @@ public class StateMachineResourceTest {
     }
 
     @Test
-    public void testInternalEventUpdateUncompletedStates() throws Exception {
+    public void testInternalEventUpdateIncompleteStates() throws Exception {
         String stateMachineDefinitionJson = IOUtils
                 .toString(this.getClass().getClassLoader().getResourceAsStream(
                         "state_machine_definition_replayable.json"));
@@ -878,5 +878,88 @@ public class StateMachineResourceTest {
         final HttpResponse<String> httpResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + stateMachineId + "/context/events?triggerTime=0")
                 .header("Content-Type", "application/json").body(eventJson).asString();
         assertThat(httpResponse.getStatus()).isEqualTo(HttpStatus.SC_ACCEPTED);
+    }
+
+    @Test
+    public void testRedriveTask_InvalidExecutionVersion() throws Exception{
+        final StateMachine sm = stateMachinePersistenceService.createStateMachine("magic_number_1",
+                objectMapper.readValue(
+                        this.getClass().getClassLoader().getResource("state_machine_definition.json"),
+                        StateMachineDefinition.class));
+        String stateMachineId = sm.getId();
+        final HttpResponse<String> httpResponse = Unirest.post(
+                //Using hard coded stateId : 3 and execution version: 2 which doesn't exist
+                STATE_MACHINE_RESOURCE_URL + "/redrivetask/"+stateMachineId+"/taskId/3/taskExecutionVersion/2")
+                .asString();
+
+        assertThat(httpResponse.getStatus()).isEqualTo(HttpStatus.SC_PRECONDITION_FAILED);
+    }
+
+    @Test
+    public void testPostReplayEvent_withNoEventData() throws Exception {
+        String stateMachineDefinitionJson = IOUtils.toString(
+                this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        Unirest.post(STATE_MACHINE_RESOURCE_URL)
+                .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
+        Thread.sleep(100);
+        String eventJson = IOUtils
+                .toString(this.getClass().getClassLoader().getResourceAsStream("no_event_data.json"));
+        final HttpResponse<String> eventPostResponse = Unirest.post(
+                STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/replayevent")
+                .header("Content-Type", "application/json").body(eventJson).asString();
+        assertThat(eventPostResponse.getStatus())
+                .isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(eventPostResponse.getBody()).isEqualTo("Event Data cannot be empty");
+    }
+
+    @Test
+    public void testPostReplayEvent_withNoStateMachine() throws Exception {
+        String eventJson = IOUtils
+                .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        final HttpResponse<String> eventPostResponse = Unirest.post(
+                STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/replayevent")
+                .header("Content-Type", "application/json").body(eventJson).asString();
+        assertThat(eventPostResponse.getStatus())
+                .isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void testPostReplayEvent_withCancelledStateMachine() throws Exception {
+        String stateMachineDefinitionJson = IOUtils.toString(
+                this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        Unirest.post(STATE_MACHINE_RESOURCE_URL)
+                .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
+        Thread.sleep(100);
+
+        Unirest.put(STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/cancel")
+                .asString();
+
+        String eventJson = IOUtils
+                .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        final HttpResponse<String> eventPostResponse = Unirest.post(
+                STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/replayevent")
+                .header("Content-Type", "application/json").body(eventJson).asString();
+        assertThat(eventPostResponse.getStatus())
+                .isEqualTo(Response.Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void testPostReplayEvent_withNoReplayEvent() throws Exception {
+        String stateMachineDefinitionJson = IOUtils.toString(
+                this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        Unirest.post(STATE_MACHINE_RESOURCE_URL)
+                .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
+        Thread.sleep(100);
+        String eventJson = IOUtils
+                .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        final HttpResponse<String> eventPostResponse = Unirest.post(
+                STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/replayevent")
+                .header("Content-Type", "application/json").body(eventJson).asString();
+        assertThat(eventPostResponse.getStatus())
+                .isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
+        assertThat(eventPostResponse.getBody()).isEqualTo("Triggered input event event0"
+                + " doesn't exist as a replay event in database." +
+                " Replay Event is identified by eventSource suffix "
+                + RuntimeConstants.REPLAY_EVENT);
     }
 }

@@ -32,6 +32,7 @@ import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.*;
 import com.flipkart.flux.exception.IllegalEventException;
+import com.flipkart.flux.exception.RedriverException;
 import com.flipkart.flux.exception.ReplayableRetryExhaustException;
 import com.flipkart.flux.exception.TraversalPathException;
 import com.flipkart.flux.impl.message.TaskAndEvents;
@@ -351,7 +352,7 @@ public class WorkFlowExecutionControllerTest {
         workFlowExecutionController.updateTaskStatus("random-state-machine", 1L, 0L,
                 new ExecutionUpdateData("random-state-machine", "someStateMachine",
                         "someTask", 1L, com.flipkart.flux.api.Status.running,
-                        0, 1, "", false));
+                        0, 1, "", false, ""));
         verify(statesDAO).updateStatus("random-state-machine", 1L, Status.running);
         verify(auditDAO).create("random-state-machine", new AuditRecord("random-state-machine", 1L, 1L, Status.running, null , ""));
         verifyNoMoreInteractions(redriverRegistry);
@@ -366,7 +367,7 @@ public class WorkFlowExecutionControllerTest {
         workFlowExecutionController.updateTaskStatus("random-state-machine", 1L, 0L,
                 new ExecutionUpdateData("random-state-machine", "someStateMachine",
                         "someTask", 1L, com.flipkart.flux.api.Status.completed,
-                        0, 1, "", true));
+                        0, 1, "", true, ""));
         verify(statesDAO).updateStatus("random-state-machine", 1L, Status.completed);
         verify(auditDAO).create("random-state-machine", new AuditRecord("random-state-machine", 1L, 1L, Status.completed, null , ""));
         verify(redriverRegistry).deRegisterTask("random-state-machine",1L, 0L);
@@ -390,7 +391,7 @@ public class WorkFlowExecutionControllerTest {
                 "client_elb_id_1");
         Event event = eventsDAO.create(TestReplayEvent.getStateMachineInstanceId(), TestReplayEvent);
         stateMachinesDAO.create(stateMachine1.getId(), stateMachine1);
-        when(statesDAO.findStateByDependentReplayEvent("ReplayEventTestStateMachine", TestReplayEvent.getName())).thenReturn(state2.getId());
+        when(statesDAO.findStateIdByEventName("ReplayEventTestStateMachine", TestReplayEvent.getName())).thenReturn(state2.getId());
         when(statesDAO.findById("ReplayEventTestStateMachine", 2L)).thenReturn(state2);
         when(stateTraversalPathDAO.findById(stateMachine1.getId(), state2.getId())).thenReturn(Optional.empty());
         EventData eventData = new EventData(TestReplayEvent.getName(), TestReplayEvent.getType(), TestReplayEvent.getEventData(), TestReplayEvent.getEventSource());
@@ -417,7 +418,7 @@ public class WorkFlowExecutionControllerTest {
         states.add(state2);
         StateMachine stateMachine1 = new StateMachine("ReplayEventTestStateMachine1", 2L, "SM_name", "SM_desc", states,
                 "client_elb_id_1");
-        when(statesDAO.findStateByDependentReplayEvent(stateMachine1.getId(), testReplayEvent.getName())).thenReturn(state2.getId());
+        when(statesDAO.findStateIdByEventName(stateMachine1.getId(), testReplayEvent.getName())).thenReturn(state2.getId());
         when(statesDAO.findById(stateMachine1.getId(), state2.getId())).thenReturn(state2);
         when(eventsDAO.findValidEventBySMIdAndName(stateMachine1.getId(), testReplayEvent.getName())).thenReturn(testReplayEvent);
         when(eventsDAO.findValidEventBySMIdAndName(stateMachine1.getId(), event1.getName())).thenReturn(event1);
@@ -426,5 +427,75 @@ public class WorkFlowExecutionControllerTest {
         workFlowExecutionController.postReplayEvent(eventData, stateMachine1);
         verify(statesDAO).incrementReplayableRetries("ReplayEventTestStateMachine1", 2L, (short) 10);
 
+    }
+
+    @Test(expected = IllegalEventException.class)
+    public void testPostReplayEventWithNoDependentState() throws IllegalEventException, IOException {
+
+        String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
+        String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";
+        String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
+        final Event testReplayEvent = new Event("event3", "someType",
+                Event.EventStatus.pending, "ReplayEventTestStateMachine1",
+                null, RuntimeConstants.REPLAY_EVENT);
+
+        List<String> dependencies = new ArrayList<>();
+        dependencies.add(testReplayEvent.getName());
+        String outputEvent1 = objectMapper.writeValueAsString(new EventDefinition("event1",
+                "SomeEvent"));
+        State state1 = new State(2L, "state1", "desc1", onEntryHook, task,
+                onExitHook, Collections.emptyList(), 3L, 60L, outputEvent1, null,
+                null, 0l, "ReplayEventTestStateMachine1",
+                1L);
+        Set<State> states = new HashSet<>();
+        states.add(state1);
+        StateMachine stateMachine1 = new StateMachine("ReplayEventTestStateMachine1", 2L,
+                "SM_name", "SM_desc", states,
+                "client_elb_id_1");
+        when(statesDAO.findStateIdByEventName(stateMachine1.getId(), testReplayEvent.getName())).thenReturn(null);
+        EventData eventData = new EventData(testReplayEvent.getName(), testReplayEvent.getType(),
+                testReplayEvent.getEventData(), testReplayEvent.getEventSource());
+        workFlowExecutionController.postReplayEvent(eventData, stateMachine1);
+    }
+
+    @Test(expected = RedriverException.class)
+    public void testRedriveTask_InvalidExecutionNumber(){
+        when(statesDAO.findById("random-state-machine", 1L)).thenReturn(
+                new State(1L, "random-state", null, null, null, null,
+                        new ArrayList<>(), 0L, 1000L, null, Status.initialized,
+                        null, 0L, "random-state-machine", 1L,(short) 3,(short) 0,true,2l));
+
+        workFlowExecutionController.redriveTask("random-state-machine", 1L,0l);
+        verify(redriverRegistry,times(1)).deRegisterTask("random-state-machine",1L,0L);
+    }
+
+    @Test(expected = IllegalEventException.class)
+    public void testPostReplayEventWithDependentStateNotReplayable() throws IllegalEventException, IOException {
+
+        String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
+        String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";
+        String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
+        final Event testReplayEvent = new Event("event3", "someType",
+                Event.EventStatus.pending, "ReplayEventTestStateMachine1",
+                null, RuntimeConstants.REPLAY_EVENT);
+
+        List<String> dependencies = new ArrayList<>();
+        dependencies.add(testReplayEvent.getName());
+        String outputEvent1 = objectMapper.writeValueAsString(new EventDefinition("event1",
+                "SomeEvent"));
+        State state1 = new State(2L, "state1", "desc1", onEntryHook, task,
+                onExitHook, dependencies, 3L, 60L, outputEvent1, null,
+                null, 0l, "ReplayEventTestStateMachine1",
+                1L);
+        Set<State> states = new HashSet<>();
+        states.add(state1);
+        StateMachine stateMachine1 = new StateMachine("ReplayEventTestStateMachine1", 2L,
+                "SM_name", "SM_desc", states,
+                "client_elb_id_1");
+        when(statesDAO.findStateIdByEventName(stateMachine1.getId(), testReplayEvent.getName())).thenReturn(1L);
+        when( statesDAO.findById(stateMachine1.getId(), 1L)).thenReturn(state1);
+        EventData eventData = new EventData(testReplayEvent.getName(), testReplayEvent.getType(),
+                testReplayEvent.getEventData(), testReplayEvent.getEventSource());
+        workFlowExecutionController.postReplayEvent(eventData, stateMachine1);
     }
 }

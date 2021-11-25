@@ -13,6 +13,7 @@
 
 package com.flipkart.flux.dao;
 
+import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.persistence.*;
@@ -50,6 +51,10 @@ public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public AuditRecord create(String stateMachineId, AuditRecord auditRecord) {
+        if (auditRecord.getErrors() != null && auditRecord.getErrors().toCharArray().length > 999){
+            // As in db we are storing the column as varchar(1000)
+            auditRecord.setErrors(auditRecord.getErrors().substring(0, RuntimeConstants.ERROR_MSG_LENGTH_IN_AUDIT));
+        }
         return super.save(auditRecord);
     }
 
@@ -62,6 +67,10 @@ public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
 
     @Override
     public AuditRecord create_NonTransactional(AuditRecord auditRecord, Session session) {
+        if (auditRecord.getErrors() != null && auditRecord.getErrors().toCharArray().length > 999){
+            // As in db we are storing the column as varchar(1000)
+            auditRecord.setErrors(auditRecord.getErrors().substring(0, RuntimeConstants.ERROR_MSG_LENGTH_IN_AUDIT));
+        }
         session.save(auditRecord);
         return auditRecord;
     }

@@ -48,7 +48,7 @@ public class StateTraversalPath {
     /**
      * List of stateIds in the traversal path of this stateId
      */
-    @Type(type = "ListJsonType")
+    @Type(type = "LongListJsonType")
     private List<Long> nextDependentStates;
 
 

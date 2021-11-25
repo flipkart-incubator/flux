@@ -227,7 +227,6 @@ public class StateMachinePersistenceServiceTest {
      *
      * @return
      */
-    //TODO: Check the state Definition constructor
     private StateMachineDefinition createStateMachineDefinitionWithReplayableStates() {
 
         Set<StateDefinition> stateDefinitions = new HashSet<>();
