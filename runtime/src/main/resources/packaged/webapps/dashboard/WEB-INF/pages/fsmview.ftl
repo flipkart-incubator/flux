@@ -1,20 +1,19 @@
 <#include "header.ftl">
 
     <!-- The JoinJS CSS -->
-    <link rel="stylesheet" type="text/css" href="/admin/resources/css/joint.css" />
+    <link rel="stylesheet" type="text/css" href="/admin/fsm-dashboard/css/joint.css" />
 
     <!-- Keeping the Hystrix global stylesheet for some useful CSS types -->
-    <link rel="stylesheet" type="text/css" href="/admin/resources/css/global.css" />
-    <link rel="stylesheet" type="text/css" href="/admin/resources/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/admin/fsm-dashboard/css/bootstrap.min.css">
     <!-- JointJS and Diagre JS files and their dependencies -->
-    <script type="text/javascript" src="/admin/resources/js/jquery.min.js"></script>
-    <script type="text/javascript" src="/admin/resources/js/lodash.min.js"></script>
-    <script type="text/javascript" src="/admin/resources/js/backbone-min.js"></script>
-    <script type="text/javascript" src="/admin/resources/js/joint.js"></script>
-    <script type="text/javascript" src="/admin/resources/js/graphlib.core.js"></script>
-    <script type="text/javascript" src="/admin/resources/js/dagre.core.js"></script>
-    <script type="text/javascript" src="/admin/resources/js/joint.layout.DirectedGraph.js"></script>
-    <script type="text/javascript" src="/admin/resources/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/admin/fsm-dashboard/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/admin/fsm-dashboard/js/lodash.min.js"></script>
+    <script type="text/javascript" src="/admin/fsm-dashboard/js/backbone-min.js"></script>
+    <script type="text/javascript" src="/admin/fsm-dashboard/js/joint.js"></script>
+    <script type="text/javascript" src="/admin/fsm-dashboard/js/graphlib.core.js"></script>
+    <script type="text/javascript" src="/admin/fsm-dashboard/js/dagre.core.js"></script>
+    <script type="text/javascript" src="/admin/fsm-dashboard/js/joint.layout.DirectedGraph.js"></script>
+    <script type="text/javascript" src="/admin/fsm-dashboard/js/bootstrap.min.js"></script>
 
     <div class="Table">
         <div class="Row">
@@ -139,6 +138,13 @@
                             <textarea readonly rows="15" cols="50" id="event-data-txt-box" style="height: 262px;width: 550px;max-height: 262px;overflow-y: auto;resize: none;" data-role="none"></textarea>
                         </div>
                         <div>
+                          <div>
+                            <span style="text-align: left">Execution Version:</span>
+                          </div>
+                          <div>
+                            <span style="text-align: left;" id="event-execution-version-label"></span>
+                          </div>
+                          <br>
                             <div>
                                 <span style="text-align: left">Status:</span>
                             </div>
@@ -157,6 +163,48 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- This is Bootstarap modal to see event details for the given exec version-->
+    <div id="event-details-modal-exec-version" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content" style="height: 570px;">
+          <div class="modal-header" >
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Event Information</h4>
+          </div>
+          <div class="modal-body">
+            <div class="container col-md-12">
+              <div id="event-data-exec-version">
+                <textarea readonly rows="15" cols="50" id="event-data-txt-box-exec-version" style="height: 262px;width: 550px;max-height: 262px;overflow-y: auto;resize: none;" data-role="none"></textarea>
+              </div>
+              <div>
+                <div>
+                  <span style="text-align: left">Execution Version:</span>
+                </div>
+                <div>
+                  <span style="text-align: left;" id="event-execution-version-label-exec-version"></span>
+                </div>
+                <br>
+                <div>
+                  <span style="text-align: left">Status:</span>
+                </div>
+                <div>
+                  <span style="text-align: left;" id="event-status-label-exec-version"></span>
+                </div>
+                <br>
+                <div>
+                  <span style="text-align: left">Updated At:</span>
+                </div>
+                <div>
+                  <span style="text-align: left" id="event-updated-at-label-exec-version"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script type="text/javascript">
@@ -210,6 +258,15 @@
             stateName.appendChild(document.createTextNode("State Name"));
             tr.appendChild(stateName);
 
+            var taskExecutionVersion = document.createElement("th");
+            taskExecutionVersion.appendChild(document.createTextNode("State Execution Version"));
+            tr.appendChild(taskExecutionVersion);
+
+            var eventDependencies = document.createElement("th");
+            eventDependencies.appendChild(document.createTextNode(
+              "Dependent Events {Name, ExecutionVersion}"));
+            tr.appendChild(eventDependencies);
+
             var retryAttempt = document.createElement("th");
             retryAttempt.appendChild(document.createTextNode("Retry Attempt"));
             tr.appendChild(retryAttempt);
@@ -244,6 +301,54 @@
                 td = document.createElement("td");
                 td.appendChild(document.createTextNode(stateIdToNameMap[auditRecord.stateId]));
                 tr.appendChild(td);
+
+                var td = document.createElement("td");
+                td.appendChild(document.createTextNode(auditRecord.taskExecutionVersion));
+                tr.appendChild(td);
+
+              td = document.createElement("td");
+              // Create a hyperlink for each dependency in the event Dependencies
+              var eventDependenciesArray = [];
+              try {
+                eventDependenciesArray = JSON.parse(auditRecord.eventDependencies);
+                console.log(eventDependenciesArray);
+
+                // move all of this to a function
+                for (var index = 0; index < eventDependenciesArray.length; index++) {
+                  console.log("index: " + index + " value: " + eventDependenciesArray[index]);
+                  var stateName = Object.keys(eventDependenciesArray[index])[0];
+                  var execVersion = eventDependenciesArray[index][stateName];
+                  stateName = stateName.split(".")[stateName.split(".").length - 1];
+                  console.log("stateName: " + stateName + " execVersion: " + execVersion);
+                  console.log(eventDependenciesArray[index]);
+
+                  var link = document.createElement('a');
+                  var linkText = document.createTextNode(execVersion);
+                  link.appendChild(linkText);
+
+
+                  link.title = "click to get the event data";
+                  link.setAttribute('href','#event-details-modal-exec-version');
+                  // link.setAttribute('target', '_blank');
+                  // link.onclick = function () {
+                  //   document.getElementById("event-details-modal-exec-version").style.display = 'block';
+                  // }
+                  td.appendChild(document.createTextNode("{".concat(stateName).concat(":")));
+                  td.appendChild(link);
+                  td.appendChild(document.createTextNode("}"));
+                }
+                tr.appendChild(td);
+
+              } catch (err) {
+                console.log("unable to parse Object: '" + auditRecord.eventDependencies
+                    + "'. Error message: " + err);
+                td.appendChild(document.createTextNode(auditRecord.eventDependencies));
+                tr.appendChild(td);
+              }
+
+
+                // td.appendChild(document.createTextNode(auditRecord.eventDependencies));
+                // tr.appendChild(td);
 
                 td = document.createElement("td");
                 td.appendChild(document.createTextNode(auditRecord.retryAttempt));
@@ -445,7 +550,7 @@
             document.getElementById("fsmName").innerHTML = fsmName;
         }
 
-        function getFSMData() {
+         function getFSMData() {
             var fsmId = document.getElementById("fsm-id").value;
             if(!fsmId) {
                 fsmId = ('${fsm_id}' != 'null' ? '${fsm_id}' : null);
@@ -491,15 +596,23 @@
             $('#event-data-select').append('<option value="" disabled selected value>--select Event--</option>');
             var count=0;
             for(var i=0;i<data.initStateEdges.length;i++){
-                eventNameDataMap[data.initStateEdges[i].label] = {eventData: data.initStateEdges[i].eventData, status: data.initStateEdges[i].status, updatedAt: data.initStateEdges[i].updatedAt};
+                eventNameDataMap[data.initStateEdges[i].label] = {
+                  eventData: data.initStateEdges[i].eventData.split("#")[0],
+                  executionVersion: data.initStateEdges[i].eventData.split("#")[1],
+                  status: data.initStateEdges[i].status,
+                  updatedAt: data.initStateEdges[i].updatedAt};
                 eventNames[count] = data.initStateEdges[i].label;
                 count++;
             }
             for(var stateIdentifier in data.fsmGraphData) {
                 if(data.fsmGraphData[stateIdentifier].label != "") {
-                    eventNameDataMap[data.fsmGraphData[stateIdentifier].label] = { eventData: data.fsmGraphData[stateIdentifier]["eventData"],
-                        status: data.fsmGraphData[stateIdentifier]["status"],
-                        updatedAt: data.fsmGraphData[stateIdentifier]["updatedAt"]};
+                    eventNameDataMap[data.fsmGraphData[stateIdentifier].label] = {
+                      eventData: data.fsmGraphData[stateIdentifier]["eventData"].split("#")[0],
+                      executionVersion: data.fsmGraphData[stateIdentifier]["eventData"].split("#")[1],
+                      status: data.fsmGraphData[stateIdentifier]["status"],
+                      updatedAt: data.fsmGraphData[stateIdentifier]["updatedAt"]
+                    };
+
                     eventNames[count] = data.fsmGraphData[stateIdentifier].label;
                     count++;
                 }
@@ -548,6 +661,7 @@
 
         function clearEventInfoModalParams() {
             $("#event-data-txt-box").empty();
+            $("#event-execution-version-label").empty();
             $("#event-status-label").empty();
             $("#event-updated-at-label").empty();
         }
@@ -558,6 +672,7 @@
                 clearEventInfoModalParams();
                 var selectedEventName = $(this).find("option:selected").val();
                 $("#event-data-txt-box").append(eventNameDataMap[selectedEventName].eventData);
+                $("#event-execution-version-label").append(eventNameDataMap[selectedEventName].executionVersion);
                 $("#event-status-label").append(eventNameDataMap[selectedEventName].status);
                 $("#event-updated-at-label").append(getFormattedDate(new Date(eventNameDataMap[selectedEventName].updatedAt)));
             });
