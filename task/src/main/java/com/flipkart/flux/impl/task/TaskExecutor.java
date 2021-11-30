@@ -13,7 +13,6 @@
 
 package com.flipkart.flux.impl.task;
 
-import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.api.core.Task;

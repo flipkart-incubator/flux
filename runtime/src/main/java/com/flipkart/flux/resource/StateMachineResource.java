@@ -134,8 +134,6 @@ public class StateMachineResource {
 
     private String eventProxyEnabled;
 
-    private StateTraversalPath stateTraversalPath;
-
     private StateTraversalPathDAO stateTraversalPathDAO;
 
     @Inject
@@ -156,7 +154,6 @@ public class StateMachineResource {
         this.auditDAO = auditDAO;
         this.eventSchedulerRegistry = eventSchedulerRegistry;
         this.workFlowExecutionController = workFlowExecutionController;
-        this.stateTraversalPath = stateTraversalPath;
         this.objectMapper = new ObjectMapper();
         this.metricsClient = metricsClient;
         this.parallelScatterGatherQueryHelper = parallelScatterGatherQueryHelper;
@@ -295,7 +292,7 @@ public class StateMachineResource {
                             eventProxyConnector.submitEvent(eventData.getName(), eventData.getData(), machineId,
                                     eventData.getEventSource());
                         } catch (Exception ex) {
-                            logger.error("Unable to forward event to old endpoint, error {}", ex.getStackTrace());
+                            logger.error("Unable to forward event to old endpoint, error {}", ex);
                         }
 
                     } else {
@@ -305,7 +302,7 @@ public class StateMachineResource {
                                             eventData.getEventSource(), triggerTime);
                         } catch (Exception ex) {
                             logger.error("Unable to forward scheduled event to old endpoint, error {}",
-                                    ex.getStackTrace());
+                                    ex);
                         }
                     }
                     return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity(

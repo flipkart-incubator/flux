@@ -105,7 +105,7 @@ public class MessageManagerService implements Initializable {
         scheduledDeletionService.scheduleAtFixedRate(() -> {
             try {
                 SmIdAndTaskIdWithExecutionVersion currentMessageIdToDelete = null;
-                List messageIdsToDelete = new ArrayList<SmIdAndTaskIdWithExecutionVersion>(batchDeleteSize);
+                List<SmIdAndTaskIdWithExecutionVersion> messageIdsToDelete = new ArrayList<SmIdAndTaskIdWithExecutionVersion>(batchDeleteSize);
                 while (messageIdsToDelete.size() < batchDeleteSize && (currentMessageIdToDelete = messagesToDelete.poll()) != null) {
                     messageIdsToDelete.add(currentMessageIdToDelete);
                 }

@@ -13,10 +13,9 @@
 
 package com.flipkart.flux.api;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import java.io.Serializable;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * <code>AuditEvent</code> represents the event execution version to be used to propogate <eventName, executionVersion>

@@ -13,21 +13,33 @@
 
 package com.flipkart.flux.dao;
 
-import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.VersionedEventData;
-import com.flipkart.flux.constant.RuntimeConstants;
-import com.flipkart.flux.dao.iface.EventsDAO;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.persistence.*;
-import com.google.inject.name.Named;
-import org.hibernate.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+
+import org.hibernate.Criteria;
+import org.hibernate.Query;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
 import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
-import javax.inject.Inject;
-import javax.transaction.Transactional;
-import java.util.*;
+import com.flipkart.flux.api.VersionedEventData;
+import com.flipkart.flux.constant.RuntimeConstants;
+import com.flipkart.flux.dao.iface.EventsDAO;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.persistence.DataSourceType;
+import com.flipkart.flux.persistence.SelectDataSource;
+import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.Storage;
+import com.google.inject.name.Named;
 
 /**
  * <code>EventsDAOImpl</code> is an implementation of {@link EventsDAO} which uses Hibernate to perform operations.

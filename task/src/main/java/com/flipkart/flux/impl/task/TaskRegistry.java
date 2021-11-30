@@ -12,19 +12,19 @@
  */
 package com.flipkart.flux.impl.task;
 
-import com.flipkart.flux.api.EventData;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+import com.flipkart.flux.annotation.ManagedEnv;
 import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.api.core.Task;
 import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.annotation.ManagedEnv;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <code>TaskRegistry</code> maintains an in-memory registry of {@link Task} and their {@link Event} mappings. This registry is usually populated during Flux startup by inspecting

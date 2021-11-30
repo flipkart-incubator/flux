@@ -14,9 +14,33 @@
 
 package com.flipkart.flux.controller;
 
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.testkit.TestActorRef;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import javax.ws.rs.core.Response;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.MockActorRef;
 import com.flipkart.flux.api.EventData;
@@ -30,7 +54,11 @@ import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
-import com.flipkart.flux.domain.*;
+import com.flipkart.flux.domain.AuditRecord;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.State;
+import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.exception.RedriverException;
 import com.flipkart.flux.exception.ReplayableRetryExhaustException;
@@ -44,19 +72,10 @@ import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.util.TestUtils;
 import com.typesafe.config.ConfigFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.util.*;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.testkit.TestActorRef;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WorkFlowExecutionControllerTest {
@@ -210,6 +229,7 @@ public class WorkFlowExecutionControllerTest {
         verifyNoMoreInteractions(executionNodeTaskDispatcher);
     }
 
+	@SuppressWarnings("unused")
 	@Test
     public void testEventPost_shouldSendExecuteTaskIfItIsNotCompleted() throws Exception {
         final VersionedEventData testEventData = new VersionedEventData("event0", "java.lang.String",
@@ -373,7 +393,8 @@ public class WorkFlowExecutionControllerTest {
         verify(redriverRegistry).deRegisterTask("random-state-machine",1L, 0L);
     }
 
-    @Test(expected = ReplayableRetryExhaustException.class)
+    @SuppressWarnings("unused")
+	@Test(expected = ReplayableRetryExhaustException.class)
     public void testPostReplayEventExhaustedAttemptedRetryCount() throws IllegalEventException, IOException {
 
         String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";

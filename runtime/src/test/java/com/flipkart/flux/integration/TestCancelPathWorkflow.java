@@ -113,16 +113,3 @@ class ParamEvent implements Event {
     }
 }
 
-class StartEvent implements Event {
-
-    @CorrelationId @JsonProperty
-    String id;
-
-    public StartEvent() {
-    }
-
-    public StartEvent(String id) {
-        this.id = id;
-    }
-
-}

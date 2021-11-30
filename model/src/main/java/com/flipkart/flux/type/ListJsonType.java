@@ -40,11 +40,9 @@ public class ListJsonType<T> implements UserType, Serializable {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private final Class<T> elementClass;
     private final CollectionType listType;
 
     public ListJsonType(Class<T> elementClass) {
-        this.elementClass = elementClass;
         if(elementClass != Object.class) {
             this.listType = MAPPER.getTypeFactory().constructCollectionType(List.class, elementClass);
         } else {

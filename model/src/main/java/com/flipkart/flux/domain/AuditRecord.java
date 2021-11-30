@@ -13,11 +13,15 @@
 
 package com.flipkart.flux.domain;
 
-import org.hibernate.annotations.Type;
-
-import javax.persistence.*;
 import java.sql.Timestamp;
-import java.util.List;
+
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * <code>AuditRecord</code> represents a audit log of state machine execution.

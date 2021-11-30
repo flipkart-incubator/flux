@@ -411,7 +411,8 @@ public class StateMachinePersistenceServiceTest {
         }
     }
 
-    @Test
+    @SuppressWarnings("static-access")
+	@Test
     public void validateMultipleStatesWithSameReplayEvent() throws IOException {
         Integer maxTaskRetryCount = 10;
         StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(
@@ -427,6 +428,7 @@ public class StateMachinePersistenceServiceTest {
         });
     }
 
+    @SuppressWarnings("static-access")
     @Test
     public void testValidateStateWithMultipleReplayEvent() throws IOException {
         Integer maxTaskRetryCount = 10;

@@ -17,6 +17,15 @@ package com.flipkart.flux.integration;
 import static com.flipkart.flux.resource.StateMachineResourceTest.STATE_MACHINE_RESOURCE_URL;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Set;
+
+import org.apache.commons.io.IOUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.api.Status;
@@ -32,7 +41,6 @@ import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.guice.module.AkkaModule;
-import com.flipkart.flux.guice.module.AuthNModule;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.ExecutionContainerModule;
 import com.flipkart.flux.guice.module.ExecutionTaskModule;
@@ -49,27 +57,18 @@ import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
-import com.flipkart.kloud.authn.AuthTokenService;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import java.util.Set;
-import org.apache.commons.io.IOUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
 @RunWith(GuiceJunit4Runner.class)
 @Modules(orchestrationModules = {FluxClientComponentModule.class, ShardModule.class,
-    RuntimeTestModule.class, ContainerModule.class, AuthNModule.class,
+    RuntimeTestModule.class, ContainerModule.class, 
     OrchestrationTaskModule.class, FluxClientInterceptorModule.class},
     executionModules = {FluxClientComponentModule.class, DeploymentUnitTestModule.class,
         AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class,
         FluxClientInterceptorModule.class})
 public class E2ETest {
 
-  private static final String authnTargetClientId = "flux-runtime-local";
   @Rule
   @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
   public DbClearRule dbClearRule;
@@ -99,8 +98,6 @@ public class E2ETest {
   @InjectFromRole(value = FluxRuntimeRole.EXECUTION)
   ExecutionOrderedComponentBooter executionOrderedComponentBooter;
   @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
-  AuthTokenService authTokenService;
-  @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
   RedriverRegistry redriverRegistry;
   @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
   MessageDao messageDao;
@@ -109,8 +106,6 @@ public class E2ETest {
   public void setUp() {
     try {
       Unirest.post("http://localhost:9998/api/client-elb/create")
-          .header("Authorization",
-              authTokenService.fetchToken(authnTargetClientId).toAuthorizationHeader())
           .queryString("clientId", "defaultElbId").queryString("clientElbUrl",
           "http://localhost:9997").asString();
     } catch (UnirestException e) {
@@ -122,8 +117,6 @@ public class E2ETest {
   public void tearDown() {
     try {
       Unirest.post("http://localhost:9998/api/client-elb/delete")
-          .header("Authorization",
-              authTokenService.fetchToken(authnTargetClientId).toAuthorizationHeader())
           .queryString("clientId", "defaultElbId").asString();
     } catch (UnirestException e) {
       e.printStackTrace();
@@ -188,6 +181,7 @@ public class E2ETest {
     assertThat(taskExecutable.getExecutionConcurrency()).isEqualTo(5);
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void verifyRedriverPolling() {
     dbClearRule.explicitClearTables();
@@ -228,8 +222,6 @@ public class E2ETest {
         .toString(this.getClass().getClassLoader().getResourceAsStream("replay_event_data.json"));
     Unirest.post(
         STATE_MACHINE_RESOURCE_URL + "/" + smId + "/context/replayevent")
-        .header("Authorization",
-            authTokenService.fetchToken(authnTargetClientId).toAuthorizationHeader())
         .header("Content-Type", "application/json").body(replayEventJson).asString();
     
     /* Wait for redriver to pick replayable state and then let the things complete with that execution version.
@@ -325,8 +317,6 @@ public class E2ETest {
         .toString(this.getClass().getClassLoader().getResourceAsStream("replay_event_data_2.json"));
     Unirest.post(
         STATE_MACHINE_RESOURCE_URL + "/" + smId + "/context/replayevent")
-        .header("Authorization",
-            authTokenService.fetchToken(authnTargetClientId).toAuthorizationHeader())
         .header("Content-Type", "application/json").body(replayEvent2_Json).asString();
 
     /* Wait for redriver to pick replayable state and then let the things complete with that execution version. */
@@ -411,5 +401,6 @@ public class E2ETest {
           break;
       }
     }
-  }
+  }  
 }
+

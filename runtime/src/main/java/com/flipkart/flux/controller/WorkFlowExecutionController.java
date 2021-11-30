@@ -488,6 +488,9 @@ public class WorkFlowExecutionController {
             case sidelined:
                 updateStatus = com.flipkart.flux.domain.Status.sidelined;
                 break;
+            case unsidelined:
+                updateStatus = com.flipkart.flux.domain.Status.sidelined;
+                break;
         }
         metricsClient.markMeter(new StringBuilder().
                 append("stateMachine.").

@@ -430,7 +430,8 @@ public class StateMachineResourceTest {
         assertThat(eventSchedulerDao.retrieveOldest(1)).hasSize(0);
     }
 
-    @Test
+    @SuppressWarnings("unused")
+	@Test
     public void testPostScheduledEvent_withTriggerTimeInMilliSeconds() throws Exception {
         String stateMachineDefinitionJson = IOUtils.toString(
                 this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
@@ -629,7 +630,8 @@ public class StateMachineResourceTest {
 
     }
 
-    @Test
+    @SuppressWarnings("unused")
+	@Test
     public void testInternalEventUpdateNoReplayableState() throws Exception {
         String stateMachineDefinitionJson = IOUtils
                 .toString(this.getClass().getClassLoader().getResourceAsStream(
@@ -647,7 +649,8 @@ public class StateMachineResourceTest {
         assertThat(eventPostResponse1.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
     }
 
-    @Test
+    @SuppressWarnings("unused")
+	@Test
     public void testInternalEventUpdateIncompleteStates() throws Exception {
         String stateMachineDefinitionJson = IOUtils
                 .toString(this.getClass().getClassLoader().getResourceAsStream(
@@ -671,7 +674,8 @@ public class StateMachineResourceTest {
 
     }
 
-    private void testEventUpdate_IneligibleTaskStatus_Util(HttpResponse<String> smCreationResponse)
+    @SuppressWarnings("unused")
+	private void testEventUpdate_IneligibleTaskStatus_Util(HttpResponse<String> smCreationResponse)
             throws Exception {
         String eventJson1 = IOUtils
                 .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));

@@ -9,7 +9,8 @@ import com.flipkart.flux.client.model.*;
  */
 public class ReplayEventWorkflow {
 
-    @Workflow(version = 1)
+    @SuppressWarnings("unused")
+	@Workflow(version = 1)
     public void create(StartEvent startEvent) {
         ParamEvent paramEvent1 = task1(startEvent);
         ParamEvent paramEvent2 = task2(null, paramEvent1);
@@ -71,7 +72,8 @@ class ParamEvent implements Event {
         this.data = data;
         this.failDependentTask = failDependentTask;
     }
-}
+} 
+
 
 class StartEvent implements Event {
 

@@ -16,11 +16,10 @@ package com.flipkart.flux.impl.task;
 
 import java.lang.reflect.Method;
 
-import com.flipkart.flux.api.VersionedEventData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.registry.TaskExecutableImpl;

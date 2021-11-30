@@ -4,7 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flipkart.flux.client.model.*;
 
 public class SameReplayEventOnMoreThanOneState {
-    @Workflow(version = 1)
+    @SuppressWarnings("unused")
+	@Workflow(version = 1)
     public void create(StartEvent startEvent) {
         ParamEvent paramEvent1 = task1();
         ParamEvent paramEvent2 = task2(null);

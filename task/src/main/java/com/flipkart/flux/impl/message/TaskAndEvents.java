@@ -14,14 +14,13 @@
 
 package com.flipkart.flux.impl.message;
 
-import com.flipkart.flux.api.EventData;
+import java.io.Serializable;
+import java.util.Arrays;
+
 import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.api.core.Task;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.impl.task.AkkaTask;
-
-import java.io.Serializable;
-import java.util.Arrays;
 
 /**
  * <code>TaskAndEvents</code> is a message that composes a {@link Task} identifier and the {@link Event}S that it processes.

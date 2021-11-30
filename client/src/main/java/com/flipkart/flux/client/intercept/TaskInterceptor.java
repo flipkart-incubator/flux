@@ -201,7 +201,7 @@ public class TaskInterceptor implements MethodInterceptor {
             definition = new EventDefinition(((ReplayEvent) eventAnnotation).value(), parameterTypes[argumentIndex].getName(), REPLAY_EVENT);
 
         } catch (Exception e){
-            logger.error(" Error while adding event to event definition" + e.getMessage(), e.getStackTrace());
+            logger.error(" Error while adding event to event definition" + e.getMessage(), e);
         } finally {
             if (definition != null) {
                 EventDefinition existingDefinition = localContext.checkExistingDefinition(definition);
@@ -219,7 +219,8 @@ public class TaskInterceptor implements MethodInterceptor {
      * @param givenParameterAnnotations
      * @return
      */
-    private <T> T checkForEventAnnotation(Annotation[] givenParameterAnnotations) {
+    @SuppressWarnings("unchecked")
+	private <T> T checkForEventAnnotation(Annotation[] givenParameterAnnotations) {
         for (Annotation annotation : givenParameterAnnotations) {
             if (annotation instanceof ExternalEvent) {
                 return (T) annotation;

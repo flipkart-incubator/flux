@@ -1,11 +1,22 @@
 package com.flipkart.flux.dao;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Collections;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
+import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.guice.module.ContainerModule;
@@ -15,18 +26,6 @@ import com.flipkart.flux.module.RuntimeTestModule;
 import com.flipkart.flux.rule.DbClearWithTestSMRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
-import com.flipkart.flux.domain.State;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * <code>StatesDAOTest</code> class tests the functionality of {@link StatesDAO} using JUnit tests.
@@ -38,8 +37,6 @@ import static org.assertj.core.api.Assertions.assertThat;
         OrchestrationTaskModule.class, FluxClientInterceptorModule.class})
 
 public class StatesDAOTest {
-
-    private static ObjectMapper objectMapper;
 
     @InjectFromRole
     @Rule
@@ -53,7 +50,6 @@ public class StatesDAOTest {
 
     @Before
     public void setup() {
-        objectMapper = new ObjectMapper();
     }
 
     @Test
@@ -123,7 +119,8 @@ public class StatesDAOTest {
         assertThat(stateId).isEqualTo(1L);
     }
 
-    @Test
+    @SuppressWarnings("unused")
+	@Test
     @Ignore("Need ShardId to test this test case")
     public void testFindStateByStatus() throws Exception {
         StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
@@ -131,16 +128,10 @@ public class StatesDAOTest {
                 new State(2L, "state1", "desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.singletonList("ReplayEvent"), 3L, 60L, null, Status.completed, null, 0l, "1", 1L, (short) 5, (short) 2, Boolean.TRUE);
         statesDAO.updateState(stateMachine.getId(), state1);
         State state = statesDAO.findById(stateMachine.getId(), 1L);
-        List<Status> statuses = new ArrayList<Status>() {
-            {
-                add(Status.completed);
-            }
-        };
-//        List<State> stateList = statesDAO.findStatesByStatus(stateMachine.getId(), stateMachine.getName(), state.getCreatedAt(), state.getUpdatedAt(), state.getTask(), statuses);
-//        assertThat(stateList.contains(state1));
     }
 
-    @Test
+    @SuppressWarnings("unused")
+	@Test
     @Ignore("Need ShardId to test this test case")
     public void testFindErroredStates() throws Exception {
         StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
@@ -148,12 +139,5 @@ public class StatesDAOTest {
                 new State(2L, "state1", "desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.singletonList("ReplayEvent"), 3L, 60L, null, Status.errored, null, 0l, "1", 1L, (short) 5, (short) 2, Boolean.TRUE);
         statesDAO.updateState(stateMachine.getId(), state1);
         State state = statesDAO.findById(stateMachine.getId(), 1L);
-        List<Status> statuses = new ArrayList<Status>() {
-            {
-                add(Status.errored);
-            }
-        };
-//        List<State> stateList = statesDAO.findErroredStates(stateMachine.getId(), stateMachine.getName(), state.getCreatedAt(), state.getUpdatedAt());
-//        assertThat(stateList.contains(state1));
     }
 }

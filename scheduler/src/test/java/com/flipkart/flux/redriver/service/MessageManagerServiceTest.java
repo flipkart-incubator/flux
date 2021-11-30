@@ -50,7 +50,7 @@ public class MessageManagerServiceTest {
         verifyZeroInteractions(messageDao);
 
         Thread.sleep(700l);
-        ArrayList firstBatch = new ArrayList<SmIdAndTaskIdWithExecutionVersion>();
+        ArrayList<SmIdAndTaskIdWithExecutionVersion> firstBatch = new ArrayList<SmIdAndTaskIdWithExecutionVersion>();
         firstBatch.add(new SmIdAndTaskIdWithExecutionVersion(sampleMachineId, 123l,0l));
         firstBatch.add(new SmIdAndTaskIdWithExecutionVersion(sampleMachineId, 123l,1l));
 
@@ -70,14 +70,14 @@ public class MessageManagerServiceTest {
         verifyZeroInteractions(messageDao);
 
         Thread.sleep(700l);
-        ArrayList firstBatch = new ArrayList<SmIdAndTaskIdWithExecutionVersion>();
+        ArrayList<SmIdAndTaskIdWithExecutionVersion> firstBatch = new ArrayList<SmIdAndTaskIdWithExecutionVersion>();
         firstBatch.add(new SmIdAndTaskIdWithExecutionVersion(sampleMachineId, 121l,0l));
         firstBatch.add(new SmIdAndTaskIdWithExecutionVersion(sampleMachineId, 122l,0l));
 
         verify(messageDao,times(1)).deleteInBatch(firstBatch);
 
         Thread.sleep(700l);
-        ArrayList secondBatch = new ArrayList<SmIdAndTaskIdWithExecutionVersion>();
+        ArrayList<SmIdAndTaskIdWithExecutionVersion> secondBatch = new ArrayList<SmIdAndTaskIdWithExecutionVersion>();
         secondBatch.add(new SmIdAndTaskIdWithExecutionVersion(sampleMachineId, 123l,0l));
         verify(messageDao,times(1)).deleteInBatch(secondBatch);
     }

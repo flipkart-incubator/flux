@@ -9,7 +9,8 @@ import com.flipkart.flux.client.model.Workflow;
 
 public class SampleReplayEventOnStateWithMultipleReplayEvent {
 
-    @Workflow(version = 1)
+    @SuppressWarnings("unused")
+	@Workflow(version = 1)
     public void create(StartEvent startEvent) {
         ParamEvent paramEvent1 = task1();
         ParamEvent paramEvent2 = task2(null, null, paramEvent1);

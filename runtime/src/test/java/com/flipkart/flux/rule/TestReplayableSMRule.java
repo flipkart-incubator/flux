@@ -13,6 +13,19 @@
 
 package com.flipkart.flux.rule;
 
+import static com.flipkart.flux.constant.RuntimeConstants.MAX_REPLAYABLE_RETRIES;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+import org.junit.rules.ExternalResource;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.dao.iface.EventsDAO;
@@ -22,18 +35,6 @@ import com.flipkart.flux.domain.Event.EventStatus;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
-import org.junit.rules.ExternalResource;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.io.IOError;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static com.flipkart.flux.constant.RuntimeConstants.MAX_REPLAYABLE_RETRIES;
 
 /**
  * <code>TestReplayableSMRule</code> is a Junit Rule which creates a state machine with replayable state

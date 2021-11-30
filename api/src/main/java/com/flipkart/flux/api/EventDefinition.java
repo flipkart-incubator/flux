@@ -24,105 +24,105 @@ package com.flipkart.flux.api;
  */
 public class EventDefinition {
 
-    /**
-     * Name of the event
-     */
-    private String name;
+  /**
+   * Name of the event
+   */
+  private String name;
 
-    /**
-     * Type of the event
-     */
-    private String type;
+  /**
+   * Type of the event
+   */
+  private String type;
 
-    /***
-     * Source of the event
-     */
-    private String eventSource;
+  /***
+   * Source of the event
+   */
+  private String eventSource;
 
-    /* To be used only by jackson */
-    EventDefinition() {
+  /* To be used only by jackson */
+  EventDefinition() {
+  }
+
+  /**
+   * Constructor
+   */
+  public EventDefinition(String name, String type) {
+    // using null. As Event source is stored as null in DB.
+    this(name, type, null);
+  }
+
+  public EventDefinition(String name, String type, String eventSource) {
+    super();
+    this.name = name;
+    this.type = type;
+    this.eventSource = eventSource;
+  }
+
+  /**
+   * Accessors/Mutators for member variables
+   */
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
+
+  public String getEventSource() {
+    return eventSource;
+  }
+
+  public void setEventSource(String eventSource) {
+    this.eventSource = eventSource;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof EventDefinition)) {
+      return false;
     }
 
-    /**
-     * Constructor
-     */
-    public EventDefinition(String name, String type) {
-        // using null. As Event source is stored as null in DB.
-        this(name, type, null);
+    EventDefinition that = (EventDefinition) o;
+
+    if (name != null ? !name.equals(that.name) : that.name != null) {
+      return false;
+    }
+    if (type != null ? !type.equals(that.type) : that.type != null) {
+      return false;
+    }
+    if (eventSource != null ? !eventSource.equals(that.eventSource) : that.eventSource != null) {
+      return false;
     }
 
-    public EventDefinition(String name, String type, String eventSource) {
-        super();
-        this.name = name;
-        this.type = type;
-        this.eventSource = eventSource;
-    }
+    return true;
+  }
 
-    /**
-     * Accessors/Mutators for member variables
-     */
-    public String getName() {
-        return name;
-    }
+  @Override
+  public int hashCode() {
+    int result = name != null ? name.hashCode() : 0;
+    result = 31 * result + (type != null ? type.hashCode() : 0);
+    result = 31 * result + (eventSource != null ? eventSource.hashCode() : 0);
+    return result;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getEventSource() {
-        return eventSource;
-    }
-
-    public void setEventSource(String eventSource) {
-        this.eventSource = eventSource;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof EventDefinition)) {
-            return false;
-        }
-
-        EventDefinition that = (EventDefinition) o;
-
-        if (name != null ? !name.equals(that.name) : that.name != null) {
-            return false;
-        }
-        if (type != null ? !type.equals(that.type) : that.type != null) {
-            return false;
-        }
-        if (eventSource != null ? !eventSource.equals(that.eventSource) : that.eventSource != null) {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (eventSource != null ? eventSource.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "EventDefinition{" +
-                "name='" + name + '\'' +
-                ", type='" + type + '\'' +
-                ", eventSource='" + eventSource + '\'' +
-                '}';
-    }
+  @Override
+  public String toString() {
+    return "EventDefinition{" +
+        "name='" + name + '\'' +
+        ", type='" + type + '\'' +
+        ", eventSource='" + eventSource + '\'' +
+        '}';
+  }
 }

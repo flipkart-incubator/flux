@@ -15,10 +15,8 @@ package com.flipkart.flux.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * <code>VersionedEventData</code> represents the event which would be submitted to flux runtime from inside world.
@@ -149,13 +147,16 @@ public class VersionedEventData implements Serializable {
         VersionedEventData versionedEventData = (VersionedEventData) o;
 
         if (!name.equals(versionedEventData.name)) return false;
-        if (!Objects.equals(type, versionedEventData.type)) return false;
-        if (!Objects.equals(data, versionedEventData.data)) return false;
-        if (!Objects.equals(eventSource, versionedEventData.eventSource))
+        if (type != null ? !type.equals(versionedEventData.type) : versionedEventData.type != null) return false;
+        if (data != null ? !data.equals(versionedEventData.data) : versionedEventData.data != null) return false;
+        if (eventSource != null ? !eventSource.equals(
+                versionedEventData.eventSource) : versionedEventData.eventSource != null)
             return false;
-        if (!Objects.equals(executionVersion, versionedEventData.executionVersion))
+        if (executionVersion != null ? !executionVersion.equals(
+                versionedEventData.executionVersion) : versionedEventData.executionVersion != null)
             return false;
-        return Objects.equals(isCancelled, versionedEventData.isCancelled);
+        return isCancelled != null ? isCancelled.equals(
+                versionedEventData.isCancelled) : versionedEventData.isCancelled == null;
     }
 
     @Override

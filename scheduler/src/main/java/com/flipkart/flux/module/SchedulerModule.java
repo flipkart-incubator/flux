@@ -95,7 +95,8 @@ public class SchedulerModule extends AbstractModule {
         return configuration.buildSessionFactory();
     }
 
-    private void addAnnotatedClassesAndTypes(Configuration configuration) {
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+	private void addAnnotatedClassesAndTypes(Configuration configuration) {
         //register hibernate custom types
         configuration.registerTypeOverride(new BlobType(), new String[]{"BlobType"});
         configuration.registerTypeOverride(new StoreFQNType(), new String[]{"StoreFQNOnly"});

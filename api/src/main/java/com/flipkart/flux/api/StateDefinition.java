@@ -253,6 +253,7 @@ public class StateDefinition {
         if (replayable != that.replayable) return false;
         if (!Objects.equals(maxReplayableRetries, that.maxReplayableRetries)) return false;
 
+
         return !(dependencies != null ? !dependencies.equals(that.dependencies) : that.dependencies != null);
 
     }
