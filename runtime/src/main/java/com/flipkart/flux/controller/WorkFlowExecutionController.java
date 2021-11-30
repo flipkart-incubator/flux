@@ -14,15 +14,30 @@
 package com.flipkart.flux.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.*;
+import com.flipkart.flux.api.EventAndExecutionData;
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.api.ExecutionUpdateData;
+import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
-import com.flipkart.flux.domain.*;
+import com.flipkart.flux.domain.AuditRecord;
+import com.flipkart.flux.domain.Context;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.State;
+import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.StateMachineStatus;
+import com.flipkart.flux.domain.StateTraversalPath;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
+import com.flipkart.flux.exception.RedriverException;
+import com.flipkart.flux.exception.ReplayEventException;
+import com.flipkart.flux.exception.ReplayableRetryExhaustException;
+import com.flipkart.flux.exception.TraversalPathException;
 import com.flipkart.flux.exception.UnknownStateMachine;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.impl.message.TaskAndEvents;
@@ -31,6 +46,7 @@ import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.representation.ClientElbPersistenceService;
+import com.flipkart.flux.representation.ReplayEventPersistenceService;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.utils.LoggingUtils;
@@ -38,12 +54,21 @@ import com.google.common.collect.Sets;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
-import java.io.IOException;
-import java.util.*;
-
 
 /**
  * <code>WorkFlowExecutionController</code> controls the execution flow of a given state machine
@@ -73,10 +98,17 @@ public class WorkFlowExecutionController {
      * The DAO for AuditRecord related DB operations
      */
     private AuditDAO auditDAO;
+
+    /**
+     * The DAO for StateTraversalPath related DB operations
+     */
+    private StateTraversalPathDAO stateTraversalPathDAO;
+
     /*
      * Connector to forward the TaskAndEvents akka Message to client Remote Machine For Execution
      */
     private ExecutionNodeTaskDispatcher executionNodeTaskDispatcher;
+
     /**
      * The Redriver Registry for driving stalled Tasks
      */
@@ -99,24 +131,30 @@ public class WorkFlowExecutionController {
      */
     private ClientElbPersistenceService clientElbPersistenceService;
 
+    private ReplayEventPersistenceService replayEventPersistenceService;
 
     /**
      * Constructor for this class
      */
     @Inject
     public WorkFlowExecutionController(EventsDAO eventsDAO, StateMachinesDAO stateMachinesDAO,
-                                       StatesDAO statesDAO, AuditDAO auditDAO, ExecutionNodeTaskDispatcher executionNodeTaskDispatcher,
+                                       StatesDAO statesDAO, AuditDAO auditDAO,
+                                       StateTraversalPathDAO stateTraversalPathDAO,
+                                       ExecutionNodeTaskDispatcher executionNodeTaskDispatcher,
                                        RedriverRegistry redriverRegistry, MetricsClient metricsClient,
-                                       ClientElbPersistenceService clientElbPersistenceService) {
+                                       ClientElbPersistenceService clientElbPersistenceService,
+                                       ReplayEventPersistenceService replayEventPersistenceService) {
         this.eventsDAO = eventsDAO;
         this.stateMachinesDAO = stateMachinesDAO;
         this.statesDAO = statesDAO;
         this.auditDAO = auditDAO;
+        this.stateTraversalPathDAO = stateTraversalPathDAO;
         this.executionNodeTaskDispatcher = executionNodeTaskDispatcher;
         this.redriverRegistry = redriverRegistry;
         this.metricsClient = metricsClient;
         this.objectMapper = new ObjectMapper();
         this.clientElbPersistenceService = clientElbPersistenceService;
+        this.replayEventPersistenceService = replayEventPersistenceService;
     }
 
     /**
@@ -160,7 +198,7 @@ public class WorkFlowExecutionController {
         updateTaskStatus(stateMachine.getId(), eventAndExecutionData.getExecutionUpdateData().getTaskId(),
                 eventAndExecutionData.getExecutionUpdateData().getTaskExecutionVersion(),
                 eventAndExecutionData.getExecutionUpdateData());
-        return persistEvent(stateMachine.getId(), eventAndExecutionData.getEventData());
+        return persistEvent(stateMachine.getId(), eventAndExecutionData.getVersionedEventData());
     }
 
     /**
@@ -172,7 +210,7 @@ public class WorkFlowExecutionController {
     public void updateTaskStatusAndHandlePathCancellation(String stateMachineId, EventAndExecutionData eventAndExecutionData) {
         Set<State> executableStates = updateTaskStatusAndCancelPath(stateMachineId, eventAndExecutionData);
         logger.info("Path cancellation is done for state machine: {} event: {} which has come from task: {}",
-                stateMachineId, eventAndExecutionData.getEventData().getName(), eventAndExecutionData.getExecutionUpdateData().getTaskId());
+                stateMachineId, eventAndExecutionData.getVersionedEventData().getName(), eventAndExecutionData.getExecutionUpdateData().getTaskId());
         StateMachine stateMachine = stateMachinesDAO.findById(stateMachineId);
         executeStates(stateMachine, executableStates, false);
     }
@@ -190,19 +228,19 @@ public class WorkFlowExecutionController {
         updateTaskStatus(stateMachineId, eventAndExecutionData.getExecutionUpdateData().getTaskId(),
                 eventAndExecutionData.getExecutionUpdateData().getTaskExecutionVersion(),
                 eventAndExecutionData.getExecutionUpdateData());
-        return cancelPath(stateMachineId, eventAndExecutionData.getEventData());
+        return cancelPath(stateMachineId, eventAndExecutionData.getVersionedEventData());
     }
 
     /**
      * Cancels paths which are dependant on the current event, and returns set of states which can be executed after the cancellation.
      *
      * @param stateMachineId
-     * @param eventData
+     * @param versionedEventData
      * @return executable states after cancellation
      */
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    protected Set<State> cancelPath(String stateMachineId, EventData eventData) {
+    protected Set<State> cancelPath(String stateMachineId, VersionedEventData versionedEventData) {
         Set<State> executableStates = new HashSet<>();
         StateMachine stateMachine = stateMachinesDAO.findById(stateMachineId);
         //create context and dependency graph
@@ -215,7 +253,7 @@ public class WorkFlowExecutionController {
         Queue<String> cancelledEvents = new LinkedList<>();
 
         // add the current event
-        cancelledEvents.add(eventData.getName());
+        cancelledEvents.add(versionedEventData.getName());
 
         // until the cancelled events is empty
         while (!cancelledEvents.isEmpty()) {
@@ -250,7 +288,7 @@ public class WorkFlowExecutionController {
                 // if all dependencies are in cancelled state, then add the output event of the state to cancelled events and mark state as cancelled
                 if (allCancelled) {
                     statesDAO.updateStatus(state.getStateMachineId(), state.getId(), Status.cancelled);
-                    auditDAO.create(state.getStateMachineId(), new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNoOfRetries(), Status.cancelled, null, null));
+                    auditDAO.create(state.getStateMachineId(), new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNumOfRetries(), Status.cancelled, null, null));
                     EventDefinition eventDefinition = null;
                     if (state.getOutputEvent() != null) {
                         try {
@@ -273,171 +311,102 @@ public class WorkFlowExecutionController {
      * This is called when an event is received with cancelled status. This cancels the particular path in state machine DAG.
      *
      * @param stateMachineId
-     * @param eventData
+     * @param versionedEventData
      */
-    public void handlePathCancellation(String stateMachineId, EventData eventData) {
-        Set<State> executableStates = cancelPath(stateMachineId, eventData);
+    public void handlePathCancellation(String stateMachineId, VersionedEventData versionedEventData) {
+        Set<State> executableStates = cancelPath(stateMachineId, versionedEventData);
         logger.info("Path cancellation is done for state machine: {} event: {}",
-                stateMachineId, eventData.getName());
+                stateMachineId, versionedEventData.getName());
         executeStates(stateMachinesDAO.findById(stateMachineId), executableStates, false);
     }
 
-    // TODO : Add description, test cases
-    // TODO : Will modify to return all states in the path
-    // BFS to check a path between 2 states
-    private boolean pathExists(Set<State> allStates, Context context, State initialState, State destinationState) {
-
-        Map<State, Boolean> visitedState = new HashMap<>();
-        LinkedList<State> queue = new LinkedList<>();
-
-        // initialise visited states
-        allStates.forEach((state -> {
-            visitedState.put(state, Boolean.FALSE);
-        }));
-        visitedState.put(initialState, Boolean.TRUE);
-        queue.add(initialState);
-
-        Set<State> nextDependantStates;
-
-        while (queue.size() != 0) {
-            State retrievedState = queue.poll();
-
-            nextDependantStates = context.getDependantStates(retrievedState.getOutputEvent());
-
-            for (State dependantState : nextDependantStates) {
-                if(dependantState.equals(destinationState)) {
-                    return true;
-                }
-
-                if(!visitedState.get(dependantState)) {
-                    visitedState.put(dependantState, Boolean.TRUE);
-                    queue.add(dependantState);
-                }
-            }
-        }
-        return false;
-    }
-
     /**
-     * // TODO : Test cases needs to be added
-     * // TODO : Rephrase this description
-     * Retrieves the states which are dependant on this replay event and starts the execution of eligible states (replayable is true).
-     * 0. Verify eligible dependant state(replayable is true) on this replay event.
-     * 1. Retrieves set of states and events occurring in the topological path with triggering of this replay event using BFS.
-     * 2. Process and persist replay event
-     * 3. Submit replay event to execute eligible dependent states(replayable is true) on this replay event.
+     * Retrieves the state which are dependent on this replay event and starts the execution of eligible state
+     * (replayable is true and there is only one state dependent on Replay Event triggered).
+     * 1. Verify eligible dependant state(replayable is true) on this replay event.
+     * 2. Retrieves set of states and events occurring in the topological path with trigger of replay event using BFS.
+     * 3. Process and persist replay event
+     * 4. Submit replay event to execute eligible dependent states(replayable is true) on this replay event.
      *
      * @param eventData
      * @param stateMachine
      */
-    public Set<State> postReplayEvent(EventData eventData, StateMachine stateMachine) throws IllegalEventException {
+    public void postReplayEvent(EventData eventData, StateMachine stateMachine)
+            throws IllegalEventException, ReplayableRetryExhaustException, ReplayEventException,
+            IOException {
 
-        Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
-
-        // TODO : Add a check on client side so as not to allow a replay event being a dependency of 2 or more states.
-        //Get the dependant state on this replay event.
-        State dependantStateOnReplayEvent = statesDAO.findStateByDependentReplayEvent(stateMachine.getId(), eventData.getName());
-        logger.debug("This state {} depends on replay event {}", dependantStateOnReplayEvent, eventData.getName());
-
-        if(!dependantStateOnReplayEvent.getReplayable()) {
-                throw new IllegalEventException("Dependant state:"+ dependantStateOnReplayEvent.getName() +" with stateMachineId:" +
-                        stateMachine.getId() +" and replay event:"+ eventData.getName() + " is not replayable.");
+        Long dependantStateId = statesDAO.findStateIdByEventName(stateMachine.getId(), eventData.getName());
+        if (dependantStateId == null) {
+            throw new IllegalEventException(
+                    "No dependent state found for the event : " + eventData.getName());
+        }
+        // Already validated that only one state is dependent on input Replay Event
+        State dependantStateOnReplayEvent = statesDAO.findById(stateMachine.getId(), dependantStateId);
+        if (dependantStateOnReplayEvent == null) {
+            throw new IllegalEventException(
+                    "No dependent state found for the event : " + eventData.getName());
+        }
+        logger.info("This state {} depends on replay event {}", dependantStateOnReplayEvent.getName(), eventData.getName());
+        if (!dependantStateOnReplayEvent.getReplayable() || dependantStateOnReplayEvent.getStatus() != Status.completed) {
+            throw new IllegalEventException("Dependant state:" + dependantStateOnReplayEvent.getName() +
+                    " with stateMachineId:" + stateMachine.getId() + " and replay event:" + eventData.getName() +
+                    " and status: "+dependantStateOnReplayEvent.getStatus()+" is not replayable.");
         }
 
-        // Build states set and events names list in topological path of replay event
-        // All these states and events will be marked as invalid.
-        // TODO: Need to add test cases for this.
-        Set<State> dependantStates = new HashSet<>();
-        List<String> dependantEvents = new ArrayList<>();
-        dependantStates.add(dependantStateOnReplayEvent); // add initial state dependant on replay event
-        dependantEvents.add(dependantStateOnReplayEvent.getOutputEvent()); // add initial state's output event
-        dependantEvents.add(eventData.getName()); // add previous executionVersion replay event to be marked as invalid.
-        // Using BFS, for each state in State Machine, find path between initial dependant state -> current state
-        for (State state : stateMachine.getStates()) {
-            if(pathExists(stateMachine.getStates(), context, dependantStateOnReplayEvent, state)) {
-                dependantStates.add(state);
-                dependantEvents.add(state.getOutputEvent());
-            }
-        }
-        logger.info("Building set of states and list of events in dependancy path of replay event:{} for SMId:{} is done.",
-                eventData.getName(), stateMachine.getId());
-        //Remove external events from being marked as invalid.
-        List<String> tempDependantEvents = new ArrayList<>();
-        tempDependantEvents.addAll(dependantEvents);
-        for (String eventName : tempDependantEvents) {
-            // Using default execution version "0L" because it's the only executionVersion which will have all
-            // event's entries
-            if(eventsDAO.findBySMIdExecutionVersionAndName(stateMachine.getId(), eventName, 0L)
-                    .getEventSource() == "external") {
-                dependantEvents.remove(eventName);
-            }
-        }
-        Event currentEvent = persistAndProcessReplayEvent(eventData, dependantStateOnReplayEvent, dependantStates, dependantEvents,
-                stateMachine.getId());
-
-        Set<State> executableStates = new HashSet<>();
-        executableStates.add(dependantStateOnReplayEvent);
-        executeStates(stateMachine, executableStates, currentEvent, false);
-
-        return executableStates;
-    }
-
-    /**
-     * TODO : Rephrase this description
-     * In a Transaction :
-     *  1. Increment, update and read executionVersion for this State Machine.
-     *  2. Mark all states and Update executionVersion for all states(marked as invalid) retrieved in step 1.
-     *  3. Mark dependant events as invalid.
-     *  4. Create new event entries in pending status including replay event as triggered containing event data with executionVersion
-     *     read in step 2.
-     * @param eventData
-     * @param dependantStateOnReplayEvent
-     * @param dependantStates
-     * @param dependantEvents
-     * @param stateMachineId
-     */
-    @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public Event persistAndProcessReplayEvent(EventData eventData, State dependantStateOnReplayEvent,
-                                              Set<State> dependantStates, List<String> dependantEvents,
-                                              String stateMachineId) {
-
-        // TODO : This will be updated to return updated value in same call. Need to add tests for it.
-        stateMachinesDAO.incrementExecutionVersion(stateMachineId);
-        Long smExecutionVersion = stateMachinesDAO.findById(stateMachineId).getExecutionVersion();
-
-        // TODO: Test and use a single query in StatesDAO to mark all states in dependantStates as invalid
-        for (State state:dependantStates) {
-            statesDAO.updateStatus(stateMachineId, state.getId(), Status.invalid);
-            statesDAO.updateExecutionVersion(stateMachineId, state.getId(), smExecutionVersion);
+        if (dependantStateOnReplayEvent.getAttemptedNumOfReplayableRetries() >= dependantStateOnReplayEvent.getMaxReplayableRetries()) {
+            throw new ReplayableRetryExhaustException("Dependant state:" + dependantStateOnReplayEvent.getName() + " with stateMachineId:" +
+                    stateMachine.getId() + " and replay event:" + eventData.getName() + " is not replayable as the no of retries have been exhausted.");
+        } else {
+            statesDAO.incrementReplayableRetries(stateMachine.getId(), dependantStateId, (short) (dependantStateOnReplayEvent.getAttemptedNumOfReplayableRetries() + 1));
         }
 
-        // TODO : This should be moved to EventPersistenceService
-        eventsDAO.markEventsAsInvalid(stateMachineId, dependantEvents);
-        dependantEvents.remove(eventData.getName()); // Remove replay event. Purpose was to mark all it's previous version invalid.
-        for (String eventName: dependantEvents) {
-            // To retrieve event meta data (type) for creating new event with new smExecutionVersion
-            // Retrieving for executionVersion 0 is fine because type of event doesn't change with executionVersion
-            Event currentEvent = eventsDAO.findBySMIdExecutionVersionAndName(stateMachineId, eventName, 0L);
-            Event event = new Event(currentEvent.getName(), currentEvent.getType(), Event.EventStatus.pending,
-                    stateMachineId, null, null, smExecutionVersion);
-            eventsDAO.create(stateMachineId, event);
-        }
+        // Holds list of events in TraversalPath of ReplayEvent. All these events are supposed to be marked as invalid.
+        List<String> traversalPathEvents = new ArrayList<>();
 
-        //Persist replay event
-        Event replayEvent = new Event(eventData.getName(), eventData.getType(), Event.EventStatus.triggered, stateMachineId,
-                eventData.getData(), eventData.getEventSource(), smExecutionVersion);
-        return eventsDAO.create(stateMachineId, replayEvent);
+        // Retrieve StateTraversalPath for given Replayable State from database.
+        // This list has been created for ReplayableStates during StateMachine instance creation.
+        Optional<StateTraversalPath> traversalPathStates = stateTraversalPathDAO.findById(
+                stateMachine.getId(), dependantStateId);
+        if (traversalPathStates.isPresent()) {
+            List<Long> nextDependentStateIds = traversalPathStates.get().getNextDependentStates();
+            statesDAO.findAllStatesForGivenStateIds(
+                    stateMachine.getId(), nextDependentStateIds).forEach(state -> {
+                String outputEvent = state.getOutputEvent();
+                if (outputEvent != null && !traversalPathEvents.contains(outputEvent)) {
+                    traversalPathEvents.add(outputEvent);
+                }
+            });
+
+            logger.info("StateMachineId: {}, Replay event: {}, Replayable state: {}, Traversal path State ids: {}" +
+                            " and Traversal path Event names: {}", stateMachine.getId(), eventData.getName(),
+                    dependantStateOnReplayEvent.getName(), nextDependentStateIds, traversalPathEvents);
+
+            replayEventPersistenceService.persistAndProcessReplayEvent(
+                    stateMachine.getId(), eventData, nextDependentStateIds, traversalPathEvents);
+
+            // Fetching the replayable state again which is initialized in ReplayEventPersistenceService
+            dependantStateOnReplayEvent = statesDAO.findById(stateMachine.getId(), dependantStateOnReplayEvent.getId());
+            // Register the replayable state with redriver for execution
+            long redriverInterval = 0;
+            this.redriverRegistry.registerTask(dependantStateOnReplayEvent.getId(),
+                    dependantStateOnReplayEvent.getStateMachineId(), redriverInterval,
+                    dependantStateOnReplayEvent.getExecutionVersion());
+        } else {
+            logger.error("No traversal path found for replayable state id:{} in stateMachineId:{} for event:{}.",
+                    dependantStateId, stateMachine.getId(), eventData.getName());
+            throw new TraversalPathException("No traversal path found for replayable state id: " + dependantStateId +
+                    " and stateMachineId: " + stateMachine.getId());
+        }
     }
 
     /**
      * Retrieves the states which are dependant on this event and starts the execution of eligible states (whose all dependencies are met).
      *
-     * @param eventData
+     * @param versionedEventData
      * @param stateMachineInstanceId
      */
-    public Set<State> postEvent(EventData eventData, String stateMachineInstanceId) {
-        Event event = persistEvent(stateMachineInstanceId, eventData);
+    public Set<State> postEvent(VersionedEventData versionedEventData, String stateMachineInstanceId) {
+        Event event = persistEvent(stateMachineInstanceId, versionedEventData);
         return processEvent(event, stateMachineInstanceId);
     }
 
@@ -445,21 +414,25 @@ public class WorkFlowExecutionController {
      * Persists Event data and changes event status
      *
      * @param stateMachineInstanceId
-     * @param eventData
+     * @param versionedEventData
      * @return
      */
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public Event persistEvent(String stateMachineInstanceId, EventData eventData) {
+    public Event persistEvent(String stateMachineInstanceId, VersionedEventData versionedEventData) {
         //update event's data and status
-        Event event = eventsDAO.findBySMIdExecutionVersionAndName(stateMachineInstanceId, eventData.getName(),
-                eventData.getExecutionVersion());
-        if (event == null)
-            throw new IllegalEventException("Event with stateMachineId: " + stateMachineInstanceId + ", event name: " + eventData.getName() + " not found");
-        event.setStatus(eventData.getCancelled() != null && eventData.getCancelled() ? Event.EventStatus.cancelled : Event.EventStatus.triggered);
-        event.setEventData(eventData.getData());
-        event.setEventSource(eventData.getEventSource());
+        Event event = eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName(stateMachineInstanceId,
+                versionedEventData.getName(), versionedEventData.getExecutionVersion());
+        if (event == null) {
+            throw new IllegalEventException("Event with stateMachineId: " + stateMachineInstanceId + ", event name: "
+                    + versionedEventData.getName() + " not found");
+        }
+        event.setStatus(versionedEventData.getCancelled() != null && versionedEventData.getCancelled() ?
+                Event.EventStatus.cancelled : Event.EventStatus.triggered);
+        event.setEventData(versionedEventData.getData());
+        event.setEventSource(versionedEventData.getEventSource());
         eventsDAO.updateEvent(event.getStateMachineInstanceId(), event);
+        logger.debug("successfully persisted event: {} with execution version: {} for SMId: {}",versionedEventData.getName(),versionedEventData.getExecutionVersion(), stateMachineInstanceId);
         return event;
     }
 
@@ -515,58 +488,51 @@ public class WorkFlowExecutionController {
             case sidelined:
                 updateStatus = com.flipkart.flux.domain.Status.sidelined;
                 break;
-            case unsidelined:
-                updateStatus = com.flipkart.flux.domain.Status.sidelined;
-                break;
         }
         metricsClient.markMeter(new StringBuilder().
                 append("stateMachine.").
                 append(executionUpdateData.getStateMachineName()).
                 append(".task.").
                 append(executionUpdateData.getTaskName()).
+                append(".executionVersion.").
+                append(executionUpdateData.getTaskExecutionVersion()).
                 append(".status.").
                 append(updateStatus.name()).
                 toString());
         updateExecutionStatus(machineId, stateId, taskExecutionVersion, updateStatus,
                 executionUpdateData.getRetrycount(),
                 executionUpdateData.getCurrentRetryCount(), executionUpdateData.getErrorMessage(),
-                executionUpdateData.isDeleteFromRedriver());
+                executionUpdateData.isDeleteFromRedriver(),
+                executionUpdateData.getDependentAuditEvents());
     }
 
     /**
      * Updates the execution status for the specified State machine's Task
      *
-     * @param stateMachineId    the state machine identifier
-     * @param taskId            the Task identifier
-     * @param taskExecutionVersion  the Task Execution Version
-     * @param status            the Status to be updated to
-     * @param retryCount        the configured retry count for the task
-     * @param currentRetryCount current retry count for the task
-     * @param errorMessage      the error message in case task has failed
+     * @param stateMachineId       the state machine identifier
+     * @param taskId               the Task identifier
+     * @param taskExecutionVersion the Task Execution Version
+     * @param status               the Status to be updated to
+     * @param retryCount           the configured retry count for the task
+     * @param currentRetryCount    current retry count for the task
+     * @param errorMessage         the error message in case task has failed
      */
     public void updateExecutionStatus(String stateMachineId, Long taskId, Long taskExecutionVersion, Status status,
                                       long retryCount, long currentRetryCount, String errorMessage,
-                                      boolean deleteFromRedriver) {
-        // TODO: Handle deletion from redriver when executionVersion is added to redriver table.
-        // TODO: Once this check is handled in all it's callers, it can be removed from here.
-        if(taskExecutionVersion == this.statesDAO.findById(stateMachineId, taskId).getExecutionVersion()) {
+                                      boolean deleteFromRedriver, String dependentAuditEvents){
+        if (taskExecutionVersion.equals(this.statesDAO.findById(stateMachineId, taskId).getExecutionVersion())) {
             this.statesDAO.updateStatus(stateMachineId, taskId, status);
             AuditRecord auditRecord = new AuditRecord(stateMachineId, taskId, currentRetryCount, status,
-                    null, errorMessage);
-            auditRecord.setTaskExecutionVersion(taskExecutionVersion);
-            // TODO: Need to add dependent events for executed state in auditRecords.
+                    null, errorMessage, taskExecutionVersion, dependentAuditEvents);
             this.auditDAO.create(stateMachineId, auditRecord);
             if (deleteFromRedriver) {
-                this.redriverRegistry.deRegisterTask(stateMachineId, taskId);
+                this.redriverRegistry.deRegisterTask(stateMachineId, taskId, taskExecutionVersion);
             }
-        }
-        else {
+        } else {
             logger.info("Input taskExecutionVersion: {} is invalid, update task execution status denied for taskId: {}," +
                     " stateMachineId: {}.", taskExecutionVersion, taskId, stateMachineId);
         }
-
     }
-
 
     /*
      *  Audit entry in AuditRecord.
@@ -574,12 +540,13 @@ public class WorkFlowExecutionController {
      */
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public void updateEventData(String machineId, EventData eventData) {
-        persistEvent(machineId, eventData);
-        String EventUdpateAudit = "Event data updated for event: " + eventData.getName();
+    public void updateEventData(String machineId, VersionedEventData versionedEventData) {
+        persistEvent(machineId, versionedEventData);
+        String eventUpdateAudit = "Event data updated for event: " + versionedEventData.getName();
         this.auditDAO.create(machineId, new AuditRecord(machineId, Long.valueOf(0), Long.valueOf(0),
-                null, null, EventUdpateAudit));
-        logger.info("Updated event data persisted for event: {} and stateMachineId: {}", eventData.getName(), machineId);
+                null, null, eventUpdateAudit));
+        logger.info("Updated event data persisted for event: {} and stateMachineId: {} with execution version: {}", versionedEventData.getName(),
+                machineId,versionedEventData.getExecutionVersion());
     }
 
     /**
@@ -588,11 +555,13 @@ public class WorkFlowExecutionController {
      * @param stateMachineId
      * @param stateId
      */
-    public void unsidelineState(String stateMachineId, Long stateId) throws UnknownStateMachine, IllegalStateException {
+    public void unsidelineState(String stateMachineId, Long stateId) throws
+            UnknownStateMachine, IllegalStateException {
         State askedState = null;
         StateMachine stateMachine = retrieveStateMachine(stateMachineId);
-        if (stateMachine == null)
+        if (stateMachine == null) {
             throw new UnknownStateMachine("State machine with id: " + stateMachineId + " not found");
+        }
         for (State state : stateMachine.getStates()) {
             if (Objects.equals(state.getId(), stateId)) {
                 askedState = state;
@@ -608,13 +577,13 @@ public class WorkFlowExecutionController {
         Set<State> checkExecutableState = new HashSet<>();
         checkExecutableState.add(askedState);
         if (getExecutableStates(checkExecutableState, stateMachineId).isEmpty()) {
-            logger.error("Cannot unsideline state: {}, at least one of the dependent events is in pending status.",
-                    askedState.getName());
+            logger.error("Cannot unsideline state: {} with execution version: {}, at least one of the dependent events is in pending status.",
+                    askedState.getName(),askedState.getExecutionVersion());
             return;
         } else if (askedState.getStatus() == Status.initialized || askedState.getStatus() == Status.sidelined
                 || askedState.getStatus() == Status.errored) {
             askedState.setStatus(Status.unsidelined);
-            askedState.setAttemptedNoOfRetries(0L);
+            askedState.setAttemptedNumOfRetries(0L);
             statesDAO.updateState(stateMachineId, askedState);
             executeStates(stateMachine, Sets.newHashSet(Arrays.asList(askedState)), false);
         }
@@ -627,10 +596,9 @@ public class WorkFlowExecutionController {
      * @param taskId         the Task identifier
      */
     public void incrementExecutionRetries(String stateMachineId, Long taskId, Long taskExecutionVersion) {
-        if(taskExecutionVersion == this.statesDAO.findById(stateMachineId, taskId).getExecutionVersion()) {
+        if (taskExecutionVersion == this.statesDAO.findById(stateMachineId, taskId).getExecutionVersion()) {
             this.statesDAO.incrementRetryCount(stateMachineId, taskId);
-        }
-        else {
+        } else {
             logger.info("Input taskExecutionVersion: {} is invalid, increment execution retries denied for taskId: {}," +
                     " stateMachineId: {}.", taskExecutionVersion, taskId, stateMachineId);
         }
@@ -656,28 +624,22 @@ public class WorkFlowExecutionController {
             executableStates.forEach((state -> {
                 // trigger execution if state is not in completed|cancelled|invalid state
                 if (!(state.getStatus() == Status.completed || state.getStatus() == Status.cancelled ||
-                state.getStatus() == Status.invalid)) {
+                        state.getStatus() == Status.invalid)) {
 
-                    List<EventData> eventDatas;
-                    // Reading only replay event's data, ignoring all other dependant event's data.
-                    if(currentEvent != null && currentEvent.getEventSource() == "replay") {
-                        eventDatas = Collections.singletonList(new EventData(currentEvent.getName(),
-                                currentEvent.getType(), currentEvent.getEventData(), currentEvent.getEventSource(),
-                                currentEvent.getExecutionVersion()));
-                    }
+                    List<VersionedEventData> eventDatas;
                     // If the state is dependant on only one event, that would be the event which came now, in that case don't make a call to DB
-                    else if (currentEvent != null && state.getDependencies() != null && state.getDependencies().size() == 1
+                    if (currentEvent != null && state.getDependencies() != null && state.getDependencies().size() == 1
                             && currentEvent.getName().equals(state.getDependencies().get(0))) {
-                        eventDatas = Collections.singletonList(new EventData(currentEvent.getName(),
+                        eventDatas = Collections.singletonList(new VersionedEventData(currentEvent.getName(),
                                 currentEvent.getType(), currentEvent.getEventData(), currentEvent.getEventSource(),
                                 currentEvent.getExecutionVersion()));
                     } else {
                         eventDatas = eventsDAO.findByEventNamesAndSMId(stateMachine.getId(), state.getDependencies());
                     }
                     final TaskAndEvents msg = new TaskAndEvents(state.getName(), state.getTask(), state.getId(),
-                            state.getExecutionVersion(), eventDatas.toArray(new EventData[]{}),
+                            state.getExecutionVersion(), eventDatas.toArray(new VersionedEventData[]{}),
                             stateMachine.getId(), stateMachine.getName(), state.getOutputEvent(),
-                            state.getRetryCount(), state.getAttemptedNoOfRetries());
+                            state.getRetryCount(), state.getAttemptedNumOfRetries());
                     if (state.getStatus().equals(Status.initialized) || state.getStatus().equals(Status.unsidelined)) {
                         msg.setFirstTimeExecution(true);
                     }
@@ -688,11 +650,11 @@ public class WorkFlowExecutionController {
                     long redriverInterval;
                     if (redriverTriggered && state.getStatus() == Status.initialized) {
                         redriverInterval = 2 * ((int) Math.pow(2, 7) * 1000);
-                    }
-                    else {
+                    } else {
                         redriverInterval = 2 * ((int) Math.pow(2, state.getRetryCount() + 1) * 1000 + (state.getRetryCount() + 1) * state.getTimeout());
                     }
-                    this.redriverRegistry.registerTask(state.getId(), state.getStateMachineId(), redriverInterval);
+                    this.redriverRegistry.registerTask(state.getId(), state.getStateMachineId(), redriverInterval, state.getExecutionVersion());
+                    logger.info("Registered the state: {} with execution version: {} for SMId: {} in redriver",state.getId(),state.getExecutionVersion(),state.getStateMachineId());
 
                     // Send the message to Akka Router
                     String taskName = state.getTask();
@@ -709,24 +671,21 @@ public class WorkFlowExecutionController {
                     int statusCode = executionNodeTaskDispatcher.forwardExecutionMessage(endPoint, taskExecutionMessage);
                     long finishTime = System.currentTimeMillis();
                     if (statusCode == 202) {
-                        logger.info("Successfully forwarded the taskExecutionMsg for smId:{} taskId:{} for" +
+                        logger.info("Successfully forwarded the taskExecutionMsg for smId:{} taskId:{} and execution version: {} for" +
                                         " remoteExecution to host {} took {}ms", msg.getStateMachineId(),
-                                msg.getTaskId(), endPoint, finishTime - startTime);
+                                msg.getTaskId(),msg.getTaskExecutionVersion(), endPoint, finishTime - startTime);
                     } else {
-                        logger.error("Failed to succesfully send task for Execution smId:{} taskId:{}," +
+                        logger.error("Failed to successfully send task for Execution smId:{} taskId:{}, execution version: {}" +
                                         " should be retried by Redriver after {} ms.",
-                                msg.getStateMachineId(), msg.getTaskId(), redriverInterval);
-
+                                msg.getStateMachineId(), msg.getTaskId(), msg.getTaskExecutionVersion(), redriverInterval);
                     }
-
                 } else {
-                    logger.info("State machine: {} Task: {} execution request got discarded as the task is {}", state.getStateMachineId(), state.getId(), state.getStatus());
+                    logger.info("State machine: {}, Task: {}, Task Execution Version: {} execution request got discarded as the task is {}", state.getStateMachineId(), state.getId(), state.getExecutionVersion(),state.getStatus());
                 }
             }));
         } finally {
             LoggingUtils.deRegisterStateMachineIdForLogging();
         }
-
     }
 
     private StateMachine retrieveStateMachine(String stateMachineInstanceId) {
@@ -746,7 +705,7 @@ public class WorkFlowExecutionController {
         Set<String> receivedEvents = new HashSet<>(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId(stateMachineInstanceId));
 
         // Since replay event is optional, not required to check it's eventStatus. It's considered as dependency met.
-        Set<String> replayEvents = new HashSet<>(eventsDAO.findReplayEventsNamesBySMId(stateMachineInstanceId));
+        Set<String> replayEvents = new HashSet<>(eventsDAO.findAllValidReplayEventsNamesBySMId(stateMachineInstanceId));
         receivedEvents.addAll(replayEvents);
         // for each state
         // 1. get the dependencies (events)
@@ -759,18 +718,28 @@ public class WorkFlowExecutionController {
     /**
      * Performs task execution if the task is stalled and no.of retries are not exhausted
      */
-    public void redriveTask(String machineId, Long taskId) {
+    public void redriveTask(String machineId, Long taskId, Long executionVersion) {
         try {
             State state = statesDAO.findById(machineId, taskId);
 
-            if (state != null && isTaskRedrivable(state.getStatus()) && state.getAttemptedNoOfRetries() <= state.getRetryCount()) {
-                StateMachine stateMachine = retrieveStateMachine(state.getStateMachineId());
-                LoggingUtils.registerStateMachineIdForLogging(stateMachine.getId().toString());
-                logger.info("Redriving a task with Id: {} for state machine: {}", state.getId(), state.getStateMachineId());
-                executeStates(stateMachine, Collections.singleton(state), true);
-            } else {
+            if (state != null && !state.getExecutionVersion().equals(executionVersion)) {
+                logger.info("The execution version: {} to redrive is invalid for the state machine: "
+                                + "{} with state Id: {} and execution version: {}",executionVersion,machineId,
+                        state.getId(), state.getExecutionVersion());
                 //cleanup the tasks which can't be redrived from redriver db
-                this.redriverRegistry.deRegisterTask(machineId, taskId);
+                this.redriverRegistry.deRegisterTask(machineId, taskId, executionVersion);
+                throw new RedriverException("The execution version: "+executionVersion+" to redrive is invalid for the state machine: "+machineId+" with state Id: "+state.getId()+" and execution version: "+ state.getExecutionVersion());
+            } else {
+                //TODO: Add validations for incorrect state and state machine inputs
+                if (state != null && isTaskRedrivable(state.getStatus()) && state.getAttemptedNumOfRetries() <= state.getRetryCount()) {
+                    StateMachine stateMachine = retrieveStateMachine(state.getStateMachineId());
+                    LoggingUtils.registerStateMachineIdForLogging(stateMachine.getId().toString());
+                    logger.info("Redriving a task with Id: {} and execution version: {} for state machine: {}", state.getId(), executionVersion, state.getStateMachineId());
+                    executeStates(stateMachine, Collections.singleton(state), true);
+                } else {
+                    //cleanup the tasks which can't be redrived from redriver db
+                    this.redriverRegistry.deRegisterTask(machineId, taskId, executionVersion);
+                }
             }
         } finally {
             LoggingUtils.deRegisterStateMachineIdForLogging();
@@ -794,8 +763,28 @@ public class WorkFlowExecutionController {
         stateMachine.getStates().stream().filter(state -> state.getStatus() == Status.initialized ||
                 state.getStatus() == Status.errored || state.getStatus() == Status.sidelined).forEach(state -> {
             this.statesDAO.updateStatus(stateMachine.getId(), state.getId(), Status.cancelled);
-            this.auditDAO.create(stateMachine.getId(), new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNoOfRetries(), Status.cancelled, null, null));
+            this.auditDAO.create(stateMachine.getId(), new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNumOfRetries(), Status.cancelled, null, null));
         });
+    }
+
+    /***
+     * The method helps to reset the attempted no of retries to 0
+     * @param stateMachineId
+     * @param stateId
+     */
+    public void resetAttemptedNumberOfRetries(String stateMachineId, Long stateId) {
+        logger.info("Resetting the replayable retries for stateId: {} in SMId: {}", stateId, stateMachineId);
+        statesDAO.updateReplayableRetries(stateMachineId, stateId, (short) 0);
+    }
+
+    /***
+     * The method helps to delete all the previous invalid entries of event data from events table
+     * @param stateMachineId
+     * @param eventNames
+     */
+    public void deleteInvalidEvents(String stateMachineId, List<String> eventNames) {
+        logger.info("Deleting the events: {} in SMId: {}",eventNames, stateMachineId);
+        eventsDAO.deleteInvalidEvents(stateMachineId, eventNames);
     }
 
     /*
@@ -806,5 +795,29 @@ public class WorkFlowExecutionController {
         int secondUnderscorePosition = taskName.indexOf('_', taskName.indexOf('_') + 1);
         String routerName = taskName.substring(0, secondUnderscorePosition == -1 ? taskName.length() : secondUnderscorePosition);
         return routerName;
+    }
+
+    public void persistDiscardedEvent(String machineId, VersionedEventData versionedEventData){
+        List<Event> allEvents = eventsDAO.findAllBySMIdAndName(machineId,versionedEventData.getName());
+
+        if (allEvents.isEmpty()){
+            logger.error("The event: {} for SMId: {} not Found",versionedEventData.getName(), machineId);
+        }
+
+        //The filter's result in one entry only always
+        Optional<Event> invalidEvent = allEvents.stream()
+                .filter(event -> event.getExecutionVersion().equals(versionedEventData.getExecutionVersion()))
+                .filter(event -> event.getStatus().equals(Event.EventStatus.invalid))
+                .findFirst();
+
+        if (invalidEvent.isPresent()){
+            Event updatedEvent = new Event(invalidEvent.get().getName(),invalidEvent.get().getType(),
+                    invalidEvent.get().getStatus(), machineId,
+                    versionedEventData.getData(), versionedEventData.getEventSource(),
+                    invalidEvent.get().getExecutionVersion());
+            eventsDAO.updateEvent(machineId,updatedEvent);
+        }else {
+            logger.error("The discarded event: {} for SMId: {} not Found",versionedEventData.getName(), machineId);
+        }
     }
 }

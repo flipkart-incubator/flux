@@ -12,7 +12,6 @@
 
     <groupId>com.flipkart.flux</groupId>
     <artifactId>common</artifactId>
-    <version>1.2.1</version>
     <name>common</name>
     <url>http://maven.apache.org</url>
 
@@ -84,6 +83,11 @@
             <groupId>com.flipkart.flux</groupId>
             <artifactId>model</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.flipkart.flux</groupId>
+            <artifactId>api</artifactId>
+            <version>1.2.1</version>
         </dependency>
     </dependencies>
 

@@ -91,13 +91,13 @@ public class RedriverRegistryImpl implements RedriverRegistry, Initializable {
     /**
      * RedriverRegistry method. Registers the Task with the redriver
      *
-     * @see RedriverRegistry#redriveTask(String, Long)
+     * @see RedriverRegistry#redriveTask(String, Long, Long)
      */
-    public void registerTask(Long taskId, String stateMachineId, long redriveDelay) {
+    public void registerTask(Long taskId, String stateMachineId, long redriveDelay, Long executionVersion) {
         try {
-            LoggingUtils.registerStateMachineIdForLogging(stateMachineId.toString());
+            LoggingUtils.registerStateMachineIdForLogging(stateMachineId);
             logger.info("Register task : {} for redriver with time : {}", taskId, redriveDelay);
-            redriverMessageService.saveMessage(new ScheduledMessage(taskId, stateMachineId, System.currentTimeMillis() + redriveDelay));
+            redriverMessageService.saveMessage(new ScheduledMessage(taskId, stateMachineId, System.currentTimeMillis() + redriveDelay, executionVersion));
         } finally {
             LoggingUtils.deRegisterStateMachineIdForLogging();
         }
@@ -106,13 +106,13 @@ public class RedriverRegistryImpl implements RedriverRegistry, Initializable {
     /**
      * RedriverRegistry method. Un-Registers the Task with the redriver
      *
-     * @see RedriverRegistry#deRegisterTask(String, Long)
+     * @see RedriverRegistry#deRegisterTask(String, Long, Long)
      */
-    public void deRegisterTask(String stateMachineId, Long taskId) {
+    public void deRegisterTask(String stateMachineId, Long taskId, Long executionVersion) {
         try {
-            LoggingUtils.registerStateMachineIdForLogging(stateMachineId.toString());
+            LoggingUtils.registerStateMachineIdForLogging(stateMachineId);
             logger.info("DeRegister task : {} with smId : {} redriver", taskId, stateMachineId);
-            redriverMessageService.scheduleForRemoval(stateMachineId, taskId);
+            redriverMessageService.scheduleForRemoval(stateMachineId, taskId, executionVersion);
         } finally {
             LoggingUtils.deRegisterStateMachineIdForLogging();
         }
@@ -121,13 +121,13 @@ public class RedriverRegistryImpl implements RedriverRegistry, Initializable {
     /**
      * RedriverRegistry method. Re-drives the task identified by the <code>taskId</code> by submitting it back to the runtime.
      *
-     * @see RedriverRegistry#redriveTask(String, Long)
+     * @see RedriverRegistry#redriveTask(String, Long, Long)
      */
-    public void redriveTask(String stateMachineId, Long taskId) {
+    public void redriveTask(String stateMachineId, Long taskId, Long executionVersion) {
         try {
-            LoggingUtils.registerStateMachineIdForLogging(stateMachineId.toString());
-            logger.info("Redrive task with stateMachineId: {} Id : {} ", stateMachineId, taskId);
-            fluxRuntimeConnector.redriveTask(stateMachineId, taskId);
+            LoggingUtils.registerStateMachineIdForLogging(stateMachineId);
+            logger.info("Redrive task with stateMachineId: {} Id : {} and executionVersion: {}", stateMachineId, taskId, executionVersion);
+            fluxRuntimeConnector.redriveTask(stateMachineId, taskId, executionVersion);
         } finally {
             LoggingUtils.deRegisterStateMachineIdForLogging();
         }

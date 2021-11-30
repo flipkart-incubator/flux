@@ -1,6 +1,7 @@
 workflowClasses: ["com.flipkart.flux.dao.TestWorkflow",
                   "com.flipkart.flux.integration.SimpleWorkflow",
-                  "com.flipkart.flux.integration.TestCancelPathWorkflow"]
+                  "com.flipkart.flux.integration.TestCancelPathWorkflow",
+                  "com.flipkart.flux.integration.TestReplayEventTriggerWorkflow"]
 taskConfig:
   com.flipkart.flux.integration.SimpleWorkflow_simpleStringReturningTask:
     executionConcurrency: 5

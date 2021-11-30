@@ -16,6 +16,7 @@ package com.flipkart.flux.impl.task;
 
 import java.lang.reflect.Method;
 
+import com.flipkart.flux.api.VersionedEventData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -63,7 +64,7 @@ public class LocalJvmTask extends AbstractTask {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-    public Pair<Object, FluxError> execute(EventData[] events) {
+    public Pair<Object, FluxError> execute(VersionedEventData[] events) {
         Object[] parameters = new Object[events.length];
         Class<?>[] parameterTypes = toInvoke.getParameterTypes();
         try {

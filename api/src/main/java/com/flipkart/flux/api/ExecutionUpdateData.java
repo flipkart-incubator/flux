@@ -33,6 +33,7 @@ public class ExecutionUpdateData implements Serializable {
     private long currentRetryCount = 0;
     private String errorMessage;
 	private boolean deleteFromRedriver;
+	private String dependentAuditEvents;
 	private Long taskExecutionVersion;
 	
 	/** Constructors*/
@@ -41,14 +42,14 @@ public class ExecutionUpdateData implements Serializable {
 	}
     public ExecutionUpdateData(String stateMachineId, String stateMachineName, String taskName, Long taskId,
 							   Status status, long retrycount, long currentRetryCount, String errorMessage,
-							   boolean deleteFromRedriver) {
+							   boolean deleteFromRedriver, String dependentAuditEvents) {
 		this(stateMachineId, stateMachineName, taskName, taskId, status, retrycount, currentRetryCount, errorMessage,
-				deleteFromRedriver, 0L);
+				deleteFromRedriver, dependentAuditEvents, 0L);
     }
 
 	public ExecutionUpdateData(String stateMachineId, String stateMachineName, String taskName, Long taskId,
 							   Status status, long retrycount, long currentRetryCount, String errorMessage,
-							   boolean deleteFromRedriver, Long taskExecutionVersion) {
+							   boolean deleteFromRedriver, String dependentAuditEvents, Long taskExecutionVersion) {
 		this.stateMachineId = stateMachineId;
 		this.stateMachineName = stateMachineName;
 		this.taskName = taskName;
@@ -58,6 +59,7 @@ public class ExecutionUpdateData implements Serializable {
 		this.currentRetryCount = currentRetryCount;
 		this.errorMessage = errorMessage;
 		this.deleteFromRedriver = deleteFromRedriver;
+		this.dependentAuditEvents = dependentAuditEvents;
 		this.taskExecutionVersion = taskExecutionVersion;
 	}
 
@@ -89,5 +91,13 @@ public class ExecutionUpdateData implements Serializable {
 	}
 	public Long getTaskExecutionVersion() {
 		return taskExecutionVersion;
+	}
+
+	public String getDependentAuditEvents() {
+		return dependentAuditEvents;
+	}
+
+	public void setDependentAuditEvents(String dependentAuditEvents) {
+		this.dependentAuditEvents = dependentAuditEvents;
 	}
 }

@@ -14,6 +14,7 @@
 package com.flipkart.flux.impl.task;
 
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.api.core.Task;
 import com.flipkart.flux.client.exception.FluxCancelPathException;
@@ -42,7 +43,7 @@ public class TaskExecutor extends HystrixCommand<Event> {
     /**
      * The events used in Task execution
      */
-    private EventData[] events;
+    private VersionedEventData[] events;
 
     /**
      * State Machine Id to which this task belongs to
@@ -62,7 +63,7 @@ public class TaskExecutor extends HystrixCommand<Event> {
     /**
      * Constructor for this class
      */
-    public TaskExecutor(AbstractTask task, EventData[] events, String stateMachineId, String outputEventName,
+    public TaskExecutor(AbstractTask task, VersionedEventData[] events, String stateMachineId, String outputEventName,
                         Long executionVersion) {
         super(Setter
                 .withGroupKey(HystrixCommandGroupKey.Factory.asKey(task.getTaskGroupName()))

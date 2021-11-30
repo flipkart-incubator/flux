@@ -17,6 +17,8 @@ import static com.flipkart.flux.Constants.STATE_MACHINE_ID;
 import static com.flipkart.flux.Constants.TASK_ID;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -25,10 +27,12 @@ import javax.inject.Named;
 
 import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.AuditEvent;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.Status;
+import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.api.core.Task;
 import com.flipkart.flux.client.exception.FluxRetriableException;
@@ -53,7 +57,7 @@ import scala.concurrent.duration.FiniteDuration;
 
 /**
  * <code>AkkaTask</code> is an Akka {@link UntypedActor} that executes {@link Task} instances concurrently. Tasks are executed using a {@link TaskExecutor} where
- * the execution of {@link Task#execute(com.flipkart.flux.api.EventData[])} is wrapped with a {@link HystrixCommand} to provide isolation and fault tolerance to
+ * the execution of {@link Task#execute(com.flipkart.flux.api.VersionedEventData[])} is wrapped with a {@link HystrixCommand} to provide isolation and fault tolerance to
  * the Flux runtime.
  *
  * @author regunath.balasubramanian
@@ -103,6 +107,7 @@ public class AkkaTask extends UntypedActor {
         if (TaskAndEvents.class.isAssignableFrom(message.getClass())) {
             try {
                 TaskAndEvents taskAndEvent = (TaskAndEvents) message;
+                logger.info("Received message in Akka task : {}", message);
                 StringBuilder metricPrefix  = new StringBuilder().
                         append("stateMachine.").
                         append(taskAndEvent.getStateMachineName()).
@@ -132,6 +137,7 @@ public class AkkaTask extends UntypedActor {
                         throw new FluxError(FluxError.ErrorType.retriable, e.getMessage(), e, false,
                                 new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(),
                                         taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount(),
+                                        getDependentEvents(taskAndEvent),
                                         taskAndEvent.getTaskExecutionVersion()));
                     }
                     // Execute any pre-exec HookS
@@ -149,14 +155,14 @@ public class AkkaTask extends UntypedActor {
                         if (outputEvent != null) {
                             // after successful task execution, post the generated output event for further processing, also update status as part of same call
                             fluxRuntimeConnector.submitEventAndUpdateStatus(
-                                    new EventData(outputEvent.getName(), outputEvent.getType(),
+                                    new VersionedEventData(outputEvent.getName(), outputEvent.getType(),
                                             outputEvent.getEventData(), outputEvent.getEventSource(),
                                             outputEvent.getStatus() == Event.EventStatus.cancelled,
                                             outputEvent.getExecutionVersion()),
                                     outputEvent.getStateMachineInstanceId(),
                                     new ExecutionUpdateData(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(), Status.completed, taskAndEvent.getRetryCount(),
                                             taskAndEvent.getCurrentRetryCount(), null, true,
-                                            taskAndEvent.getTaskExecutionVersion()));
+                                            getDependentEvents(taskAndEvent), taskAndEvent.getTaskExecutionVersion()));
                         } else {
                             // update the Flux runtime with status of the Task as completed
                             updateExecutionStatus(taskAndEvent, Status.completed, null, true);
@@ -175,6 +181,7 @@ public class AkkaTask extends UntypedActor {
                                     null, false,
                                     new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(),
                                             taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount(),
+                                            getDependentEvents(taskAndEvent),
                                             taskAndEvent.getTaskExecutionVersion()));
                         } else {
                             //check if the exception hierarchy has FluxRetriableException, if yes trigger retry
@@ -194,6 +201,7 @@ public class AkkaTask extends UntypedActor {
                                 throw new FluxError(FluxError.ErrorType.retriable, cause.getClass().getName() + " : " + cause.getMessage(), null, false,
                                         new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(),
                                                 taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount(),
+                                                getDependentEvents(taskAndEvent),
                                                 taskAndEvent.getTaskExecutionVersion()));
                             } else {
                                 // mark the task outcome as execution failure, and the task won't retried
@@ -209,6 +217,7 @@ public class AkkaTask extends UntypedActor {
                         throw new FluxError(FluxError.ErrorType.retriable, e.getMessage(), e, false,
                                 new FluxError.ExecutionContextMeta(taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(), taskAndEvent.getTaskId(),
                                         taskAndEvent.getRetryCount(), taskAndEvent.getCurrentRetryCount(),
+                                        getDependentEvents(taskAndEvent),
                                         taskAndEvent.getTaskExecutionVersion()));
                     } catch (Exception e) {
                         context.close();
@@ -253,6 +262,7 @@ public class AkkaTask extends UntypedActor {
                                 fe.getExecutionContextMeta().getMaxRetries(),
                                 fe.getExecutionContextMeta().getAttemptedNoOfRetries(), fe.getMessage(),
                                 true,
+                                fe.getExecutionContextMeta().getDependentAuditEvents(),
                                 fe.getExecutionContextMeta().getTaskExecutionVersion()
                                 ));
                     }
@@ -292,6 +302,16 @@ public class AkkaTask extends UntypedActor {
         fluxRuntimeConnector.updateExecutionStatus(new ExecutionUpdateData(
                 taskAndEvent.getStateMachineId(), taskAndEvent.getStateMachineName(), taskAndEvent.getTaskName(),
                 taskAndEvent.getTaskId(), status, taskAndEvent.getRetryCount(),
-                taskAndEvent.getCurrentRetryCount(), errorMsg, deleteFromRedriver, taskAndEvent.getTaskExecutionVersion()));
+                taskAndEvent.getCurrentRetryCount(), errorMsg, deleteFromRedriver, getDependentEvents(taskAndEvent),
+                taskAndEvent.getTaskExecutionVersion()));
+    }
+
+    private String getDependentEvents(TaskAndEvents taskAndEvents) {
+        List<AuditEvent> dependentEvents = new LinkedList<>();
+        for(VersionedEventData versionedEventData : taskAndEvents.getEvents()) {
+            String eventDisplayName = versionedEventData.getName();
+            dependentEvents.add(new AuditEvent(eventDisplayName, versionedEventData.getExecutionVersion()));
+        }
+        return dependentEvents.toString();
     }
 }

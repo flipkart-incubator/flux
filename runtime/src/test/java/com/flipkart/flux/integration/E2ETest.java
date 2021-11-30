@@ -14,17 +14,28 @@
 
 package com.flipkart.flux.integration;
 
+import static com.flipkart.flux.resource.StateMachineResourceTest.STATE_MACHINE_RESOURCE_URL;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.InjectFromRole;
+import com.flipkart.flux.api.Status;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
+import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.guice.module.*;
+import com.flipkart.flux.guice.module.AkkaModule;
+import com.flipkart.flux.guice.module.ContainerModule;
+import com.flipkart.flux.guice.module.ExecutionContainerModule;
+import com.flipkart.flux.guice.module.ExecutionTaskModule;
+import com.flipkart.flux.guice.module.OrchestrationTaskModule;
+import com.flipkart.flux.guice.module.ShardModule;
 import com.flipkart.flux.initializer.ExecutionOrderedComponentBooter;
 import com.flipkart.flux.initializer.OrchestrationOrderedComponentBooter;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
@@ -38,55 +49,55 @@ import com.flipkart.flux.runner.Modules;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import java.util.Set;
+import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 @RunWith(GuiceJunit4Runner.class)
-@Modules(orchestrationModules = {FluxClientComponentModule.class, ShardModule.class, RuntimeTestModule.class, ContainerModule.class, 
+@Modules(orchestrationModules = {FluxClientComponentModule.class, ShardModule.class,
+        RuntimeTestModule.class, ContainerModule.class,
         OrchestrationTaskModule.class, FluxClientInterceptorModule.class},
-        executionModules = {FluxClientComponentModule.class, DeploymentUnitTestModule.class, AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class, FluxClientInterceptorModule.class})
+        executionModules = {FluxClientComponentModule.class, DeploymentUnitTestModule.class,
+                AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class,
+                FluxClientInterceptorModule.class})
 public class E2ETest {
-
-    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
-    StateMachinesDAO stateMachinesDAO;
-
-    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
-    ParallelScatterGatherQueryHelper parallelScatterGatherQueryHelper;
-
-    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
-    EventsDAO eventsDAO;
 
     @Rule
     @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     public DbClearRule dbClearRule;
-
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
+    StateMachinesDAO stateMachinesDAO;
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
+    ParallelScatterGatherQueryHelper parallelScatterGatherQueryHelper;
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
+    EventsDAO eventsDAO;
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
+    StatesDAO statesDAO;
     @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     SimpleWorkflow simpleWorkflow;
-
     @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     OrchestrationOrderedComponentBooter orchestrationOrderedComponentBooter;
-
     @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
     TestCancelPathWorkflow testCancelPathWorkflow;
-
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
+    TestReplayEventTriggerWorkflow testReplayEventTriggerWorkflow;
     /**
      * Needed to populate deployment units before beginning the test
      */
     @InjectFromRole(value = FluxRuntimeRole.EXECUTION)
     DeploymentUnitsManager deploymentUnitManager;
-
     @InjectFromRole(value = FluxRuntimeRole.EXECUTION)
     TaskExecutableRegistryImpl registry;
-
     @InjectFromRole(value = FluxRuntimeRole.EXECUTION)
     ExecutionOrderedComponentBooter executionOrderedComponentBooter;
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
+    RedriverRegistry redriverRegistry;
+    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
+    MessageDao messageDao;
 
     @Before
     public void setUp() {
@@ -109,12 +120,6 @@ public class E2ETest {
         }
     }
 
-    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
-    RedriverRegistry redriverRegistry;
-
-    @InjectFromRole(value = FluxRuntimeRole.ORCHESTRATION)
-    MessageDao messageDao;
-
     @Test
     public void testSimpleWorkflowE2E() throws Exception {
         /* Invocation */
@@ -123,7 +128,10 @@ public class E2ETest {
         Thread.sleep(2000L);
 
         /* Asserts*/
-        final Set<StateMachine> smInDb = parallelScatterGatherQueryHelper.findStateMachinesByNameAndVersion("com.flipkart.flux.integration.SimpleWorkflow_simpleDummyWorkflow_void_com.flipkart.flux.integration.StringEvent_version1", 1l);
+        final Set<StateMachine> smInDb = parallelScatterGatherQueryHelper
+                .findStateMachinesByNameAndVersion(
+                        "com.flipkart.flux.integration.SimpleWorkflow_simpleDummyWorkflow_void_com.flipkart.flux.integration.StringEvent_version1",
+                        1l);
         final String smId = smInDb.stream().findFirst().get().getId();
         assertThat(smInDb).hasSize(1);
         assertThat(eventsDAO.findBySMInstanceId(smId)).hasSize(3);
@@ -140,14 +148,19 @@ public class E2ETest {
         Thread.sleep(2000L);
 
         /* Asserts*/
-        final Set<StateMachine> smInDb = parallelScatterGatherQueryHelper.findStateMachinesByNameAndVersion("com.flipkart.flux.integration.TestCancelPathWorkflow_create_void_com.flipkart.flux.integration.StartEvent_version1", 1l);
+        final Set<StateMachine> smInDb = parallelScatterGatherQueryHelper
+                .findStateMachinesByNameAndVersion(
+                        "com.flipkart.flux.integration.TestCancelPathWorkflow_create_void_com.flipkart.flux.integration.StartEvent_version1",
+                        1l);
         final String smId = smInDb.stream().findFirst().get().getId();
         assertThat(smInDb).hasSize(1);
         assertThat(eventsDAO.findBySMInstanceId(smId)).hasSize(9);
 
         /* Tests the propagation of FluxCancelPathException via event ParamEvent2 */
         String eventName = "com.flipkart.flux.integration.ParamEvent2";
-        assertThat(eventsDAO.findBySMIdExecutionVersionAndName(smId, eventName, 0L).getStatus().toString().equalsIgnoreCase("cancelled"));
+        assertThat(
+                eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName(smId, eventName, 0L)
+                        .getStatus().toString().equalsIgnoreCase("cancelled"));
 
         /* Triggered events coming from States which do not throw FluxCancelPathException */
         assertThat(eventsDAO.findTriggeredEventsBySMId(smId)).hasSize(3);
@@ -158,20 +171,22 @@ public class E2ETest {
 
     @Test
     public void testExecConcurrencyValueOfTask() {
-        Executable executable = registry.getTask("com.flipkart.flux.integration.SimpleWorkflow_simpleStringReturningTask_com.flipkart.flux.integration.StringEvent_com.flipkart.flux.integration.StringEvent_version1");
+        Executable executable = registry.getTask(
+                "com.flipkart.flux.integration.SimpleWorkflow_simpleStringReturningTask_com.flipkart.flux.integration.StringEvent_com.flipkart.flux.integration.StringEvent_version1");
         assertThat(executable).isInstanceOf(TaskExecutableImpl.class);
         TaskExecutableImpl taskExecutable = (TaskExecutableImpl) executable;
         assertThat(taskExecutable.getExecutionConcurrency()).isEqualTo(5);
     }
 
-    @SuppressWarnings("unused")
-	@Test
+    @Test
     public void verifyRedriverPolling() {
         dbClearRule.explicitClearTables();
-        for (int i = 0; i < 100; i++)
-            redriverRegistry.registerTask(i * 1L, "smId", 0);
-        for (int i = 1; i <= 100; i++)
-            redriverRegistry.registerTask(1000L + i, "smId", (i * 10000000L));
+        for (int i = 0; i < 100; i++) {
+            redriverRegistry.registerTask(i * 1L, "smId", 0, 0l);
+        }
+        for (int i = 1; i <= 100; i++) {
+            redriverRegistry.registerTask(1000L + i, "smId", (i * 10000000L), 0l);
+        }
         Long total = messageDao.redriverCount();
         try {
             Thread.sleep(12000);
@@ -179,5 +194,156 @@ public class E2ETest {
         }
         assertThat(messageDao.redriverCount()).isEqualTo(100L);
         dbClearRule.explicitClearTables();
+    }
+
+    @Test
+    public void testReplayEventTriggerWorkflowE2E() throws Exception {
+        /* Invocation */
+        String smId = "test_replay_event_trigger";
+        testReplayEventTriggerWorkflow.create(new StartEvent(smId));
+        // sleep for a while to let things complete and then eval results and shutdown
+        Thread.sleep(2000L);
+
+        StateMachine stateMachine = stateMachinesDAO.findById(smId);
+
+
+        /* Assert for default values and ReplayEvent entries in Datastore */
+        assertThat(stateMachine.getExecutionVersion()).isEqualTo(0);
+        assertThat(eventsDAO.findBySMInstanceId(smId)).hasSize(11);
+        assertThat(eventsDAO.findValidReplayEventBySMIdAndName(smId, "RE1").isPresent()).isTrue();
+        assertThat(eventsDAO.findValidReplayEventBySMIdAndName(smId, "RE2").isPresent()).isTrue();
+
+        // Trigger ReplayEvent RE1
+        String replayEventJson = IOUtils
+                .toString(this.getClass().getClassLoader().getResourceAsStream("replay_event_data.json"));
+        Unirest.post(
+                STATE_MACHINE_RESOURCE_URL + "/" + smId + "/context/replayevent")
+                .header("Content-Type", "application/json").body(replayEventJson).asString();
+
+        /* Wait for redriver to pick replayable state and then let the things complete with that execution version.
+         * Replayable state are redrived by redriver, thread sleep in between
+         * is set to 8 secs for each RE trigger because redriver batch read
+         * interval is 2.5 secs and further sleep of 5.5 secs is for all states
+         * to get completed (7 states, each with timeout of 0.5 secs).
+         */
+        Thread.sleep(8000L);
+
+        stateMachine = stateMachinesDAO.findById(smId);
+        /* Assertions */
+        assertThat(stateMachine.getExecutionVersion()).isEqualTo(1);
+        assertThat(eventsDAO.findBySMInstanceId(smId)).hasSize(11);
+        assertThat(eventsDAO.findValidReplayEventBySMIdAndName(smId, "RE1").get().getEventData())
+                .isEqualTo("42");
+
+        /* Assert for executionVersion of all state after RE1 replayEvent is triggered. Only states in it's
+         * traversal path should have executionVersion '1'. Also all states should be completed */
+        for (State state : stateMachine.getStates()) {
+            switch (state.getName()) {
+                case "t1":
+                    assertThat(state.getExecutionVersion()).isEqualTo(0);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+                case "t2":
+                    assertThat(state.getExecutionVersion()).isEqualTo(0);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+                case "t3":
+                    assertThat(state.getExecutionVersion()).isEqualTo(1);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+                case "t4":
+                    assertThat(state.getExecutionVersion()).isEqualTo(1);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+                case "t5":
+                    assertThat(state.getExecutionVersion()).isEqualTo(1);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+                case "t6":
+                    assertThat(state.getExecutionVersion()).isEqualTo(1);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+                case "t7":
+                    assertThat(state.getExecutionVersion()).isEqualTo(1);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+                case "t8":
+                    assertThat(state.getExecutionVersion()).isEqualTo(0);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+                case "t9":
+                    assertThat(state.getExecutionVersion()).isEqualTo(1);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+                case "t10":
+                    assertThat(state.getExecutionVersion()).isEqualTo(1);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+            }
+        }
+
+        // Trigger ReplayEvent RE2
+        String replayEvent2_Json = IOUtils
+                .toString(this.getClass().getClassLoader().getResourceAsStream("replay_event_data_2.json"));
+        Unirest.post(
+                STATE_MACHINE_RESOURCE_URL + "/" + smId + "/context/replayevent")
+                .header("Content-Type", "application/json").body(replayEvent2_Json).asString();
+
+        /* Wait for redriver to pick replayable state and then let the things complete with that execution version. */
+        Thread.sleep(8000L);
+
+        stateMachine = stateMachinesDAO.findById(smId);
+        /* Assertions */
+        assertThat(stateMachine.getExecutionVersion()).isEqualTo(2);
+        assertThat(eventsDAO.findBySMInstanceId(smId)).hasSize(11);
+        assertThat(eventsDAO.findValidReplayEventBySMIdAndName(smId, "RE2").get().getEventData())
+                .isEqualTo("50");
+
+        /* Assert for executionVersion of all state after RE2 replayEvent is triggered. Only states in it's
+         * traversal path should have executionVersion '2'. Also all states should be completed */
+        for (State state : stateMachine.getStates()) {
+            switch (state.getName()) {
+                case "t1":
+                    assertThat(state.getExecutionVersion()).isEqualTo(0);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+                case "t2":
+                    assertThat(state.getExecutionVersion()).isEqualTo(0);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+                case "t3":
+                    assertThat(state.getExecutionVersion()).isEqualTo(1);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+                case "t4":
+                    assertThat(state.getExecutionVersion()).isEqualTo(1);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+                case "t5":
+                    assertThat(state.getExecutionVersion()).isEqualTo(1);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+                case "t6":
+                    assertThat(state.getExecutionVersion()).isEqualTo(1);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+                case "t7":
+                    assertThat(state.getExecutionVersion()).isEqualTo(1);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+                case "t8":
+                    assertThat(state.getExecutionVersion()).isEqualTo(0);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+                case "t9":
+                    assertThat(state.getExecutionVersion()).isEqualTo(2);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+                case "t10":
+                    assertThat(state.getExecutionVersion()).isEqualTo(2);
+                    assertThat(state.getStatus().toString()).isEqualTo(Status.completed.toString());
+                    break;
+            }
+        }
     }
 }

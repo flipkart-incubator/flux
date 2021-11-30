@@ -14,11 +14,14 @@
 package com.flipkart.flux.dao;
 
 import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.VersionedEventData;
+import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.persistence.*;
 import com.google.inject.name.Named;
 import org.hibernate.*;
+import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
@@ -33,6 +36,11 @@ import java.util.*;
  */
 // TODO: For all queries, added restriction not to retrieve invalid statuses events. Need to add test cases for it.
 public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
+
+    private static final String TABLE_NAME = "Event";
+    private static final String COLUMN_STATE_MACHINE_INSTANCE_ID = "stateMachineInstanceId";
+    private static final String COLUMN_STATUS = "status";
+    private static final String COLUMN_NAME = "name";
 
     @Inject
     public EventsDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
@@ -53,6 +61,12 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         super.update(event);
     }
 
+    /**
+     * Returns the list of events which are not marked as invalid
+     *
+     * @param stateMachineInstanceId Identifier for the state machine
+     * @return
+     */
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
@@ -63,30 +77,78 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
                 .list();
     }
 
+    /**
+     * Returns the list of events that are not marked invalid
+     *
+     * @param stateMachineInstanceId State Machine Identifier
+     * @param eventName              Name of the event
+     * @return
+     */
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public List<Event> findBySMIdAndName(String stateMachineInstanceId, String eventName) {
+    public Event findValidEventBySMIdAndName(String stateMachineInstanceId, String eventName) {
         Criteria criteria = currentSession().createCriteria(Event.class)
                 .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("name", eventName))
-                .add(Restrictions.ne("status", Event.EventStatus.invalid));
-        return (List<Event>) criteria.list();
-    }
-
-    @Override
-    @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public Event findBySMIdExecutionVersionAndName(String stateMachineInstanceId, String eventName,
-                                                   Long executionVersion) {
-        Criteria criteria = currentSession().createCriteria(Event.class)
-                .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
-                .add(Restrictions.eq("name", eventName))
-                .add(Restrictions.eq("executionVersion", executionVersion))
+                //TODO: Check if we need to add check on invalid
                 .add(Restrictions.ne("status", Event.EventStatus.invalid));
         return (Event) criteria.uniqueResult();
     }
 
+    /**
+     * Retrieves all the events with the given name irrespective of its status
+     *
+     * @param stateMachineInstanceId
+     * @param eventName
+     */
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public List<Event> findAllBySMIdAndName(String stateMachineInstanceId, String eventName) {
+        Criteria criteria = currentSession().createCriteria(Event.class)
+                .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
+                .add(Restrictions.eq("name", eventName));
+        return criteria.list();
+    }
+
+    // TODO : This may throw NULL results. Check and remove invalid event check safely or handle null results.
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public Event findValidEventsByStateMachineIdAndExecutionVersionAndName(String stateMachineInstanceId, String eventName,
+                                                                           Long executionVersion) {
+        Criteria criteria = currentSession().createCriteria(Event.class)
+                .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
+                .add(Restrictions.eq("name", eventName))
+                //TODO: Check marking events as invalid is necessary
+                .add(Restrictions.ne("status", Event.EventStatus.invalid))
+                .add(Restrictions.eq("executionVersion", executionVersion));
+        return (Event) criteria.uniqueResult();
+    }
+
+    /**
+     * @return all valid events for the list of names
+     */
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public List<Event> findAllValidEventsByStateMachineIdAndExecutionVersionAndName(
+            String stateMachineInstanceId, List<String> eventNames, Long executionVersion) {
+        Criteria criteria = currentSession().createCriteria(Event.class)
+                .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
+                .add(Restrictions.in("name", eventNames))
+                .add(Restrictions.ne("status", Event.EventStatus.invalid))
+                .add(Restrictions.eq("executionVersion", executionVersion));
+        return criteria.list();
+    }
+
+    /**
+     * Returns the List of all event names that are either triggered or cancelled
+     *
+     * @param stateMachineInstanceId State Machine Identifier
+     * @return
+     */
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
@@ -97,24 +159,56 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
                 .add(Restrictions.or(
                         Restrictions.eq("status", Event.EventStatus.triggered),
                         Restrictions.eq("status", Event.EventStatus.cancelled)))
-                        .setProjection(Projections.property("name"));
+                .setProjection(Projections.property("name"));
         return criteria.list();
     }
 
+    /**
+     * @param stateMachineInstanceId State Machine Identifier
+     * @return Returns the list of replay event names
+     */
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public List<String> findReplayEventsNamesBySMId(String stateMachineInstanceId) {
+    public List<String> findAllValidReplayEventsNamesBySMId(String stateMachineInstanceId) {
 
         Criteria criteria = currentSession().createCriteria(Event.class)
                 .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
-                .add(Restrictions.eq("eventSource", "replay"))
+                .add(Restrictions.ilike("eventSource", RuntimeConstants.REPLAY_EVENT, MatchMode.ANYWHERE))
                 .add(Restrictions.ne("status", Event.EventStatus.invalid))
                 .setProjection(Projections.property("name"));
         return criteria.list();
     }
 
+    /**
+     *
+     * @param stateMachineInstanceId
+     * @param eventName
+     * @return
+     */
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public Optional<Event> findValidReplayEventBySMIdAndName(String stateMachineInstanceId, String eventName) {
+        Criteria criteria = currentSession().createCriteria(Event.class)
+                .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
+                .add(Restrictions.eq("name", eventName))
+                .add(Restrictions.ilike("eventSource", RuntimeConstants.REPLAY_EVENT, MatchMode.ANYWHERE))
+                .add(Restrictions.ne("status", Event.EventStatus.invalid));
 
+        Object object = criteria.uniqueResult();
+        Event castedObject = null;
+        if(object != null)
+            castedObject = (Event) object;
+        return Optional.ofNullable(castedObject);
+    }
+
+    /**
+     * Returns the list of the events that are in triggered state
+     *
+     * @param stateMachineInstanceId State achine identifier
+     * @return
+     */
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
@@ -125,7 +219,6 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         return criteria.list();
     }
 
-    // TODO: Add tests for this.
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
@@ -140,7 +233,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public List<EventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames) {
+    public List<VersionedEventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames) {
         if (eventNames.isEmpty()) {
             return new ArrayList<>();
         }
@@ -155,12 +248,10 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
                 "and status != 'invalid' and name in (" + eventNamesString.toString()
                 + ") order by field(name, " + eventNamesString.toString() + ")").setParameter("SMID", stateMachineInstanceId);
         List<Event> readEvents = hqlQuery.list();
-        LinkedList<EventData> readEventsDTOs = new LinkedList<EventData>();
+        LinkedList<VersionedEventData> readEventsDTOs = new LinkedList<>();
         for (Event event : readEvents) {
-            // Skip replay event source, since it's an optional event.
-            if(event.getEventSource() != "replay") {
-                readEventsDTOs.add(new EventData(event.getName(), event.getType(), event.getEventData(), event.getEventSource()));
-            }
+            readEventsDTOs.add(new VersionedEventData(event.getName(), event.getType(), event.getEventData(),
+                    event.getEventSource(), event.getExecutionVersion()));
         }
         return readEventsDTOs;
     }
@@ -171,13 +262,13 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     public Map<String, Event.EventStatus> getAllEventsNameAndStatus(String stateMachineInstanceId, boolean forUpdate) {
         SQLQuery sqlQuery = currentSession().createSQLQuery(
                 "Select name, status from Events where  status != 'invalid' and stateMachineInstanceId ='"
-                        + stateMachineInstanceId + (forUpdate ? "' for update" : "''"));
+                        + stateMachineInstanceId + (forUpdate ? "' for update" : "'"));
 
         List<Object[]> eventRows = sqlQuery.list();
         Map<String, Event.EventStatus> eventStatusMap = new HashMap<>();
 
-        for(Object[] eventRow : eventRows) {
-            eventStatusMap.put((String)eventRow[0], Event.EventStatus.valueOf((String)eventRow[1]));
+        for (Object[] eventRow : eventRows) {
+            eventStatusMap.put((String) eventRow[0], Event.EventStatus.valueOf((String) eventRow[1]));
         }
 
         return eventStatusMap;
@@ -196,7 +287,6 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         query.executeUpdate();
     }
 
-    // TODO: Add test case for this update query.
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
@@ -216,5 +306,40 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         }
     }
 
+    @Override
+    public Event create_NonTransactional(Event event, Session session) {
+        session.save(event);
+        return event;
+    }
 
+    @Override
+    public void markEventAsInvalid_NonTransactional(String stateMachineInstanceId, String eventName, Session session) {
+        Query query = session.createQuery("update Event set status = :status where" +
+                " stateMachineInstanceId = :stateMachineInstanceId and name = :eventName");
+        query.setString("status", Event.EventStatus.invalid.toString());
+        query.setString("stateMachineInstanceId", stateMachineInstanceId);
+        query.setString("eventName", eventName);
+        query.executeUpdate();
+    }
+
+    //TODO: Check and validate query + Test cases
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void deleteInvalidEvents(String stateMachineInstanceId, List<String> eventNames) {
+        if (!eventNames.isEmpty()) {
+            StringBuilder eventNamesString = new StringBuilder();
+            for (int i = 0; i < eventNames.size(); i++) {
+                eventNamesString.append("\'" + eventNames.get(i) + "\'");
+                if (i != eventNames.size() - 1)
+                    eventNamesString.append(", ");
+            }
+            Query query = currentSession().createQuery("delete from " + TABLE_NAME + " where "
+                    + COLUMN_STATE_MACHINE_INSTANCE_ID + " = :stateMachineInstanceId and " + COLUMN_NAME + " in (" + eventNamesString.toString() + ")"
+                    + " and " + COLUMN_STATUS + " = :status");
+            query.setString("status", Event.EventStatus.invalid.toString());
+            query.setString("stateMachineInstanceId", stateMachineInstanceId);
+            query.executeUpdate();
+        }
+    }
 }

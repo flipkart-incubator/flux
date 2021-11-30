@@ -30,10 +30,14 @@ public class DbClearWithTestSMRule extends ExternalResource {
 
     private TestSMRule testSMRule;
 
+    private TestReplayableSMRule testReplayableSMRule;
+
     @Inject
-    public DbClearWithTestSMRule(DbClearRule dbClearRule, TestSMRule testSMRule) {
+    public DbClearWithTestSMRule(DbClearRule dbClearRule, TestSMRule testSMRule, TestReplayableSMRule
+            testReplayableSMRule) {
         this.dbClearRule = dbClearRule;
         this.testSMRule = testSMRule;
+        this.testReplayableSMRule = testReplayableSMRule;
     }
 
     @Override
@@ -43,6 +47,9 @@ public class DbClearWithTestSMRule extends ExternalResource {
 
         //create state machine for test purpose
         testSMRule.before();
+
+        //create state machine with replayable state for test purpose
+        testReplayableSMRule.before();
     }
 
     /** Returns test state machine*/
@@ -50,4 +57,13 @@ public class DbClearWithTestSMRule extends ExternalResource {
         return this.testSMRule.getStateMachine();
     }
 
+    /** Returns test state machine with replayable state */
+    public StateMachine getStateMachineWithReplayableState() {
+        return this.testReplayableSMRule.getStateMachineWithReplayableState();
+    }
+
+    /** Returns test state machine with multiple replayable states */
+    public StateMachine getStateMachineWithMultipleReplayableStates() {
+        return this.testReplayableSMRule.getStateMachine2WithReplayableState();
+    }
 }

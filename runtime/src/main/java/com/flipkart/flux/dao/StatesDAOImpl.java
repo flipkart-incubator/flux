@@ -20,9 +20,12 @@ import com.flipkart.flux.persistence.*;
 import com.flipkart.flux.shard.ShardId;
 import com.google.inject.name.Named;
 import org.hibernate.Query;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -33,6 +36,13 @@ import java.util.*;
  */
 public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
+    private static final String TABLE_NAME = "State";
+
+    private static final String COLUMN_ATTEMPTED_NUM_OF_REPLAYABLE_RETRIES = "attemptedNumOfReplayableRetries";
+
+    private static final String COLUMN_ID = "id";
+
+    private static final String COLUMN_STATE_MACHINE_ID = "stateMachineId";
 
     @Inject
     public StatesDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
@@ -60,6 +70,24 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void updateStatus(String stateMachineInstanceId, List<State> states, Status status) {
+        StringBuilder inClause = new StringBuilder();
+        if (states!=null && !states.isEmpty()) {
+            inClause.append(" and id in (");
+            for (State state : states) {
+                inClause.append(state.getId()).append(",");
+            }
+        }
+        inClause.deleteCharAt(inClause.length() - 1).append(")");
+        Query query = currentSession().createQuery("update State set status = :status where stateMachineId = :stateMachineId".concat(inClause.toString()));
+        query.setString("status", status != null ? status.toString() : null);
+        query.setString("stateMachineId", stateMachineInstanceId);
+        query.executeUpdate();
+    }
+
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public void updateRollbackStatus(String stateMachineId, Long stateId, Status rollbackStatus) {
         Query query = currentSession().createQuery("update State set rollbackStatus = :rollbackStatus where id = :stateId and stateMachineId = :stateMachineId");
         query.setString("rollbackStatus", rollbackStatus != null ? rollbackStatus.toString() : null);
@@ -78,6 +106,19 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         query.executeUpdate();
     }
 
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    //TODO: check query
+    public void incrementReplayableRetries(String stateMachineId, Long stateId, Short attemptedNumOfReplayableRetries) {
+        Query query = currentSession().createQuery("update " + TABLE_NAME + " set " + COLUMN_ATTEMPTED_NUM_OF_REPLAYABLE_RETRIES + " = :attemptedNumOfReplayableRetries " +
+                " where " + COLUMN_ID + " = :stateId and " + COLUMN_STATE_MACHINE_ID + " = :stateMachineId");
+        query.setLong("stateId", stateId);
+        query.setString("stateMachineId", stateMachineId);
+        query.setShort("attemptedNumOfReplayableRetries", attemptedNumOfReplayableRetries);
+        query.executeUpdate();
+    }
+
     /**
      * Query should go to Default Shard , As it is a redriver Task
      *
@@ -91,6 +132,19 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         return super.findByCompositeIdFromStateTable(State.class, stateMachineId ,id);
     }
 
+    /**
+     * @return list of all the states for the given state ids
+     */
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public List<State> findAllStatesForGivenStateIds(String stateMachineId, List<Long> stateIds) {
+        String inClause = stateIds.toString().replace("[","(").replace("]",")");
+        Query query = currentSession().createQuery(
+                "select s from State s where stateMachineId = :stateMachineId and id in " + inClause);
+        query.setString("stateMachineId",stateMachineId);
+        return query.list();
+    }
 
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
@@ -134,11 +188,10 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public List findStatesByDependentEvent(String stateMachineId, String eventName) {
-        Query query;
-        String queryString = "select id, stateMachineId, status from State where stateMachineId = :stateMachineId" +
-                " and dependencies like :eventName";
-        query = currentSession().createQuery(queryString);
+    public List<State> findStatesByDependentEvent(String stateMachineId, String eventName) {
+        Query query = currentSession().createQuery(
+                "select state from State state where stateMachineId = :stateMachineId and" +
+                        " dependencies like :eventName");
         query.setString("stateMachineId", stateMachineId);
         query.setString("eventName", "%"+eventName+"%");
         return query.list();
@@ -147,17 +200,13 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public State findStateByDependentReplayEvent(String stateMachineId, String eventName) {
-        Query query;
-        String queryString = "select * from State where stateMachineId = :stateMachineId" +
-                " and dependencies like :eventName";
-        query = currentSession().createQuery(queryString);
-        query.setString("stateMachineId", stateMachineId);
-        query.setString("eventName", "%"+eventName+"%");
-        return (State)query.uniqueResult();
+    public Long findStateIdByEventName(String stateMachineId, String eventName) {
+        SQLQuery query = currentSession().createSQLQuery(
+                "select id from States where `stateMachineId`= '" + stateMachineId + "' and dependencies like" +
+                        " '%" + eventName + "%'");
+        return ((BigInteger) query.uniqueResult()).longValue();
     }
 
-    // TODO : modify this to update for multiple stateIds in a single sql query.
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
@@ -167,6 +216,64 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         query.setLong("executionVersion", executionVersion);
         query.setLong("stateId", stateId);
         query.setString("stateMachineId", stateMachineId);
+        query.executeUpdate();
+    }
+
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void updateExecutionVersion(String stateMachineId, List<State> states, Long executionVersion) {
+        StringBuilder inClause = new StringBuilder();
+        if (states!=null && !states.isEmpty()) {
+            inClause.append(" and id in (,");
+            for (State state : states) {
+                inClause.append(state.getId()).append(",");
+            }
+            inClause.deleteCharAt(inClause.length() - 1).append(")");
+        }
+
+        Query query = currentSession().createQuery("update State set executionVersion= :executionVersion" +
+                " where stateMachineId= :stateMachineId".concat(inClause.toString()));
+        query.setLong("executionVersion", executionVersion);
+        query.setString("stateMachineId", stateMachineId);
+        query.executeUpdate();
+    }
+
+    // TODO : Add test for this
+    @Override
+    public void updateExecutionVersion_NonTransactional(String stateMachineId,
+                                                        List<Long> stateIds, Long executionVersion, Session session) {
+
+        String inClause = stateIds.toString().replace("[","(").replace("]",")");
+        Query query = session.createQuery("update State set executionVersion= :executionVersion" +
+                " where stateMachineId= :stateMachineId and id in ".concat(inClause.toString()));
+        query.setLong("executionVersion", executionVersion);
+        query.setString("stateMachineId", stateMachineId);
+        query.executeUpdate();
+    }
+
+    // TODO : Add test for this
+    @Override
+    public void updateStatus_NonTransactional(String stateMachineInstanceId, List<Long> stateIds, Status status,
+                                              Session session) {
+        String inClauseQuery = stateIds.toString().replace("[","(").replace("]",")");
+        Query query = session.createQuery(
+                "update State set status = :status where stateMachineId = :stateMachineId and id in "
+                        .concat(inClauseQuery));
+        query.setString("status", status != null ? status.toString() : null);
+        query.setString("stateMachineId", stateMachineInstanceId);
+        query.executeUpdate();
+    }
+
+    @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    public void updateReplayableRetries(String stateMachineId, Long stateId, Short replayableRetries) {
+        Query query = currentSession().createQuery("update " + TABLE_NAME + " set " + COLUMN_ATTEMPTED_NUM_OF_REPLAYABLE_RETRIES + " = :attemptedNumOfReplayableRetries" +
+                " where " + COLUMN_ID + " = :stateId and " + COLUMN_STATE_MACHINE_ID + " = :stateMachineId");
+        query.setString("stateMachineId", stateMachineId);
+        query.setLong("stateId", stateId);
+        query.setShort("attemptedNumOfReplayableRetries", replayableRetries);
         query.executeUpdate();
     }
 }

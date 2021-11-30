@@ -45,6 +45,7 @@ import static org.mockito.Mockito.*;
 public class WorkflowInterceptorTest {
 
     SimpleWorkflowForTest simpleWorkflowForTest = new SimpleWorkflowForTest();
+    SimpleWorkflowForReplayTest simpleWorkflowForReplayTest = new SimpleWorkflowForReplayTest();
 
     @Mock
     LocalContext localContext;

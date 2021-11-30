@@ -28,9 +28,9 @@ public @interface ReplayEvent {
 
     /**
      * A user-friendly way for the user to name the replay event. This can then be used to post data against this dependency
-     * Note that the name given to a parameter needs to be unique across the workflow, i.e you cannot have two parameters with the same name
+     * Note that the name given to a parameter needs to be unique across the workflow, i.e workflow cannot have two parameters with the same name
      * across any of the tasks used in a workflow.
-     * Also, when you post data against this named <code>ReplayEvent</code>, the same data is passed to all invocations for that task
+     * Also, when user posts data against this named <code>ReplayEvent</code>, the same data is passed to all invocations for that task
      * throughout the workflow.
      */
     String value();

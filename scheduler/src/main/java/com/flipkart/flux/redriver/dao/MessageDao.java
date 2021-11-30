@@ -17,7 +17,7 @@ import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
-import com.flipkart.flux.redriver.model.SmIdAndTaskIdPair;
+import com.flipkart.flux.redriver.model.SmIdAndTaskIdWithExecutionVersion;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
@@ -54,11 +54,12 @@ public class MessageDao {
     @SelectDataSource(storage = Storage.SCHEDULER)
     public int bulkInsertOrUpdate(List<ScheduledMessage> messages) {
         StringBuilder query = new StringBuilder("insert into ScheduledMessages ( stateMachineId , taskId , " +
-                "scheduledTime )  values ");
+                "scheduledTime, executionVersion )  values ");
         messages.forEach(scheduledMessage -> {
             query.append("( \'").append(scheduledMessage.getStateMachineId()).append("\' , ");
             query.append(scheduledMessage.getTaskId()).append(" , ");
-            query.append(scheduledMessage.getScheduledTime()).append("), ");
+            query.append(scheduledMessage.getScheduledTime()).append(",");
+            query.append(scheduledMessage.getExecutionVersion()).append("), ");
         });
         query.deleteCharAt(query.length() - 1);
         query.setCharAt(query.length() - 1, ' ');
@@ -100,15 +101,14 @@ public class MessageDao {
      */
     @Transactional
     @SelectDataSource(storage = Storage.SCHEDULER)
-    public int deleteInBatch(List<SmIdAndTaskIdPair> messageIdsToDelete) {
+    public int deleteInBatch(List<SmIdAndTaskIdWithExecutionVersion> messageIdsToDelete) {
         StringBuilder queryBuilder = new StringBuilder();
-        queryBuilder.append("delete from ScheduledMessage where (stateMachineId,taskId) in (");
-        messageIdsToDelete.forEach(smIdAndTaskIdPair -> {
-            queryBuilder.append("(\'")
-                    .append(smIdAndTaskIdPair.getSmId())
-                    .append("\',\'").append(smIdAndTaskIdPair.getTaskId())
-                    .append("\'),");
-        });
+        queryBuilder.append("delete from ScheduledMessage where (stateMachineId,taskId, executionVersion) in (");
+        messageIdsToDelete.forEach(smIdAndTaskIdPairWithExecutionVersion -> queryBuilder.append("(\'")
+                .append(smIdAndTaskIdPairWithExecutionVersion.getSmId())
+                .append("\',\'").append(smIdAndTaskIdPairWithExecutionVersion.getTaskId())
+                .append("\',\'").append(smIdAndTaskIdPairWithExecutionVersion.getExecutionVersion())
+                .append("\'),"));
         queryBuilder.setCharAt(queryBuilder.length() - 1, ')');
         final Query deleteQuery = currentSession().createQuery(queryBuilder.toString());
         return deleteQuery.executeUpdate();
@@ -116,10 +116,11 @@ public class MessageDao {
 
     @Transactional
     @SelectDataSource(storage = Storage.SCHEDULER)
-    public void delete(SmIdAndTaskIdPair smIdAndTaskIdPair) {
-        Query query = currentSession().createQuery("delete from ScheduledMessage where stateMachineId = :smId and taskId = :taskId");
-        query.setString("smId", smIdAndTaskIdPair.getSmId());
-        query.setLong("taskId", smIdAndTaskIdPair.getTaskId());
+    public void delete(SmIdAndTaskIdWithExecutionVersion smIdAndTaskIdWithExecutionVersion) {
+        Query query = currentSession().createQuery("delete from ScheduledMessage where stateMachineId = :smId and taskId = :taskId and executionVersion = :executionVersion");
+        query.setString("smId", smIdAndTaskIdWithExecutionVersion.getSmId());
+        query.setLong("taskId", smIdAndTaskIdWithExecutionVersion.getTaskId());
+        query.setLong("executionVersion", smIdAndTaskIdWithExecutionVersion.getExecutionVersion());
         query.executeUpdate();
     }
 

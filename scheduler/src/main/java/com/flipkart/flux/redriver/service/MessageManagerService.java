@@ -26,6 +26,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.flipkart.flux.redriver.model.SmIdAndTaskIdWithExecutionVersion;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -34,7 +35,6 @@ import com.codahale.metrics.InstrumentedScheduledExecutorService;
 import com.codahale.metrics.SharedMetricRegistries;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
-import com.flipkart.flux.redriver.model.SmIdAndTaskIdPair;
 import com.flipkart.polyguice.core.Initializable;
 
 /**
@@ -56,7 +56,7 @@ public class MessageManagerService implements Initializable {
     private final Integer batchDeleteSize;
     private final Integer batchInsertInterval;
     private final Integer batchInsertSize;
-    private final ConcurrentLinkedQueue<SmIdAndTaskIdPair> messagesToDelete;
+    private final ConcurrentLinkedQueue<SmIdAndTaskIdWithExecutionVersion> messagesToDelete;
     private final ConcurrentLinkedQueue<ScheduledMessage> messagesToInsertOrUpdate;
     private final InstrumentedScheduledExecutorService scheduledDeletionService;
     private final InstrumentedScheduledExecutorService scheduledInsertionService;
@@ -95,17 +95,17 @@ public class MessageManagerService implements Initializable {
         // persistenceExecutorService.execute(() -> messageDao.save(message));
     }
 
-    public void scheduleForRemoval(String stateMachine, Long taskId) {
-        // persistenceExecutorService.execute(() -> messageDao.delete(new SmIdAndTaskIdPair(stateMachine, taskId)));
-        messagesToDelete.add(new SmIdAndTaskIdPair(stateMachine, taskId));
+    public void scheduleForRemoval(String stateMachine, Long taskId, Long executionVersion) {
+        // persistenceExecutorService.execute(() -> messageDao.delete(new SmIdAndTaskIdWithExecutionVersion(stateMachine, taskId)));
+        messagesToDelete.add(new SmIdAndTaskIdWithExecutionVersion(stateMachine, taskId, executionVersion));
     }
 
     @Override
     public void initialize() {
         scheduledDeletionService.scheduleAtFixedRate(() -> {
             try {
-                SmIdAndTaskIdPair currentMessageIdToDelete = null;
-                List<SmIdAndTaskIdPair> messageIdsToDelete = new ArrayList<SmIdAndTaskIdPair>(batchDeleteSize);
+                SmIdAndTaskIdWithExecutionVersion currentMessageIdToDelete = null;
+                List messageIdsToDelete = new ArrayList<SmIdAndTaskIdWithExecutionVersion>(batchDeleteSize);
                 while (messageIdsToDelete.size() < batchDeleteSize && (currentMessageIdToDelete = messagesToDelete.poll()) != null) {
                     messageIdsToDelete.add(currentMessageIdToDelete);
                 }

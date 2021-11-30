@@ -75,13 +75,17 @@ public class WorkflowInterceptor implements MethodInterceptor {
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         try {
+            String clientElbId = System.getProperty("flux.clientElbId");
+            if (clientElbId == null){
+                clientElbId = fluxClientConfigurationProvider.get().getClientElbId();
+            }
             final Method method = invocation.getMethod();
             final Workflow[] workFlowAnnotations = method.getAnnotationsByType(Workflow.class);
             checkForBadSignatures(invocation);
             final String correlationId = checkForCorrelationId(invocation.getArguments());
             Workflow workflow = workFlowAnnotations[0];
             localContext.registerNew(generateWorkflowIdentifier(method, workflow), workflow.version(),
-                    workflow.description(), correlationId, fluxClientConfigurationProvider.get().getClientElbId());
+                    workflow.description(), correlationId, clientElbId);
             registerEventsForArguments(invocation.getArguments());
             invocation.proceed();
             connectorProvider.get().submitNewWorkflow(localContext.getStateMachineDef());

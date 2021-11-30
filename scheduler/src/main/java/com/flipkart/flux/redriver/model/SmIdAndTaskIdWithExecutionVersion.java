@@ -3,13 +3,15 @@ package com.flipkart.flux.redriver.model;
 /**
  * Created by amitkumar.o on 31/07/17.
  */
-public class SmIdAndTaskIdPair {
-    private  String smId;
-    private  Long taskId;
+public class SmIdAndTaskIdWithExecutionVersion {
+    private String smId;
+    private Long taskId;
+    private Long executionVersion;
 
-    public SmIdAndTaskIdPair(String smId, Long taskId) {
+    public SmIdAndTaskIdWithExecutionVersion(String smId, Long taskId, Long executionVersion) {
         this.smId = smId;
         this.taskId = taskId;
+        this.executionVersion = executionVersion;
     }
 
     public String getSmId() {
@@ -28,14 +30,23 @@ public class SmIdAndTaskIdPair {
         this.taskId = taskId;
     }
 
+    public Long getExecutionVersion() {
+        return executionVersion;
+    }
+
+    public void setExecutionVersion(Long executionVersion) {
+        this.executionVersion = executionVersion;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof SmIdAndTaskIdPair)) return false;
+        if (!(o instanceof SmIdAndTaskIdWithExecutionVersion)) return false;
 
-        SmIdAndTaskIdPair that = (SmIdAndTaskIdPair) o;
+        SmIdAndTaskIdWithExecutionVersion that = (SmIdAndTaskIdWithExecutionVersion) o;
 
         if (!getSmId().equals(that.getSmId())) return false;
+        if(!(getExecutionVersion().equals(that.getExecutionVersion()))) return false;
         return getTaskId().equals(that.getTaskId());
 
     }
@@ -44,6 +55,8 @@ public class SmIdAndTaskIdPair {
     public int hashCode() {
         int result = getSmId().hashCode();
         result = 31 * result + getTaskId().hashCode();
+        result = 31 * result + getExecutionVersion().hashCode();
         return result;
     }
+
 }

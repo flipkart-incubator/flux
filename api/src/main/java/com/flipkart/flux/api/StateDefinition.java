@@ -15,9 +15,11 @@ package com.flipkart.flux.api;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 /**
- * <Code>StateDefinition</Code> models a State, an action associated with the state and the list of dependencies for the state transition to occur.
+ * <Code>StateDefinition</Code> models a State, an action associated with the state and the list of dependencies for
+ * the state transition to occur.
  * For flux, this is equivalent to a "State" in the state machine runtime.
  *
  * @author Yogesh
@@ -26,6 +28,10 @@ import java.util.List;
  * @author kartik.bommepally
  */
 public class StateDefinition {
+
+    private static final int REPLAYABLE_TRUE = 79;
+    private static final int REPLAYABLE_FALSE = 97;
+    private static final Short MAX_REPLAYABLE_RETRIES = 5;
 
     /**
      * The version of this state definition
@@ -68,23 +74,26 @@ public class StateDefinition {
     private Long timeout;
 
     /**
-     * The list of EventDefinitionS that this state definition is dependent on for a transition into
+     * The list of EventDefinitions that this state definition is dependent on for a transition into
      */
     private List<EventDefinition> dependencies;
 
     private EventDefinition outputEvent;
 
-    public boolean isReplayable() {
-        return replayable;
-    }
-
-    public void setReplayable(boolean replayable) {
-        this.replayable = replayable;
-    }
-
+    /**
+     * Indicates whether a state is replayable or not
+     */
     private boolean replayable;
 
-    /* Used only by Jackson */
+    /***
+     * Retry count for replayable states
+     */
+    private Short maxReplayableRetries;
+
+
+    /**
+     * Used only by Jackson
+     */
     StateDefinition() {
         super();
         this.dependencies = new LinkedList<>();
@@ -93,23 +102,24 @@ public class StateDefinition {
     /**
      * Constructor
      */
-    public StateDefinition(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
-                           Long retryCount, Long timeout, List<EventDefinition> dependencies, EventDefinition outputEvent) {
-        this();
-        this.version = version;
-        this.name = name;
-        this.description = description;
-        this.onEntryHook = onEntryHook;
-        this.task = task;
-        this.onExitHook = onExitHook;
-        this.retryCount = retryCount;
-        this.timeout = timeout;
-        this.dependencies = dependencies;
+    public StateDefinition(Long version, String name, String description, String onEntryHook, String task,
+                           String onExitHook, Long retryCount, Long timeout, List<EventDefinition> dependencies,
+                           EventDefinition outputEvent) {
+        this(version, name, description, onEntryHook, task, onExitHook, retryCount, timeout, dependencies,
+                outputEvent, Boolean.FALSE, MAX_REPLAYABLE_RETRIES);
         this.outputEvent = outputEvent;
     }
 
     public StateDefinition(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
-                           Long retryCount, Long timeout, List<EventDefinition> dependencies, EventDefinition outputEvent, boolean replayable) {
+                           Long retryCount, Long timeout, List<EventDefinition> dependencies, EventDefinition outputEvent,
+                           boolean replayable) {
+        this(version, name, description, onEntryHook, task, onExitHook, retryCount, timeout, dependencies,
+                outputEvent, replayable, MAX_REPLAYABLE_RETRIES);
+    }
+
+    public StateDefinition(Long version, String name, String description, String onEntryHook, String task, String onExitHook,
+                           Long retryCount, Long timeout, List<EventDefinition> dependencies, EventDefinition outputEvent,
+                           boolean replayable, short maxReplayableRetries) {
         this();
         this.version = version;
         this.name = name;
@@ -122,6 +132,7 @@ public class StateDefinition {
         this.dependencies = dependencies;
         this.outputEvent = outputEvent;
         this.replayable = replayable;
+        this.maxReplayableRetries = maxReplayableRetries;
     }
 
     /**
@@ -207,6 +218,22 @@ public class StateDefinition {
         this.outputEvent = outputEvent;
     }
 
+    public boolean isReplayable() {
+        return replayable;
+    }
+
+    public void setReplayable(boolean replayable) {
+        this.replayable = replayable;
+    }
+
+    public Short getMaxReplayableRetries() {
+        return maxReplayableRetries;
+    }
+
+    public void setMaxReplayableRetries(Short maxReplayableRetries) {
+        this.maxReplayableRetries = maxReplayableRetries;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -224,6 +251,7 @@ public class StateDefinition {
         if (retryCount != null ? !retryCount.equals(that.retryCount) : that.retryCount != null) return false;
         if (timeout != null ? !timeout.equals(that.timeout) : that.timeout != null) return false;
         if (replayable != that.replayable) return false;
+        if (!Objects.equals(maxReplayableRetries, that.maxReplayableRetries)) return false;
 
         return !(dependencies != null ? !dependencies.equals(that.dependencies) : that.dependencies != null);
 
@@ -241,7 +269,8 @@ public class StateDefinition {
         result = 31 * result + (retryCount != null ? retryCount.hashCode() : 0);
         result = 31 * result + (timeout != null ? timeout.hashCode() : 0);
         result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
-        result = 31 * result + (this.replayable ? 79 : 97);
+        result = 31 * result + (maxReplayableRetries != null ? maxReplayableRetries.hashCode() : 0);
+        result = 31 * result + (this.replayable ? REPLAYABLE_TRUE : REPLAYABLE_FALSE);
         return result;
     }
 
@@ -259,6 +288,7 @@ public class StateDefinition {
                 ", retryCount=" + retryCount +
                 ", timeout=" + timeout +
                 ", replayable=" + replayable +
+                ", maxReplayableRetries=" + maxReplayableRetries +
                 '}';
     }
 }
