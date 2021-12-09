@@ -190,10 +190,10 @@ public class StateMachinePersistenceServiceTest {
         when(eventPersistenceService.convertEventDefinitionToEvent(eventDefinition2)).thenReturn(event2);
 
         StateMachinePersistenceService stateMachinePersistenceService
-                = new StateMachinePersistenceService(stateMachinesDAO, auditDAO, stateTraversalPathDAO,
-                eventPersistenceService, maxTaskRetryCount);
+            = new StateMachinePersistenceService(stateMachinesDAO, auditDAO, stateTraversalPathDAO,
+            eventPersistenceService, maxTaskRetryCount);
         StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(
-                stateMachineDefinition.getCorrelationId(), stateMachineDefinition);
+            stateMachineDefinition.getCorrelationId(), stateMachineDefinition);
         State replayableState = null;
         for (State state: stateMachine.getStates()) {
             if(state.getReplayable()) {
@@ -416,9 +416,9 @@ public class StateMachinePersistenceServiceTest {
     public void validateMultipleStatesWithSameReplayEvent() throws IOException {
         Integer maxTaskRetryCount = 10;
         StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(
-                stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
+            stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
-                "state_machine_definition_5.json"));
+            "state_machine_definition_5.json"));
         StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
         StateMachineDefinition stateMachineDefinition1 = stateMachinePersistenceService.validateMultipleStatesWithSameReplayEvent(stateMachineDefinition);
         Set<StateDefinition> states = stateMachineDefinition1.getStates();
@@ -433,7 +433,7 @@ public class StateMachinePersistenceServiceTest {
     public void testValidateStateWithMultipleReplayEvent() throws IOException {
         Integer maxTaskRetryCount = 10;
         StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(
-                stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
+            stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition_4.json"));
         StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
         StateMachineDefinition stateMachineDefinition1 = stateMachinePersistenceService.validateStateWithMultipleReplayEvent(stateMachineDefinition);

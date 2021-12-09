@@ -52,11 +52,14 @@ public class RedriverService {
     private Integer batchSize;
     private Long initialDelay = 10000L;
     private MessageManagerService messageService;
-    private ScheduledFuture<?> scheduledFuture;
+    @SuppressWarnings("rawtypes")
+	private ScheduledFuture scheduledFuture;
     private final RedriverRegistry redriverRegistry;
+
 
     private final InstrumentedScheduledExecutorService scheduledExecutorService;
     private ExecutorService asyncRedriveService;
+
 
     @Inject
     public RedriverService(MessageManagerService messageService,
@@ -117,11 +120,12 @@ public class RedriverService {
         do {
             messages = messageService.retrieveOldest(offset, batchSize);
             logger.info("Retrieved {} messages to redrive", messages.size());
+
             messages.forEach(e -> {
                 tasksRedrived.add(
                         asyncRedriveService.submit(() -> {
                             try {
-                                redriverRegistry.redriveTask(e.getStateMachineId(), e.getTaskId(), e.getExecutionVersion());
+                                redriverRegistry.redriveTask(e.getStateMachineId(), e.getTaskId() , e.getExecutionVersion());
                             } catch (Exception ex) {
                                 logger.error("Something went wrong in redriving task:{} smId:{} with execution Version:{}, Error: {}", e.getTaskId(),
                                         e.getStateMachineId(), e.getExecutionVersion(), ex.getStackTrace());
@@ -134,17 +138,16 @@ public class RedriverService {
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
-                    logger.warn("Error while sleeping before checking async redrive callbacks", e);
+                    logger.warn("Error while sleeping before checking async redrive callbacks {}", e);
                 }
                 allCompleted = true;
-                for (int i = 0; i < tasksRedrived.size(); i++) {
-                    if (tasksRedrived.get(i).isDone() || tasksRedrived.get(i).isCancelled()) {
+                for (int i = 0; i < tasksRedrived.size(); i++)
+                    if (tasksRedrived.get(i).isDone() || tasksRedrived.get(i).isCancelled())
                         continue;
-                    } else {
+                    else {
                         allCompleted = false;
                         break;
                     }
-                }
             }
             tasksRedrived.clear();
             // get next batch if we found batchSize tasks and all were redriven

@@ -12,8 +12,7 @@ public class SimpleWorkflowForReplayTest {
     public static final String INTEGER_REPLAY_EVENT_NAME = "Some Integer Event";
 
     /* A simple workflow that goes about creating tasks and making merry. */
-    @SuppressWarnings("unused")
-	@Workflow(version = 1)
+    @Workflow(version = 1)
     public void simpleDummyWorkflowWithReplayEvent(IntegerEvent someInteger) {
         final StringEvent newString = waitForReplayEvent(null, someInteger);
         final StringEvent anotherString = waitForReplayEvent((StringEvent) null);
@@ -92,9 +91,11 @@ public class SimpleWorkflowForReplayTest {
     public static class IntegerEvent implements Event {
         @JsonProperty
         private Integer anInteger;
-        IntegerEvent(){
+
+        IntegerEvent() {
 
         }
+
         public IntegerEvent(Integer anInteger) {
             this.anInteger = anInteger;
         }

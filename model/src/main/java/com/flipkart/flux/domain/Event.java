@@ -91,7 +91,7 @@ public class Event implements Serializable {
     /**
      * Default constructor needed for hibernate entity
      */
-    public Event(){
+    public Event() {
 
     }
 

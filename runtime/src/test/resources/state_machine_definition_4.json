@@ -36,7 +36,7 @@
         {
           "name": "replayEvent1",
           "type": "java.lang.String",
-          "eventSource": "flux_runtime_replay_internal",
+          "eventSource": "flux_runtime_replay_internal"
         },
         {
           "name": "replayEvent2",

@@ -18,16 +18,15 @@ import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.flux.redriver.model.SmIdAndTaskIdWithExecutionVersion;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
-
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
-import java.util.List;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
 
 /**
  * <code>MessageDao</code> handles all Db interactions for {@link ScheduledMessage}(s)
@@ -50,6 +49,7 @@ public class MessageDao {
         currentSession().saveOrUpdate(scheduledMessage);
     }
 
+
     @Transactional
     @SelectDataSource(storage = Storage.SCHEDULER)
     public int bulkInsertOrUpdate(List<ScheduledMessage> messages) {
@@ -61,7 +61,7 @@ public class MessageDao {
             query.append(scheduledMessage.getScheduledTime()).append(",");
             query.append(scheduledMessage.getExecutionVersion()).append("), ");
         });
-        query.deleteCharAt(query.length() - 1);
+        query.deleteCharAt(query.length()-1);
         query.setCharAt(query.length() - 1, ' ');
         query.append("on duplicate key update scheduledTime = values(scheduledTime)");
         // created native SQL query, required full table name.

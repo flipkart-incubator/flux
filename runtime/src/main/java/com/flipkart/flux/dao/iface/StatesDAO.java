@@ -16,10 +16,11 @@ package com.flipkart.flux.dao.iface;
 import java.sql.Timestamp;
 import java.util.List;
 
+import org.hibernate.Session;
+
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.shard.ShardId;
-import org.hibernate.Session;
 
 /**
  * <code>StatesDAO</code> interface provides methods to perform CR operations on {@link State}
@@ -47,12 +48,12 @@ public interface StatesDAO {
      */
     void updateStatus(String stateMachineInstanceId, List<State> states, Status status);
 
-    void updateStatus_NonTransactional(String stateMachineInstanceId, List<Long> stateIds, Status status, Session session);
+    void updateStatus_NonTransactional(String stateMachineInstanceId, List<Long> stateIds, Status status,Session session);
 
     /**
      * Updates rollback status of a state
      */
-    void updateRollbackStatus(String stateMachineInstanceId, Long stateId, Status rollbackStatus);
+    public void updateRollbackStatus(String stateMachineInstanceId, Long stateId, Status rollbackStatus);
 
     /**
      * Increments the attempted no.of retries of a state by 1
@@ -64,8 +65,6 @@ public interface StatesDAO {
      */
     void updateExecutionVersion(String stateMachineInstanceId, Long stateId, Long executionVersion);
 
-    void updateExecutionVersion_NonTransactional(String stateMachineInstanceId, List<Long> stateIds, Long executionVersion, Session session);
-
     /**
      * Updates the execution version for all the specified States in the given State Machine
      *
@@ -75,12 +74,18 @@ public interface StatesDAO {
      */
     void updateExecutionVersion(String stateMachineInstanceId, List<State> states, Long executionVersion);
 
+    void updateExecutionVersion_NonTransactional(String stateMachineInstanceId, List<Long> stateIds,
+                                                 Long executionVersion, Session session);
+
     /**
      * Retrieves a state by it's unique identifier
      */
     State findById(String stateMachineInstanceId, Long id);
 
     /**
+     *
+     * @param stateMachineInstanceId
+     * @param stateIds
      * @return list of all the states for the given state ids
      */
     List<State> findAllStatesForGivenStateIds(String stateMachineInstanceId, List<Long> stateIds);
@@ -104,7 +109,6 @@ public interface StatesDAO {
      * Retrieves all states for a particular state-machine-id and like input dependent-event-name.
      */
     List<State> findStatesByDependentEvent(String stateMachineId, String eventName);
-
     /**
      * Retrieves state-id for a particular state-machine-id and like input replay dependent-event-name.
      */

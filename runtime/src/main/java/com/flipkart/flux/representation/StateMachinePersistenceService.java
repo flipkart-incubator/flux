@@ -13,6 +13,22 @@
 
 package com.flipkart.flux.representation;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+import javax.transaction.Transactional;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.AuditEvent;
 import com.flipkart.flux.api.EventData;
@@ -36,19 +52,6 @@ import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.utils.SearchUtil;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-import javax.transaction.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * <code>StateMachinePersistenceService</code> class converts user provided state machine entity definition to domain
@@ -65,7 +68,7 @@ public class StateMachinePersistenceService {
 
     private EventPersistenceService eventPersistenceService;
     private Integer maxRetryCount;
-    private static Logger logger = LoggerFactory.getLogger(StateMachinePersistenceService.class);
+    private static Logger logger = LogManager.getLogger(StateMachinePersistenceService.class);
 
     @Inject
     public StateMachinePersistenceService(StateMachinesDAO stateMachinesDAO, AuditDAO auditDAO,
@@ -102,8 +105,8 @@ public class StateMachinePersistenceService {
                 if (replayableStates.get(state.getName()) != null && replayableStates.get(state.getName()) > 1) {
                     state.setReplayable(Boolean.FALSE);
                     logger.info("Marked state: {} as not replayable because there are 2 or more dependent"
-                            + " replay events. To make state: {} as replayable, retry submitting workflow"
-                            + " with only one dependent event as replayable.", state.getName(), state.getName());
+                        + " replay events. To make state: {} as replayable, retry submitting workflow"
+                        + " with only one dependent event as replayable.", state.getName(), state.getName());
                 }
             }
         });
@@ -141,9 +144,9 @@ public class StateMachinePersistenceService {
                     if (replayEventCount.get(dependentEvent.getName()) != null && replayEventCount.get(dependentEvent.getName()) > 1) {
                         state.setReplayable(Boolean.FALSE);
                         logger.info("Marked state: {} as not replayable because there are 2 or more states"
-                                        + " dependent on same replay event: {}. To make state: {} as replayable,"
-                                        + " retry submitting workflow with one replay event being a dependency of only one state.",
-                                state.getName(), dependentEvent, state.getName());
+                            + " dependent on same replay event: {}. To make state: {} as replayable,"
+                            + " retry submitting workflow with one replay event being a dependency of only one state.",
+                            state.getName(), dependentEvent, state.getName());
                     }
                 }
             }
@@ -284,7 +287,7 @@ public class StateMachinePersistenceService {
             if (stateDefinition.getMaxReplayableRetries() != null && stateDefinition.getMaxReplayableRetries() > RuntimeConstants.MAX_REPLAYABLE_RETRIES) {
                 stateDefinition.setMaxReplayableRetries(RuntimeConstants.MAX_REPLAYABLE_RETRIES);
                 logger.warn("MaxReplayableRetries has been reset to {} for state {}. Value provided by user was"
-                        + " higher than threshold", RuntimeConstants.MAX_REPLAYABLE_RETRIES, stateDefinition.getName());
+                    + " higher than threshold", RuntimeConstants.MAX_REPLAYABLE_RETRIES, stateDefinition.getName());
             }
 
             state = new State(stateDefinition.getVersion(),

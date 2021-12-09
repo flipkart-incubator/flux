@@ -18,16 +18,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.clientelb.dao.ClientElbDAOImpl;
 import com.flipkart.flux.clientelb.dao.iface.ClientElbDAO;
-import com.flipkart.flux.dao.AuditDAOImpl;
-import com.flipkart.flux.dao.EventsDAOImpl;
-import com.flipkart.flux.dao.StateMachinesDAOImpl;
-import com.flipkart.flux.dao.StateTraversalPathDAOImpl;
-import com.flipkart.flux.dao.StatesDAOImpl;
-import com.flipkart.flux.dao.iface.AuditDAO;
-import com.flipkart.flux.dao.iface.EventsDAO;
-import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
-import com.flipkart.flux.dao.iface.StatesDAO;
+import com.flipkart.flux.dao.*;
+import com.flipkart.flux.dao.iface.*;
 import com.flipkart.flux.domain.*;
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
 import com.flipkart.flux.persistence.SessionFactoryContext;
@@ -81,7 +73,8 @@ public class ShardModule extends AbstractModule {
         bind(StateTraversalPathDAO.class).to(StateTraversalPathDAOImpl.class).in(Singleton.class);
 
         //bind Transactional Interceptor to intercept methods which are annotated with javax.transaction.Transactional
-        Provider<SessionFactoryContext> provider = getProvider(Key.get(SessionFactoryContext.class, Names.named("fluxSessionFactoriesContext")));
+        Provider<SessionFactoryContext> provider = getProvider(Key.get(SessionFactoryContext.class,
+                Names.named("fluxSessionFactoriesContext")));
         final TransactionInterceptor transactionInterceptor = new TransactionInterceptor(provider);
         // Weird way of getting a package but java.lang.Package.getName(<String>) was no working for some reason.
         // todo [yogesh] dig deeper and fix this ^
@@ -105,7 +98,8 @@ public class ShardModule extends AbstractModule {
             return masterSlavePairList;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new FluxError(FluxError.ErrorType.runtime, "Not able to read Master Slave Config from Config File", e.getCause());
+            throw new FluxError(FluxError.ErrorType.runtime,
+                    "Not able to read Master Slave Config from Config File", e.getCause());
         }
     }
 
@@ -119,8 +113,9 @@ public class ShardModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("fluxShardIdToShardPairMap")
-    public Map<ShardId, ShardPairModel> getFluxRWShardIdToShardMapping(@Named("fluxMasterSlavePairList") List<ShardPairModel> masterSlavePairList) {
-        Map<ShardId, ShardPairModel> shardIdToShardHostModelMap = new HashMap<ShardId, ShardPairModel>();
+    public Map<ShardId, ShardPairModel> getFluxRWShardIdToShardMapping(
+            @Named("fluxMasterSlavePairList") List<ShardPairModel> masterSlavePairList) {
+        Map shardIdToShardHostModelMap = new HashMap<ShardId, ShardPairModel>();
         masterSlavePairList.forEach(masterSlavePair -> {
             shardIdToShardHostModelMap.put(masterSlavePair.getShardId(), masterSlavePair);
         });
@@ -138,8 +133,9 @@ public class ShardModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("fluxShardKeyToShardIdMap")
-    public Map<String, ShardId> getFluxRWShardKeyToShardIdMapping(@Named("fluxMasterSlavePairList") List<ShardPairModel> masterSlavePairList) {
-        Map<String, ShardId> shardKeyToShardIdMap = new HashMap<String, ShardId>();
+    public Map<String, ShardId> getFluxRWShardKeyToShardIdMapping(
+            @Named("fluxMasterSlavePairList") List<ShardPairModel> masterSlavePairList) {
+        Map shardKeyToShardIdMap = new HashMap<String, ShardId>();
         masterSlavePairList.forEach(masterSlavePair -> {
             String startKey = masterSlavePair.getStartKey();
             String endKey = masterSlavePair.getEndKey();
@@ -196,10 +192,10 @@ public class ShardModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("fluxROSessionFactoriesMap")
-    public Map<ShardId, SessionFactory> getFluxROSessionFactoryMap(@Named("fluxShardIdToShardPairMap") Map<ShardId, ShardPairModel>
-                                                                           fluxShardIdToShardPairMap,
-                                                                   YamlConfiguration yamlConfiguration) {
-        Map<ShardId, SessionFactory> fluxROSessionFactories = new HashMap<ShardId, SessionFactory>();
+    public Map<ShardId, SessionFactory> getFluxROSessionFactoryMap(
+            @Named("fluxShardIdToShardPairMap") Map<ShardId, ShardPairModel> fluxShardIdToShardPairMap,
+            YamlConfiguration yamlConfiguration) {
+        Map fluxROSessionFactories = new HashMap<ShardId, SessionFactory>();
         fluxShardIdToShardPairMap.entrySet().forEach(shardKeyToShardIdMapping -> {
             ShardId shardId = shardKeyToShardIdMapping.getKey();
             ShardPairModel shardPairModel = fluxShardIdToShardPairMap.get(shardId);
@@ -209,8 +205,8 @@ public class ShardModule extends AbstractModule {
         });
 
         if (fluxROSessionFactories.size() != (fluxShardIdToShardPairMap.size())) {
-            throw new RuntimeException("No. of RW Session Factories should be " + fluxShardIdToShardPairMap.size() + " currently it is " +
-                    Integer.toString(fluxROSessionFactories.size()));
+            throw new RuntimeException("No. of RW Session Factories should be " + fluxShardIdToShardPairMap.size() +
+                    " currently it is " + Integer.toString(fluxROSessionFactories.size()));
         }
         return fluxROSessionFactories;
     }
@@ -218,10 +214,10 @@ public class ShardModule extends AbstractModule {
     @Provides
     @Singleton
     @Named("fluxRWSessionFactoriesMap")
-    public Map<ShardId, SessionFactory> getFluxRWSessionFactoryMap(@Named("fluxShardIdToShardPairMap") Map<ShardId, ShardPairModel>
-                                                                           fluxShardIdToShardPairMap,
-                                                                   YamlConfiguration yamlConfiguration) {
-        Map<ShardId, SessionFactory> fluxRWSessionFactories = new HashMap<ShardId, SessionFactory>();
+    public Map<ShardId, SessionFactory> getFluxRWSessionFactoryMap(
+            @Named("fluxShardIdToShardPairMap") Map<ShardId, ShardPairModel> fluxShardIdToShardPairMap,
+            YamlConfiguration yamlConfiguration) {
+        Map fluxRWSessionFactories = new HashMap<ShardId, SessionFactory>();
         fluxShardIdToShardPairMap.entrySet().forEach(shardKeyToShardIdMapping -> {
             ShardId shardId = shardKeyToShardIdMapping.getKey();
             ShardPairModel shardPairModel = fluxShardIdToShardPairMap.get(shardId);
@@ -232,8 +228,8 @@ public class ShardModule extends AbstractModule {
 
 
         if (fluxRWSessionFactories.size() != (fluxShardIdToShardPairMap.size())) {
-            throw new RuntimeException("No. of RW Session Factories should be " + fluxShardIdToShardPairMap.size() + ", currently it is " +
-                    Integer.toString(fluxRWSessionFactories.size()));
+            throw new RuntimeException("No. of RW Session Factories should be " + fluxShardIdToShardPairMap.size() +
+                    ", currently it is " + Integer.toString(fluxRWSessionFactories.size()));
         }
         return fluxRWSessionFactories;
     }
@@ -270,6 +266,7 @@ public class ShardModule extends AbstractModule {
         configuration.addAnnotatedClass(StateMachine.class);
         configuration.addAnnotatedClass(ClientElb.class);
         configuration.addAnnotatedClass(StateTraversalPath.class);
+
     }
 
     private Configuration getConfiguration(YamlConfiguration yamlConfiguration, String prefix, String host) {

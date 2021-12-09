@@ -36,6 +36,7 @@ import java.util.Set;
  *
  * @author shyam.akirala
  */
+// TODO : Add tests for all newly added queries
 public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements StateMachinesDAO {
 
     public static final String FOR_UPDATE = "for update";
@@ -106,9 +107,10 @@ public class StateMachinesDAOImpl extends AbstractDAO<StateMachine> implements S
     public void updateExecutionVersion_NonTransactional(String stateMachineId, Long smExecutionVersion,
                                                         Session session) {
         Query query = session.createQuery(
-                "update StateMachine set executionVersion = :executionVersion where id = :stateMachineId");
+            "update StateMachine set executionVersion = :executionVersion where id = :stateMachineId");
         query.setLong("executionVersion", smExecutionVersion);
         query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
+
 }

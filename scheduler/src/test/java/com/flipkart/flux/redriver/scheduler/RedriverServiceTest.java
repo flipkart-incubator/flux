@@ -13,21 +13,23 @@
 
 package com.flipkart.flux.redriver.scheduler;
 
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.flux.redriver.service.MessageManagerService;
 import com.flipkart.flux.redriver.service.RedriverService;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
+import java.util.ArrayList;
+import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RedriverServiceTest {
@@ -59,11 +61,11 @@ public class RedriverServiceTest {
     public void testRedriveMessage_shouldRedriveWhenOldMessageFound() throws Exception {
         long now = System.currentTimeMillis();
         when(messageManagerService.retrieveOldest(0, batchSize))
-                .thenReturn(Arrays.asList(new ScheduledMessage(1l, "sample-state-machine-uuid", now - 2, 0L)))
+                .thenReturn(Arrays.asList(new ScheduledMessage(1l, "sample-state-machine-uuid", now - 2, 0l)))
                 .thenReturn(Arrays.asList());
         redriverService.start();
         Thread.sleep(300);
-        verify(redriverRegistry).redriveTask("sample-state-machine-uuid", 1l, 0L);
+        verify(redriverRegistry).redriveTask("sample-state-machine-uuid", 1l,0l);
         Thread.sleep(500);
         verifyNoMoreInteractions(redriverRegistry);
     }
@@ -74,7 +76,7 @@ public class RedriverServiceTest {
         int batchSize = 100;
         long now = System.currentTimeMillis();
         for (long i = 0; i < 1000; i++)
-            scheduledMessages.add(new ScheduledMessage(i, "sample-state-machine-uuid", now - 100, 0L));
+            scheduledMessages.add(new ScheduledMessage(i, "sample-state-machine-uuid", now - 100,0l));
         redriverService = new RedriverService(messageManagerService, redriverRegistry, 100, batchSize);
         redriverService.setInitialDelay(0L);
         for (int i = 0; i < 10; i++)
@@ -84,20 +86,20 @@ public class RedriverServiceTest {
         redriverService.stop();
         for (long i = 0; i < 100; i++) {
             long x = (long) (Math.random() * 1000.0);
-            verify(redriverRegistry).redriveTask("sample-state-machine-uuid", x, 0L);
+            verify(redriverRegistry).redriveTask("sample-state-machine-uuid", x,0l);
         }
     }
 
     @Test
     public void testStartStopCycle() throws Exception {
         when(messageManagerService.retrieveOldest(0, batchSize)).
-                thenReturn(Arrays.asList(new ScheduledMessage(3l, "sample-state-machine-uuid", 1l, 0L))).
-                thenReturn(Arrays.asList(new ScheduledMessage(4l, "sample-state-machine-uuid", 2l, 0L)));
+                thenReturn(Arrays.asList(new ScheduledMessage(3l, "sample-state-machine-uuid", 1l,0l))).
+                thenReturn(Arrays.asList(new ScheduledMessage(4l, "sample-state-machine-uuid", 2l,0l)));
 
         redriverService.start();
         Thread.sleep(100);
         Assert.assertTrue(redriverService.isRunning());
-        verify(redriverRegistry).redriveTask("sample-state-machine-uuid", 3l, 0L);
+        verify(redriverRegistry).redriveTask("sample-state-machine-uuid", 3l,0l);
 
         redriverService.stop();
         Thread.sleep(600);
@@ -107,7 +109,7 @@ public class RedriverServiceTest {
         redriverService.start();
         Thread.sleep(100);
 
-        verify(redriverRegistry).redriveTask("sample-state-machine-uuid", 4l, 0L);
+        verify(redriverRegistry).redriveTask("sample-state-machine-uuid", 4l,0l);
         verifyNoMoreInteractions(redriverRegistry);
     }
 }

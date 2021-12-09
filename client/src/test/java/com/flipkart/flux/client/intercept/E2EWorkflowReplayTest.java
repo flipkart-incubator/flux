@@ -1,5 +1,15 @@
 package com.flipkart.flux.client.intercept;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.stream.Stream;
+
+import javax.inject.Inject;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.guice.annotation.IsolatedEnv;
@@ -8,12 +18,6 @@ import com.flipkart.flux.client.runner.GuiceJunit4Runner;
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.client.runtime.LocalContext;
 import com.flipkart.flux.client.utils.TestHttpServer;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import javax.inject.Inject;
-import java.util.stream.Stream;
-import static org.assertj.core.api.Assertions.assertThat;
 
 /***
  * Checks for end to end flow of a workflow with replay event
@@ -22,22 +26,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class E2EWorkflowReplayTest {
 
     @Inject
-    SimpleWorkflowForReplayTest simpleWorkflowForReplayTest;
-
-    @Inject
-    LocalContext localContext;
-
-    @Inject
-    FluxRuntimeConnector fluxRuntimeConnector;
-
-    @Inject
     @Rule
     public TestHttpServer testHttpServer;
-
     @Inject
     public DummyFluxRuntimeResource dummyFluxRuntimeResource;
-
-    @Inject @IsolatedEnv
+    @Inject
+    SimpleWorkflowForReplayTest simpleWorkflowForReplayTest;
+    @Inject
+    LocalContext localContext;
+    @Inject
+    FluxRuntimeConnector fluxRuntimeConnector;
+    @Inject
+    @IsolatedEnv
     ExecutableRegistry executableRegistry;
 
 

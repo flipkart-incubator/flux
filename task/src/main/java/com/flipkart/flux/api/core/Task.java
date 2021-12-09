@@ -33,5 +33,5 @@ public interface Task {
      * @param events Dependencies that need to be satisfied for this task to be executed
      * @return The event produced by a worker on successful execution OR an error object representing the error.
      */
-    Pair<Object,FluxError> execute(VersionedEventData[] events);
+	public Pair<Object,FluxError> execute(VersionedEventData[] events);
 }

@@ -27,13 +27,21 @@ import java.util.*;
  */
 public abstract class Context {
 
-    /** The start time when this Context was created*/
+    /**
+     * The start time when this Context was created
+     */
     protected Long startTime;
-    /** Identifier for the Context*/
+
+    /**
+     * Identifier for the Context
+     */
     protected String contextId;
 
-    /** will be used in dependency graph map as key for initial states which are dependant on no events*/
+    /**
+     * will be used in dependency graph map as key for initial states which are dependant on no events
+     */
     private static final String START = "start";
+
     /**
      * A reverse dependency graph created across States based on Events.
      * Holds information on possible list of States waiting on an Event represented by its FQN.
@@ -42,6 +50,7 @@ public abstract class Context {
 
     /**
      * Attaches context to state machine and builds dependency graph for the state machine.
+     *
      * @param stateMachine
      */
     public Context(StateMachine stateMachine) {
@@ -51,20 +60,23 @@ public abstract class Context {
 
     /**
      * Stores the specified data against the key for this Context. Implementations may bound the type and size of data stored into this Context.
-     * @param key the data identifier key
+     *
+     * @param key  the data identifier key
      * @param data the opaque data stored against the specified key
      */
     public abstract void storeData(String key, Object data);
 
     /**
-     * Retrieves the data stored against the specified key 
+     * Retrieves the data stored against the specified key
+     *
      * @param key the identifier key for data stored in this Context
-     * @return data stored in this Context, keyed by the specified identifier 
+     * @return data stored in this Context, keyed by the specified identifier
      */
     public abstract Object retrieve(String key);
 
     /**
      * Returns set of states which are dependant on an event.
+     *
      * @param eventName
      * @return
      */
@@ -98,13 +110,14 @@ public abstract class Context {
 
     /**
      * Returns set of states which can be started when state machine starts for the first time.
-     * @return initial states
+     *
      * @param triggeredEventNames Names of events that have already been received during the state machine definition
+     * @return initial states
      */
     public Set<State> getInitialStates(Set<String> triggeredEventNames) {
         final Set<State> initialStates = new HashSet<>();
         final Set<State> startStates = eventToStateDependencyGraph.get(START);
-        if (startStates != null ) {
+        if (startStates != null) {
             initialStates.addAll(startStates);
         }
         for (String aTriggeredEventName : triggeredEventNames) {
@@ -121,7 +134,7 @@ public abstract class Context {
      */
     public void buildDependencyMap(Set<State> states) {
         eventToStateDependencyGraph = new HashMap<>();
-        for(State state : states) {
+        for (State state : states) {
             if (!state.getDependencies().isEmpty()) {
                 for (String eventName : state.getDependencies()) {
                     if (!eventToStateDependencyGraph.containsKey(eventName))
@@ -136,10 +149,13 @@ public abstract class Context {
         }
     }
 
-    /** Accessor/Mutator methods*/
+    /**
+     * Accessor/Mutator methods
+     */
     public Long getStartTime() {
         return startTime;
     }
+
     public String getContextId() {
         return contextId;
     }

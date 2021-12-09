@@ -1,21 +1,15 @@
 package com.flipkart.flux.utils;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
-
-import javax.inject.Singleton;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.domain.Context;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.google.inject.Singleton;
+
+import java.io.IOException;
+import java.util.*;
 
 /**
  * <Code>SearchUtil</Code> This class is a util class performing breadth first search (BFS).
@@ -32,9 +26,8 @@ public class SearchUtil {
      */
     private static ObjectMapper objectMapper = new ObjectMapper();
 
-    List<Long> traversalPathStateIds;
-
-    public List<Long> findStatesInTraversalPath(Context context, StateMachine stateMachine, Long initialStateId) throws RuntimeException {
+    public List<Long> findStatesInTraversalPath(Context context, StateMachine stateMachine, Long initialStateId)
+            throws RuntimeException {
 
         // List of stateIds occured in the traversal path of input initial state
         List<Long> traversalPathStateIds = new ArrayList<>();
@@ -54,19 +47,18 @@ public class SearchUtil {
                         + stateMachine.getId() + " stateId: " + state.getId());
             }
         }
-
         // For all states in a state machine which are not yet visited, compute path from given initial state
         for (State state : stateMachine.getStates()) {
             if(!visitedStateIds.get(state.getId())) {
                 if(initialStateId != state.getId()) {
-                    visitedStateIds = searchPaths(context, initialStateId, state.getId(), visitedStateIds, stateOutputEvents);
+                    visitedStateIds = searchPaths(context, initialStateId, state.getId(), visitedStateIds,
+                            stateOutputEvents);
                 }
                 else {
                     visitedStateIds.put(state.getId(), Boolean.TRUE);
                 }
             }
         }
-
         for (Map.Entry<Long, Boolean> isStateVisited : visitedStateIds.entrySet()) {
             if(isStateVisited.getValue()) {
                 traversalPathStateIds.add(isStateVisited.getKey());
@@ -87,8 +79,8 @@ public class SearchUtil {
      * @return
      */
     private Map<Long, Boolean> searchPaths(Context context, Long initialStateId,
-                                           Long destinationStateId, Map<Long, Boolean> visitedStateIds,
-                                           Map<Long, String> stateOutputEvents) {
+                                       Long destinationStateId, Map<Long, Boolean> visitedStateIds,
+                                          Map<Long, String> stateOutputEvents) {
 
         Queue<LinkedList<Long>> queueOfPaths = new LinkedList<>();
         LinkedList<Long> currentPath = new LinkedList<>();
@@ -103,18 +95,16 @@ public class SearchUtil {
             Long lastStateId = currentPath.getLast();
 
             if(lastStateId.equals(destinationStateId)) {
-
                 for (Long stateId : currentPath) {
                     visitedStateIds.put(stateId, Boolean.TRUE);
                 }
                 continue;
             }
-            nextDependentStateIds = context.getDependentStateIds(stateOutputEvents.get(lastStateId));
 
+            nextDependentStateIds = context.getDependentStateIds(stateOutputEvents.get(lastStateId));
             for (Long dependentStateId : nextDependentStateIds) {
                 if(!currentPath.contains(dependentStateId)) {
                     LinkedList<Long> newPath = new LinkedList<>();
-
                     newPath.addAll(currentPath);
                     newPath.add(dependentStateId);
                     queueOfPaths.add(newPath);

@@ -13,17 +13,18 @@
 
 package com.flipkart.flux.redriver.service;
 
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.SmIdAndTaskIdWithExecutionVersion;
+import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.ArrayList;
-
-import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MessageManagerServiceTest {
@@ -40,9 +41,6 @@ public class MessageManagerServiceTest {
 
     @Test
     public void testRemoval_shouldDeferRemoval() throws Exception {
-        messageManagerService = new MessageManagerService(messageDao, 50, 500, 10, 500, 10);
-        messageManagerService.initialize(); // Will be called by polyguice in the production env
-
         messageManagerService.scheduleForRemoval(sampleMachineId, 123l, 0l);
         messageManagerService.scheduleForRemoval(sampleMachineId, 123l, 1l);
         messageManagerService.scheduleForRemoval(sampleMachineId, 123l, 2l);
@@ -60,9 +58,6 @@ public class MessageManagerServiceTest {
 
     @Test
     public void testRemoval_shouldDeleteInBatches() throws Exception {
-        messageManagerService = new MessageManagerService(messageDao, 50, 500, 2, 500, 10);
-        messageManagerService.initialize(); // Will be called by polyguice in the production env
-
         messageManagerService.scheduleForRemoval(sampleMachineId, 121l,0l);
         messageManagerService.scheduleForRemoval(sampleMachineId, 122l,0l);
         messageManagerService.scheduleForRemoval(sampleMachineId, 123l,0l);

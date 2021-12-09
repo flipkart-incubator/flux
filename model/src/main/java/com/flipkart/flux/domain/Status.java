@@ -12,13 +12,14 @@
  */
 
 package com.flipkart.flux.domain;
+
 /**
  * <code>Status</code> Describes the current status of execution {@link Task} within a {@link State}
- * 
+ *
  * @author Yogesh
  * @author regunath.balasubramanian
  * @author shyam.akirala
  */
-public enum  Status {
+public enum Status {
     initialized, running, completed, cancelled, errored, sidelined, unsidelined, invalid; //possible statuses of execution
 }

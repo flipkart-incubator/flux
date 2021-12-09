@@ -54,16 +54,24 @@ public class FluxClientComponentModule extends AbstractModule {
     }
 
     @Provides
+    @Singleton
     public FluxRuntimeConnector provideFluxRuntimeConnector(FluxClientConfiguration configuration,
                                                             ObjectMapper objectMapper) {
         String fluxRuntimeUrl = System.getProperty("flux.runtimeUrl");
         if (fluxRuntimeUrl == null) {
             fluxRuntimeUrl = configuration.getFluxRuntimeUrl();
         }
+        if(!fluxRuntimeUrl.endsWith("/"))
+            fluxRuntimeUrl += "/" ;
+        String targetClientId = System.getProperty("flux.targetClientId");
+        if (targetClientId == null){
+            targetClientId = configuration.getTargetClientId();
+        }
         return new FluxRuntimeConnectorHttpImpl(configuration.getConnectionTimeout(),
                 configuration.getSocketTimeout(),
-                fluxRuntimeUrl + "/api/machines",
-                objectMapper, SharedMetricRegistries.getOrCreate("mainMetricRegistry"));
+                fluxRuntimeUrl + "api/machines",
+                objectMapper, SharedMetricRegistries.getOrCreate("mainMetricRegistry"),
+                targetClientId);
     }
 
     @Provides

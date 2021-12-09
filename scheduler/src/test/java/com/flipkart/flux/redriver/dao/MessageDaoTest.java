@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.redriver.dao;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.boot.SchedulerTestModule;
@@ -21,16 +23,13 @@ import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.flux.redriver.model.SmIdAndTaskIdWithExecutionVersion;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
+import java.util.Arrays;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.context.internal.ManagedSessionContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.Arrays;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(GuiceJunit4Runner.class)
 @Modules(orchestrationModules = {SchedulerTestModule.class}, executionModules = {})
@@ -68,7 +67,7 @@ public class MessageDaoTest {
         messageDao.deleteInBatch(Arrays.asList(new SmIdAndTaskIdWithExecutionVersion("sample-state-machine-uuid", 1l, 0l),
                 new SmIdAndTaskIdWithExecutionVersion("sample-state-machine-uuid", 2l,0l)));
 
-        assertThat(messageDao.retrieveOldest(0, 10)).containsExactly(new ScheduledMessage(3l, "sample-state-machine-uuid", 4L, 0L));
+        assertThat(messageDao.retrieveOldest(0, 10)).containsExactly(new ScheduledMessage(3l, "sample-state-machine-uuid", 4l,0l));
     }
 
     @Test
@@ -77,7 +76,7 @@ public class MessageDaoTest {
         messageDao.save(new ScheduledMessage(2l, "sample-state-machine-uuid", 3l,0l));
         messageDao.save(new ScheduledMessage(3l, "sample-state-machine-uuid", 4l,0l));
 
-        assertThat(messageDao.retrieveOldest(0, 1)).containsExactly(new ScheduledMessage(1l, "sample-state-machine-uuid", 2l, 0L));
+        assertThat(messageDao.retrieveOldest(0, 1)).containsExactly(new ScheduledMessage(1l, "sample-state-machine-uuid", 2l,0l));
         assertThat(messageDao.retrieveOldest(1, 3)).hasSize(2);
         assertThat(messageDao.retrieveOldest(1, 3)).containsSequence(new ScheduledMessage(2l, "sample-state-machine-uuid", 3l,0l),
                 new ScheduledMessage(3l, "sample-state-machine-uuid", 4l,0l));

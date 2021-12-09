@@ -25,10 +25,10 @@ public class RunReplayEventWorkflow {
         replayEventWorkflow.create(new StartEvent(correlation_id_1));
 
         System.out.println("[Main] Sleeping for 2 seconds before posting replay event to flux"
-                + " runtime so that replayable state is completed");
+            + " runtime so that replayable state is completed");
         Thread.sleep(2000l); // Just a 2 second wait to ensure that the replayable state is completed
         fluxHttpConnector.submitReplayEvent("someReplayEvent1",
-                new ParamEvent("task44", false), correlation_id_1);
+            new ParamEvent("task44", false), correlation_id_1);
         System.out.println("[Main] Posted replay event to flux runtime, the workflow should have continued");
 
         ReplayEventWorkflow2 replayEventWorkflow2 = injector.getInstance(ReplayEventWorkflow2.class);
@@ -37,21 +37,21 @@ public class RunReplayEventWorkflow {
 
         for (int i = 0; i < 6; i++) {
             System.out.println(
-                    "[Main] Sleeping for 4 seconds before posting replay event to flux runtime so that "
-                            + "replayable state is completed");
+                "[Main] Sleeping for 4 seconds before posting replay event to flux runtime so that "
+                    + "replayable state is completed");
             Thread.sleep(
-                    4000l); // Just a 4 second wait to ensure that the replayable state is completed
+                4000l); // Just a 4 second wait to ensure that the replayable state is completed
             if(i%2 == 0) {
-                fluxHttpConnector.submitReplayEvent("RE1",
-                        new IntegerEvent(5), correlation_id_2);
+            fluxHttpConnector.submitReplayEvent("RE1",
+                new IntegerEvent(5), correlation_id_2);
             }
             else {
                 fluxHttpConnector.submitReplayEvent("RE2",
-                        new IntegerEvent(5), correlation_id_2);
+                    new IntegerEvent(5), correlation_id_2);
             }
             System.out.println(
-                    "[Main] Posted replay event 2 to flux runtime iteration:," + i
-                            + " the workflow should have continued");
+                "[Main] Posted replay event 2 to flux runtime iteration:," + i
+                    + " the workflow should have continued");
         }
     }
 }

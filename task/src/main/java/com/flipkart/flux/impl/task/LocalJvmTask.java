@@ -25,6 +25,7 @@ import com.flipkart.flux.client.registry.Executable;
 import com.flipkart.flux.registry.TaskExecutableImpl;
 import com.flipkart.flux.utils.Pair;
 
+
 /**
  * A task that can be executed locally within the same JVM
  * @author yogesh.nachnani
@@ -61,7 +62,7 @@ public class LocalJvmTask extends AbstractTask {
         return (int)toInvoke.getTimeout(); // TODO - fix this. Let all timeouts be in int
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
     public Pair<Object, FluxError> execute(VersionedEventData[] events) {
         Object[] parameters = new Object[events.length];

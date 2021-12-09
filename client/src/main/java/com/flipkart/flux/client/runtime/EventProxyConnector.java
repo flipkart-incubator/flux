@@ -32,7 +32,7 @@ public class EventProxyConnector extends FluxRuntimeConnectorHttpImpl {
     @Inject
     public EventProxyConnector(@Named("eventProxyForMigration.endpoint") String endpoint, FluxClientConfiguration fluxClientConfiguration) {
         super(fluxClientConfiguration.getConnectionTimeout(), fluxClientConfiguration.getSocketTimeout(),
-                endpoint, new ObjectMapper(), SharedMetricRegistries.getOrCreate("mainMetricRegistry"));
+                endpoint, new ObjectMapper(), SharedMetricRegistries.getOrCreate("mainMetricRegistry"), endpoint);
     }
 
     @Override

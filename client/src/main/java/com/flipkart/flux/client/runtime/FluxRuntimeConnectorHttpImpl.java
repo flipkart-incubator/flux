@@ -14,20 +14,11 @@
 
 package com.flipkart.flux.client.runtime;
 
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.SharedMetricRegistries;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.EventAndExecutionData;
-import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.api.ExecutionUpdateData;
-import com.flipkart.flux.api.StateMachineDefinition;
-import com.flipkart.flux.api.VersionedEventData;
-import com.flipkart.flux.client.constant.ClientConstants;
-import com.google.common.annotations.VisibleForTesting;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+
 import javax.ws.rs.core.Response;
+
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -41,6 +32,18 @@ import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.SharedMetricRegistries;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventAndExecutionData;
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.api.ExecutionUpdateData;
+import com.flipkart.flux.api.StateMachineDefinition;
+import com.flipkart.flux.api.VersionedEventData;
+import com.flipkart.flux.client.constant.ClientConstants;
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * RuntimeConnector that connects to runtime over HTTP
  * Internally, this uses Unirest as of now. This makes it difficult to write unit tests for this class,
@@ -50,40 +53,44 @@ import org.apache.logging.log4j.Logger;
  */
 public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
 
-    private static Logger logger = LogManager.getLogger(FluxRuntimeConnectorHttpImpl.class);
 
     private static final int MAX_TOTAL = 400;
     private static final int MAX_PER_ROUTE = 50;
     private static final String EXTERNAL = "external";
+    private static Logger logger = LogManager.getLogger(FluxRuntimeConnectorHttpImpl.class);
     private final CloseableHttpClient closeableHttpClient;
     private final String fluxEndpoint;
     private final ObjectMapper objectMapper;
     private final MetricRegistry metricRegistry;
+    private String authnTargetClientId;
 
     @VisibleForTesting
-    public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint) {
-        this(connectionTimeout, socketTimeout, fluxEndpoint, new ObjectMapper(), SharedMetricRegistries.getOrCreate("mainMetricRegistry"));
+    public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint,
+                                        String targetClientId) {
+        this(connectionTimeout, socketTimeout, fluxEndpoint, new ObjectMapper(), SharedMetricRegistries.getOrCreate("mainMetricRegistry")
+        , targetClientId);
     }
 
     public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint, ObjectMapper objectMapper,
-                                        MetricRegistry metricRegistry) {
+                                        MetricRegistry metricRegistry, String targetClientId) {
         this.fluxEndpoint = fluxEndpoint;
         this.objectMapper = objectMapper;
+        this.authnTargetClientId = targetClientId;
         RequestConfig clientConfig = RequestConfig.custom()
-                .setConnectTimeout((connectionTimeout).intValue())
-                .setSocketTimeout((socketTimeout).intValue())
-                .setConnectionRequestTimeout((socketTimeout).intValue())
-                .build();
+            .setConnectTimeout((connectionTimeout).intValue())
+            .setSocketTimeout((socketTimeout).intValue())
+            .setConnectionRequestTimeout((socketTimeout).intValue())
+            .build();
         PoolingHttpClientConnectionManager syncConnectionManager = new PoolingHttpClientConnectionManager();
         syncConnectionManager.setMaxTotal(MAX_TOTAL);
         syncConnectionManager.setDefaultMaxPerRoute(MAX_PER_ROUTE);
 
         closeableHttpClient = HttpClientBuilder.create().setDefaultRequestConfig(clientConfig)
-                .setConnectionManager(syncConnectionManager)
-                .build();
+            .setConnectionManager(syncConnectionManager)
+            .build();
 
         Runtime.getRuntime()
-                .addShutdownHook(new Thread(() -> HttpClientUtils.closeQuietly(closeableHttpClient)));
+            .addShutdownHook(new Thread(() -> HttpClientUtils.closeQuietly(closeableHttpClient)));
         this.metricRegistry = metricRegistry;
     }
 
@@ -260,6 +267,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         try {
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             objectMapper.writeValue(byteArrayOutputStream, dataToPost);
+            logger.info("Posting data: {} over http to Flux Endpoint : {} with authN targetClientId : {}",dataToPost, fluxEndpoint, authnTargetClientId);
             httpPostRequest.setEntity(new ByteArrayEntity(byteArrayOutputStream.toByteArray(), ContentType.APPLICATION_JSON));
             httpResponse = closeableHttpClient.execute(httpPostRequest);
             final int statusCode = httpResponse.getStatusLine().getStatusCode();
@@ -291,4 +299,5 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         }
         return httpResponse;
     }
+
 }

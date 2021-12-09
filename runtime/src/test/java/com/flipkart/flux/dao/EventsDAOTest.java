@@ -13,19 +13,6 @@
 
 package com.flipkart.flux.dao;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.InjectFromRole;
@@ -47,6 +34,18 @@ import com.flipkart.flux.rule.DbClearWithTestSMRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
 import com.flipkart.flux.util.TestUtils;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import java.util.Collections;
+import java.util.LinkedList;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * <code>EventsDAOTest</code> class tests the functionality of {@link EventsDAO} using JUnit tests.
@@ -128,6 +127,7 @@ public class EventsDAOTest {
         final VersionedEventData eventData3 = new VersionedEventData(event3.getName(), event3.getType(), event3.getEventData(), event3.getEventSource());
         eventsDAO.create(event3.getStateMachineInstanceId(), event3);
 
+
         eventsDAO.deleteInvalidEvents(standardTestMachine.getId(), new LinkedList<String>() {{
             add("event1");
             add("event2");
@@ -147,6 +147,7 @@ public class EventsDAOTest {
         assertThat(eventsDAO.findByEventNamesAndSMId(standardTestMachine.getId(), new LinkedList<String>() {{
             add("event3");
         }})).contains(eventData3);
+
     }
 
     @Test
@@ -166,7 +167,7 @@ public class EventsDAOTest {
     }
 
     @Test
-    public void testFindBySMInstanceId() throws Exception {
+    public void testFindBySMInstanceId() throws Exception{
         final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
         stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
         final Event event1 = new Event("event1", "someType", EventStatus.invalid,
@@ -181,10 +182,11 @@ public class EventsDAOTest {
 
         /* Actual test should contain only the event that is not marked as invalid*/
         assertThat(eventsDAO.findBySMInstanceId(standardTestMachine.getId())).containsExactly(event3);
+
     }
 
     @Test
-    public void testFindBySMIdAndName() throws Exception {
+    public void testFindBySMIdAndName() throws Exception{
         final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
         stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
         final Event event1 = new Event("event1", "someType", EventStatus.pending,
@@ -195,15 +197,17 @@ public class EventsDAOTest {
         eventsDAO.create(event1.getStateMachineInstanceId(), event2);
 
         // Should return event1 as it is not marked invalid
-        assertThat(eventsDAO.findValidEventBySMIdAndName(standardTestMachine.getId(), "event1"))
+        assertThat(eventsDAO.findValidEventBySMIdAndName(standardTestMachine.getId(),"event1"))
                 .isEqualTo(event1);
 
         // should return empty as invalid events are filtered at query level
-        assertThat(eventsDAO.findValidEventBySMIdAndName(standardTestMachine.getId(), "event2")).isNull();
+        assertThat(eventsDAO.findValidEventBySMIdAndName(standardTestMachine.getId(),"event2")).isNull();
+
     }
 
+
     @Test
-    public void testFindTriggeredOrCancelledEventsNamesBySMId() throws Exception {
+    public void testFindTriggeredOrCancelledEventsNamesBySMId() throws Exception{
         final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
         stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
         final Event event1 = new Event("event1", "someType", EventStatus.pending,
@@ -225,11 +229,12 @@ public class EventsDAOTest {
         eventsDAO.create(event1.getStateMachineInstanceId(), event4);
 
         assertThat(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId(standardTestMachine.getId())).containsOnly(
-                "event3", "event4");
+                "event3","event4");
     }
 
+
     @Test
-    public void testFindReplayEventsNamesBySMId() throws Exception {
+    public void testFindReplayEventsNamesBySMId() throws Exception{
         final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
         stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
         final Event event1 = new Event("event1", "someType", EventStatus.pending,
@@ -250,11 +255,11 @@ public class EventsDAOTest {
 
         assertThat(eventsDAO.findAllValidReplayEventsNamesBySMId(standardTestMachine.getId())).hasSize(3);
         assertThat(eventsDAO.findAllValidReplayEventsNamesBySMId(standardTestMachine.getId())).containsOnly(
-                "event1", "event4", "event5");
+                "event1","event4","event5");
     }
 
     @Test
-    public void testFindTriggeredEventsBySMId() throws Exception {
+    public void testFindTriggeredEventsBySMId() throws Exception{
         final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
         stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
         final Event event1 = new Event("event1", "someType", EventStatus.pending,
@@ -270,11 +275,11 @@ public class EventsDAOTest {
                 standardTestMachine.getId(), null, RuntimeConstants.REPLAY_EVENT);
         eventsDAO.create(event4.getStateMachineInstanceId(), event4);
 
-        assertThat(eventsDAO.findTriggeredEventsBySMId(standardTestMachine.getId())).containsOnly(event3, event4);
+        assertThat(eventsDAO.findTriggeredEventsBySMId(standardTestMachine.getId())).containsOnly(event3,event4);
     }
 
     @Test
-    public void testFindTriggeredEventBySMIdAndName() throws Exception {
+    public void testFindTriggeredEventBySMIdAndName() throws Exception{
 
         final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
         stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
@@ -298,10 +303,11 @@ public class EventsDAOTest {
         Event retrievedEvent4 = eventsDAO.findTriggeredEventBySMIdAndName(standardTestMachine.getId(),
                 "event4");
         assertThat(retrievedEvent4).isEqualTo(event4);
+
     }
 
     @Test
-    public void testGetAllEventsNameAndStatus() throws Exception {
+    public void testGetAllEventsNameAndStatus() throws Exception{
 
         final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
         stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
@@ -321,33 +327,34 @@ public class EventsDAOTest {
                 standardTestMachine.getId(), null, RuntimeConstants.REPLAY_EVENT);
         eventsDAO.create(event1.getStateMachineInstanceId(), event5);
 
-        assertThat(eventsDAO.getAllEventsNameAndStatus(standardTestMachine.getId(), false)).hasSize(4);
+        assertThat(eventsDAO.getAllEventsNameAndStatus(standardTestMachine.getId(),false)).hasSize(4);
 
-        assertThat(eventsDAO.getAllEventsNameAndStatus(standardTestMachine.getId(), true)).hasSize(4);
+        assertThat(eventsDAO.getAllEventsNameAndStatus(standardTestMachine.getId(),true)).hasSize(4);
     }
 
     @Test
-    public void testMarkEventAsCancelled() throws Exception {
+    public void testMarkEventAsCancelled() throws Exception{
         final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
-        stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
-        final Event event = new Event("event1", "someType", EventStatus.pending, standardTestMachine.getId(),
-                null, null);
-        eventsDAO.create(standardTestMachine.getId(), event);
-        eventsDAO.markEventAsCancelled(standardTestMachine.getId(), "event1");
+        stateMachinesDAO.create(standardTestMachine.getId(),standardTestMachine);
+        final Event event = new Event("event1","someType",EventStatus.pending,standardTestMachine.getId(),
+                null,null);
+        eventsDAO.create(standardTestMachine.getId(),event);
+        eventsDAO.markEventAsCancelled(standardTestMachine.getId(),"event1");
 
-        assertThat(eventsDAO.findValidEventBySMIdAndName(standardTestMachine.getId(), "event1")
+        assertThat(eventsDAO.findValidEventBySMIdAndName(standardTestMachine.getId(),"event1")
                 .getStatus()).isEqualTo(EventStatus.cancelled);
+
     }
 
     @Ignore
     @Test
     //TODO: change it to findAllEventBySMIdAndName()
-    public void testMarkEventAsInvalid() throws Exception {
+    public void testMarkEventAsInvalid() throws Exception{
         final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
-        stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
-        final Event event1 = new Event("event1", "someType", EventStatus.pending, standardTestMachine.getId(),
-                null, null);
-        eventsDAO.create(standardTestMachine.getId(), event1);
+        stateMachinesDAO.create(standardTestMachine.getId(),standardTestMachine);
+        final Event event1 = new Event("event1","someType",EventStatus.pending,standardTestMachine.getId(),
+                null,null);
+        eventsDAO.create(standardTestMachine.getId(),event1);
         final Event event2 = new Event("event2", "someType", EventStatus.invalid,
                 standardTestMachine.getId(), null, null);
         eventsDAO.create(event2.getStateMachineInstanceId(), event2);
@@ -372,42 +379,43 @@ public class EventsDAOTest {
         eventsDAO.markEventsAsInvalid(standardTestMachine.getId(), invalidEventsList);
 
         assertThat(eventsDAO.findAllBySMIdAndName(
-                standardTestMachine.getId(), "event1").get(0).getStatus()).isEqualTo(EventStatus.pending);
+                standardTestMachine.getId(),"event1").get(0).getStatus()).isEqualTo(EventStatus.pending);
         assertThat(eventsDAO.findAllBySMIdAndName(
-                standardTestMachine.getId(), "event2").get(0).getStatus()).isEqualTo(EventStatus.invalid);
+                standardTestMachine.getId(),"event2").get(0).getStatus()).isEqualTo(EventStatus.invalid);
         assertThat(eventsDAO.findAllBySMIdAndName(
-                standardTestMachine.getId(), "event3").get(0).getStatus()).isEqualTo(EventStatus.invalid);
+                standardTestMachine.getId(),"event3").get(0).getStatus()).isEqualTo(EventStatus.invalid);
         assertThat(eventsDAO.findAllBySMIdAndName(
-                standardTestMachine.getId(), "event4").get(0).getStatus()).isEqualTo(EventStatus.invalid);
+                standardTestMachine.getId(),"event4").get(0).getStatus()).isEqualTo(EventStatus.invalid);
         assertThat(eventsDAO.findAllBySMIdAndName(
-                standardTestMachine.getId(), "event5").get(0).getStatus()).isEqualTo(EventStatus.cancelled);
+                standardTestMachine.getId(),"event5").get(0).getStatus()).isEqualTo(EventStatus.cancelled);
         assertThat(eventsDAO.findAllBySMIdAndName(
-                standardTestMachine.getId(), "event6").get(0).getStatus()).isEqualTo(EventStatus.triggered);
+                standardTestMachine.getId(),"event6").get(0).getStatus()).isEqualTo(EventStatus.triggered);
+
     }
 
     @Test
-    public void testFindAllValidEventsByStateMachineIdAndExecutionVersionAndName() throws Exception {
+    public void testFindAllValidEventsByStateMachineIdAndExecutionVersionAndName() throws Exception{
         final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
-        stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
+        stateMachinesDAO.create(standardTestMachine.getId(),standardTestMachine);
 
         // Store all the different events in DB
-        final Event event1 = new Event("event1", "someType", EventStatus.pending, standardTestMachine.getId(),
-                null, null, 0l);
-        eventsDAO.create(standardTestMachine.getId(), event1);
+        final Event event1 = new Event("event1","someType",EventStatus.pending,standardTestMachine.getId(),
+                null,null,0l);
+        eventsDAO.create(standardTestMachine.getId(),event1);
         final Event event2 = new Event("event2", "someType", EventStatus.invalid,
-                standardTestMachine.getId(), null, null, 0l);
+                standardTestMachine.getId(), null, null,0l);
         eventsDAO.create(event2.getStateMachineInstanceId(), event2);
         final Event event3 = new Event("event3", "someType", EventStatus.triggered,
-                standardTestMachine.getId(), null, null, 0l);
+                standardTestMachine.getId(), null, null,0l);
         eventsDAO.create(event3.getStateMachineInstanceId(), event3);
         final Event event4 = new Event("event4", "someType", EventStatus.triggered,
-                standardTestMachine.getId(), null, RuntimeConstants.REPLAY_EVENT, 1l);
+                standardTestMachine.getId(), null, RuntimeConstants.REPLAY_EVENT,1l);
         eventsDAO.create(event4.getStateMachineInstanceId(), event4);
         final Event event5 = new Event("event5", "someType", EventStatus.cancelled,
-                standardTestMachine.getId(), null, RuntimeConstants.REPLAY_EVENT, 0l);
+                standardTestMachine.getId(), null, RuntimeConstants.REPLAY_EVENT,0l);
         eventsDAO.create(event5.getStateMachineInstanceId(), event5);
         final Event event6 = new Event("event6", "someType", EventStatus.triggered,
-                standardTestMachine.getId(), null, null, 1l);
+                standardTestMachine.getId(), null, null,1l);
         eventsDAO.create(event6.getStateMachineInstanceId(), event6);
 
         // Query for the events listed
@@ -419,9 +427,9 @@ public class EventsDAOTest {
         inputList.add(event5.getName());
 
         List<Event> outputEventList = eventsDAO.findAllValidEventsByStateMachineIdAndExecutionVersionAndName(
-                standardTestMachine.getId(), inputList, 0l);
+                standardTestMachine.getId(),inputList,0l);
 
-        assertThat(outputEventList).contains(event1, event3, event5);
-        assertThat(outputEventList).doesNotContain(event2, event4, event6);
+        assertThat(outputEventList).contains(event1,event3,event5);
+        assertThat(outputEventList).doesNotContain(event2,event4,event6);
     }
 }

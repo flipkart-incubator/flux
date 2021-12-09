@@ -92,8 +92,7 @@ public class StatesDAOTest {
     @Test
     public void testUpdateState() throws Exception {
         StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
-        State state1 =
-                new State(5L, "state1", "desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask", "com.flipkart.flux.dao.DummyOnExitHook", null, 3L, 60L, null, null, null, 0l, "1", 1L);
+        State state1 = new State(5L, "state1", "desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask", "com.flipkart.flux.dao.DummyOnExitHook", null, 3L, 60L, null, null, null, 0l, "1", 1L);
         statesDAO.updateState(stateMachine.getId(), state1);
         State state2 = statesDAO.findById(stateMachine.getId(), 1L);
         assertThat(state2.getVersion()).isEqualTo(5L);
@@ -102,8 +101,7 @@ public class StatesDAOTest {
     @Test
     public void testFindStateByDependentEvent() throws Exception {
         StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
-        State state1 =
-                new State(2L, "state1", "desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.singletonList("event1"), 3L, 60L, null, null, null, 0l, "1", 1L);
+        State state1 = new State(2L, "state1", "desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.singletonList("event1"), 3L, 60L, null, null, null, 0l, "1", 1L);
         statesDAO.updateState(stateMachine.getId(), state1);
         List<State> stateList = statesDAO.findStatesByDependentEvent(stateMachine.getId(), "event1");
         assertThat(stateList.contains("state1"));
@@ -112,8 +110,7 @@ public class StatesDAOTest {
     @Test
     public void testFindStateByDependentReplayEvent() throws Exception {
         StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
-        State state1 =
-                new State(2L, "state1", "desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.singletonList("ReplayEvent"), 3L, 60L, null, Status.completed, null, 0l, "1", 1L, (short) 5, (short) 2, Boolean.TRUE);
+        State state1 = new State(2L, "state1", "desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.singletonList("ReplayEvent"), 3L, 60L, null, Status.completed, null, 0l, "1", 1L, (short) 5, (short) 2, Boolean.TRUE);
         statesDAO.updateState(stateMachine.getId(), state1);
         Long stateId = statesDAO.findStateIdByEventName(stateMachine.getId(), "ReplayEvent");
         assertThat(stateId).isEqualTo(1L);
@@ -124,8 +121,7 @@ public class StatesDAOTest {
     @Ignore("Need ShardId to test this test case")
     public void testFindStateByStatus() throws Exception {
         StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
-        State state1 =
-                new State(2L, "state1", "desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.singletonList("ReplayEvent"), 3L, 60L, null, Status.completed, null, 0l, "1", 1L, (short) 5, (short) 2, Boolean.TRUE);
+        State state1 = new State(2L, "state1", "desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.singletonList("ReplayEvent"), 3L, 60L, null, Status.completed, null, 0l, "1", 1L, (short) 5, (short) 2, Boolean.TRUE);
         statesDAO.updateState(stateMachine.getId(), state1);
         State state = statesDAO.findById(stateMachine.getId(), 1L);
     }
@@ -135,9 +131,9 @@ public class StatesDAOTest {
     @Ignore("Need ShardId to test this test case")
     public void testFindErroredStates() throws Exception {
         StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
-        State state1 =
-                new State(2L, "state1", "desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.singletonList("ReplayEvent"), 3L, 60L, null, Status.errored, null, 0l, "1", 1L, (short) 5, (short) 2, Boolean.TRUE);
+        State state1 = new State(2L, "state1", "desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.singletonList("ReplayEvent"), 3L, 60L, null, Status.errored, null, 0l, "1", 1L, (short) 5, (short) 2, Boolean.TRUE);
         statesDAO.updateState(stateMachine.getId(), state1);
         State state = statesDAO.findById(stateMachine.getId(), 1L);
     }
+
 }

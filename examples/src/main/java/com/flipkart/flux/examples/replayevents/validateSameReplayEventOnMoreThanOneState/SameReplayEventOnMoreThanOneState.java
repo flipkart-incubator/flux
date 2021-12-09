@@ -15,12 +15,10 @@ public class SameReplayEventOnMoreThanOneState {
     }
 
     @Task(version = 1, retries = 0, timeout = 1000L)
-    public ParamEvent task1() {
-        return new ParamEvent("task1", true);
-    }
+    public ParamEvent task1() { return new ParamEvent("task1", true); }
 
     @Task(version = 1, retries = 0, timeout = 400L, isReplayable = true, replayRetries = 3)
-    public ParamEvent task2(@ReplayEvent("someReplayEvent") ParamEvent event) {
+    public ParamEvent task2( @ReplayEvent("someReplayEvent") ParamEvent event) {
         return new ParamEvent("task2", false);
     }
 
@@ -31,10 +29,10 @@ public class SameReplayEventOnMoreThanOneState {
 
     @Task(version = 1, retries = 0, timeout = 400L)
     public ParamEvent task4(ParamEvent event1, ParamEvent event2) {
-        if (event1.failDependentTask) {
+        if(event1.failDependentTask) {
             try {
                 Thread.sleep(1000);
-            } catch (Exception e) {
+            } catch (Exception e){
                 System.out.println("interrupted");
                 e.printStackTrace();
             }

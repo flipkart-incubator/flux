@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS `StateTraversalPaths` (
   `stateId` BIGINT NOT NULL ,
   `stateMachineId` VARCHAR (64) NOT NULL ,
   `nextDependentStates` VARCHAR(1000) DEFAULT NULL,
-  `createdAt` TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3),
+  `createdAt` TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`stateMachineId`, `stateId`),
   CONSTRAINT `SM_stateTraversalPath` FOREIGN KEY (`stateMachineId`) REFERENCES `StateMachines` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 )

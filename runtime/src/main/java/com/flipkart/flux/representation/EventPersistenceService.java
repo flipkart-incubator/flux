@@ -28,37 +28,37 @@ import javax.inject.Singleton;
 @Singleton
 public class EventPersistenceService {
 
-    private EventsDAO eventsDAO;
+  private EventsDAO eventsDAO;
 
-    @Inject
-    public EventPersistenceService(EventsDAO eventsDAO) {
-        this.eventsDAO = eventsDAO;
-    }
+  @Inject
+  public EventPersistenceService(EventsDAO eventsDAO) {
+    this.eventsDAO = eventsDAO;
+  }
 
-    /**
-     * Converts {@link EventDefinition} to domain object {@link Event}
-     *
-     * @return event domain object
-     */
-    //TODO: Add test cases
-    public Event convertEventDefinitionToEvent(EventDefinition eventDefinition) {
-        if (eventDefinition.getEventSource() != null) {
-            return new Event(eventDefinition.getName(), eventDefinition.getType(),
-                    Event.EventStatus.pending,
-                    null, null, eventDefinition.getEventSource(),
-                    0L);
-        }
-        return new Event(eventDefinition.getName(), eventDefinition.getType(),
-                Event.EventStatus.pending,
-                null, null, null, 0L);
+  /**
+   * Converts {@link EventDefinition} to domain object {@link Event}
+   *
+   * @return event domain object
+   */
+  //TODO: Add test cases
+  public Event convertEventDefinitionToEvent(EventDefinition eventDefinition) {
+    if (eventDefinition.getEventSource() != null) {
+      return new Event(eventDefinition.getName(), eventDefinition.getType(),
+          Event.EventStatus.pending,
+          null, null, eventDefinition.getEventSource(),
+          0L);
     }
+    return new Event(eventDefinition.getName(), eventDefinition.getType(),
+        Event.EventStatus.pending,
+        null, null, null, 0L);
+  }
 
-    /**
-     * Persists the event in the DB.
-     *
-     * @return created event
-     */
-    public Event persistEvent(Event event) {
-        return eventsDAO.create(event.getStateMachineInstanceId(), event);
-    }
+  /**
+   * Persists the event in the DB.
+   *
+   * @return created event
+   */
+  public Event persistEvent(Event event) {
+    return eventsDAO.create(event.getStateMachineInstanceId(), event);
+  }
 }

@@ -16,9 +16,9 @@ package com.flipkart.flux.dao.iface;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.StateMachineStatus;
 import com.flipkart.flux.shard.ShardId;
-import org.hibernate.Session;
 
 import java.util.Set;
+import org.hibernate.Session;
 
 /**
  * <code>StateMachinesDAO</code> interface provides methods to perform CR operations on {@link StateMachine}
@@ -29,26 +29,42 @@ public interface StateMachinesDAO {
 
     /**
      * Creates state machine and returns saved object
+     * @param StateMachineInstanceId
+     * @param stateMachine
+     * @return
      */
     StateMachine create(String StateMachineInstanceId, StateMachine stateMachine);
 
     /**
      * Retrieves state machine by it's unique identifier
+     * @param stateMachineId
+     * @return
      */
     StateMachine findById(String stateMachineId);
 
+
     /**
      * Retrieves set of state machines by State machine's Name
+     * @param shardId
+     * @param stateMachineName
+     * @return
      */
     Set<StateMachine> findByName(ShardId shardId, String stateMachineName);
 
+
     /**
      * Retrieves set of state machines by Name and version
+     * @param shardId
+     * @param stateMachineName
+     * @param Version
+     * @return
      */
     Set<StateMachine> findByNameAndVersion(ShardId shardId, String stateMachineName, Long Version);
 
     /**
      * Updates status of a state machine
+     * @param stateMachineId
+     * @param status
      */
     void updateStatus(String stateMachineId, StateMachineStatus status);
 
@@ -56,12 +72,18 @@ public interface StateMachinesDAO {
      * findById from StateMachine with "FOR UPDATE" flag to avoid dirty/stale reads by multiple transactions
      * on same StateMachine instance's executionVersion. "FOR UPDATE" will make any other transaction trying to access
      * same State machine instance's executionVersion wait until current transaction commit/roll-back
+     * @param stateMachineInstanceId
+     * @param session
+     * @return
      */
     Long findExecutionVersionBySMIdForUpdate_NonTransactional(String stateMachineInstanceId, Session session);
 
     /**
      * Updates value of executionVersion of a stateMachine, this will be picked up as an executionVersion for
      * post replay event.
+     * @param stateMachineInstanceId
+     * @param smExecutionVersion
+     * @param session
      */
     void updateExecutionVersion_NonTransactional(String stateMachineInstanceId, Long smExecutionVersion, Session session);
 }

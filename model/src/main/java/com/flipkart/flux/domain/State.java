@@ -156,6 +156,7 @@ public class State {
                  Long attemptedNoOfRetries, String stateMachineId, Long id) {
         this(version, name, description, onEntryHook, task, onExitHook, dependencies, retryCount, timeout, outputEvent,
                 status, rollbackStatus, attemptedNoOfRetries, stateMachineId, id, MAX_REPLAYABLE_RETRIES, DEFAULT_ATTEMPTED_REPLAYABLE_RETRIES, Boolean.FALSE, 0L);
+
     }
 
     public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, List<String> dependencies,
@@ -163,6 +164,7 @@ public class State {
                  Long attemptedNoOfRetries, String stateMachineId, Long id, Boolean replayable) {
         this(version, name, description, onEntryHook, task, onExitHook, dependencies, retryCount, timeout, outputEvent,
                 status, rollbackStatus, attemptedNoOfRetries, stateMachineId, id, MAX_REPLAYABLE_RETRIES, DEFAULT_ATTEMPTED_REPLAYABLE_RETRIES, replayable, 0L);
+
     }
 
     public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, List<String> dependencies,
@@ -170,6 +172,7 @@ public class State {
                  Long attemptedNoOfRetries, String stateMachineId, Long id, Short maxReplayableRetries, Short attemptedNumOfReplayableRetries, Boolean replayable) {
         this(version, name, description, onEntryHook, task, onExitHook, dependencies, retryCount, timeout, outputEvent,
                 status, rollbackStatus, attemptedNoOfRetries, stateMachineId, id, maxReplayableRetries, attemptedNumOfReplayableRetries, replayable, 0L);
+
     }
 
     public State(Long version, String name, String description, String onEntryHook, String task, String onExitHook, List<String> dependencies,
@@ -365,72 +368,35 @@ public class State {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof State)) {
-            return false;
-        }
+        if (this == o) return true;
+        if (!(o instanceof State)) return false;
 
         State state = (State) o;
 
-        if (createdAt != null ? !createdAt.equals(state.createdAt) : state.createdAt != null) {
+        if (createdAt != null ? !createdAt.equals(state.createdAt) : state.createdAt != null) return false;
+        if (description != null ? !description.equals(state.description) : state.description != null) return false;
+        if (name != null ? !name.equals(state.name) : state.name != null) return false;
+        if (attemptedNoOfRetries != null ? !attemptedNoOfRetries.equals(state.attemptedNoOfRetries) : state.attemptedNoOfRetries != null)
             return false;
-        }
-        if (description != null ? !description.equals(state.description) : state.description != null) {
+        if (onEntryHook != null ? !onEntryHook.equals(state.onEntryHook) : state.onEntryHook != null) return false;
+        if (onExitHook != null ? !onExitHook.equals(state.onExitHook) : state.onExitHook != null) return false;
+        if (outputEvent != null ? !outputEvent.equals(state.outputEvent) : state.outputEvent != null) return false;
+        if (retryCount != null ? !retryCount.equals(state.retryCount) : state.retryCount != null) return false;
+        if (rollbackStatus != state.rollbackStatus) return false;
+        if (stateMachineId != null ? !stateMachineId.equals(state.stateMachineId) : state.stateMachineId != null)
             return false;
-        }
-        if (name != null ? !name.equals(state.name) : state.name != null) {
+        if (status != state.status) return false;
+        if (task != null ? !task.equals(state.task) : state.task != null) return false;
+        if (timeout != null ? !timeout.equals(state.timeout) : state.timeout != null) return false;
+        if (updatedAt != null ? !updatedAt.equals(state.updatedAt) : state.updatedAt != null) return false;
+        if (version != null ? !version.equals(state.version) : state.version != null) return false;
+        if (executionVersion != null ? !executionVersion.equals(state.executionVersion) : state.executionVersion != null)
             return false;
-        }
-        if (attemptedNoOfRetries != null ? !attemptedNoOfRetries.equals(state.attemptedNoOfRetries) : state.attemptedNoOfRetries != null) {
+        if (replayable != null ? !replayable.equals(state.replayable) : state.replayable != null) return false;
+        if (attemptedNumOfReplayableRetries != null ? !attemptedNumOfReplayableRetries.equals(state.attemptedNumOfReplayableRetries) : state.attemptedNumOfReplayableRetries != null)
             return false;
-        }
-        if (onEntryHook != null ? !onEntryHook.equals(state.onEntryHook) : state.onEntryHook != null) {
+        if (maxReplayableRetries != null ? !maxReplayableRetries.equals(state.maxReplayableRetries) : state.maxReplayableRetries != null)
             return false;
-        }
-        if (onExitHook != null ? !onExitHook.equals(state.onExitHook) : state.onExitHook != null) {
-            return false;
-        }
-        if (outputEvent != null ? !outputEvent.equals(state.outputEvent) : state.outputEvent != null) {
-            return false;
-        }
-        if (retryCount != null ? !retryCount.equals(state.retryCount) : state.retryCount != null) {
-            return false;
-        }
-        if (rollbackStatus != state.rollbackStatus) {
-            return false;
-        }
-        if (stateMachineId != null ? !stateMachineId.equals(state.stateMachineId) : state.stateMachineId != null) {
-            return false;
-        }
-        if (status != state.status) {
-            return false;
-        }
-        if (task != null ? !task.equals(state.task) : state.task != null) {
-            return false;
-        }
-        if (timeout != null ? !timeout.equals(state.timeout) : state.timeout != null) {
-            return false;
-        }
-        if (updatedAt != null ? !updatedAt.equals(state.updatedAt) : state.updatedAt != null) {
-            return false;
-        }
-        if (version != null ? !version.equals(state.version) : state.version != null) {
-            return false;
-        }
-        if (executionVersion != null ? !executionVersion.equals(state.executionVersion) : state.executionVersion != null) {
-            return false;
-        }
-        if (replayable != null ? !replayable.equals(state.replayable) : state.replayable != null) {
-            return false;
-        }
-        if (attemptedNumOfReplayableRetries != null ? !attemptedNumOfReplayableRetries.equals(state.attemptedNumOfReplayableRetries) : state.attemptedNumOfReplayableRetries != null) {
-            return false;
-        }
-        if (maxReplayableRetries != null ? !maxReplayableRetries.equals(state.maxReplayableRetries) : state.maxReplayableRetries != null) {
-            return false;
-        }
 
         return true;
     }
@@ -516,19 +482,14 @@ public class State {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (!(o instanceof StatePK)) {
-                return false;
-            }
+            if (this == o) return true;
+            if (!(o instanceof StatePK)) return false;
 
             StatePK statePK = (StatePK) o;
 
-            if (!getId().equals(statePK.getId())) {
-                return false;
-            }
+            if (!getId().equals(statePK.getId())) return false;
             return getStateMachineId().equals(statePK.getStateMachineId());
+
         }
 
         @Override

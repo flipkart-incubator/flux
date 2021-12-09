@@ -26,7 +26,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.flipkart.flux.redriver.model.SmIdAndTaskIdWithExecutionVersion;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -35,6 +34,7 @@ import com.codahale.metrics.InstrumentedScheduledExecutorService;
 import com.codahale.metrics.SharedMetricRegistries;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.flux.redriver.model.SmIdAndTaskIdWithExecutionVersion;
 import com.flipkart.polyguice.core.Initializable;
 
 /**
@@ -80,9 +80,8 @@ public class MessageManagerService implements Initializable {
                 SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME), scheduledInsertionSvcName);
         scheduledDeletionService =
                 new InstrumentedScheduledExecutorService(Executors.newScheduledThreadPool(2), SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME), scheduledDeletionSvcName);
-        // append hashcode of this instance to the metrics name to avoid issues of duplicate names in metrics registry	
         persistenceExecutorService =
-                new InstrumentedExecutorService(Executors.newFixedThreadPool(noOfPersistenceWorkers), SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME), taskRegisterSvcName + this.hashCode());
+                new InstrumentedExecutorService(Executors.newFixedThreadPool(noOfPersistenceWorkers), SharedMetricRegistries.getOrCreate(METRIC_REGISTRY_NAME), taskRegisterSvcName);
     }
 
     public List<ScheduledMessage> retrieveOldest(int offset, int count) {

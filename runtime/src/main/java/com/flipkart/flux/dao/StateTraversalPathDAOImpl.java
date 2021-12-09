@@ -15,10 +15,7 @@ package com.flipkart.flux.dao;
 
 import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.domain.StateTraversalPath;
-import com.flipkart.flux.persistence.DataSourceType;
-import com.flipkart.flux.persistence.SelectDataSource;
-import com.flipkart.flux.persistence.SessionFactoryContext;
-import com.flipkart.flux.persistence.Storage;
+import com.flipkart.flux.persistence.*;
 import com.google.inject.name.Named;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
@@ -30,7 +27,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * <code>StateTraversalPathDAOImpl</code> is an implementation of {@link com.flipkart.flux.dao.iface.StateTraversalPathDAO}
+ * <code>StateTraversalPathDAOImpl</code> is an implementation of {@link StateTraversalPathDAO}
  * which uses Hibernate to perform operations.
  *
  * @author akif.khan
@@ -41,6 +38,7 @@ public class StateTraversalPathDAOImpl extends AbstractDAO<StateTraversalPath> i
     public StateTraversalPathDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
         super(sessionFactoryContext);
     }
+
 
     @Override
     @Transactional
@@ -57,10 +55,10 @@ public class StateTraversalPathDAOImpl extends AbstractDAO<StateTraversalPath> i
                 .add(Restrictions.eq("stateMachineId", stateMachineId))
                 .add(Restrictions.eq("stateId", stateId));
         Object object = criteria.uniqueResult();
-        // TODO : Need to check to use Optional object
         StateTraversalPath castedObject = null;
         if(object != null)
             castedObject = (StateTraversalPath) object;
+
         return Optional.ofNullable(castedObject);
     }
 

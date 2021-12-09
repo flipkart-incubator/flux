@@ -13,24 +13,26 @@
 
 package com.flipkart.flux.impl.redriver;
 
-import akka.actor.ActorSystem;
-import akka.actor.PoisonPill;
-import akka.actor.Props;
-import akka.cluster.singleton.ClusterSingletonManager;
-import akka.cluster.singleton.ClusterSingletonManagerSettings;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.flipkart.flux.impl.boot.ActorSystemManager;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
 import com.flipkart.flux.redriver.service.MessageManagerService;
 import com.flipkart.flux.redriver.service.RedriverService;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
-import com.flipkart.polyguice.core.Initializable;
 import com.flipkart.flux.utils.LoggingUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import com.flipkart.polyguice.core.Initializable;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import akka.actor.ActorSystem;
+import akka.actor.PoisonPill;
+import akka.actor.Props;
+import akka.cluster.singleton.ClusterSingletonManager;
+import akka.cluster.singleton.ClusterSingletonManagerSettings;
 
 /**
  * <code>RedriverRegistryImpl</code> is an implementation of the {@link RedriverRegistry} that uses
@@ -95,7 +97,7 @@ public class RedriverRegistryImpl implements RedriverRegistry, Initializable {
      */
     public void registerTask(Long taskId, String stateMachineId, long redriveDelay, Long executionVersion) {
         try {
-            LoggingUtils.registerStateMachineIdForLogging(stateMachineId);
+            LoggingUtils.registerStateMachineIdForLogging(stateMachineId.toString());
             logger.info("Register task : {} for redriver with time : {}", taskId, redriveDelay);
             redriverMessageService.saveMessage(new ScheduledMessage(taskId, stateMachineId, System.currentTimeMillis() + redriveDelay, executionVersion));
         } finally {
@@ -110,7 +112,7 @@ public class RedriverRegistryImpl implements RedriverRegistry, Initializable {
      */
     public void deRegisterTask(String stateMachineId, Long taskId, Long executionVersion) {
         try {
-            LoggingUtils.registerStateMachineIdForLogging(stateMachineId);
+            LoggingUtils.registerStateMachineIdForLogging(stateMachineId.toString());
             logger.info("DeRegister task : {} with smId : {} redriver", taskId, stateMachineId);
             redriverMessageService.scheduleForRemoval(stateMachineId, taskId, executionVersion);
         } finally {
@@ -125,7 +127,7 @@ public class RedriverRegistryImpl implements RedriverRegistry, Initializable {
      */
     public void redriveTask(String stateMachineId, Long taskId, Long executionVersion) {
         try {
-            LoggingUtils.registerStateMachineIdForLogging(stateMachineId);
+            LoggingUtils.registerStateMachineIdForLogging(stateMachineId.toString());
             logger.info("Redrive task with stateMachineId: {} Id : {} and executionVersion: {}", stateMachineId, taskId, executionVersion);
             fluxRuntimeConnector.redriveTask(stateMachineId, taskId, executionVersion);
         } finally {

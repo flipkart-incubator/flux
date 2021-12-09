@@ -1,9 +1,7 @@
 package com.flipkart.flux.representation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.api.EventDefinition;
-import com.flipkart.flux.dao.iface.EventsDAO;
-import com.flipkart.flux.domain.Event;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,7 +10,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.dao.iface.EventsDAO;
+import com.flipkart.flux.domain.Event;
+
 
 /**
  * @author vartika.bhatia
@@ -38,7 +40,7 @@ public class EventPersistenceServiceTest {
     }
 
     @Test
-    public void testConvertEventDefinitionToEvent() throws Exception {
+    public void testConvertEventDefinitionToEvent() throws Exception{
 
         String eventDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_definition_with_eventSource.json"));
         EventDefinition eventDefinition = objectMapper.readValue(eventDefinitionJson, EventDefinition.class);
@@ -47,11 +49,13 @@ public class EventPersistenceServiceTest {
     }
 
     @Test
-    public void testConvertEventDefinitionToEventNoEventSource() throws Exception {
+    public void testConvertEventDefinitionToEventNoEventSource() throws Exception{
 
         String eventDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_definition_without_eventSource.json"));
         EventDefinition eventDefinition = objectMapper.readValue(eventDefinitionJson, EventDefinition.class);
         Event event = eventPersistenceService.convertEventDefinitionToEvent(eventDefinition);
         assertThat(event.getEventSource()).isNull();
     }
+
 }
+

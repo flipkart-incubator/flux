@@ -13,16 +13,24 @@
 
 package com.flipkart.flux.dao;
 
+import com.flipkart.flux.api.VersionedEventData;
+import com.flipkart.flux.constant.RuntimeConstants;
+import com.flipkart.flux.dao.iface.EventsDAO;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.Event.EventStatus;
+import com.flipkart.flux.persistence.DataSourceType;
+import com.flipkart.flux.persistence.SelectDataSource;
+import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.Storage;
+import com.google.inject.name.Named;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
@@ -30,16 +38,6 @@ import org.hibernate.Session;
 import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-
-import com.flipkart.flux.api.VersionedEventData;
-import com.flipkart.flux.constant.RuntimeConstants;
-import com.flipkart.flux.dao.iface.EventsDAO;
-import com.flipkart.flux.domain.Event;
-import com.flipkart.flux.persistence.DataSourceType;
-import com.flipkart.flux.persistence.SelectDataSource;
-import com.flipkart.flux.persistence.SessionFactoryContext;
-import com.flipkart.flux.persistence.Storage;
-import com.google.inject.name.Named;
 
 /**
  * <code>EventsDAOImpl</code> is an implementation of {@link EventsDAO} which uses Hibernate to perform operations.
@@ -75,7 +73,6 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     /**
      * Returns the list of events which are not marked as invalid
-     *
      * @param stateMachineInstanceId Identifier for the state machine
      * @return
      */
@@ -91,9 +88,8 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     /**
      * Returns the list of events that are not marked invalid
-     *
      * @param stateMachineInstanceId State Machine Identifier
-     * @param eventName              Name of the event
+     * @param eventName Name of the event
      * @return
      */
     @Override
@@ -103,24 +99,22 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         Criteria criteria = currentSession().createCriteria(Event.class)
                 .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("name", eventName))
-                //TODO: Check if we need to add check on invalid
                 .add(Restrictions.ne("status", Event.EventStatus.invalid));
         return (Event) criteria.uniqueResult();
     }
 
     /**
      * Retrieves all the events with the given name irrespective of its status
-     *
      * @param stateMachineInstanceId
      * @param eventName
      */
     @Override
     @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    @SelectDataSource(type = DataSourceType.READ_WRITE,storage = Storage.SHARDED)
     public List<Event> findAllBySMIdAndName(String stateMachineInstanceId, String eventName) {
         Criteria criteria = currentSession().createCriteria(Event.class)
-                .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
-                .add(Restrictions.eq("name", eventName));
+            .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
+            .add(Restrictions.eq("name", eventName));
         return criteria.list();
     }
 
@@ -129,12 +123,11 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Event findValidEventsByStateMachineIdAndExecutionVersionAndName(String stateMachineInstanceId, String eventName,
-                                                                           Long executionVersion) {
+                                                   Long executionVersion) {
         Criteria criteria = currentSession().createCriteria(Event.class)
                 .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("name", eventName))
-                //TODO: Check marking events as invalid is necessary
-                .add(Restrictions.ne("status", Event.EventStatus.invalid))
+                .add(Restrictions.ne("status", EventStatus.invalid))
                 .add(Restrictions.eq("executionVersion", executionVersion));
         return (Event) criteria.uniqueResult();
     }
@@ -146,18 +139,17 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public List<Event> findAllValidEventsByStateMachineIdAndExecutionVersionAndName(
-            String stateMachineInstanceId, List<String> eventNames, Long executionVersion) {
+        String stateMachineInstanceId, List<String> eventNames, Long executionVersion) {
         Criteria criteria = currentSession().createCriteria(Event.class)
-                .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
-                .add(Restrictions.in("name", eventNames))
-                .add(Restrictions.ne("status", Event.EventStatus.invalid))
-                .add(Restrictions.eq("executionVersion", executionVersion));
+            .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
+            .add(Restrictions.in("name", eventNames))
+            .add(Restrictions.ne("status", EventStatus.invalid))
+            .add(Restrictions.eq("executionVersion", executionVersion));
         return criteria.list();
     }
 
     /**
      * Returns the List of all event names that are either triggered or cancelled
-     *
      * @param stateMachineInstanceId State Machine Identifier
      * @return
      */
@@ -187,7 +179,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         Criteria criteria = currentSession().createCriteria(Event.class)
                 .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.ilike("eventSource", RuntimeConstants.REPLAY_EVENT, MatchMode.ANYWHERE))
-                .add(Restrictions.ne("status", Event.EventStatus.invalid))
+                .add(Restrictions.ne("status", EventStatus.invalid))
                 .setProjection(Projections.property("name"));
         return criteria.list();
     }
@@ -206,7 +198,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
                 .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
                 .add(Restrictions.eq("name", eventName))
                 .add(Restrictions.ilike("eventSource", RuntimeConstants.REPLAY_EVENT, MatchMode.ANYWHERE))
-                .add(Restrictions.ne("status", Event.EventStatus.invalid));
+                .add(Restrictions.ne("status", EventStatus.invalid));
 
         Object object = criteria.uniqueResult();
         Event castedObject = null;
@@ -217,7 +209,6 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
 
     /**
      * Returns the list of the events that are in triggered state
-     *
      * @param stateMachineInstanceId State achine identifier
      * @return
      */
@@ -261,6 +252,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
                 + ") order by field(name, " + eventNamesString.toString() + ")").setParameter("SMID", stateMachineInstanceId);
         List<Event> readEvents = hqlQuery.list();
         LinkedList<VersionedEventData> readEventsDTOs = new LinkedList<>();
+        //TODO: Check again
         for (Event event : readEvents) {
             readEventsDTOs.add(new VersionedEventData(event.getName(), event.getType(), event.getEventData(),
                     event.getEventSource(), event.getExecutionVersion()));
@@ -328,7 +320,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     public void markEventAsInvalid_NonTransactional(String stateMachineInstanceId, String eventName, Session session) {
         Query query = session.createQuery("update Event set status = :status where" +
                 " stateMachineInstanceId = :stateMachineInstanceId and name = :eventName");
-        query.setString("status", Event.EventStatus.invalid.toString());
+        query.setString("status", EventStatus.invalid.toString());
         query.setString("stateMachineInstanceId", stateMachineInstanceId);
         query.setString("eventName", eventName);
         query.executeUpdate();
@@ -354,4 +346,5 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
             query.executeUpdate();
         }
     }
+
 }

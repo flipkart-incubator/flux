@@ -107,13 +107,14 @@ public class SchedulerModule extends AbstractModule {
         configuration.addAnnotatedClass(ClientElb.class);
     }
 
-    @Provides
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	@Provides
     @Singleton
     @Named("schedulerSessionFactoriesContext")
     public SessionFactoryContext getSessionFactoryProvider(@Named("schedulerSessionFactory") SessionFactory schedulerSessionFactory) {
-        Map<ShardId, SessionFactory> fluxRWSessionFactoriesMap = new HashMap<ShardId, SessionFactory>();
-        Map<ShardId, SessionFactory> fluxROSessionFactoriesMap = new HashMap<ShardId, SessionFactory>();
-        Map<String, ShardId> fluxShardKeyToShardIdMap = new HashMap<String, ShardId>();
+        Map fluxRWSessionFactoriesMap = new HashMap<ShardId, SessionFactory>();
+        Map fluxROSessionFactoriesMap = new HashMap<ShardId, SessionFactory>();
+        Map fluxShardKeyToShardIdMap = new HashMap<String, ShardId>();
         return new SessionFactoryContextImpl(fluxRWSessionFactoriesMap, fluxROSessionFactoriesMap, fluxShardKeyToShardIdMap, schedulerSessionFactory);
     }
 }

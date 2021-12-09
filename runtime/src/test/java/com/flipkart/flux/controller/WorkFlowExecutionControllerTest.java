@@ -15,32 +15,16 @@
 package com.flipkart.flux.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.anyObject;
+import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import javax.ws.rs.core.Response;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.testkit.TestActorRef;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.MockActorRef;
 import com.flipkart.flux.api.EventData;
@@ -72,10 +56,22 @@ import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.util.TestUtils;
 import com.typesafe.config.ConfigFactory;
-
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.testkit.TestActorRef;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import javax.ws.rs.core.Response;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WorkFlowExecutionControllerTest {
@@ -96,7 +92,6 @@ public class WorkFlowExecutionControllerTest {
     StateTraversalPathDAO stateTraversalPathDAO;
     TestActorRef<MockActorRef> mockActor;
     ActorSystem actorSystem;
-
     @Mock
     private RouterRegistry routerRegistry;
 
@@ -126,7 +121,7 @@ public class WorkFlowExecutionControllerTest {
                 clientElbPersistenceService, replayEventPersistenceService);
         when(stateMachinesDAO.findById(anyString())).thenReturn(TestUtils.getStandardTestMachineWithId());
         when(clientElbPersistenceService.findByIdClientElb(anyString())).thenReturn("http://localhost:9997");
-        actorSystem = ActorSystem.create("testActorSystem",ConfigFactory.load("testAkkaActorSystem"));
+        actorSystem = ActorSystem.create("testActorSystem", ConfigFactory.load("testAkkaActorSystem"));
         mockActor = TestActorRef.create(actorSystem, Props.create(MockActorRef.class));
         when(routerRegistry.getRouter(anyString())).thenReturn(mockActor);
         objectMapper = new ObjectMapper();
@@ -141,10 +136,9 @@ public class WorkFlowExecutionControllerTest {
     public void testEventPost_shouldForwardToTaskDispatcher() throws Exception {
         final VersionedEventData testEventData = new VersionedEventData("event0", "java.lang.String",
                 "42", "runtime");
-
         when(eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName("standard-machine", "event0",
                 0L)).thenReturn(new Event(
-                        "event0", "java.lang.String", Event.EventStatus.pending,
+                "event0", "java.lang.String", Event.EventStatus.pending,
                 "standard-machine", null, null));
         VersionedEventData[] expectedEvents = new VersionedEventData[]{new VersionedEventData("event0",
                 "java.lang.String", "42", "runtime")};
@@ -166,7 +160,7 @@ public class WorkFlowExecutionControllerTest {
                 "someStringData", "runtime");
         when(eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName("standard-machine", "event1",
                 0L)).thenReturn(new Event(
-                        "event1", "foo", Event.EventStatus.pending, "1",
+                "event1", "foo", Event.EventStatus.pending, "1",
                 null, null));
         when(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId("standard-machine")).thenReturn(Collections.singletonList("event1"));
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
@@ -182,7 +176,7 @@ public class WorkFlowExecutionControllerTest {
 
         when(eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName("standard-machine", "event1",
                 0L)).thenReturn(new Event(
-                        "event1", "java.lang.String", Event.EventStatus.pending, "1",
+                "event1", "java.lang.String", Event.EventStatus.pending, "1",
                 null, null));
         VersionedEventData[] expectedEvents1 = new VersionedEventData[]{new VersionedEventData("event1",
                 "java.lang.String", "42", "runtime")};
@@ -204,8 +198,8 @@ public class WorkFlowExecutionControllerTest {
         // give time to execute
         Thread.sleep(2000);
 
-        verify(redriverRegistry).registerTask(2L, "standard-machine", 32800, 0L); //state with id 2 has 3 retries and 100ms timeout
-        verify(redriverRegistry).registerTask(4L, "standard-machine", 8400, 0L); //state with id 4 has 1 retries and 100ms timeout
+        verify(redriverRegistry).registerTask(2L, "standard-machine", 32800, 0l); //state with id 2 has 3 retries and 100ms timeout
+        verify(redriverRegistry).registerTask(4L, "standard-machine", 8400, 0l); //state with id 4 has 1 retries and 100ms timeout
     }
 
     @Test
@@ -229,7 +223,7 @@ public class WorkFlowExecutionControllerTest {
         verifyNoMoreInteractions(executionNodeTaskDispatcher);
     }
 
-	@SuppressWarnings("unused")
+    @SuppressWarnings("unused")
 	@Test
     public void testEventPost_shouldSendExecuteTaskIfItIsNotCompleted() throws Exception {
         final VersionedEventData testEventData = new VersionedEventData("event0", "java.lang.String",
@@ -238,6 +232,8 @@ public class WorkFlowExecutionControllerTest {
         when(eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName("standard-machine", "event0",
                 0L)).thenReturn(new Event("event0", "java.lang.String",
                 Event.EventStatus.pending, "1", null, null));
+        VersionedEventData[] expectedEvents = new VersionedEventData[]{new VersionedEventData("event0",
+                "java.lang.String", "42", "runtime")};
         when(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId("standard-machine")).thenReturn(Collections.singletonList("event0"));
         when(executionNodeTaskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(Response.Status.ACCEPTED.getStatusCode());
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
@@ -343,7 +339,8 @@ public class WorkFlowExecutionControllerTest {
         }};
         StateMachine stateMachine = new StateMachine("state-machine-cancel-path", 1L, "state_machine_1",
                 null, states, "client_elb_id_1");
-        VersionedEventData testEventData = new VersionedEventData("event3", null, null, "runtime", true);
+        VersionedEventData testEventData = new VersionedEventData("event3", null, null,
+                "runtime", true, 0L);
         when(eventsDAO.getAllEventsNameAndStatus("state-machine-cancel-path", true)).thenReturn(eventStatusHashMap);
         when(stateMachinesDAO.findById("state-machine-cancel-path")).thenReturn(stateMachine);
         // invoke cancel
@@ -374,7 +371,7 @@ public class WorkFlowExecutionControllerTest {
                         "someTask", 1L, com.flipkart.flux.api.Status.running,
                         0, 1, "", false, ""));
         verify(statesDAO).updateStatus("random-state-machine", 1L, Status.running);
-        verify(auditDAO).create("random-state-machine", new AuditRecord("random-state-machine", 1L, 1L, Status.running, null , ""));
+        verify(auditDAO).create("random-state-machine", new AuditRecord("random-state-machine", 1L, 1L, Status.running, null, ""));
         verifyNoMoreInteractions(redriverRegistry);
     }
 
@@ -389,8 +386,8 @@ public class WorkFlowExecutionControllerTest {
                         "someTask", 1L, com.flipkart.flux.api.Status.completed,
                         0, 1, "", true, ""));
         verify(statesDAO).updateStatus("random-state-machine", 1L, Status.completed);
-        verify(auditDAO).create("random-state-machine", new AuditRecord("random-state-machine", 1L, 1L, Status.completed, null , ""));
-        verify(redriverRegistry).deRegisterTask("random-state-machine",1L, 0L);
+        verify(auditDAO).create("random-state-machine", new AuditRecord("random-state-machine", 1L, 1L, Status.completed, null, ""));
+        verify(redriverRegistry).deRegisterTask("random-state-machine", 1L, 0L);
     }
 
     @SuppressWarnings("unused")
@@ -447,7 +444,6 @@ public class WorkFlowExecutionControllerTest {
         EventData eventData = new EventData(testReplayEvent.getName(), testReplayEvent.getType(), testReplayEvent.getEventData(), testReplayEvent.getEventSource());
         workFlowExecutionController.postReplayEvent(eventData, stateMachine1);
         verify(statesDAO).incrementReplayableRetries("ReplayEventTestStateMachine1", 2L, (short) 10);
-
     }
 
     @Test(expected = IllegalEventException.class)
@@ -457,37 +453,26 @@ public class WorkFlowExecutionControllerTest {
         String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";
         String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
         final Event testReplayEvent = new Event("event3", "someType",
-                Event.EventStatus.pending, "ReplayEventTestStateMachine1",
-                null, RuntimeConstants.REPLAY_EVENT);
+            Event.EventStatus.pending, "ReplayEventTestStateMachine1",
+            null, RuntimeConstants.REPLAY_EVENT);
 
         List<String> dependencies = new ArrayList<>();
         dependencies.add(testReplayEvent.getName());
         String outputEvent1 = objectMapper.writeValueAsString(new EventDefinition("event1",
-                "SomeEvent"));
+            "SomeEvent"));
         State state1 = new State(2L, "state1", "desc1", onEntryHook, task,
-                onExitHook, Collections.emptyList(), 3L, 60L, outputEvent1, null,
-                null, 0l, "ReplayEventTestStateMachine1",
-                1L);
+            onExitHook, Collections.emptyList(), 3L, 60L, outputEvent1, null,
+            null, 0l, "ReplayEventTestStateMachine1",
+            1L);
         Set<State> states = new HashSet<>();
         states.add(state1);
         StateMachine stateMachine1 = new StateMachine("ReplayEventTestStateMachine1", 2L,
-                "SM_name", "SM_desc", states,
-                "client_elb_id_1");
+            "SM_name", "SM_desc", states,
+            "client_elb_id_1");
         when(statesDAO.findStateIdByEventName(stateMachine1.getId(), testReplayEvent.getName())).thenReturn(null);
         EventData eventData = new EventData(testReplayEvent.getName(), testReplayEvent.getType(),
-                testReplayEvent.getEventData(), testReplayEvent.getEventSource());
+            testReplayEvent.getEventData(), testReplayEvent.getEventSource());
         workFlowExecutionController.postReplayEvent(eventData, stateMachine1);
-    }
-
-    @Test(expected = RedriverException.class)
-    public void testRedriveTask_InvalidExecutionNumber(){
-        when(statesDAO.findById("random-state-machine", 1L)).thenReturn(
-                new State(1L, "random-state", null, null, null, null,
-                        new ArrayList<>(), 0L, 1000L, null, Status.initialized,
-                        null, 0L, "random-state-machine", 1L,(short) 3,(short) 0,true,2l));
-
-        workFlowExecutionController.redriveTask("random-state-machine", 1L,0l);
-        verify(redriverRegistry,times(1)).deRegisterTask("random-state-machine",1L,0L);
     }
 
     @Test(expected = IllegalEventException.class)
@@ -497,26 +482,39 @@ public class WorkFlowExecutionControllerTest {
         String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";
         String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
         final Event testReplayEvent = new Event("event3", "someType",
-                Event.EventStatus.pending, "ReplayEventTestStateMachine1",
-                null, RuntimeConstants.REPLAY_EVENT);
+            Event.EventStatus.pending, "ReplayEventTestStateMachine1",
+            null, RuntimeConstants.REPLAY_EVENT);
 
         List<String> dependencies = new ArrayList<>();
         dependencies.add(testReplayEvent.getName());
         String outputEvent1 = objectMapper.writeValueAsString(new EventDefinition("event1",
-                "SomeEvent"));
+            "SomeEvent"));
         State state1 = new State(2L, "state1", "desc1", onEntryHook, task,
-                onExitHook, dependencies, 3L, 60L, outputEvent1, null,
-                null, 0l, "ReplayEventTestStateMachine1",
-                1L);
+            onExitHook, dependencies, 3L, 60L, outputEvent1, null,
+            null, 0l, "ReplayEventTestStateMachine1",
+            1L);
         Set<State> states = new HashSet<>();
         states.add(state1);
         StateMachine stateMachine1 = new StateMachine("ReplayEventTestStateMachine1", 2L,
-                "SM_name", "SM_desc", states,
-                "client_elb_id_1");
+            "SM_name", "SM_desc", states,
+            "client_elb_id_1");
         when(statesDAO.findStateIdByEventName(stateMachine1.getId(), testReplayEvent.getName())).thenReturn(1L);
         when( statesDAO.findById(stateMachine1.getId(), 1L)).thenReturn(state1);
         EventData eventData = new EventData(testReplayEvent.getName(), testReplayEvent.getType(),
-                testReplayEvent.getEventData(), testReplayEvent.getEventSource());
+            testReplayEvent.getEventData(), testReplayEvent.getEventSource());
         workFlowExecutionController.postReplayEvent(eventData, stateMachine1);
     }
+
+
+    @Test(expected = RedriverException.class)
+    public void testRedriveTask_InvalidExecutionNumber(){
+        when(statesDAO.findById("random-state-machine", 1L)).thenReturn(
+            new State(1L, "random-state", null, null, null, null,
+                new ArrayList<>(), 0L, 1000L, null, Status.initialized,
+                null, 0L, "random-state-machine", 1L,(short) 3,(short) 0,true,2l));
+
+        workFlowExecutionController.redriveTask("random-state-machine", 1L,0l);
+        verify(redriverRegistry,times(1)).deRegisterTask("random-state-machine",1L,0L);
+    }
+
 }

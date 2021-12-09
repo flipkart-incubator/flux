@@ -17,11 +17,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
-import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SessionImplementor;
-import org.hibernate.internal.util.SerializationHelper;
-import org.hibernate.usertype.UserType;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -30,10 +25,13 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.LinkedList;
 import java.util.List;
+import org.hibernate.HibernateException;
+import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.internal.util.SerializationHelper;
+import org.hibernate.usertype.UserType;
 
 /**
  * <code>ListJsonType</code> is a Hibernate {@link UserType} implementation to store {@link java.util.List} as json in DB
- *
  * @author shyam.akirala
  */
 public class ListJsonType<T> implements UserType, Serializable {
@@ -55,8 +53,9 @@ public class ListJsonType<T> implements UserType, Serializable {
         return new int[]{Types.JAVA_OBJECT};
     }
 
-    @Override
-    public Class<?> returnedClass() {
+    @SuppressWarnings("rawtypes")
+	@Override
+    public Class returnedClass() {
         return List.class;
     }
 
@@ -98,9 +97,7 @@ public class ListJsonType<T> implements UserType, Serializable {
         }
     }
 
-    /**
-     * Performs deep copy of an object using serialization and de-serialization
-     */
+    /** Performs deep copy of an object using serialization and de-serialization*/
     @Override
     public Object deepCopy(Object value) throws HibernateException {
         return SerializationHelper.clone((Serializable) value);
@@ -139,9 +136,8 @@ public class ListJsonType<T> implements UserType, Serializable {
     }
 
     protected String serialize(Object value) throws JsonProcessingException {
-        if (value == null) {
+        if(value == null)
             return null;
-        }
 
         return MAPPER.writeValueAsString(value);
     }

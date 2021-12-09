@@ -73,7 +73,9 @@ public class StateTraversalPathDAOTest {
                 nextDependentStates);
         stateTraversalPathDAO.create(stateMachine.getId(), stateTraversalPath);
 
-        Optional<StateTraversalPath> stateTraversalPath1 = stateTraversalPathDAO.findById(stateMachine.getId(), 1L);
+        Optional<StateTraversalPath> stateTraversalPath1 = stateTraversalPathDAO.findById(stateMachine.getId(),
+                1L);
+
         assertThat(stateTraversalPath1.get()).isEqualTo(stateTraversalPath);
     }
 
@@ -101,13 +103,11 @@ public class StateTraversalPathDAOTest {
 
     @Test
     public void testRetrieveByStateMachineId_forNoReplayableState() throws Exception {
-
         assertThat(stateTraversalPathDAO.findByStateMachineId("dummy_state_machine_id")).isEmpty();
     }
 
     @Test
     public void testRetrieveByStateMachineIdAndStateId_forEmptyStateTraversalPath() throws Exception {
-
         Optional<StateTraversalPath> emptyStateTraversalPath = stateTraversalPathDAO.findById(
                 "dummy_state_machine_id", 1L);
         assertThat(emptyStateTraversalPath.isPresent()).isFalse();

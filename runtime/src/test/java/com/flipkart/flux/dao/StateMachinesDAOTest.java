@@ -66,6 +66,7 @@ public class StateMachinesDAOTest {
         stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
         assertThat(stateMachinesDAO.findById(standardTestMachine.getId()).getName()).isEqualTo(standardTestMachine.getName());
         assertThat(stateMachinesDAO.findById(standardTestMachine.getId()).getId()).isEqualTo(standardTestMachine.getId());
+
     }
 
     @Test
@@ -79,24 +80,4 @@ public class StateMachinesDAOTest {
         assertThat(stateMachinesDAO.findById(standardTestMachine.getId()).getStatus()).isEqualTo(StateMachineStatus.cancelled);
     }
 
-/*    @Test(expected = DataException.class)
-    public void testUpdateExecutionVersion() throws Exception {
-        final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
-        stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
-
-        stateMachinesDAO.updateExecutionVersion(standardTestMachine.getId(), 2l);
-        assertThat(stateMachinesDAO.findById(standardTestMachine.getId()).getExecutionVersion()).isEqualTo(2);
-
-        stateMachinesDAO.updateExecutionVersion(standardTestMachine.getId(), -1L);
-        assertThat(stateMachinesDAO.findById(standardTestMachine.getId()).getExecutionVersion()).isEqualTo(-1L);
-    }
-
-    @Test(expected = DataException.class)
-    public void testUpdateExecutionVersionWithInvalidInput() throws Exception {
-        final StateMachine standardTestMachine = TestUtils.getStandardTestMachine();
-        stateMachinesDAO.create(standardTestMachine.getId(), standardTestMachine);
-
-        // Hibernate should throw exception
-        stateMachinesDAO.updateExecutionVersion(standardTestMachine.getId(), -2l);
-    }*/
 }

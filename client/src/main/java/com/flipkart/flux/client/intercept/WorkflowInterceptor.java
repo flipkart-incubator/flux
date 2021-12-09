@@ -42,7 +42,6 @@ import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
  * This intercepts the invocation to <code>@Workflow</code> methods.
  * The interception mechanism helps create a state machine definition that is later submitted to the Flux orchestrator
  * for execution
- *
  * @author yogesh.nachnani
  */
 @Singleton
@@ -85,12 +84,13 @@ public class WorkflowInterceptor implements MethodInterceptor {
             final String correlationId = checkForCorrelationId(invocation.getArguments());
             Workflow workflow = workFlowAnnotations[0];
             localContext.registerNew(generateWorkflowIdentifier(method, workflow), workflow.version(),
-                    workflow.description(), correlationId, clientElbId);
+                    workflow.description(),correlationId, clientElbId);
             registerEventsForArguments(invocation.getArguments());
             invocation.proceed();
             connectorProvider.get().submitNewWorkflow(localContext.getStateMachineDef());
-            return null; // TODO, return a proxy object
-        } finally {
+            return null ; // TODO, return a proxy object
+        }
+        finally {
             this.localContext.reset();
         }
     }
@@ -102,9 +102,9 @@ public class WorkflowInterceptor implements MethodInterceptor {
             final Field[] allFields = anArgument.getClass().getDeclaredFields();
             /* Search for any field which is of type String and has a CorrelationId annotation */
             final Optional<Field> possibleAnnotatedField = Arrays.stream(allFields).
-                    filter(field -> String.class.isAssignableFrom(field.getType())).
-                    filter(field -> field.getAnnotationsByType(CorrelationId.class).length > 0).
-                    findAny();
+                filter(field -> String.class.isAssignableFrom(field.getType())).
+                filter(field -> field.getAnnotationsByType(CorrelationId.class).length > 0).
+                findAny();
             /* If we have a field that matches above criteria, we populate the correlationId variable and break */
             if (possibleAnnotatedField.isPresent()) {
                 final Field correlationIdAnnotatedField = possibleAnnotatedField.get();
@@ -132,7 +132,7 @@ public class WorkflowInterceptor implements MethodInterceptor {
         final int lengthOfArguments = getRealLengthOfArguments(arguments);
         EventData[] eventDatas = new EventData[lengthOfArguments];
         int i = 0;
-        for (Object anArgument : arguments) {
+        for(Object anArgument : arguments) {
             /* We traverse the array of events passed as an argument and derive EventData from each element */
             if (anArgument.getClass().isArray()) {
                 Object[] objects = (Object[]) anArgument;
@@ -140,6 +140,7 @@ public class WorkflowInterceptor implements MethodInterceptor {
                     addToEventDataArray(eventDatas, i, anObjectArrayMember);
                     i++;
                 }
+
             } else { /* regular Event object as an argument */
                 addToEventDataArray(eventDatas, i, anArgument);
                 i++;
@@ -151,13 +152,14 @@ public class WorkflowInterceptor implements MethodInterceptor {
     private void addToEventDataArray(EventData[] eventDatas, int i, Object anObject) throws JsonProcessingException {
         final String eventName = localContext.generateEventName((Event) anObject);
         eventDatas[i] = new EventData(eventName, anObject.getClass().getName(),
-                objectMapperProvider.get().writeValueAsString(anObject), CLIENT);
+                                      objectMapperProvider.get().writeValueAsString(anObject), CLIENT);
     }
+
 
     private int getRealLengthOfArguments(Object[] arguments) {
         int len = 0;
         for (Object anArgument : arguments) {
-            if (anArgument.getClass().isArray()) {
+            if(anArgument.getClass().isArray()) {
                 Object[] objects = (Object[]) anArgument;
                 len += objects.length;
             } else {
@@ -167,11 +169,12 @@ public class WorkflowInterceptor implements MethodInterceptor {
         return len;
     }
 
+
     private void checkForBadSignatures(MethodInvocation invocation) {
         Method method = invocation.getMethod();
         final Class<?> returnType = method.getReturnType();
         if (!returnType.equals(void.class)) {
-            throw new IllegalSignatureException(new MethodId(method), "A workflow method can only return void");
+            throw new IllegalSignatureException(new MethodId(method),"A workflow method can only return void");
         }
         final Class<?>[] parameterTypes = method.getParameterTypes();
         for (Class<?> aParamType : parameterTypes) {
@@ -184,4 +187,5 @@ public class WorkflowInterceptor implements MethodInterceptor {
     private String generateWorkflowIdentifier(Method method, Workflow workflow) {
         return new MethodId(method).toString() + _VERSION + workflow.version();
     }
+
 }

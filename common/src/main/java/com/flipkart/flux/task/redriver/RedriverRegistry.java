@@ -16,35 +16,36 @@ package com.flipkart.flux.task.redriver;
 /**
  * <code>RedriverRegistry</code> defines behavior for a Flux re-driver registry that executes stalled/zombie {@see Task} instances
  * including those that missed an execution schedule because of node failure in the Flux cluster.
- *
+ * 
  * @author regunath.balasubramanian
+ *
  */
 public interface RedriverRegistry {
 
-    /**
-     * Registers the specified task with this re-driver registry for restarts from stalled state after the specified
-     * re-driver delay.
-     * @param taskId
-     * @param stateMachineId
-     * @param redriverDelay
-     * @param executionVersion
-     */
-    void registerTask(Long taskId, String stateMachineId, long redriverDelay, Long executionVersion);
+	/**
+	 * Registers the specified task with this re-driver registry for restarts from stalled state after the specified
+	 * re-driver delay.
+	 * @param taskId
+	 * @param stateMachineId
+	 * @param redriverDelay
+	 * @param executionVersion
+	 */
+	void registerTask(Long taskId, String stateMachineId, long redriverDelay, Long executionVersion);
 
-    /**
-     * Cancels restarts for the specified Task from stalled state.
-     *
-     * @param stateMachineId StateMachineIdentifier
-     * @param taskId         task Identifier
-     * @param executionVersion Execution version of the task
-     */
-    void deRegisterTask(String stateMachineId, Long taskId, Long executionVersion);
+	/**
+	 * Cancels restarts for the specified Task from stalled state.
+	 * @param stateMachineId StateMachineIdentifier
+	 * @param taskId task Identifier
+	 * @param executionVersion Execution version of the task
+	 */
+	void deRegisterTask(String stateMachineId, Long taskId, Long executionVersion);
+	
+	/**
+	 * Re-drives i.e. re-runs the Task identified by the specified
+	 * @param stateMachineId State Machine identifier
+	 * @param taskId task identifier
+	 * @param executionVersion execution version of the task
+	 */
 
-    /**
-     * Re-drives i.e. re-runs the Task identified by the specified
-     * @param stateMachineId State Machine identifier
-     * @param taskId task identifier
-     * @param executionVersion execution version of the task
-     */
-    void redriveTask(String stateMachineId, Long taskId, Long executionVersion);
+	void redriveTask(String stateMachineId, Long taskId, Long executionVersion);
 }

@@ -20,8 +20,8 @@ import java.sql.Timestamp;
  * <code>ClientElb</code> represents Client Cluster's Elb details.
  * This entity stores information about Client's Elb URL in MySQL DB table.
  * These Client Elb URLs' are the endpoints of client execution environment.
- *
- *  * @author akif.khan
+ * <p>
+ * * @author akif.khan
  */
 @Entity
 @Table(name = "ClientElb")
@@ -41,7 +41,7 @@ public class ClientElb {
     /**
      * Time at which this Client ELB has been created
      */
-    private Timestamp createdAt;
+	private Timestamp createdAt;
 
 	/**
      * Time at which this Client ELB has been last updated
@@ -65,25 +65,31 @@ public class ClientElb {
     public String getId() {
         return id;
     }
+
     public String getElbUrl() {
         return elbUrl;
     }
+
     public void setElbUrl(String elbUrl) {
         this.elbUrl = elbUrl;
     }
+
     public Timestamp getCreatedAt() {
 		return createdAt;
 	}
+
 	public void setCreatedAt(Timestamp createdAt) {
 		this.createdAt = createdAt;
 	}
+
 	public Timestamp getUpdatedAt() {
 		return updatedAt;
 	}
+
 	public void setUpdatedAt(Timestamp updatedAt) {
 		this.updatedAt = updatedAt;
 	}
-
+    
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -18,6 +18,20 @@ import static com.flipkart.flux.client.constant.ClientConstants.CLIENT;
 import static com.flipkart.flux.client.constant.ClientConstants.REPLAY_EVENT;
 import static com.flipkart.flux.client.constant.ClientConstants._VERSION;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+
+import javax.inject.Inject;
+import javax.inject.Provider;
+
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
@@ -30,18 +44,8 @@ import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.client.registry.ExecutableImpl;
 import com.flipkart.flux.client.registry.ExecutableRegistry;
 import com.flipkart.flux.client.runtime.LocalContext;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import javax.inject.Inject;
-import javax.inject.Provider;
+
 import net.sf.cglib.proxy.Enhancer;
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This intercepts the invocation to <code>@Task</code> methods
@@ -60,7 +64,7 @@ public class TaskInterceptor implements MethodInterceptor {
     @Inject
     private Provider<ObjectMapper> objectMapperProvider;
 
-    private static final Logger logger = LoggerFactory.getLogger(TaskInterceptor.class);
+    private static final Logger logger = LogManager.getLogger(TaskInterceptor.class);
 
 
     /* Used to create an empty interceptor in the Guice module. The private members are injected later.
@@ -212,6 +216,8 @@ public class TaskInterceptor implements MethodInterceptor {
                 }
             }
         }
+
+
     }
 
     /***

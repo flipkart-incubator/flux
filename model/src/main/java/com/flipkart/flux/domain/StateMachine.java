@@ -117,6 +117,8 @@ public class StateMachine {
         this(id, version, name, description, states, clientElbId, 0L);
     }
 
+
+
     /**
      * Accessor/Mutator methods
      */
@@ -186,45 +188,23 @@ public class StateMachine {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof StateMachine)) {
-            return false;
-        }
+        if (this == o) return true;
+        if (!(o instanceof StateMachine)) return false;
 
         StateMachine that = (StateMachine) o;
 
-        if (context != null ? !context.equals(that.context) : that.context != null) {
+        if (context != null ? !context.equals(that.context) : that.context != null) return false;
+        if (createdAt != null ? !createdAt.equals(that.createdAt) : that.createdAt != null) return false;
+        if (currentStates != null ? !currentStates.equals(that.currentStates) : that.currentStates != null)
             return false;
-        }
-        if (createdAt != null ? !createdAt.equals(that.createdAt) : that.createdAt != null) {
+        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (states != null ? !states.equals(that.states) : that.states != null) return false;
+        if (updatedAt != null ? !updatedAt.equals(that.updatedAt) : that.updatedAt != null) return false;
+        if (clientElbId != null ? !clientElbId.equals(that.clientElbId) : that.clientElbId != null) return false;
+        if (version != null ? !version.equals(that.version) : that.version != null) return false;
+        if (executionVersion != null ? !executionVersion.equals(that.executionVersion) : that.executionVersion != null)
             return false;
-        }
-        if (currentStates != null ? !currentStates.equals(that.currentStates) : that.currentStates != null) {
-            return false;
-        }
-        if (description != null ? !description.equals(that.description) : that.description != null) {
-            return false;
-        }
-        if (name != null ? !name.equals(that.name) : that.name != null) {
-            return false;
-        }
-        if (states != null ? !states.equals(that.states) : that.states != null) {
-            return false;
-        }
-        if (updatedAt != null ? !updatedAt.equals(that.updatedAt) : that.updatedAt != null) {
-            return false;
-        }
-        if (clientElbId != null ? !clientElbId.equals(that.clientElbId) : that.clientElbId != null) {
-            return false;
-        }
-        if (version != null ? !version.equals(that.version) : that.version != null) {
-            return false;
-        }
-        if (executionVersion != null ? !executionVersion.equals(that.executionVersion) : that.executionVersion != null) {
-            return false;
-        }
 
         return true;
     }
@@ -257,4 +237,5 @@ public class StateMachine {
                 ", updatedAt=" + updatedAt +
                 '}';
     }
+
 }

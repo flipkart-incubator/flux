@@ -25,6 +25,7 @@ import javax.persistence.Table;
 
 /**
  * <code>AuditRecord</code> represents a audit log of state machine execution.
+ *
  * @author shyam.akirala
  */
 
@@ -32,38 +33,60 @@ import javax.persistence.Table;
 @Table(name = "AuditRecords")
 public class AuditRecord {
 
-    /** Auto generated id */
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    /**
+     * Auto generated id
+     */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Instance id of the state machine to which this audit belongs */
+    /**
+     * Instance id of the state machine to which this audit belongs
+     */
     private String stateMachineInstanceId;
 
-    /** The State identifier to which this audit belongs */
+    /**
+     * The State identifier to which this audit belongs
+     */
     private Long stateId;
 
-    /** The State execution retry count */
+    /**
+     * The State execution retry count
+     */
     private Long retryAttempt;
 
-    /** The State execution status */
+    /**
+     * The State execution status
+     */
     @Enumerated(EnumType.STRING)
     private Status stateStatus;
 
-    /** The State rollback status */
+    /**
+     * The State rollback status
+     */
     @Enumerated(EnumType.STRING)
     private Status stateRollbackStatus;
 
-    /** Any errors occurred in the state execution*/
+    /**
+     * Any errors occurred in the state execution
+     */
     private String errors;
 
     private Long taskExecutionVersion;
 
     private String eventDependencies;
 
-    /** Audit log creation time */
+    /**
+     * Audit log creation time
+     */
     private Timestamp createdAt;
 
-    /** Constructors */
+    /**
+     * Constructors
+     */
+    protected AuditRecord() {
+    }
+
     public AuditRecord(String stateMachineInstanceId, Long stateId, Long retryAttempt, Status stateStatus,
                        Status stateRollbackStatus, String errors) {
         this(stateMachineInstanceId, stateId, retryAttempt, stateStatus, stateRollbackStatus, errors,
@@ -82,46 +105,61 @@ public class AuditRecord {
         this.eventDependencies = eventDependencies;
     }
 
-    /** Accessor/Mutator methods*/
+    /**
+     * Accessor/Mutator methods
+     */
     public Long getId() {
         return id;
     }
+
     public String getStateMachineInstanceId() {
         return stateMachineInstanceId;
     }
+
     public void setStateMachineInstanceId(String stateMachineInstanceId) {
         this.stateMachineInstanceId = stateMachineInstanceId;
     }
+
     public Long getStateId() {
         return stateId;
     }
+
     public void setStateId(Long stateId) {
         this.stateId = stateId;
     }
+
     public Long getRetryAttempt() {
         return retryAttempt;
     }
+
     public void setRetryAttempt(Long retryAttempt) {
         this.retryAttempt = retryAttempt;
     }
+
     public Status getStateStatus() {
         return stateStatus;
     }
+
     public void setStateStatus(Status stateStatus) {
         this.stateStatus = stateStatus;
     }
+
     public Status getStateRollbackStatus() {
         return stateRollbackStatus;
     }
+
     public void setStateRollbackStatus(Status stateRollbackStatus) {
         this.stateRollbackStatus = stateRollbackStatus;
     }
+
     public String getErrors() {
         return errors;
     }
+
     public void setErrors(String errors) {
         this.errors = errors;
     }
+
     public Timestamp getCreatedAt() {
         return createdAt;
     }
@@ -158,6 +196,7 @@ public class AuditRecord {
         if (stateStatus != that.stateStatus) return false;
         if (taskExecutionVersion != that.taskExecutionVersion) return false;
         if (eventDependencies != that.eventDependencies) return false;
+
         return true;
     }
 

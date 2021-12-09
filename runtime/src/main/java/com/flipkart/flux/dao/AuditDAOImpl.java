@@ -28,7 +28,6 @@ import java.util.List;
 
 /**
  * <code>AuditDAOImpl</code> is an implementation of {@link AuditDAO} which uses Hibernate to perform operations.
- *
  * @author shyam.akirala
  */
 public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {

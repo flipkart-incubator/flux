@@ -79,11 +79,11 @@ public interface FluxRuntimeConnector {
     void cancelEvent(String eventName, String correlationId);
 
     /**
-     * Updates the status of the Task identified by the specified Task ID
+     * Updates the status of the Task identified by the specified Task ID 
      * @param executionUpdateData the execution update data
      */
     void updateExecutionStatus(ExecutionUpdateData executionUpdateData);
-
+    
     /**
      * Increments the attempted retries count for the Task identified by the specified task Id
      * @param stateMachineId the state machine identifier

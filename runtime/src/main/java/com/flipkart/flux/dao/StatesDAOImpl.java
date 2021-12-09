@@ -16,24 +16,28 @@ package com.flipkart.flux.dao;
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
-import com.flipkart.flux.persistence.*;
+import com.flipkart.flux.persistence.DataSourceType;
+import com.flipkart.flux.persistence.SelectDataSource;
+import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.shard.ShardId;
 import com.google.inject.name.Named;
+import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
-
-import javax.inject.Inject;
-import javax.transaction.Transactional;
-import java.math.BigInteger;
-import java.sql.Timestamp;
-import java.util.*;
 
 /**
  * <code>StatesDAOImpl</code> is an implementation of {@link StatesDAO} which uses Hibernate to perform operations.
  *
  * @author shyam.akirala
  */
+// TODO : Add tests for all newly added queries
 public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     private static final String TABLE_NAME = "State";
@@ -129,7 +133,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public State findById(String stateMachineId, Long id) {
-        return super.findByCompositeIdFromStateTable(State.class, stateMachineId ,id);
+        return super.findByCompositeIdFromStateTable(State.class, stateMachineId, id);
     }
 
     /**
@@ -145,6 +149,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         query.setString("stateMachineId",stateMachineId);
         return query.list();
     }
+
 
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_ONLY, storage = Storage.SHARDED)
@@ -193,7 +198,7 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
                 "select state from State state where stateMachineId = :stateMachineId and" +
                         " dependencies like :eventName");
         query.setString("stateMachineId", stateMachineId);
-        query.setString("eventName", "%"+eventName+"%");
+        query.setString("eventName", "%" + eventName + "%");
         return query.list();
     }
 
@@ -231,7 +236,6 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
             }
             inClause.deleteCharAt(inClause.length() - 1).append(")");
         }
-
         Query query = currentSession().createQuery("update State set executionVersion= :executionVersion" +
                 " where stateMachineId= :stateMachineId".concat(inClause.toString()));
         query.setLong("executionVersion", executionVersion);
@@ -242,11 +246,11 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     // TODO : Add test for this
     @Override
     public void updateExecutionVersion_NonTransactional(String stateMachineId,
-                                                        List<Long> stateIds, Long executionVersion, Session session) {
+        List<Long> stateIds, Long executionVersion, Session session) {
 
         String inClause = stateIds.toString().replace("[","(").replace("]",")");
         Query query = session.createQuery("update State set executionVersion= :executionVersion" +
-                " where stateMachineId= :stateMachineId and id in ".concat(inClause.toString()));
+            " where stateMachineId= :stateMachineId and id in ".concat(inClause.toString()));
         query.setLong("executionVersion", executionVersion);
         query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();

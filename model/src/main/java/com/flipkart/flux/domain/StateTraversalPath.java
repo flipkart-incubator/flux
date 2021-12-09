@@ -13,14 +13,15 @@
 
 package com.flipkart.flux.domain;
 
-import org.hibernate.annotations.Type;
-
-import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.Table;
+import org.hibernate.annotations.Type;
 
 /**
  * <code>StateTraversalPath</code> is used to store list of stateIds in the traversal path of replayable
@@ -107,9 +108,14 @@ public class StateTraversalPath {
 
         StateTraversalPath stateTraversalPath = (StateTraversalPath) o;
 
-        if (!Objects.equals(stateMachineId, stateTraversalPath.stateMachineId))
+        if (stateMachineId != null ? !stateMachineId.equals(stateTraversalPath.stateMachineId) :
+                stateTraversalPath.stateMachineId != null)
             return false;
-        return Objects.equals(stateId, stateTraversalPath.stateId);
+        if (stateId != null ? !stateId.equals(stateTraversalPath.stateId) :
+                stateTraversalPath.stateId != null)
+            return false;
+
+        return true;
     }
 
     @Override

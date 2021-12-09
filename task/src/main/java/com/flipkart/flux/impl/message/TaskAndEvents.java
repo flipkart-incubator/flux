@@ -64,8 +64,9 @@ public class TaskAndEvents implements Serializable {
                 outputEvent, retryCount);
     }
 
-    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, Long taskExecutionVersion, VersionedEventData[] events,
-                         String stateMachineId, String stateMachineName, String outputEvent, long retryCount) {
+    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, Long taskExecutionVersion,
+                         VersionedEventData[] events, String stateMachineId, String stateMachineName,
+                         String outputEvent, long retryCount) {
         this.taskName = taskName;
         this.taskIdentifier = taskIdentifier;
         this.taskId = taskId;
@@ -84,9 +85,9 @@ public class TaskAndEvents implements Serializable {
                 outputEvent, retryCount, currentRetryCount);
     }
 
-    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, Long taskExecutionVersion, VersionedEventData[] events,
-                         String stateMachineId, String stateMachineName, String outputEvent, long retryCount,
-                         long currentRetryCount) {
+    public TaskAndEvents(String taskName, String taskIdentifier, Long taskId, Long taskExecutionVersion,
+                         VersionedEventData[] events, String stateMachineId, String stateMachineName, String outputEvent,
+                         long retryCount, long currentRetryCount) {
         this.taskName = taskName;
         this.taskIdentifier = taskIdentifier;
         this.taskId = taskId;

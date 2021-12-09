@@ -15,7 +15,6 @@ package com.flipkart.flux.dao;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.flipkart.flux.constant.RuntimeConstants;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -24,6 +23,8 @@ import org.junit.runner.RunWith;
 
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.client.FluxClientComponentModule;
+import com.flipkart.flux.client.FluxClientInterceptorModule;
+import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.State;
@@ -31,7 +32,6 @@ import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.OrchestrationTaskModule;
-import com.flipkart.flux.guice.module.OrchestratorContainerModule;
 import com.flipkart.flux.guice.module.ShardModule;
 import com.flipkart.flux.module.RuntimeTestModule;
 import com.flipkart.flux.rule.DbClearWithTestSMRule;
@@ -45,7 +45,8 @@ import com.flipkart.flux.runner.Modules;
  * @author kartik.bommepally
  */
 @RunWith(GuiceJunit4Runner.class)
-@Modules(orchestrationModules = {ShardModule.class, RuntimeTestModule.class, OrchestratorContainerModule.class, OrchestrationTaskModule.class, FluxClientComponentModule.class, ContainerModule.class})
+@Modules(orchestrationModules = {FluxClientComponentModule.class, ShardModule.class, RuntimeTestModule.class,
+        ContainerModule.class, OrchestrationTaskModule.class, FluxClientInterceptorModule.class})
 public class AuditDAOTest {
 
     @InjectFromRole
@@ -86,8 +87,8 @@ public class AuditDAOTest {
         }
         String error = RandomStringUtils.randomAlphanumeric(1002);
         AuditRecord auditRecord = new AuditRecord(stateMachine.getId(), (state != null) ? state.getId() : null,
-                0L, Status.completed, null, error, 0L,
-                null);
+            0L, Status.completed, null, error, 0L,
+            null);
         Long recordId = auditDAO.create(stateMachine.getId(), auditRecord).getId();
 
         AuditRecord auditRecord1 = auditDAO.findById(stateMachine.getId(), recordId);
@@ -104,8 +105,8 @@ public class AuditDAOTest {
         }
         String errorMsg = RandomStringUtils.randomAlphanumeric(30);
         AuditRecord auditRecord = new AuditRecord(stateMachine.getId(), (state != null) ? state.getId() : null,
-                0L, Status.completed, null, errorMsg, 0L,
-                null);
+            0L, Status.completed, null, errorMsg, 0L,
+            null);
         Long recordId = auditDAO.create(stateMachine.getId(), auditRecord).getId();
 
         AuditRecord auditRecord1 = auditDAO.findById(stateMachine.getId(), recordId);

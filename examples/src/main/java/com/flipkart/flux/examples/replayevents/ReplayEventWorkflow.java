@@ -3,6 +3,7 @@ package com.flipkart.flux.examples.replayevents;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flipkart.flux.client.model.*;
 
+
 /**
  * This class is an example to test Replay Event based on a boolean flag passed to a task an Replay Event annotation passed to event.
  * Created by vartika.bhatia on 15/06/2019.
@@ -22,12 +23,10 @@ public class ReplayEventWorkflow {
     }
 
     @Task(version = 1, retries = 0, timeout = 1000L)
-    public ParamEvent task1(StartEvent startEvent) {
-        return new ParamEvent("task1", false);
-    }
+    public ParamEvent task1(StartEvent startEvent) { return new ParamEvent("task1", false); }
 
     @Task(version = 1, retries = 0, timeout = 400L, isReplayable = true, replayRetries = 3)
-    public ParamEvent task2(@ReplayEvent("someReplayEvent1") ParamEvent event, ParamEvent event1) {
+    public ParamEvent task2( @ReplayEvent("someReplayEvent1") ParamEvent event, ParamEvent event1) {
         return new ParamEvent("task2", false);
     }
 
@@ -47,7 +46,7 @@ public class ReplayEventWorkflow {
     }
 
     @Task(version = 1, retries = 0, timeout = 1000L, isReplayable = true, replayRetries = 3)
-    public ParamEvent task6(@ReplayEvent("someReplayEvent2") ParamEvent event, ParamEvent event1) {
+    public ParamEvent task6( @ReplayEvent("someReplayEvent2") ParamEvent event, ParamEvent event1) {
         return new ParamEvent("task6", false);
     }
 
@@ -72,8 +71,7 @@ class ParamEvent implements Event {
         this.data = data;
         this.failDependentTask = failDependentTask;
     }
-} 
-
+}
 
 class StartEvent implements Event {
 

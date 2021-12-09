@@ -2,14 +2,6 @@ package com.flipkart.flux.representation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.api.EventData;
@@ -31,6 +23,13 @@ import com.flipkart.flux.module.RuntimeTestModule;
 import com.flipkart.flux.rule.DbClearWithTestSMRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * <code>ReplayEventPersistenceServiceTest</code> class tests the functionality of {@link
@@ -40,122 +39,128 @@ import com.flipkart.flux.runner.Modules;
  */
 @RunWith(GuiceJunit4Runner.class)
 @Modules(orchestrationModules = {FluxClientComponentModule.class, ShardModule.class,
-        RuntimeTestModule.class, ContainerModule.class, OrchestrationTaskModule.class,
-        FluxClientInterceptorModule.class})
+    RuntimeTestModule.class, ContainerModule.class, OrchestrationTaskModule.class,
+    FluxClientInterceptorModule.class})
 public class ReplayEventPersistenceServiceTest {
 
-    private static ObjectMapper objectMapper;
+  private static ObjectMapper objectMapper;
 
-    @InjectFromRole
-    @Rule
-    public DbClearWithTestSMRule dbClearWithTestSMRule;
+  @InjectFromRole
+  @Rule
+  public DbClearWithTestSMRule dbClearWithTestSMRule;
 
-    @InjectFromRole
-    StateMachinesDAO stateMachinesDAO;
+  @InjectFromRole
+  StateMachinesDAO stateMachinesDAO;
 
-    @InjectFromRole
-    EventsDAO eventsDAO;
+  @InjectFromRole
+  EventsDAO eventsDAO;
 
-    @InjectFromRole
-    StatesDAO statesDAO;
+  @InjectFromRole
+  StatesDAO statesDAO;
 
-    @InjectFromRole
-    AuditDAO auditDAO;
+  @InjectFromRole
+  AuditDAO auditDAO;
 
-    @InjectFromRole
-    ReplayEventPersistenceService replayEventPersistenceService;
+  @InjectFromRole
+  ReplayEventPersistenceService replayEventPersistenceService;
 
-    @Before
-    public void setup() {
-        objectMapper = new ObjectMapper();
-    }
+  @Before
+  public void setup() {
+    objectMapper = new ObjectMapper();
+  }
 
-    @Test
-    public void testReplayEventPersistenceAndExecutionVersionUpdate() throws Exception {
+  @After
+  public void tearDown() {
 
-        StateMachine stateMachine = dbClearWithTestSMRule.getStateMachineWithMultipleReplayableStates();
+  }
 
-        // Test with trigger of replayEvent "re1"
-        EventData replayEventData1 = new EventData("re1", "replayEvent", "re1_EventData",
-                RuntimeConstants.REPLAY_EVENT, Boolean.FALSE);
+  @Test
+  public void testReplayEventPersistenceAndExecutionVersionUpdate() throws Exception {
 
-        List<Long> dependentStateIds_1 = new ArrayList<>();
-        dependentStateIds_1.add(2L);
-        dependentStateIds_1.add(4L);
-        dependentStateIds_1.add(5L);
+    StateMachine stateMachine = dbClearWithTestSMRule.getStateMachineWithMultipleReplayableStates();
 
-        List<String> dependentEvents_1 = new ArrayList<>();
-        dependentEvents_1.add(objectMapper.writeValueAsString(new EventDefinition(
-                "e2", "dummyType")));
-        dependentEvents_1.add(objectMapper.writeValueAsString(new EventDefinition(
-                "e4", "dummyType")));
+    // Test with trigger of replayEvent "re1"
+    EventData replayEventData1 = new EventData("re1", "replayEvent", "re1_EventData",
+        RuntimeConstants.REPLAY_EVENT, Boolean.FALSE);
 
-        Event replayEvent1 = replayEventPersistenceService.persistAndProcessReplayEvent(stateMachine.getId(),
-                replayEventData1, dependentStateIds_1, dependentEvents_1);
+    List<Long> dependentStateIds_1 = new ArrayList<>();
+    dependentStateIds_1.add(2L);
+    dependentStateIds_1.add(4L);
+    dependentStateIds_1.add(5L);
 
-        assertThat(replayEvent1.getStatus()).isEqualTo(EventStatus.triggered);
-        assertThat(replayEvent1.getEventSource()).contains(RuntimeConstants.REPLAY_EVENT);
+    List<String> dependentEvents_1 = new ArrayList<>();
+    dependentEvents_1.add(objectMapper.writeValueAsString(new EventDefinition(
+        "e2", "dummyType")));
+    dependentEvents_1.add(objectMapper.writeValueAsString(new EventDefinition(
+        "e4", "dummyType")));
 
-        // Initialised replayEvent with executionVersion = 10. ExecutionVersion added should always be
-        // incremented from State Machine ExecutionVersion which is by default 0 always.
-        assertThat(replayEvent1.getExecutionVersion()).isEqualTo(1L);
+    Event replayEvent1 = replayEventPersistenceService.persistAndProcessReplayEvent(stateMachine.getId(),
+        replayEventData1, dependentStateIds_1, dependentEvents_1);
 
-        // Asserting increment in executionVersion for StateMachine instance
-        assertThat(stateMachinesDAO.findById(stateMachine.getId()).getExecutionVersion()).isEqualTo(1L);
+    assertThat(replayEvent1.getStatus()).isEqualTo(EventStatus.triggered);
+    assertThat(replayEvent1.getEventSource()).contains(RuntimeConstants.REPLAY_EVENT);
 
-        assertThat(statesDAO.findById(stateMachine.getId(), 1L).getExecutionVersion()).isNotEqualTo(1L);
-        assertThat(statesDAO.findById(stateMachine.getId(), 2L).getExecutionVersion()).isEqualTo(1L);
-        assertThat(statesDAO.findById(stateMachine.getId(), 3L).getExecutionVersion()).isNotEqualTo(1L);
-        assertThat(statesDAO.findById(stateMachine.getId(), 4L).getExecutionVersion()).isEqualTo(1L);
-        assertThat(statesDAO.findById(stateMachine.getId(), 5L).getExecutionVersion()).isEqualTo(1L);
-        assertThat(statesDAO.findById(stateMachine.getId(), 6L).getExecutionVersion()).isNotEqualTo(1L);
+    // Initialised replayEvent with executionVersion = 10. ExecutionVersion added should always be
+    // incremented from State Machine ExecutionVersion which is by default 0 always.
+    assertThat(replayEvent1.getExecutionVersion()).isEqualTo(1L);
 
-        // Cummulative of all Valid Events. It also tests for events in traversal path cummulative for
-        // both invalid/valid events.
-        assertThat(eventsDAO.findBySMInstanceId(stateMachine.getId()).size()).isEqualTo(7);
-        assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "re1").size()).isEqualTo(2);
-        assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "e2").size()).isEqualTo(2);
-        assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "e4").size()).isEqualTo(2);
+    // Asserting increment in executionVersion for StateMachine instance
+    assertThat(stateMachinesDAO.findById(stateMachine.getId()).getExecutionVersion()).isEqualTo(1L);
 
-        // Test with trigger of replayEvent "re2"
-        EventData replayEventData2 = new EventData("re2", "replayEvent", "re2_EventData",
-                RuntimeConstants.REPLAY_EVENT, Boolean.FALSE);
-        List<Long> dependentStateIds_2 = new ArrayList<>();
-        dependentStateIds_2.add(3L);
-        dependentStateIds_2.add(5L);
-        dependentStateIds_2.add(6L);
+    assertThat(statesDAO.findById(stateMachine.getId(), 1L).getExecutionVersion()).isNotEqualTo(1L);
+    assertThat(statesDAO.findById(stateMachine.getId(), 2L).getExecutionVersion()).isEqualTo(1L);
+    assertThat(statesDAO.findById(stateMachine.getId(), 3L).getExecutionVersion()).isNotEqualTo(1L);
+    assertThat(statesDAO.findById(stateMachine.getId(), 4L).getExecutionVersion()).isEqualTo(1L);
+    assertThat(statesDAO.findById(stateMachine.getId(), 5L).getExecutionVersion()).isEqualTo(1L);
+    assertThat(statesDAO.findById(stateMachine.getId(), 6L).getExecutionVersion()).isNotEqualTo(1L);
 
-        List<String> dependentEvents_2 = new ArrayList<>();
-        dependentEvents_2.add(objectMapper.writeValueAsString(new EventDefinition(
-                "e3", "dummyType")));
+    // Cummulative of all Valid Events. It also tests for events in traversal path cummulative for
+    // both invalid/valid events.
+    assertThat(eventsDAO.findBySMInstanceId(stateMachine.getId()).size()).isEqualTo(7);
+    assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "re1").size()).isEqualTo(2);
+    assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "e2").size()).isEqualTo(2);
+    assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "e4").size()).isEqualTo(2);
 
-        Event replayEvent2 = replayEventPersistenceService.persistAndProcessReplayEvent(stateMachine.getId(),
-                replayEventData2, dependentStateIds_2, dependentEvents_2);
+    // Test with trigger of replayEvent "re2"
+    EventData replayEventData2 = new EventData("re2", "replayEvent", "re2_EventData",
+        RuntimeConstants.REPLAY_EVENT, Boolean.FALSE);
 
-        assertThat(replayEvent2.getStatus()).isEqualTo(EventStatus.triggered);
-        assertThat(replayEvent2.getEventSource()).contains(RuntimeConstants.REPLAY_EVENT);
+    List<Long> dependentStateIds_2 = new ArrayList<>();
+    dependentStateIds_2.add(3L);
+    dependentStateIds_2.add(5L);
+    dependentStateIds_2.add(6L);
 
-        assertThat(replayEvent2.getExecutionVersion()).isEqualTo(2L);
+    List<String> dependentEvents_2 = new ArrayList<>();
+    dependentEvents_2.add(objectMapper.writeValueAsString(new EventDefinition(
+        "e3", "dummyType")));
 
-        // Asserting increment in executionVersion for StateMachine instance
-        assertThat(stateMachinesDAO.findById(stateMachine.getId()).getExecutionVersion()).isEqualTo(2L);
+    Event replayEvent2 = replayEventPersistenceService.persistAndProcessReplayEvent(stateMachine.getId(),
+        replayEventData2, dependentStateIds_2, dependentEvents_2);
 
-        assertThat(statesDAO.findById(stateMachine.getId(), 1L).getExecutionVersion()).isEqualTo(0L);
-        assertThat(statesDAO.findById(stateMachine.getId(), 2L).getExecutionVersion()).isEqualTo(1L);
-        assertThat(statesDAO.findById(stateMachine.getId(), 3L).getExecutionVersion()).isEqualTo(2L);
-        assertThat(statesDAO.findById(stateMachine.getId(), 4L).getExecutionVersion()).isEqualTo(1L);
-        assertThat(statesDAO.findById(stateMachine.getId(), 5L).getExecutionVersion()).isEqualTo(2L);
-        assertThat(statesDAO.findById(stateMachine.getId(), 6L).getExecutionVersion()).isEqualTo(2L);
+    assertThat(replayEvent2.getStatus()).isEqualTo(EventStatus.triggered);
+    assertThat(replayEvent2.getEventSource()).contains(RuntimeConstants.REPLAY_EVENT);
 
-        // Cummulative of all Valid Events. It also tests for events in traversal path cummulative for
-        // both invalid/valid events.
-        assertThat(eventsDAO.findBySMInstanceId(stateMachine.getId()).size()).isEqualTo(7);
-        assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "re2").size()).isEqualTo(2);
-        assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "e3").size()).isEqualTo(2);
-    }
+    assertThat(replayEvent2.getExecutionVersion()).isEqualTo(2L);
 
-    @Test
-    public void testConcurrentStateMachineExecutionVersionUpdate() throws Exception {
-        // TODO : add Test case here
-    }
+    // Asserting increment in executionVersion for StateMachine instance
+    assertThat(stateMachinesDAO.findById(stateMachine.getId()).getExecutionVersion()).isEqualTo(2L);
+
+    assertThat(statesDAO.findById(stateMachine.getId(), 1L).getExecutionVersion()).isEqualTo(0L);
+    assertThat(statesDAO.findById(stateMachine.getId(), 2L).getExecutionVersion()).isEqualTo(1L);
+    assertThat(statesDAO.findById(stateMachine.getId(), 3L).getExecutionVersion()).isEqualTo(2L);
+    assertThat(statesDAO.findById(stateMachine.getId(), 4L).getExecutionVersion()).isEqualTo(1L);
+    assertThat(statesDAO.findById(stateMachine.getId(), 5L).getExecutionVersion()).isEqualTo(2L);
+    assertThat(statesDAO.findById(stateMachine.getId(), 6L).getExecutionVersion()).isEqualTo(2L);
+
+    // Cummulative of all Valid Events. It also tests for events in traversal path cummulative for
+    // both invalid/valid events.
+    assertThat(eventsDAO.findBySMInstanceId(stateMachine.getId()).size()).isEqualTo(7);
+    assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "re2").size()).isEqualTo(2);
+    assertThat(eventsDAO.findAllBySMIdAndName(stateMachine.getId(), "e3").size()).isEqualTo(2);
+  }
+
+  @Test
+  public void testConcurrentStateMachineExecutionVersionUpdate() throws Exception {
+    // TODO : add Test case here
+  }
 }

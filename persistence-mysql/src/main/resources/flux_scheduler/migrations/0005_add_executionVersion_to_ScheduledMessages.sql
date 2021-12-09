@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset akif.khan:5 runOnChange:false
+--changeset akif.khan:4 runOnChange:false
 
 ALTER TABLE `ScheduledMessages`
   DROP PRIMARY KEY,

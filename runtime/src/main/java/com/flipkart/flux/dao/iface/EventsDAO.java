@@ -24,7 +24,6 @@ import com.flipkart.flux.domain.Event;
 
 /**
  * <code>EventsDAO</code> interface provides methods to perform CR operations on {@link Event}
- *
  * @author shyam.akirala
  */
 public interface EventsDAO {
@@ -44,22 +43,25 @@ public interface EventsDAO {
      */
     List<Event> findBySMInstanceId(String stateMachineInstanceId);
 
-    /**
-     * Retrieves valid[pending/triggered/cancelled] Event by state machine instance id and event name
-     */
+    /** Retrieves valid[pending/triggered/cancelled] Event by state machine instance id and event name */
     Event findValidEventBySMIdAndName(String stateMachineInstanceId, String eventName);
 
     /**
      * Retrieves all the events with the given name irrespective of its status
+     * @param stateMachineInstanceId
+     * @param eventName
+     * @return
      */
     List<Event> findAllBySMIdAndName(String stateMachineInstanceId, String eventName);
 
-    /**
-     * Retrieves Event by state machine instance id, event execution version and event name
-     */
+    /** Retrieves Event by state machine instance id, event execution version and event name */
     Event findValidEventsByStateMachineIdAndExecutionVersionAndName(String stateMachineInstanceId, String eventName, Long executionVersion);
 
     /**
+     *
+     * @param stateMachineInstanceId
+     * @param eventNames
+     * @param executionVersion
      * @return all valid events for the list of names
      */
     List<Event> findAllValidEventsByStateMachineIdAndExecutionVersionAndName(String stateMachineInstanceId, List<String> eventNames, Long executionVersion);
@@ -69,12 +71,17 @@ public interface EventsDAO {
      */
     List<String> findTriggeredOrCancelledEventsNamesBySMId(String stateMachineInstanceId);
 
-    /**
-     * Retrieves valid event name matching input Event name whose eventSource is <code>RuntimeConstants.REPLAY_EVENT</code>
-     * and belongs to provided state machine.
+    /** Retrieves list of valid events whose eventSource is <code>RuntimeConstants.REPLAY_EVENT</code>
+     *  and belongs to provided state machine
      */
     List<String> findAllValidReplayEventsNamesBySMId(String stateMachineInstanceId);
 
+    /** Retrieves valid event name matching input Event name whose eventSource is <code>RuntimeConstants.REPLAY_EVENT</code>
+     *  and belongs to provided state machine.
+     */
+    Optional<Event> findValidReplayEventBySMIdAndName(String stateMachineInstanceId, String eventName);
+
+    /** Retrieves list of events which are in triggered state and belongs to provided state machine */
     /**
      * Retrieves list of events which are in triggered state and belongs to provided state machine
      */
@@ -85,21 +92,14 @@ public interface EventsDAO {
      */
     Event findTriggeredEventBySMIdAndName(String stateMachineInstanceId, String eventName);
 
-    /**
-     * Retrieves list of events by their names and state machine id
-     */
-    List<VersionedEventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames);
+
+    /** Retrieves list of events by their names and state machine id */
+    List<VersionedEventData> findByEventNamesAndSMId(String stateMachineInstanceId, List<String> eventNames );
 
     /**
      * Deletes the list of invalid events
      */
     void deleteInvalidEvents(String stateMachineInstanceId, List<String> eventNames);
-
-    /**
-     * Retrieves valid event name matching input Event name whose eventSource is <code>RuntimeConstants.REPLAY_EVENT</code>
-     * and belongs to provided state machine.
-     */
-    Optional<Event> findValidReplayEventBySMIdAndName(String stateMachineInstanceId, String eventName);
 
     /**
      * Retrieves all the events names and statuses. Selects for update if forUpdate is true

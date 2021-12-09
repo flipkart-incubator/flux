@@ -65,56 +65,62 @@ public class FluxError extends RuntimeException {
 		private String stateMachineId;
 		private String stateMachineName;
 		private String taskName;
+    private String dependentAuditEvents;
 		private Long taskId;
 		private Long maxRetries;
 		private Long attemptedNoOfRetries;
-		private String dependentAuditEvents;
 		private Long taskExecutionVersion;
 
-		public ExecutionContextMeta(String stateMachineId, String stateMachineName, String taskName, Long taskId,
-									Long maxRetries, Long attemptedNoOfRetries, String dependentAuditEvents) {
-			this(stateMachineId, stateMachineName, taskName, taskId, maxRetries, attemptedNoOfRetries,
-					dependentAuditEvents,0L);
-		}
+    public ExecutionContextMeta(String stateMachineId, String stateMachineName, String taskName, Long taskId,
+        Long maxRetries, Long attemptedNoOfRetries, String dependentAuditEvents) {
+      this(stateMachineId, stateMachineName, taskName, taskId, maxRetries, attemptedNoOfRetries,
+          dependentAuditEvents,0L);
+    }
 
 		public ExecutionContextMeta(String stateMachineId, String stateMachineName, String taskName, Long taskId,
-									Long maxRetries, Long attemptedNoOfRetries, String dependentAuditEvents,
-									Long taskExecutionVersion) {
+                                    Long maxRetries, Long attemptedNoOfRetries, String dependentAuditEvents,
+                                    Long taskExecutionVersion) {
 			this.stateMachineId = stateMachineId;
 			this.stateMachineName = stateMachineName;
 			this.taskName = taskName;
+			this.dependentAuditEvents = dependentAuditEvents;
 			this.taskId = taskId;
 			this.maxRetries = maxRetries;
 			this.attemptedNoOfRetries = attemptedNoOfRetries;
-			this.dependentAuditEvents = dependentAuditEvents;
 			this.taskExecutionVersion = taskExecutionVersion;
 		}
+
 		public String getStateMachineId() {
 			return stateMachineId;
 		}
+
 		public String getStateMachineName() {
 			return stateMachineName;
 		}
+
 		public String getTaskName(){
 		    return taskName;
 		}
 
 		public String getDependentAuditEvents() {
-			return dependentAuditEvents;
-		}
+      return dependentAuditEvents;
+    }
 
 		public Long getTaskId() {
 			return taskId;
 		}
+
 		public Long getMaxRetries() {
 			return maxRetries;
 		}
+
 		public Long getAttemptedNoOfRetries() {
 			return attemptedNoOfRetries;
 		}
-		public Long getTaskExecutionVersion() {
-			return taskExecutionVersion;
-		}
+
+    public Long getTaskExecutionVersion() {
+      return taskExecutionVersion;
+    }
 	}
 	
 	/**

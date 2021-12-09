@@ -15,7 +15,7 @@ package com.flipkart.flux.examples.externalevents;
 
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
-import com.flipkart.flux.client.runtime.FluxRuntimeConnectorHttpImpl;
+import com.flipkart.flux.client.runtime.FluxRuntimeConnector;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -49,8 +49,8 @@ public class RunManualSellerVerificationWorkflow {
         /* You may also choose to uncomment the following code to post an external event */
 
         System.out.println("[Main] Sleeping for 2 seconds before posting data to flux runtime");
-        Thread.sleep(2000l); // Just a 2 second wait to ensure that the state machine has been created in Flux
-        injector.getInstance(FluxRuntimeConnectorHttpImpl.class).submitEvent("sellerVerification", new SellerVerificationStatus(new SellerId(1l), true), randomCorrelationId, "Manual Trigger From Customer Support");
+        Thread.sleep(2000l); // Just a 2 second wait to ensure that the state machine has been created in flux
+        injector.getInstance(FluxRuntimeConnector.class).submitEvent("sellerVerification", new SellerVerificationStatus(new SellerId(1l), true), randomCorrelationId, "Manual Trigger From Customer Support");
         System.out.println("[Main] Posted data to flux runtime, the workflow should have continued");
 
     }

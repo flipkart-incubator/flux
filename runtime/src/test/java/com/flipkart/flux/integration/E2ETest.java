@@ -32,7 +32,6 @@ import com.flipkart.flux.api.Status;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.client.registry.Executable;
-import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
 import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
@@ -238,32 +237,6 @@ public class E2ETest {
     assertThat(eventsDAO.findBySMInstanceId(smId)).hasSize(11);
     assertThat(eventsDAO.findValidReplayEventBySMIdAndName(smId, "RE1").get().getEventData())
         .isEqualTo("42");
-    assertThat(eventsDAO.findValidReplayEventBySMIdAndName(smId, "RE1").get().getEventSource())
-        .contains(RuntimeConstants.REPLAY_EVENT);
-
-    // Assertions for execution Version of all events
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "com.flipkart.flux.integration.StartEvent0").getExecutionVersion()).isEqualTo(0);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "com.flipkart.flux.integration.IntegerEvent1").getExecutionVersion()).isEqualTo(0);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "com.flipkart.flux.integration.IntegerEvent2").getExecutionVersion()).isEqualTo(0);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "com.flipkart.flux.integration.IntegerEvent3").getExecutionVersion()).isEqualTo(1);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "com.flipkart.flux.integration.IntegerEvent4").getExecutionVersion()).isEqualTo(1);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "com.flipkart.flux.integration.IntegerEvent5").getExecutionVersion()).isEqualTo(1);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "com.flipkart.flux.integration.IntegerEvent6").getExecutionVersion()).isEqualTo(1);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "com.flipkart.flux.integration.IntegerEvent7").getExecutionVersion()).isEqualTo(0);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "com.flipkart.flux.integration.IntegerEvent8").getExecutionVersion()).isEqualTo(1);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "RE1").getExecutionVersion()).isEqualTo(1);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "RE2").getExecutionVersion()).isEqualTo(0);
 
     /* Assert for executionVersion of all state after RE1 replayEvent is triggered. Only states in it's
      * traversal path should have executionVersion '1'. Also all states should be completed */
@@ -328,32 +301,6 @@ public class E2ETest {
     assertThat(eventsDAO.findBySMInstanceId(smId)).hasSize(11);
     assertThat(eventsDAO.findValidReplayEventBySMIdAndName(smId, "RE2").get().getEventData())
         .isEqualTo("50");
-    assertThat(eventsDAO.findValidReplayEventBySMIdAndName(smId, "RE2").get().getEventSource())
-        .contains(RuntimeConstants.REPLAY_EVENT);
-
-    // Assertions for execution Version of all events
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "com.flipkart.flux.integration.StartEvent0").getExecutionVersion()).isEqualTo(0);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "com.flipkart.flux.integration.IntegerEvent1").getExecutionVersion()).isEqualTo(0);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "com.flipkart.flux.integration.IntegerEvent2").getExecutionVersion()).isEqualTo(0);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "com.flipkart.flux.integration.IntegerEvent3").getExecutionVersion()).isEqualTo(1);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "com.flipkart.flux.integration.IntegerEvent4").getExecutionVersion()).isEqualTo(1);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "com.flipkart.flux.integration.IntegerEvent5").getExecutionVersion()).isEqualTo(1);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "com.flipkart.flux.integration.IntegerEvent6").getExecutionVersion()).isEqualTo(1);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "com.flipkart.flux.integration.IntegerEvent7").getExecutionVersion()).isEqualTo(0);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "com.flipkart.flux.integration.IntegerEvent8").getExecutionVersion()).isEqualTo(2);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "RE1").getExecutionVersion()).isEqualTo(1);
-    assertThat(eventsDAO.findValidEventBySMIdAndName(
-        smId, "RE2").getExecutionVersion()).isEqualTo(2);
 
     /* Assert for executionVersion of all state after RE2 replayEvent is triggered. Only states in it's
      * traversal path should have executionVersion '2'. Also all states should be completed */
@@ -401,6 +348,5 @@ public class E2ETest {
           break;
       }
     }
-  }  
+  }
 }
-

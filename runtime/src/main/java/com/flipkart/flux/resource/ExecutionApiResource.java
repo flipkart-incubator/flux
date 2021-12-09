@@ -48,6 +48,7 @@ public class ExecutionApiResource {
         this.metricsClient = metricsClient;
     }
 
+
     @POST
     @Timed
     @Consumes(MediaType.APPLICATION_JSON)
@@ -60,7 +61,7 @@ public class ExecutionApiResource {
             ActorRef router = routerRegistry.getRouter(routerName);
             if (router != null) {
                 logger.info("Sending msg to router: {} to execute state machine: {} task: {} with execution version: {}",
-                        router.path(), msg.getStateMachineId(), msg.getTaskId(), msg.getTaskExecutionVersion());
+                    router.path(), msg.getStateMachineId(), msg.getTaskId(), msg.getTaskExecutionVersion());
                 router.tell(msg, ActorRef.noSender());
                 metricsClient.incCounter(new StringBuilder().
                         append("stateMachine.").
@@ -78,4 +79,5 @@ public class ExecutionApiResource {
         }
         return Response.accepted().build();
     }
+
 }

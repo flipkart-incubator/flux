@@ -1,5 +1,7 @@
 package com.flipkart.flux.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventDefinition;
@@ -12,12 +14,13 @@ import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.google.inject.name.Named;
-
-import javax.inject.Inject;
 import java.lang.reflect.Field;
-import java.util.*;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import javax.inject.Inject;
 
 /**
  * Dumping ground for all Utils Big and small to be used in tests
@@ -42,7 +45,7 @@ public class TestUtils {
                 "com.flipkart.flux.dao.DummyOnEntryHook",
                 "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_version1",
                 "com.flipkart.flux.dao.DummyOnExitHook", Collections.emptyList(), 5l, 100l,
-                toStr(getOutputEvent("event1", String.class)), Status.completed, null,
+                 toStr(getOutputEvent("event1", String.class)), Status.completed, null,
                 0l, stateMachineId, 1L);
         State state2 = new State(1l, "test_state2", "desc2",
                 "com.flipkart.flux.dao.DummyOnEntryHook",
@@ -59,7 +62,7 @@ public class TestUtils {
                 "com.flipkart.flux.dao.DummyOnEntryHook",
                 "com.flipkart.flux.dao.TestWorkflow_dummyTask_java.lang.Integer_java.lang.String_version1",
                 "com.flipkart.flux.dao.DummyOnExitHook", state4Events, 1l, 100l,
-                toStr(getOutputEvent("event3", Integer.class)), Status.initialized, null,
+                 toStr(getOutputEvent("event3", Integer.class)), Status.initialized, null,
                 0l, stateMachineId, 4L);
         Set<State> states = new HashSet<State>() {{
             add(state1);
@@ -178,7 +181,8 @@ public class TestUtils {
     }
 
     public static void assertStateMachineEquality(StateMachine actual, StateMachine expected) {
-        assertThat(actual).isEqualToIgnoringGivenFields(expected, "states", "context", "createdAt", "updatedAt", "id");
+        assertThat(actual).isEqualToIgnoringGivenFields(expected, "states", "context", "createdAt",
+                "updatedAt", "id");
         assertThat(actual.getStates().size()).isEqualTo(expected.getStates().size());
         actual.getStates().forEach(actualState -> {
             expected.getStates().forEach(expectedState -> {
@@ -190,11 +194,13 @@ public class TestUtils {
     }
 
     public static void assertStateEquality(State actual, State expected) {
-        assertThat(actual).isEqualToIgnoringGivenFields(expected, "id", "createdAt", "updatedAt", "stateMachineId");
+        assertThat(actual).isEqualToIgnoringGivenFields(expected, "id", "createdAt", "updatedAt",
+                "stateMachineId");
     }
 
     public static Event getStandardTestEvent() throws JsonProcessingException {
-        return new Event("event0", "java.lang.String", Event.EventStatus.triggered, null, "42", null);
+        return new Event("event0", "java.lang.String", Event.EventStatus.triggered,
+                null, "42", null);
     }
 
     public static String toStr(Object obj) throws Exception {
@@ -233,7 +239,11 @@ public class TestUtils {
         State state = sm.getStates().stream().filter((s) -> s.getId() == 4L).findFirst().orElse(null);
         TaskExecutionMessage msg = new TaskExecutionMessage();
         msg.setRouterName(WorkFlowExecutionController.getRouterName(state.getTask()));
-        msg.setAkkaMessage(new TaskAndEvents(state.getName(), state.getTask(), state.getId(), expectedEvents, state.getStateMachineId(), "test_state_machine", state.getOutputEvent(), state.getRetryCount()));
+        msg.setAkkaMessage(new TaskAndEvents(state.getName(), state.getTask(), state.getId(), expectedEvents,
+                state.getStateMachineId(), "test_state_machine", state.getOutputEvent(),
+                state.getRetryCount()));
         return msg;
     }
+
+
 }
