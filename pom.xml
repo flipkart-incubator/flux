@@ -32,6 +32,11 @@
             <name>Clojars repository</name>
             <url>https://clojars.org/repo</url>
         </repository>
+        <repository>
+            <id>central</id>
+            <name>Maven Central</name>
+            <url>https://repo1.maven.org/maven2/</url>
+        </repository>
     </repositories>
 
     <scm>
@@ -54,7 +59,7 @@
         <org.springframework.version>4.2.2.RELEASE</org.springframework.version>
         <akka.cluster.metrics.version>2.4.4</akka.cluster.metrics.version>
         <kamon.version>0.6.1</kamon.version>
-        <log4j.version>2.5</log4j.version>
+        <log4j.version>2.15.0</log4j.version>
         <assertj-core.version>2.0.0</assertj-core.version>
         <jackson.version>2.7.3</jackson.version>
         <mockito-all.version>1.9.0</mockito-all.version>
