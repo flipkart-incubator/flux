@@ -47,7 +47,6 @@ import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.StateTraversalPath;
 import com.flipkart.flux.domain.Status;
-import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.Storage;
@@ -103,6 +102,7 @@ public class StateMachinePersistenceService {
                     }
                 }
                 if (replayableStates.get(state.getName()) != null && replayableStates.get(state.getName()) > 1) {
+                    // TODO : Instead of marking it false here, throw exception
                     state.setReplayable(Boolean.FALSE);
                     logger.info("Marked state: {} as not replayable because there are 2 or more dependent"
                         + " replay events. To make state: {} as replayable, retry submitting workflow"
@@ -127,7 +127,7 @@ public class StateMachinePersistenceService {
             if (state.isReplayable() && !state.getDependencies().isEmpty()) {
                 List<EventDefinition> dependentEvents = state.getDependencies();
                 for (EventDefinition dependentEvent : dependentEvents) {
-                    if (dependentEvent.getEventSource() != null && dependentEvent.getEventSource().toLowerCase().contains(ClientConstants.REPLAY_EVENT.toLowerCase())){
+                    if (dependentEvent.getEventSource() != null && dependentEvent.getEventSource().toLowerCase().contains(RuntimeConstants.REPLAY_EVENT.toLowerCase())){
                         if (replayEventCount.get(dependentEvent.getName()) != null) {
                             replayEventCount.put(dependentEvent.getName(), replayEventCount.get(dependentEvent.getName()) + 1);
                         }
@@ -142,6 +142,7 @@ public class StateMachinePersistenceService {
                 List<EventDefinition> dependentEvents = state.getDependencies();
                 for (EventDefinition dependentEvent : dependentEvents) {
                     if (replayEventCount.get(dependentEvent.getName()) != null && replayEventCount.get(dependentEvent.getName()) > 1) {
+                        // TODO : Instead of marking it false here, throw exception
                         state.setReplayable(Boolean.FALSE);
                         logger.info("Marked state: {} as not replayable because there are 2 or more states"
                             + " dependent on same replay event: {}. To make state: {} as replayable,"
@@ -206,16 +207,15 @@ public class StateMachinePersistenceService {
      */
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public Map<Long, List<Long>> createAndPersistStateTraversal(String stateMachineId, StateMachine stateMachine)
+    public Map<Long, List<Long>> createAndPersistStateTraversal(String stateMachineId, StateMachine stateMachine,
+        Context context)
             throws RuntimeException {
 
         // Map to store result and return, this will help to test the functionality
         Map<Long, List<Long>> replayStateTraversalPath = new HashMap<>();
 
+        // TODO : Revisit during refactoring -> Can be injected
         SearchUtil searchUtil = new SearchUtil();
-
-        //create context and dependency graph < event -> dependent states >
-        Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
 
         Set<Long> replayableStateIds = filterReplayableStates(stateMachine.getStates());
 
@@ -226,7 +226,8 @@ public class StateMachinePersistenceService {
             replayStateTraversalPath.put(replayableStateId, nextDependentStateIds);
             //create and store traversal path for given replayable state
             stateTraversalPathDAO.create(stateMachineId,
-                    new StateTraversalPath(stateMachineId, replayableStateId, nextDependentStateIds));
+                    new StateTraversalPath(stateMachineId, replayableStateId,
+                        replayStateTraversalPath.get(replayableStateId)));
         }
         return replayStateTraversalPath;
     }

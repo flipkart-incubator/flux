@@ -65,6 +65,7 @@ import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.AuditRecord;
+import com.flipkart.flux.domain.Context;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
@@ -237,12 +238,15 @@ public class StateMachineResource {
       // 1. Convert to StateMachine (domain object) and save in DB
       StateMachine stateMachine = stateMachinePersistenceService
           .createStateMachine(stateMachineInstanceId, stateMachineDefinition);
+
+      //create context and dependency graph
+      Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);//TODO: set context id, should we need it ?
       stateMachinePersistenceService
-          .createAndPersistStateTraversal(stateMachineInstanceId, stateMachine);
+          .createAndPersistStateTraversal(stateMachineInstanceId, stateMachine, context);
       LoggingUtils.registerStateMachineIdForLogging(stateMachine.getId());
       logger.info("Created state machine with Id: {}", stateMachine.getId());
       // 2. initialize and start State Machine
-      workFlowExecutionController.initAndStart(stateMachine);
+      workFlowExecutionController.initAndStart(stateMachine, context);
       return stateMachine;
     } finally {
       LoggingUtils.deRegisterStateMachineIdForLogging();
@@ -521,8 +525,8 @@ public class StateMachineResource {
           // TODO: Add test for this scenario.
           logger.info("Discarding event:{} with eventExecutionVersion:{} from state: {} with " +
                   "stateExecutionVersion:{}" +
-                  " for state machine: {}. StateExecutionVersion, it's not valid anymore."
-                  + " EventData will be saved in datastore for audit purpose with eventExecutionVersion:{}.",
+                  " for state machine: {}. StateExecutionVersion is not valid anymore."
+                  + " EventData will be saved in data store for audit purpose with eventExecutionVersion:{}.",
               versionedEventData.getName(), versionedEventData.getExecutionVersion(),
               executionUpdateData.getTaskId(), executionUpdateData.getTaskExecutionVersion(),
               machineId, versionedEventData.getExecutionVersion());

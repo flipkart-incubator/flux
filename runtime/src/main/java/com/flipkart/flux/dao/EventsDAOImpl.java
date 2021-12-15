@@ -252,7 +252,7 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
                 + ") order by field(name, " + eventNamesString.toString() + ")").setParameter("SMID", stateMachineInstanceId);
         List<Event> readEvents = hqlQuery.list();
         LinkedList<VersionedEventData> readEventsDTOs = new LinkedList<>();
-        //TODO: Check again
+
         for (Event event : readEvents) {
             readEventsDTOs.add(new VersionedEventData(event.getName(), event.getType(), event.getEventData(),
                     event.getEventSource(), event.getExecutionVersion()));

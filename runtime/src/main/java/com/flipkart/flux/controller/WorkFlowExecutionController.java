@@ -169,10 +169,7 @@ public class WorkFlowExecutionController {
      * @param stateMachine
      * @return List of states that do not have any event dependencies on them
      */
-    public Set<State> initAndStart(StateMachine stateMachine) {
-
-        //create context and dependency graph
-        Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine); //TODO: set context id, should we need it ?
+    public Set<State> initAndStart(StateMachine stateMachine, Context context) {
 
         final List<String> triggeredEvents = eventsDAO.findTriggeredOrCancelledEventsNamesBySMId(stateMachine.getId());
         Set<State> initialStates = context.getInitialStates(new HashSet<>(triggeredEvents));
@@ -497,13 +494,12 @@ public class WorkFlowExecutionController {
                     updateStatus = com.flipkart.flux.domain.Status.unsidelined;
                     break;
             }
+            // Check if executionVersion is really required in this metric
             metricsClient.markMeter(new StringBuilder().
                     append("stateMachine.").
                     append(executionUpdateData.getStateMachineName()).
                     append(".task.").
                     append(executionUpdateData.getTaskName()).
-                    append(".executionVersion.").
-                    append(executionUpdateData.getTaskExecutionVersion()).
                     append(".status.").
                     append(updateStatus.name()).
                     toString());
@@ -528,7 +524,7 @@ public class WorkFlowExecutionController {
          */
         public void updateExecutionStatus (String stateMachineId, Long taskId, Long taskExecutionVersion, Status status,
         long retryCount, long currentRetryCount, String errorMessage,
-        boolean deleteFromRedriver, String dependentAuditEvents){
+        boolean deleteFromRedriver, String dependentAuditEvents) {
             if (taskExecutionVersion.equals(this.statesDAO.findById(stateMachineId, taskId).getExecutionVersion())) {
                 this.statesDAO.updateStatus(stateMachineId, taskId, status);
                 AuditRecord auditRecord = new AuditRecord(stateMachineId, taskId, currentRetryCount, status,
@@ -539,7 +535,8 @@ public class WorkFlowExecutionController {
                 }
             } else {
                 logger.info("Input taskExecutionVersion: {} is invalid, update task execution status denied for taskId: {}," +
-                        " stateMachineId: {}.", taskExecutionVersion, taskId, stateMachineId);
+                        " stateMachineId: {}. Marked to deRegister in redriver.", taskExecutionVersion, taskId, stateMachineId);
+                this.redriverRegistry.deRegisterTask(stateMachineId, taskId, taskExecutionVersion);
             }
 
         }
@@ -808,14 +805,14 @@ public class WorkFlowExecutionController {
             return routerName;
         }
 
-        public void persistDiscardedEvent(String machineId, VersionedEventData versionedEventData){
+        public void persistDiscardedEvent(String machineId, VersionedEventData versionedEventData) {
             List<Event> allEvents = eventsDAO.findAllBySMIdAndName(machineId,versionedEventData.getName());
 
-            if (allEvents.isEmpty()){
+            if (allEvents.isEmpty()) {
                 logger.error("The event: {} for SMId: {} not Found",versionedEventData.getName(), machineId);
             }
 
-            //The filter's result in one entry only always
+            //The filter will result in only one entry always
             Optional<Event> invalidEvent = allEvents.stream()
                 .filter(event -> event.getExecutionVersion().equals(versionedEventData.getExecutionVersion()))
                 .filter(event -> event.getStatus().equals(EventStatus.invalid))

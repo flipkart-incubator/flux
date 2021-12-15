@@ -28,6 +28,7 @@ import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
+import com.flipkart.flux.domain.Context;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
@@ -35,6 +36,7 @@ import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.OrchestrationTaskModule;
 import com.flipkart.flux.guice.module.ShardModule;
+import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.module.RuntimeTestModule;
 import com.flipkart.flux.runner.Modules;
 import java.io.IOException;
@@ -368,8 +370,10 @@ public class StateMachinePersistenceServiceTest {
         StateMachineDefinition stateMachineDefinition = createStateMachineDefinitionWithReplayableStates();
         StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(
                 "sample-state-machine-id-2", stateMachineDefinition);
+        //create context and dependency graph
+        Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
         Map<Long, List<Long>> replayStateTraversalPath = stateMachinePersistenceService.createAndPersistStateTraversal(
-                "sample-state-machine-id-2", stateMachine);
+                "sample-state-machine-id-2", stateMachine, context);
 
         assertThat(replayStateTraversalPath.size()).isEqualTo(4);
         assertThat(replayStateTraversalPath.isEmpty()).isFalse();
