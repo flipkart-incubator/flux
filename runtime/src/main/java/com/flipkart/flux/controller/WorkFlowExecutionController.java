@@ -828,4 +828,30 @@ public class WorkFlowExecutionController {
                 logger.error("The discarded event: {} for SMId: {} not Found",versionedEventData.getName(), machineId);
             }
         }
+
+  /**
+   * @param smId
+   * @param eventName
+   * @param taskExecutionVersion
+   * @return
+   */
+  public String getEventData(String smId, String eventName, Long taskExecutionVersion) {
+    Event event = eventsDAO.findBySmIdAndNameAndVersion(smId, eventName, taskExecutionVersion);
+    if (event != null && Optional.ofNullable(event.getEventData()).isPresent()) {
+      return Optional.ofNullable(event.getEventData()).get();
+    } else {
+      logger.error(
+          "Event data not found for smId: {} eventName: {} taskExecutionVersion: {}",
+          smId,
+          eventName,
+          taskExecutionVersion);
+      throw new IllegalEventException(
+          "Event data not found for smId: "
+              + smId
+              + ", eventName: "
+              + eventName
+              + " and taskExecutionVersion: "
+              + taskExecutionVersion);
     }
+  }
+}

@@ -1140,4 +1140,30 @@ public class StateMachineResource {
         .getName() : null;
   }
 
+  @GET
+  @Path("/{machineId}/{eventName}/{taskExecutionVersion}/eventdata")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Transactional
+  @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+  public Response getEventData(
+      @PathParam("machineId") String smId,
+      @PathParam("eventName") String eventName,
+      @PathParam("taskExecutionVersion") Long taskExecutionVersion) {
+
+    if (smId == null || eventName == null || taskExecutionVersion == null) {
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity("smId/eventName/taskExecutionVersion cannot be null")
+          .build();
+    }
+
+    try {
+      String eventData =
+          workFlowExecutionController.getEventData(smId, eventName, taskExecutionVersion);
+      return Response.status(Response.Status.OK).entity(eventData).build();
+    } catch (IllegalEventException e) {
+      return Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
+    } catch (Exception e) {
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+    }
+  }
 }

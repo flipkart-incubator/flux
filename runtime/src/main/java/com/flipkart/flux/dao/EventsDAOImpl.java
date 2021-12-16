@@ -326,6 +326,19 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         query.executeUpdate();
     }
 
+    /**
+     * Retrieves the Event
+     */
+    @Override
+    public Event findBySmIdAndNameAndVersion(String stateMachineInstanceId, String eventName,
+        Long executionVersion) {
+        Criteria criteria = currentSession().createCriteria(Event.class)
+            .add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId))
+            .add(Restrictions.eq("name", eventName))
+            .add(Restrictions.eq("executionVersion", executionVersion));
+        return (Event) criteria.uniqueResult();
+    }
+
     //TODO: Check and validate query + Test cases
     @Override
     @Transactional

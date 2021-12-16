@@ -13,14 +13,12 @@
 
 package com.flipkart.flux.dao.iface;
 
+import com.flipkart.flux.api.VersionedEventData;
+import com.flipkart.flux.domain.Event;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import org.hibernate.Session;
-
-import com.flipkart.flux.api.VersionedEventData;
-import com.flipkart.flux.domain.Event;
 
 /**
  * <code>EventsDAO</code> interface provides methods to perform CR operations on {@link Event}
@@ -125,4 +123,13 @@ public interface EventsDAO {
      * Mark given event as invalid using passed parameter session object
      */
     void markEventAsInvalid_NonTransactional(String stateMachineInstanceId, String eventName, Session session);
+
+    /**
+     * Retrieves the Event
+     * @param stateMachineInstanceId
+     * @param eventName
+     * @param executionVersion
+     * @return
+     */
+    Event findBySmIdAndNameAndVersion(String stateMachineInstanceId,String eventName, Long executionVersion);
 }
