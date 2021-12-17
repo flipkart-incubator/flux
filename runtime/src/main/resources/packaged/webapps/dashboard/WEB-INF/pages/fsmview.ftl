@@ -728,6 +728,7 @@
         }
 
         function clearEventInfoModalParams() {
+        	$("#event-data-txt-box").empty();
             $("#event-execution-version-label").empty();
             $("#event-status-label").empty();
             $("#event-updated-at-label").empty();
