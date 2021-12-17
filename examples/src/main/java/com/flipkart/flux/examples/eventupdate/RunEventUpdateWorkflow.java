@@ -21,7 +21,7 @@ import com.google.inject.Injector;
 /**
  * This class can be used to run and observe the <code>EventUpdateWorkflow</code>
  * This or a similar class like this is _not_ required to be present in your actual production jar
- * <p>
+ *
  * Created by akif.khan on 31/08/18.
  */
 public class RunEventUpdateWorkflow {
@@ -37,7 +37,8 @@ public class RunEventUpdateWorkflow {
         System.out.println("[Main] Starting workflow execution");
         String exampleWorkflowId = "example_event_update_workflow";
         eventUpdateWorkflow.create(new StartEvent(exampleWorkflowId));
-        System.out.println("[Main] Visit flux dashboard at http://localhost:9999/admin/fsmview and enter " + exampleWorkflowId + " to see workflow execution details");
+        System.out.println("[Main] See flux dashboard at http://localhost:9999/admin/fsmview and" +
+                " enter " + exampleWorkflowId + " to view workflow execution details");
 
         /* Since we've initialised flux, the process will continue to run till you explicitly kill it */
     }

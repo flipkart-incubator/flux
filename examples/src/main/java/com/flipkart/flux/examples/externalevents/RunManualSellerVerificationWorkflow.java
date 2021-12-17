@@ -52,6 +52,7 @@ public class RunManualSellerVerificationWorkflow {
         Thread.sleep(2000l); // Just a 2 second wait to ensure that the state machine has been created in flux
         injector.getInstance(FluxRuntimeConnector.class).submitEvent("sellerVerification", new SellerVerificationStatus(new SellerId(1l), true), randomCorrelationId, "Manual Trigger From Customer Support");
         System.out.println("[Main] Posted data to flux runtime, the workflow should have continued");
-
+        System.out.println("[Main] Visit flux dashboard at http://localhost:9999/admin/fsmview and " +
+                "enter " + randomCorrelationId + " to see workflow execution details");
     }
 }
