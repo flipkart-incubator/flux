@@ -7,16 +7,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.flipkart.flux.api.ClientElbDefinition;
+import com.flipkart.flux.domain.ClientElb;
+import com.flipkart.flux.representation.ClientElbPersistenceService;
 import javax.ws.rs.core.Response;
-
+import javax.ws.rs.core.Response.Status;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import com.flipkart.flux.api.ClientElbDefinition;
-import com.flipkart.flux.domain.ClientElb;
-import com.flipkart.flux.representation.ClientElbPersistenceService;
 
 /**
  * @author akif.khan
@@ -105,6 +104,13 @@ public class ClientElbResourceTest {
     }
 
     @Test
+    public void testUpdateClientElb_DefaultElbIdRestriction() {
+        Response response_1 = clientElbResource.updateClientElb("defaultElbId", "http://10.24.32.1");
+        Assertions.assertThat(response_1.getStatus()).isEqualTo(Status.FORBIDDEN.getStatusCode());
+    }
+
+
+    @Test
     public void testDeleteClientElb() {
 
         Response response_1 = clientElbResource.deleteClientElb(null);
@@ -117,5 +123,11 @@ public class ClientElbResourceTest {
         verify(clientElbPersistenceService, times(1)).deleteClientElb(
                 "magic_id");
         verifyNoMoreInteractions(clientElbPersistenceService);
+    }
+
+    @Test
+    public void testDeleteClientElb_DefaultElbIdRestriction() {
+        Response response_1 = clientElbResource.deleteClientElb("defaultElbId");
+        Assertions.assertThat(response_1.getStatus()).isEqualTo(Status.FORBIDDEN.getStatusCode());
     }
 }
