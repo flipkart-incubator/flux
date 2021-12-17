@@ -2,6 +2,8 @@ package com.flipkart.flux.dao;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -104,7 +106,9 @@ public class StatesDAOTest {
         State state1 = new State(2L, "state1", "desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.singletonList("event1"), 3L, 60L, null, null, null, 0l, "1", 1L);
         statesDAO.updateState(stateMachine.getId(), state1);
         List<State> stateList = statesDAO.findStatesByDependentEvent(stateMachine.getId(), "event1");
-        assertThat(stateList.contains("state1"));
+        assertThat(stateList.get(0).getName()).isEqualTo("state1");
+        assertThat(stateList.get(0).getId()).isEqualTo(1L);
+
     }
 
     @Test
@@ -127,13 +131,28 @@ public class StatesDAOTest {
     }
 
     @SuppressWarnings("unused")
-	@Test
+    @Test
     @Ignore("Need ShardId to test this test case")
     public void testFindErroredStates() throws Exception {
         StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
         State state1 = new State(2L, "state1", "desc1", "com.flipkart.flux.dao.DummyOnEntryHook", "com.flipkart.flux.dao.TestWorkflow_dummyTask", "com.flipkart.flux.dao.DummyOnExitHook", Collections.singletonList("ReplayEvent"), 3L, 60L, null, Status.errored, null, 0l, "1", 1L, (short) 5, (short) 2, Boolean.TRUE);
         statesDAO.updateState(stateMachine.getId(), state1);
         State state = statesDAO.findById(stateMachine.getId(), 1L);
+    }
+
+    @Test
+    public void testFindAllStatesForGivenStateIds() throws Exception{
+        StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
+
+        State state1 = statesDAO.findById(stateMachine.getId(),1L);
+        State state2 = statesDAO.findById(stateMachine.getId(),2L);
+
+        List<State> actualStates = statesDAO.findAllStatesForGivenStateIds(stateMachine.getId(),
+            new ArrayList<>(Arrays.asList(1L,2L)));
+
+        assertThat(actualStates.size() == 2).isTrue();
+        assertThat(actualStates.containsAll(new ArrayList<>(Arrays.asList(state1, state2)))).isTrue();
+
     }
 
 }

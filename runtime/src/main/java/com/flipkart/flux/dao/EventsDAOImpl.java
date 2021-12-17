@@ -291,25 +291,6 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
     }
 
     @Override
-    @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public void markEventsAsInvalid(String stateMachineInstanceId, List<String> eventNames) {
-        if (!eventNames.isEmpty()) {
-            StringBuilder eventNamesString = new StringBuilder();
-            for (int i = 0; i < eventNames.size(); i++) {
-                eventNamesString.append("\'" + eventNames.get(i) + "\'");
-                if (i != eventNames.size() - 1)
-                    eventNamesString.append(", ");
-            }
-            Query query = currentSession().createQuery("update Event set status = :status where" +
-                    " stateMachineInstanceId = :stateMachineInstanceId and name in (" + eventNamesString.toString() + ")");
-            query.setString("status", Event.EventStatus.invalid.toString());
-            query.setString("stateMachineInstanceId", stateMachineInstanceId);
-            query.executeUpdate();
-        }
-    }
-
-    @Override
     public Event create_NonTransactional(Event event, Session session) {
         session.save(event);
         return event;
@@ -329,6 +310,8 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
      * Retrieves the Event
      */
     @Override
+    @Transactional
+    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public Event findBySmIdAndNameAndVersion(String stateMachineInstanceId, String eventName,
         Long executionVersion) {
         Criteria criteria = currentSession().createCriteria(Event.class)
@@ -338,7 +321,6 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         return (Event) criteria.uniqueResult();
     }
 
-    //TODO: Check and validate query + Test cases
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)

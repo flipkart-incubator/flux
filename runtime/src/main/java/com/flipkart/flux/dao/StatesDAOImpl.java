@@ -223,24 +223,6 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         query.executeUpdate();
     }
 
-    @Override
-    @Transactional
-    @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public void updateExecutionVersion(String stateMachineId, List<State> states, Long executionVersion) {
-        StringBuilder inClause = new StringBuilder();
-        if (states!=null && !states.isEmpty()) {
-            inClause.append(" and id in (,");
-            for (State state : states) {
-                inClause.append(state.getId()).append(",");
-            }
-            inClause.deleteCharAt(inClause.length() - 1).append(")");
-        }
-        Query query = currentSession().createQuery("update State set executionVersion= :executionVersion" +
-                " where stateMachineId= :stateMachineId".concat(inClause.toString()));
-        query.setLong("executionVersion", executionVersion);
-        query.setString("stateMachineId", stateMachineId);
-        query.executeUpdate();
-    }
 
     // TODO : Add test for this
     @Override

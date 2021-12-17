@@ -1211,8 +1211,6 @@ public class StateMachineResource {
   @GET
   @Path("/{machineId}/{eventName}/{taskExecutionVersion}/eventdata")
   @Produces(MediaType.APPLICATION_JSON)
-  @Transactional
-  @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
   public Response getEventData(
       @PathParam("machineId") String smId,
       @PathParam("eventName") String eventName,

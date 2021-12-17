@@ -110,11 +110,6 @@ public interface EventsDAO {
     void markEventAsCancelled(String stateMachineInstanceId, String eventName);
 
     /**
-     * Marks list of events as invalid
-     */
-    void markEventsAsInvalid(String stateMachineInstanceId, List<String> eventName);
-
-    /**
      * Creates Event using the parameter session and returns the saved object
      */
     Event create_NonTransactional(Event event, Session session);

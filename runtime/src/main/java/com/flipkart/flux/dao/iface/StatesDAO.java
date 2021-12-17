@@ -13,14 +13,12 @@
 
 package com.flipkart.flux.dao.iface;
 
-import java.sql.Timestamp;
-import java.util.List;
-
-import org.hibernate.Session;
-
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.shard.ShardId;
+import java.sql.Timestamp;
+import java.util.List;
+import org.hibernate.Session;
 
 /**
  * <code>StatesDAO</code> interface provides methods to perform CR operations on {@link State}
@@ -69,11 +67,10 @@ public interface StatesDAO {
      * Updates the execution version for all the specified States in the given State Machine
      *
      * @param stateMachineInstanceId
-     * @param states
+     * @param stateIds
      * @param executionVersion
+     * @param session
      */
-    void updateExecutionVersion(String stateMachineInstanceId, List<State> states, Long executionVersion);
-
     void updateExecutionVersion_NonTransactional(String stateMachineInstanceId, List<Long> stateIds,
                                                  Long executionVersion, Session session);
 
