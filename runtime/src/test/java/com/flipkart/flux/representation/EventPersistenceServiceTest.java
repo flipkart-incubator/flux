@@ -42,7 +42,7 @@ public class EventPersistenceServiceTest {
     @Test
     public void testConvertEventDefinitionToEvent() throws Exception{
 
-        String eventDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_definition_with_eventSource.json"));
+        String eventDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_definition_with_eventSource.json"), "UTF-8");
         EventDefinition eventDefinition = objectMapper.readValue(eventDefinitionJson, EventDefinition.class);
         Event event = eventPersistenceService.convertEventDefinitionToEvent(eventDefinition);
         assertThat(event.getEventSource()).isNotNull();
@@ -51,7 +51,7 @@ public class EventPersistenceServiceTest {
     @Test
     public void testConvertEventDefinitionToEventNoEventSource() throws Exception{
 
-        String eventDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_definition_without_eventSource.json"));
+        String eventDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("event_definition_without_eventSource.json"), "UTF-8");
         EventDefinition eventDefinition = objectMapper.readValue(eventDefinitionJson, EventDefinition.class);
         Event event = eventPersistenceService.convertEventDefinitionToEvent(eventDefinition);
         assertThat(event.getEventSource()).isNull();

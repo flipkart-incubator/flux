@@ -217,7 +217,7 @@ public class E2ETest {
 
     // Trigger ReplayEvent RE1
     String replayEventJson = IOUtils
-        .toString(this.getClass().getClassLoader().getResourceAsStream("replay_event_data.json"));
+        .toString(this.getClass().getClassLoader().getResourceAsStream("replay_event_data.json"), "UTF-8");
     Unirest.post(
         STATE_MACHINE_RESOURCE_URL + "/" + smId + "/context/replayevent")
         .header("Content-Type", "application/json").body(replayEventJson).asString();
@@ -312,7 +312,7 @@ public class E2ETest {
 
     // Trigger ReplayEvent RE2
     String replayEvent2_Json = IOUtils
-        .toString(this.getClass().getClassLoader().getResourceAsStream("replay_event_data_2.json"));
+        .toString(this.getClass().getClassLoader().getResourceAsStream("replay_event_data_2.json"), "UTF-8");
     Unirest.post(
         STATE_MACHINE_RESOURCE_URL + "/" + smId + "/context/replayevent")
         .header("Content-Type", "application/json").body(replayEvent2_Json).asString();

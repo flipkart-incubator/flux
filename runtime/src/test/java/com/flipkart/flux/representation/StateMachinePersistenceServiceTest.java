@@ -130,7 +130,7 @@ public class StateMachinePersistenceServiceTest {
     @Test
     public void testConvertStateDefinitionToState() throws Exception {
 
-        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition_test.json"));
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition_test.json"), "UTF-8");
         Integer maxTaskRetryCount = 10;
         StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
         Event event1 = new Event("event1", "java.lang.String", Event.EventStatus.pending,
@@ -155,7 +155,7 @@ public class StateMachinePersistenceServiceTest {
     @Test
     public void testConvertStateDefinitionToStateWithReplayable() throws Exception {
 
-        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition_single_replayable_state.json"));
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition_single_replayable_state.json"), "UTF-8");
         Integer maxTaskRetryCount = 10;
         StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
         Event event1 = new Event("event1", "java.lang.String", Event.EventStatus.pending,
@@ -180,7 +180,7 @@ public class StateMachinePersistenceServiceTest {
     @Test
     public void testConvertStateDefinitionToStateWithReplayableRetriesGreaterThanThreshold() throws Exception {
 
-        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_replayableRetries_greater_than_threshold.json"));
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_replayableRetries_greater_than_threshold.json"), "UTF-8");
         Integer maxTaskRetryCount = 10;
         StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
         Event event1 = new Event("event1", "java.lang.String", Event.EventStatus.pending,
@@ -419,7 +419,7 @@ public class StateMachinePersistenceServiceTest {
     @Test(expected = CreateStateMachineException.class)
     public void testValidateMultipleStatesWithSameReplayEvent() throws IOException, CreateStateMachineException {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
-            "state_machine_definition_5.json"));
+            "state_machine_definition_5.json"), "UTF-8");
         StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
         StateMachineDefinition stateMachineDefinition1 = StateMachinePersistenceService.validateReplayableStates(stateMachineDefinition);
         Set<StateDefinition> states = stateMachineDefinition1.getStates();
@@ -431,7 +431,7 @@ public class StateMachinePersistenceServiceTest {
 
     @Test(expected = CreateStateMachineException.class)
     public void testValidateStateWithMultipleReplayEvent() throws IOException, CreateStateMachineException {
-        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition_4.json"));
+        String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition_4.json"), "UTF-8");
         StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
         StateMachineDefinition stateMachineDefinition1 =
         		StateMachinePersistenceService.validateReplayableStates(stateMachineDefinition);

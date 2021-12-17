@@ -139,7 +139,7 @@ public class StateMachineResourceTest {
   @Test
   public void testCreateStateMachine() throws Exception {
     String stateMachineDefinitionJson = IOUtils.toString(
-        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"), "UTF-8");
     final HttpResponse<String> response = Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json")
         .body(stateMachineDefinitionJson).asString();
@@ -155,7 +155,7 @@ public class StateMachineResourceTest {
   @Test
   public void testResetAttemptedNoOfRetries() throws Exception {
     String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader()
-        .getResourceAsStream("state_machine_definition_replayable.json"));
+        .getResourceAsStream("state_machine_definition_replayable.json"), "UTF-8");
     final HttpResponse<String> response = Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json")
         .body(stateMachineDefinitionJson).asString();
@@ -186,7 +186,7 @@ public class StateMachineResourceTest {
   @Test
   public void testUnsideline() throws Exception {
     String stateMachineDefinitionJson = IOUtils.toString(
-        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"), "UTF-8");
     final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
     Event event = eventsDAO
@@ -200,7 +200,7 @@ public class StateMachineResourceTest {
 
     try {
       String eventJson = IOUtils
-          .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+          .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"), "UTF-8");
       final HttpResponse<String> eventPostResponse = Unirest.post(
           STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events")
           .header("Content-Type", "application/json").body(eventJson).asString();
@@ -237,7 +237,7 @@ public class StateMachineResourceTest {
   @Test
   public void testCreateStateMachine_shouldBombDueToDuplicateCorrelationId() throws Exception {
     String stateMachineDefinitionJson = IOUtils.toString(
-        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"), "UTF-8");
     final HttpResponse<String> response = Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
     assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
@@ -253,7 +253,7 @@ public class StateMachineResourceTest {
   public void testCreateStateMachine_shouldReturn5xxForNonDuplicateIdConstraintViolation()
       throws Exception {
     String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader()
-        .getResourceAsStream("state_machine_definition_broken.json"));
+        .getResourceAsStream("state_machine_definition_broken.json"), "UTF-8");
     final HttpResponse<String> response = Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
     assertThat(response.getStatus())
@@ -265,7 +265,7 @@ public class StateMachineResourceTest {
     //  doReturn(202).when(spyTaskDispatcher).forwardExecutionMessage(anyString(), anyObject());
     //when(spyTaskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(202);
     String stateMachineDefinitionJson = IOUtils.toString(
-        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"), "UTF-8");
     final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json")
         .body(stateMachineDefinitionJson).asString();
@@ -275,7 +275,7 @@ public class StateMachineResourceTest {
             0L);
     assertThat(event.getStatus()).isEqualTo(Event.EventStatus.pending);
     String eventJson = IOUtils
-        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"), "UTF-8");
     final HttpResponse<String> eventPostResponse = Unirest
         .post(STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events")
         .header("Content-Type", "application/json").body(eventJson).asString();
@@ -309,7 +309,7 @@ public class StateMachineResourceTest {
   @Test
   public void testPostEvent_withCorrelationId() throws Exception {
     String stateMachineDefinitionJson = IOUtils.toString(
-        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"), "UTF-8");
     final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
     Event event = eventsDAO
@@ -319,7 +319,7 @@ public class StateMachineResourceTest {
     assertThat(event.getStatus()).isEqualTo(Event.EventStatus.pending);
 
     String eventJson = IOUtils
-        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"), "UTF-8");
     final HttpResponse<String> eventPostResponse = Unirest.post(
         STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1"
             + "/context/events?searchField=correlationId")
@@ -351,7 +351,7 @@ public class StateMachineResourceTest {
   @Test
   public void testPostEvent_againstNonExistingCorrelationId() throws Exception {
     String stateMachineDefinitionJson = IOUtils.toString(
-        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"), "UTF-8");
     final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
     Event event = eventsDAO
@@ -361,7 +361,7 @@ public class StateMachineResourceTest {
     assertThat(event.getStatus()).isEqualTo(Event.EventStatus.pending);
 
     String eventJson = IOUtils
-        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"), "UTF-8");
     // state machine with correlationId magic_number_2 does not exist. The following call should bomb
     final HttpResponse<String> eventPostResponse = Unirest.post(
         STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_2"
@@ -373,12 +373,12 @@ public class StateMachineResourceTest {
   @Test
   public void testPostScheduledEvent_withoutCorrelationIdTag() throws Exception {
     String stateMachineDefinitionJson = IOUtils.toString(
-        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"), "UTF-8");
     Unirest.post(STATE_MACHINE_RESOURCE_URL).header("Content-Type", "application/json")
         .body(stateMachineDefinitionJson).asString();
 
     String eventJson = IOUtils
-        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"), "UTF-8");
 
     //request with searchField param missing
     final HttpResponse<String> eventPostResponse = Unirest.post(
@@ -400,7 +400,7 @@ public class StateMachineResourceTest {
   public void testPostScheduledEvent_withCorrelationId() throws Exception {
     //create state machine
     String stateMachineDefinitionJson = IOUtils.toString(
-        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"), "UTF-8");
     final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
     assertThat(smCreationResponse.getStatus())
@@ -410,7 +410,7 @@ public class StateMachineResourceTest {
     //post an scheduled event
     long triggerTime = (System.currentTimeMillis() / 1000) + 1;
     String eventJson = IOUtils
-        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"), "UTF-8");
     Unirest.post(STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1"
         + "/context/events?searchField=correlationId&triggerTime=" + triggerTime)
         .header("Content-Type", "application/json").body(eventJson).asString();
@@ -436,14 +436,14 @@ public class StateMachineResourceTest {
   @Test
   public void testPostScheduledEvent_withTriggerTimeInMilliSeconds() throws Exception {
     String stateMachineDefinitionJson = IOUtils.toString(
-        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"), "UTF-8");
     Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
 
     Thread.sleep(100);
     long triggerTime = System.currentTimeMillis();
     String eventJson = IOUtils
-        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"), "UTF-8");
     final HttpResponse<String> eventPostResponse = Unirest.post(
         STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1"
             + "/context/events?searchField=correlationId&triggerTime=" + triggerTime)
@@ -457,12 +457,12 @@ public class StateMachineResourceTest {
   @Test
   public void testPostEventUpdate_withNoEventData() throws Exception {
     String stateMachineDefinitionJson = IOUtils.toString(
-        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"), "UTF-8");
     Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
     Thread.sleep(100);
     String eventJson = IOUtils
-        .toString(this.getClass().getClassLoader().getResourceAsStream("no_event_data.json"));
+        .toString(this.getClass().getClassLoader().getResourceAsStream("no_event_data.json"), "UTF-8");
     final HttpResponse<String> eventPostResponse = Unirest
         .post(STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/eventupdate")
         .header("Content-Type", "application/json").body(eventJson).asString();
@@ -473,12 +473,12 @@ public class StateMachineResourceTest {
   @Test
   public void testPostInternalEventUpdate_withNoEventData() throws Exception {
     String stateMachineDefinitionJson = IOUtils.toString(
-        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"), "UTF-8");
     Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
     Thread.sleep(100);
     String eventJson = IOUtils
-        .toString(this.getClass().getClassLoader().getResourceAsStream("no_event_data.json"));
+        .toString(this.getClass().getClassLoader().getResourceAsStream("no_event_data.json"), "UTF-8");
     final HttpResponse<String> eventPostResponse = Unirest.post(
         STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/internaleventupdate")
         .header("Content-Type", "application/json").body(eventJson).asString();
@@ -490,7 +490,7 @@ public class StateMachineResourceTest {
   public void testEventUpdate() throws Exception {
     String stateMachineDefinitionJson = IOUtils
         .toString(this.getClass().getClassLoader().getResourceAsStream(
-            "state_machine_definition.json"));
+            "state_machine_definition.json"), "UTF-8");
     final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
     Event event = eventsDAO
@@ -504,7 +504,7 @@ public class StateMachineResourceTest {
     try {
             /* Since event0 is in pending state, updateEvent should fail. */
       String eventJson0 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
-          "updated_event_data.json"));
+          "updated_event_data.json"), "UTF-8");
       final HttpResponse<String> eventPostResponse0 = Unirest.post(
           STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody()
               + "/context/eventupdate")
@@ -513,7 +513,7 @@ public class StateMachineResourceTest {
           .isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
       String eventJson1 = IOUtils
-          .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+          .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"), "UTF-8");
       final HttpResponse<String> eventPostResponse1 = Unirest.post(
           STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events")
           .header("Content-Type", "application/json").body(eventJson1).asString();
@@ -533,7 +533,7 @@ public class StateMachineResourceTest {
              * after event data update. */
       TestWorkflow.shouldFail = false;
       String eventJson2 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
-          "updated_event_data.json"));
+          "updated_event_data.json"), "UTF-8");
       final HttpResponse<String> eventPostResponse2 = Unirest.post(
           STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody()
               + "/context/eventupdate")
@@ -562,7 +562,7 @@ public class StateMachineResourceTest {
   public void testInternalEventUpdate() throws Exception {
     String stateMachineDefinitionJson = IOUtils
         .toString(this.getClass().getClassLoader().getResourceAsStream(
-            "state_machine_definition_replayable.json"));
+            "state_machine_definition_replayable.json"), "UTF-8");
     final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
     try {
@@ -578,7 +578,7 @@ public class StateMachineResourceTest {
 
             /* event status needs to be triggered to be able to update event data*/
       String eventJson1 = IOUtils.toString(
-          this.getClass().getClassLoader().getResourceAsStream("internal_event_data.json"));
+          this.getClass().getClassLoader().getResourceAsStream("internal_event_data.json"), "UTF-8");
       final HttpResponse<String> eventPostResponse1 = Unirest.post(
           STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events")
           .header("Content-Type", "application/json").body(eventJson1).asString();
@@ -588,7 +588,7 @@ public class StateMachineResourceTest {
       Thread.sleep(4000);
 
       String eventJson2 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
-          "updated_internal_event_data.json"));
+          "updated_internal_event_data.json"), "UTF-8");
       final HttpResponse<String> eventPostResponse2 = Unirest.post(
           STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody()
               + "/context/internaleventupdate")
@@ -615,7 +615,7 @@ public class StateMachineResourceTest {
   public void testInternalEventUpdateWithNonTriggeredEvent() throws Exception {
     String stateMachineDefinitionJson = IOUtils
         .toString(this.getClass().getClassLoader().getResourceAsStream(
-            "state_machine_definition.json"));
+            "state_machine_definition.json"), "UTF-8");
     final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
 
@@ -623,7 +623,7 @@ public class StateMachineResourceTest {
     assertThat(event.getStatus()).isEqualTo(Event.EventStatus.pending);
         /* Since event1 is in pending state, updateEvent should fail. */
     String eventJson0 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
-        "updated_internal_event_data.json"));
+        "updated_internal_event_data.json"), "UTF-8");
     final HttpResponse<String> eventPostResponse0 = Unirest.post(
         STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody()
             + "/context/internaleventupdate")
@@ -637,13 +637,13 @@ public class StateMachineResourceTest {
   public void testInternalEventUpdateNoReplayableState() throws Exception {
     String stateMachineDefinitionJson = IOUtils
         .toString(this.getClass().getClassLoader().getResourceAsStream(
-            "state_machine_definition.json"));
+            "state_machine_definition.json"), "UTF-8");
     final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
     Event event = eventsDAO.findValidEventBySMIdAndName(smCreationResponse.getBody(), "event1");
 
     String eventJson1 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
-        "updated_internal_event_data.json"));
+        "updated_internal_event_data.json"), "UTF-8");
     final HttpResponse<String> eventPostResponse1 = Unirest.post(
         STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody()
             + "/context/internaleventupdate")
@@ -656,18 +656,18 @@ public class StateMachineResourceTest {
   public void testInternalEventUpdateIncompleteStates() throws Exception {
     String stateMachineDefinitionJson = IOUtils
         .toString(this.getClass().getClassLoader().getResourceAsStream(
-            "state_machine_definition_replayable.json"));
+            "state_machine_definition_replayable.json"), "UTF-8");
     final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
     Event event = eventsDAO.findValidEventBySMIdAndName(smCreationResponse.getBody(), "event1");
 
     String eventJson1 = IOUtils
-        .toString(this.getClass().getClassLoader().getResourceAsStream("internal_event_data.json"));
+        .toString(this.getClass().getClassLoader().getResourceAsStream("internal_event_data.json"), "UTF-8");
     final HttpResponse<String> eventPostResponse1 = Unirest.post(
         STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events")
         .header("Content-Type", "application/json").body(eventJson1).asString();
     String eventJson2 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
-        "updated_internal_event_data.json"));
+        "updated_internal_event_data.json"), "UTF-8");
     final HttpResponse<String> eventPostResponse2 = Unirest.post(
         STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody()
             + "/context/internaleventupdate")
@@ -680,9 +680,9 @@ public class StateMachineResourceTest {
   private void testEventUpdate_IneligibleTaskStatus_Util(HttpResponse<String> smCreationResponse)
       throws Exception {
     String eventJson1 = IOUtils
-        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"), "UTF-8");
     String eventJson2 = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
-        "updated_event_data.json"));
+        "updated_event_data.json"), "UTF-8");
 
     final HttpResponse<String> eventPostResponse1 = Unirest.post(
         STATE_MACHINE_RESOURCE_URL + SLASH + smCreationResponse.getBody() + "/context/events")
@@ -697,7 +697,7 @@ public class StateMachineResourceTest {
   public void testEventUpdate_taskRunning() throws Exception {
     String stateMachineDefinitionJson = IOUtils
         .toString(this.getClass().getClassLoader().getResourceAsStream(
-            "state_machine_definition.json"));
+            "state_machine_definition.json"), "UTF-8");
     final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
     Event event = eventsDAO
@@ -718,7 +718,7 @@ public class StateMachineResourceTest {
   public void testEventUpdate_taskCompleted() throws Exception {
     String stateMachineDefinitionJson = IOUtils
         .toString(this.getClass().getClassLoader().getResourceAsStream(
-            "state_machine_definition.json"));
+            "state_machine_definition.json"), "UTF-8");
     final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
     Event event = eventsDAO
@@ -739,7 +739,7 @@ public class StateMachineResourceTest {
   public void testEventUpdate_taskCancelled() throws Exception {
     String stateMachineDefinitionJson = IOUtils
         .toString(this.getClass().getClassLoader().getResourceAsStream(
-            "state_machine_definition.json"));
+            "state_machine_definition.json"), "UTF-8");
     final HttpResponse<String> smCreationResponse = Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
     Event event = eventsDAO
@@ -871,7 +871,7 @@ public class StateMachineResourceTest {
   public void shouldProxyEventToOldCluster() throws Exception {
     final String stateMachineId = "some_random_machine_do_not_exist";
     final String eventJson = IOUtils
-        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"), "UTF-8");
     final HttpResponse<String> httpResponse = Unirest
         .post(STATE_MACHINE_RESOURCE_URL + SLASH + stateMachineId + "/context/events")
         .header("Content-Type", "application/json").body(eventJson).asString();
@@ -883,7 +883,7 @@ public class StateMachineResourceTest {
   public void shouldProxyScheduledEventToOldCluster() throws Exception {
     final String stateMachineId = "some_random_machine_do_not_exist";
     final String eventJson = IOUtils
-        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"), "UTF-8");
     final HttpResponse<String> httpResponse = Unirest
         .post(STATE_MACHINE_RESOURCE_URL + SLASH + stateMachineId + "/context/events?triggerTime=0")
         .header("Content-Type", "application/json").body(eventJson).asString();
@@ -908,12 +908,12 @@ public class StateMachineResourceTest {
   @Test
   public void testPostReplayEvent_withNoEventData() throws Exception {
     String stateMachineDefinitionJson = IOUtils.toString(
-        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"), "UTF-8");
     Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
     Thread.sleep(100);
     String eventJson = IOUtils
-        .toString(this.getClass().getClassLoader().getResourceAsStream("no_event_data.json"));
+        .toString(this.getClass().getClassLoader().getResourceAsStream("no_event_data.json"), "UTF-8");
     final HttpResponse<String> eventPostResponse = Unirest.post(
         STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/replayevent")
         .header("Content-Type", "application/json").body(eventJson).asString();
@@ -925,7 +925,7 @@ public class StateMachineResourceTest {
   @Test
   public void testPostReplayEvent_withNoStateMachine() throws Exception {
     String eventJson = IOUtils
-        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"), "UTF-8");
     final HttpResponse<String> eventPostResponse = Unirest.post(
         STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/replayevent")
         .header("Content-Type", "application/json").body(eventJson).asString();
@@ -936,7 +936,7 @@ public class StateMachineResourceTest {
   @Test
   public void testPostReplayEvent_withCancelledStateMachine() throws Exception {
     String stateMachineDefinitionJson = IOUtils.toString(
-        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"), "UTF-8");
     Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
     Thread.sleep(100);
@@ -945,7 +945,7 @@ public class StateMachineResourceTest {
         .asString();
 
     String eventJson = IOUtils
-        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"), "UTF-8");
     final HttpResponse<String> eventPostResponse = Unirest.post(
         STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/replayevent")
         .header("Content-Type", "application/json").body(eventJson).asString();
@@ -956,12 +956,12 @@ public class StateMachineResourceTest {
   @Test
   public void testPostReplayEvent_withNoReplayEvent() throws Exception {
     String stateMachineDefinitionJson = IOUtils.toString(
-        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"));
+        this.getClass().getClassLoader().getResourceAsStream("state_machine_definition.json"), "UTF-8");
     Unirest.post(STATE_MACHINE_RESOURCE_URL)
         .header("Content-Type", "application/json").body(stateMachineDefinitionJson).asString();
     Thread.sleep(100);
     String eventJson = IOUtils
-        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"));
+        .toString(this.getClass().getClassLoader().getResourceAsStream("event_data.json"), "UTF-8");
     final HttpResponse<String> eventPostResponse = Unirest.post(
         STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/replayevent")
         .header("Content-Type", "application/json").body(eventJson).asString();
