@@ -118,7 +118,6 @@ public class EventsDAOImpl extends AbstractDAO<Event> implements EventsDAO {
         return criteria.list();
     }
 
-    // TODO : This may throw NULL results. Check and remove invalid event check safely or handle null results.
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)

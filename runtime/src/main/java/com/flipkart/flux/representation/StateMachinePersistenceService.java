@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.representation;
 
+import static com.flipkart.flux.constant.RuntimeConstants.REPLAY_EVENT;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -35,7 +37,6 @@ import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
-import com.flipkart.flux.client.constant.ClientConstants;
 import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.dao.iface.StateMachinesDAO;
@@ -100,7 +101,7 @@ public class StateMachinePersistenceService {
                 List<EventDefinition> dependentEvents = state.getDependencies();
                 for (EventDefinition dependentEvent : dependentEvents) {
                     if (dependentEvent.getEventSource() != null && dependentEvent.getEventSource()
-                        .toLowerCase().contains(ClientConstants.REPLAY_EVENT.toLowerCase())) {
+                        .toLowerCase().contains(REPLAY_EVENT.toLowerCase())) {
                         replayableStates
                             .put(state.getName(), replayableStates.get(state.getName()) + 1);
                     }
@@ -133,7 +134,8 @@ public class StateMachinePersistenceService {
             if (state.isReplayable() && !state.getDependencies().isEmpty()) {
                 List<EventDefinition> dependentEvents = state.getDependencies();
                 for (EventDefinition dependentEvent : dependentEvents) {
-                    if (dependentEvent.getEventSource() != null && dependentEvent.getEventSource().toLowerCase().contains(RuntimeConstants.REPLAY_EVENT.toLowerCase())){
+                    if (dependentEvent.getEventSource() != null && dependentEvent.getEventSource().toLowerCase().contains(
+                        REPLAY_EVENT.toLowerCase())){
                         if (replayEventCount.get(dependentEvent.getName()) != null) {
                             replayEventCount.put(dependentEvent.getName(), replayEventCount.get(dependentEvent.getName()) + 1);
                         }

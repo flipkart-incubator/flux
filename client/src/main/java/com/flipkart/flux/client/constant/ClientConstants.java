@@ -24,5 +24,6 @@ public class ClientConstants {
 
     public static final String CLIENT = "client";
 
+    // For internal usage by @flux-dev, please don't use this
     public static final String REPLAY_EVENT = "flux_runtime_replay_internal";
 }

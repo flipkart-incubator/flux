@@ -28,7 +28,7 @@ public class RunReplayEventWorkflow {
             + " runtime so that replayable state is completed");
         Thread.sleep(2000l); // Just a 2 second wait to ensure that the replayable state is completed
         fluxHttpConnector.submitReplayEvent("someReplayEvent1",
-            new ParamEvent("task44", false), correlation_id_1);
+            new ParamEvent("task44", false), correlation_id_1, null);
         System.out.println("[Main] Posted replay event to flux runtime, the workflow should have continued");
 
         ReplayEventWorkflow2 replayEventWorkflow2 = injector.getInstance(ReplayEventWorkflow2.class);
@@ -43,11 +43,11 @@ public class RunReplayEventWorkflow {
                 4000l); // Just a 4 second wait to ensure that the replayable state is completed
             if(i%2 == 0) {
             fluxHttpConnector.submitReplayEvent("RE1",
-                new IntegerEvent(5), correlation_id_2);
+                new IntegerEvent(5), correlation_id_2, "my-replay-event");
             }
             else {
                 fluxHttpConnector.submitReplayEvent("RE2",
-                    new IntegerEvent(5), correlation_id_2);
+                    new IntegerEvent(5), correlation_id_2, "example");
             }
             System.out.println(
                 "[Main] Posted replay event 2 to flux runtime iteration:," + i

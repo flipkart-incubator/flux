@@ -49,7 +49,7 @@ public interface FluxRuntimeConnector {
      * @param data data to post against the given event name
      * @param correlationId the string used to identify a workflow instance (as passed using <code>CorrelationId</code> annotation
      */
-    void submitReplayEvent(String name, Object data,String correlationId);
+    void submitReplayEvent(String name, Object data,String correlationId, String eventSource);
 
     /**
      * Post an arbitrary event against a previously registered correlationId with future time, and the event would be triggered at that particular time

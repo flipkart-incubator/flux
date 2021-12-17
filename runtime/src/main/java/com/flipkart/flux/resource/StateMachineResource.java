@@ -286,7 +286,7 @@ public class StateMachineResource {
       if (isEventSourceContainsReplayable(eventData.getEventSource())) {
         return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
             "EventSource cannot contain " + RuntimeConstants.REPLAY_EVENT
-                + " as it is specific to replay event").build();
+                + " as it is specific to replay event. Modify Event Source and retry.").build();
       }
       if (stateMachine == null) {
         if (eventProxyEnabled.equalsIgnoreCase("yes")) {
@@ -393,14 +393,18 @@ public class StateMachineResource {
         return Response.status(Response.Status.BAD_REQUEST).entity("Event Data cannot be empty").build();
       }
 
+      if (isEventSourceContainsReplayable(eventData.getEventSource())) {
+        return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
+            "EventSource cannot contain " + RuntimeConstants.REPLAY_EVENT
+                + " as it is for internal use only. Modify Event Source and retry.").build();
+      }
+
       LoggingUtils.registerStateMachineIdForLogging(machineId);
 
       if (eventData.getEventSource() != null) {
-        String eventSource;
-        if(!eventData.getEventSource().contains(RuntimeConstants.REPLAY_EVENT)) {
-          eventSource = eventData.getEventSource() + ":" + RuntimeConstants.REPLAY_EVENT;
-          eventData.setEventSource(eventSource);
-        }
+        String eventSource = eventData.getEventSource() + ":" + RuntimeConstants.REPLAY_EVENT;
+        eventData.setEventSource(eventSource);
+
       } else {
         eventData.setEventSource(RuntimeConstants.REPLAY_EVENT);
       }
@@ -1123,7 +1127,6 @@ public class StateMachineResource {
    * @param eventData
    * @return
    */
-  //TODO: verify event source again
   private Boolean checkIfEventDataIsEmpty(EventData eventData) {
     if (eventData.getName() == null || eventData.getType() == null || eventData.getData() == null
         || eventData.getName().isEmpty() || eventData.getType().isEmpty() || eventData.getData().isEmpty()) {
@@ -1135,7 +1138,6 @@ public class StateMachineResource {
   /**
    * Helper method to JSON serialize the output event for output event name
    */
-  //TODO: move it to common place
   private String getOutputEventName(String outputEvent) throws IOException {
     return outputEvent != null ? objectMapper.readValue(outputEvent, EventDefinition.class)
         .getName() : null;
@@ -1160,9 +1162,7 @@ public class StateMachineResource {
     try {
       Event event =
           workFlowExecutionController.getEventData(smId, eventName, taskExecutionVersion);
-
-      Gson gson = new Gson();
-      return Response.status(Response.Status.OK).entity(gson.toJson(event)).build();
+      return Response.status(Response.Status.OK).entity(new Gson().toJson(event)).build();
     } catch (IllegalEventException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
     } catch (Exception e) {

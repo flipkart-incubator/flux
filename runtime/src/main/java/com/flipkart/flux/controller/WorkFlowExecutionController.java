@@ -13,6 +13,8 @@
 
 package com.flipkart.flux.controller;
 
+import static com.flipkart.flux.constant.RuntimeConstants.DEPENDENT_EVENTS_MESSAGE_TASK_CANCELLATION;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -291,7 +293,10 @@ public class WorkFlowExecutionController {
                 // if all dependencies are in cancelled state, then add the output event of the state to cancelled events and mark state as cancelled
                 if (allCancelled) {
                     statesDAO.updateStatus(state.getStateMachineId(), state.getId(), Status.cancelled);
-                    auditDAO.create(state.getStateMachineId(), new AuditRecord(stateMachine.getId(), state.getId(), state.getAttemptedNumOfRetries(), Status.cancelled, null, null));
+                    auditDAO.create(state.getStateMachineId(), new AuditRecord(stateMachine.getId(),
+                        state.getId(), state.getAttemptedNumOfRetries(), Status.cancelled,
+                        null, null, state.getExecutionVersion(),
+                        DEPENDENT_EVENTS_MESSAGE_TASK_CANCELLATION));
                     EventDefinition eventDefinition = null;
                     if (state.getOutputEvent() != null) {
                         try {

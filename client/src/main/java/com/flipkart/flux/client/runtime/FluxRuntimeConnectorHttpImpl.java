@@ -41,7 +41,6 @@ import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.api.VersionedEventData;
-import com.flipkart.flux.client.constant.ClientConstants;
 import com.google.common.annotations.VisibleForTesting;
 
 /**
@@ -62,7 +61,6 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     private final String fluxEndpoint;
     private final ObjectMapper objectMapper;
     private final MetricRegistry metricRegistry;
-    private String authnTargetClientId;
 
     @VisibleForTesting
     public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint,
@@ -75,7 +73,6 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
                                         MetricRegistry metricRegistry, String targetClientId) {
         this.fluxEndpoint = fluxEndpoint;
         this.objectMapper = objectMapper;
-        this.authnTargetClientId = targetClientId;
         RequestConfig clientConfig = RequestConfig.custom()
             .setConnectTimeout((connectionTimeout).intValue())
             .setSocketTimeout((socketTimeout).intValue())
@@ -149,9 +146,8 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     }
 
     @Override
-    public void submitReplayEvent(String name, Object data, String correlationId) {
+    public void submitReplayEvent(String name, Object data, String correlationId, String eventSource) {
         final String eventType = data.getClass().getName();
-        String eventSource = ClientConstants.REPLAY_EVENT;
         CloseableHttpResponse httpResponse = null;
         try {
             final EventData eventData = new EventData(name, eventType, objectMapper.writeValueAsString(data), eventSource);
@@ -267,7 +263,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         try {
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             objectMapper.writeValue(byteArrayOutputStream, dataToPost);
-            logger.info("Posting data: {} over http to Flux Endpoint : {} with authN targetClientId : {}",dataToPost, fluxEndpoint, authnTargetClientId);
+            logger.info("Posting data: {} over http to Flux Endpoint : {} with authN targetClientId : {}",dataToPost, fluxEndpoint);
             httpPostRequest.setEntity(new ByteArrayEntity(byteArrayOutputStream.toByteArray(), ContentType.APPLICATION_JSON));
             httpResponse = closeableHttpClient.execute(httpPostRequest);
             final int statusCode = httpResponse.getStatusLine().getStatusCode();
