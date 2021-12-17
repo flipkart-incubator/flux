@@ -122,4 +122,22 @@ public interface StatesDAO {
      * @param stateId
      */
     void updateReplayableRetries(String stateMachineId, Long stateId, Short replayableRetries);
+
+    /**
+     * @param stateMachineId
+     * @param stateId
+     * @param session
+     * @return
+     */
+    public short findAttemptedNumOfReplayableRetriesByIdForUpdate_NonTransactional(String stateMachineId,
+        Long stateId, Session session);
+
+    /**
+     * @param stateMachineId
+     * @param stateId
+     * @param attemptedNumOfReplayableRetries
+     * @param session
+     */
+    public void updateAttemptedNumOfReplayableRetries_NonTransactional(String stateMachineId,
+        Long stateId, short attemptedNumOfReplayableRetries, Session session);
 }

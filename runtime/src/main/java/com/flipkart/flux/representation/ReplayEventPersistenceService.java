@@ -26,9 +26,11 @@ import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.exception.ReplayEventException;
+import com.flipkart.flux.exception.ReplayableRetryExhaustException;
 import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.SessionFactoryContext;
@@ -77,14 +79,29 @@ public class ReplayEventPersistenceService {
   @Transactional
   @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
   public Event persistAndProcessReplayEvent(String stateMachineId, EventData replayEventData,
-                                            List<Long> dependantStateIds, List<String> dependantEvents)
-      throws ReplayEventException, IllegalEventException {
+                                            List<Long> dependantStateIds, List<String> dependantEvents,
+                                            State replayableState)
+      throws ReplayEventException, IllegalEventException, ReplayableRetryExhaustException {
 
     Session session = sessionFactoryContext.getThreadLocalSession();
 
     if(session == null){
       throw new HibernateException("Unable to initialize hibernate Session");
     }
+
+    short attemptedNumOfReplayableRetries =
+        statesDAO.findAttemptedNumOfReplayableRetriesByIdForUpdate_NonTransactional(stateMachineId,
+            replayableState.getId(), session);
+    if (attemptedNumOfReplayableRetries >= replayableState.getMaxReplayableRetries()) {
+      throw new ReplayableRetryExhaustException(
+          "Dependant state:" + replayableState.getName()
+              + " with stateMachineId:" +
+              stateMachineId + " and replay event:" + replayEventData.getName()
+              + " is not replayable as the no of retries have been exhausted.");
+    }
+    statesDAO.updateAttemptedNumOfReplayableRetries_NonTransactional(stateMachineId, replayableState.getId(),
+        (short) (attemptedNumOfReplayableRetries + 1), session);
+
 
     Long smExecutionVersion = stateMachinesDAO.findExecutionVersionBySMIdForUpdate_NonTransactional(stateMachineId, session) + 1;
     stateMachinesDAO.updateExecutionVersion_NonTransactional(stateMachineId, smExecutionVersion, session);

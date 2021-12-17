@@ -1,5 +1,6 @@
 package com.flipkart.flux.representation;
 
+import static com.flipkart.flux.constant.RuntimeConstants.MAX_REPLAYABLE_RETRIES;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,7 +16,9 @@ import com.flipkart.flux.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.Event.EventStatus;
+import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.OrchestrationTaskModule;
 import com.flipkart.flux.guice.module.ShardModule;
@@ -94,8 +97,20 @@ public class ReplayEventPersistenceServiceTest {
     dependentEvents_1.add(objectMapper.writeValueAsString(new EventDefinition(
         "e4", "dummyType")));
 
+    String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
+    String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";
+    String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
+    List<String> deps_t2 = new ArrayList<>();
+    deps_t2.add("e1");
+    deps_t2.add("re1");
+    String oe2 = objectMapper.writeValueAsString(new EventDefinition("e2", "dummyType"));
+    State t2 = new State(2L, "t2", "desc2", onEntryHook, task, onExitHook,
+        deps_t2, 3L, 60L, oe2, Status.completed, null,
+        0l, "id2", 2L, MAX_REPLAYABLE_RETRIES,
+        (short)0, Boolean.TRUE, 0L);
+
     Event replayEvent1 = replayEventPersistenceService.persistAndProcessReplayEvent(stateMachine.getId(),
-        replayEventData1, dependentStateIds_1, dependentEvents_1);
+        replayEventData1, dependentStateIds_1, dependentEvents_1, t2);
 
     assertThat(replayEvent1.getStatus()).isEqualTo(EventStatus.triggered);
     assertThat(replayEvent1.getEventSource()).contains(RuntimeConstants.REPLAY_EVENT);
@@ -134,8 +149,17 @@ public class ReplayEventPersistenceServiceTest {
     dependentEvents_2.add(objectMapper.writeValueAsString(new EventDefinition(
         "e3", "dummyType")));
 
+    List<String> deps_t3 = new ArrayList<>();
+    deps_t3.add("e1");
+    deps_t3.add("re2");
+    String oe3 = objectMapper.writeValueAsString(new EventDefinition("e3", "dummyType"));
+    State t3 = new State(2L, "t3", "desc2", onEntryHook, task, onExitHook,
+        deps_t3, 3L, 60L, oe3, Status.completed, null,
+        0l, "id2", 3L, MAX_REPLAYABLE_RETRIES,
+        (short)0, Boolean.TRUE, 0L);
+
     Event replayEvent2 = replayEventPersistenceService.persistAndProcessReplayEvent(stateMachine.getId(),
-        replayEventData2, dependentStateIds_2, dependentEvents_2);
+        replayEventData2, dependentStateIds_2, dependentEvents_2, t3);
 
     assertThat(replayEvent2.getStatus()).isEqualTo(EventStatus.triggered);
     assertThat(replayEvent2.getEventSource()).contains(RuntimeConstants.REPLAY_EVENT);

@@ -44,7 +44,6 @@ import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
-import com.flipkart.flux.exception.ReplayableRetryExhaustException;
 import com.flipkart.flux.exception.TraversalPathException;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
@@ -387,35 +386,8 @@ public class WorkFlowExecutionControllerTest {
         verify(redriverRegistry).deRegisterTask("random-state-machine", 1L, 0L);
     }
 
-    @SuppressWarnings("unused")
-	@Test(expected = ReplayableRetryExhaustException.class)
-    public void testPostReplayEventExhaustedAttemptedRetryCount() throws IllegalEventException, IOException {
-
-        String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
-        String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";
-        String onExitHook = "com.flipkart.flux.dao.DummyOnExitHook";
-        final Event TestReplayEvent = new Event("event3", "someType", Event.EventStatus.pending, "ReplayEventTestStateMachine", null, RuntimeConstants.REPLAY_EVENT);
-        List<String> dependencies = new ArrayList<>();
-        dependencies.add(TestReplayEvent.getName());
-        State state1 = new State(2L, "state1", "desc1", onEntryHook, task, onExitHook, Collections.emptyList(), 3L, 60L, null, null, null, 0l, "ReplayEventTestStateMachine", 1L);
-        State state2 = new State(2L, "state2", "desc2", onEntryHook, task, onExitHook, dependencies, 3L, 60L, null, Status.completed, null, 0l, "ReplayEventTestStateMachine", 2L, (short) 5, (short) 5, Boolean.TRUE);
-        Set<State> states = new HashSet<>();
-        states.add(state1);
-        states.add(state2);
-        StateMachine stateMachine1 = new StateMachine("ReplayEventTestStateMachine", 2L, "SM_name", "SM_desc", states,
-                "client_elb_id_1");
-        Event event = eventsDAO.create(TestReplayEvent.getStateMachineInstanceId(), TestReplayEvent);
-        stateMachinesDAO.create(stateMachine1.getId(), stateMachine1);
-        when(statesDAO.findStateIdByEventName("ReplayEventTestStateMachine", TestReplayEvent.getName())).thenReturn(state2.getId());
-        when(statesDAO.findById("ReplayEventTestStateMachine", 2L)).thenReturn(state2);
-        when(stateTraversalPathDAO.findById(stateMachine1.getId(), state2.getId())).thenReturn(Optional.empty());
-        EventData eventData = new EventData(TestReplayEvent.getName(), TestReplayEvent.getType(), TestReplayEvent.getEventData(), TestReplayEvent.getEventSource());
-        workFlowExecutionController.postReplayEvent(eventData, stateMachine1);
-
-    }
-
     @Test(expected = TraversalPathException.class)
-    public void testPostReplayEvent() throws IllegalEventException, IOException {
+    public void testPostReplayEventWithNoTraversalPathExists() throws IllegalEventException, IOException {
 
         String onEntryHook = "com.flipkart.flux.dao.DummyOnEntryHook";
         String task = "com.flipkart.flux.dao.TestWorkflow_dummyTask";

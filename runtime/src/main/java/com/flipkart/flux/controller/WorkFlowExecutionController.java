@@ -74,6 +74,7 @@ import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.utils.LoggingUtils;
 import com.google.common.collect.Sets;
 
+
 /**
  * <code>WorkFlowExecutionController</code> controls the execution flow of a given state machine
  *
@@ -355,18 +356,6 @@ public class WorkFlowExecutionController {
             || dependantStateOnReplayEvent.getStatus() == Status.errored
             || dependantStateOnReplayEvent.getStatus() == Status.sidelined)) {
 
-            if (dependantStateOnReplayEvent.getAttemptedNumOfReplayableRetries()
-                >= dependantStateOnReplayEvent.getMaxReplayableRetries()) {
-                throw new ReplayableRetryExhaustException(
-                    "Dependant state:" + dependantStateOnReplayEvent.getName()
-                        + " with stateMachineId:" +
-                        stateMachine.getId() + " and replay event:" + eventData.getName()
-                        + " is not replayable as the no of retries have been exhausted.");
-            } else {
-                statesDAO.incrementReplayableRetries(stateMachine.getId(), dependantStateId,
-                    (short) (dependantStateOnReplayEvent.getAttemptedNumOfReplayableRetries() + 1));
-            }
-
             // Holds list of events in TraversalPath of ReplayEvent. All these events are supposed to be marked as invalid.
             List<String> traversalPathEvents = new ArrayList<>();
 
@@ -394,7 +383,8 @@ public class WorkFlowExecutionController {
                     traversalPathEvents);
 
                 replayEventPersistenceService.persistAndProcessReplayEvent(
-                    stateMachine.getId(), eventData, nextDependentStateIds, traversalPathEvents);
+                    stateMachine.getId(), eventData, nextDependentStateIds, traversalPathEvents,
+                    dependantStateOnReplayEvent);
 
                 // Fetching the replayable state again which is initialized in ReplayEventPersistenceService
                 dependantStateOnReplayEvent = statesDAO

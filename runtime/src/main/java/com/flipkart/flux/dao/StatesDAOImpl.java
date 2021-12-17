@@ -48,6 +48,8 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
 
     private static final String COLUMN_STATE_MACHINE_ID = "stateMachineId";
 
+    private static final String FOR_UPDATE = "for update";
+
     @Inject
     public StatesDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
         super(sessionFactoryContext);
@@ -259,6 +261,30 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
         query.setString("stateMachineId", stateMachineId);
         query.setLong("stateId", stateId);
         query.setShort("attemptedNumOfReplayableRetries", replayableRetries);
+        query.executeUpdate();
+    }
+
+    @Override
+    public short findAttemptedNumOfReplayableRetriesByIdForUpdate_NonTransactional(String stateMachineId,
+        Long stateId, Session session) {
+        SQLQuery sqlQuery = currentSession().createSQLQuery(
+            "select " + COLUMN_ATTEMPTED_NUM_OF_REPLAYABLE_RETRIES + " from States where"
+                + " id = :stateId and stateMachineId = :stateMachineId "+ FOR_UPDATE);
+        sqlQuery.setLong("stateId", stateId);
+        sqlQuery.setString("stateMachineId",stateMachineId);
+        return Short.valueOf(sqlQuery.uniqueResult().toString());
+    }
+
+    @Override
+    public void updateAttemptedNumOfReplayableRetries_NonTransactional(String stateMachineId,
+        Long stateId, short attemptedNumOfReplayableRetries, Session session) {
+        Query query = session.createQuery(
+            "update " + TABLE_NAME + " set " + COLUMN_ATTEMPTED_NUM_OF_REPLAYABLE_RETRIES +
+                " = :attemptedNumOfReplayableRetries" +
+                " where " + COLUMN_ID + " = :stateId and " + COLUMN_STATE_MACHINE_ID + " = :stateMachineId");
+        query.setLong("attemptedNumOfReplayableRetries", attemptedNumOfReplayableRetries);
+        query.setLong("stateId", stateId);
+        query.setString("stateMachineId", stateMachineId);
         query.executeUpdate();
     }
 }
