@@ -955,10 +955,17 @@ public class StateMachineResource {
           stateMachineId, stateId);
       if (traversalPathStates.isPresent()) {
         List<Long> stateIds = traversalPathStates.get().getNextDependentStates();
-        List<String> eventNames = new ArrayList<>();
+        Set<String> eventNames = new HashSet<>();
         for (State s : statesDAO.findAllStatesForGivenStateIds(stateMachineId, stateIds)) {
           try {
-            // TODO : Add dependent Replay Event of all traversal path states
+            // If the state is replayable add the dependent replay event
+            if (s.getReplayable()) {
+              List<String> dependencies = s.getDependencies();
+              dependencies.forEach(e ->{
+                Optional<Event> event = eventsDAO.findValidReplayEventBySMIdAndName(stateMachineId, e);
+                event.ifPresent(replayEvent -> eventNames.add(replayEvent.getName()));
+              });
+            }
             eventNames.add(getOutputEventName(s.getOutputEvent()));
           } catch (IOException e) {
             logger.error("Exception in de-serializing the Json output: {} ",
@@ -967,7 +974,7 @@ public class StateMachineResource {
                 .build();
           }
         }
-        workFlowExecutionController.deleteInvalidEvents(stateMachineId, eventNames);
+        workFlowExecutionController.deleteInvalidEvents(stateMachineId, new ArrayList<>(eventNames));
         workFlowExecutionController.resetAttemptedNumberOfRetries(stateMachineId, stateId);
         return Response.status(Response.Status.ACCEPTED).entity("Retries reset to zero for stateId: "+stateId).build();
       }
