@@ -972,4 +972,61 @@ public class StateMachineResourceTest {
         " Replay Event is identified by eventSource suffix "
         + RuntimeConstants.REPLAY_EVENT);
   }
+
+  @Test
+  public void testUpdateEvent_withReplayableEventSourceRestriction() throws Exception {
+    String eventJson = IOUtils
+        .toString(this.getClass().getClassLoader().getResourceAsStream("replay_event_data_event_source_replayable.json"), "UTF-8");
+    final HttpResponse<String> eventPostResponse = Unirest.post(
+        STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/eventupdate")
+        .header("Content-Type", "application/json").body(eventJson).asString();
+    assertThat(eventPostResponse.getStatus())
+        .isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
+    assertThat(eventPostResponse.getBody()).isEqualTo(
+        "EventSource cannot contain " + RuntimeConstants.REPLAY_EVENT
+            + " as it is for internal use only. Modify Event Source and retry.");
+  }
+
+  @Test
+  public void testPostReplayEvent_withReplayableEventSourceRestriction() throws Exception {
+    String eventJson = IOUtils
+        .toString(this.getClass().getClassLoader().getResourceAsStream("replay_event_data_event_source_replayable.json"), "UTF-8");
+    final HttpResponse<String> eventPostResponse = Unirest.post(
+        STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/replayevent")
+        .header("Content-Type", "application/json").body(eventJson).asString();
+    assertThat(eventPostResponse.getStatus())
+        .isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
+    assertThat(eventPostResponse.getBody()).isEqualTo(
+        "EventSource cannot contain " + RuntimeConstants.REPLAY_EVENT
+            + " as it is for internal use only. Modify Event Source and retry.");
+  }
+
+  @Test
+  public void testPostExternalEvent_withReplayableEventSourceRestriction() throws Exception {
+    String eventJson = IOUtils
+        .toString(this.getClass().getClassLoader().getResourceAsStream("replay_event_data_event_source_replayable.json"), "UTF-8");
+    final HttpResponse<String> eventPostResponse = Unirest.post(
+        STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/events")
+        .header("Content-Type", "application/json").body(eventJson).asString();
+    assertThat(eventPostResponse.getStatus())
+        .isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
+    assertThat(eventPostResponse.getBody()).isEqualTo(
+        "EventSource cannot contain " + RuntimeConstants.REPLAY_EVENT
+            + " as it is for internal use only. Modify Event Source and retry.");
+  }
+
+  @Test
+  public void testUpdateInternalEvent_withReplayableEventSourceRestriction() throws Exception {
+    String eventJson = IOUtils
+        .toString(this.getClass().getClassLoader().getResourceAsStream("replay_event_data_event_source_replayable.json"), "UTF-8");
+    final HttpResponse<String> eventPostResponse = Unirest.post(
+        STATE_MACHINE_RESOURCE_URL + SLASH + "magic_number_1" + "/context/internaleventupdate")
+        .header("Content-Type", "application/json").body(eventJson).asString();
+    assertThat(eventPostResponse.getStatus())
+        .isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
+    assertThat(eventPostResponse.getBody()).isEqualTo(
+        "EventSource cannot contain " + RuntimeConstants.REPLAY_EVENT
+            + " as it is for internal use only. Modify Event Source and retry.");
+  }
+
 }

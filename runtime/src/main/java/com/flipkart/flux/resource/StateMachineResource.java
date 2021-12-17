@@ -292,7 +292,7 @@ public class StateMachineResource {
       if (isEventSourceContainsReplayable(eventData.getEventSource())) {
         return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
             "EventSource cannot contain " + RuntimeConstants.REPLAY_EVENT
-                + " as it is specific to replay event. Modify Event Source and retry.").build();
+                + " as it is for internal use only. Modify Event Source and retry.").build();
       }
       if (eventData.getData() == null || eventData.getName() == null) {
         return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
@@ -606,17 +606,20 @@ public class StateMachineResource {
       return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
           "StateMachineId cannot be null or empty.").build();
     }
+
+    if (isEventSourceContainsReplayable(eventData.getEventSource())) {
+      return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
+          "EventSource cannot contain " + RuntimeConstants.REPLAY_EVENT
+              + " as it is for internal use only. Modify Event Source and retry.").build();
+    }
+
     StateMachine stateMachine = stateMachinesDAO.findById(machineId);
     if (stateMachine == null) {
       logger.error("State Machine with input machineId {} doesn't exist.", machineId);
       return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(
           "State Machine with input machineId doesn't exist.").build();
     }
-    if (isEventSourceContainsReplayable(eventData.getEventSource())) {
-      return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
-          "EventSource cannot contain " + RuntimeConstants.REPLAY_EVENT
-              + " as it is specific to replay event").build();
-    }
+
     try {
       LoggingUtils.registerStateMachineIdForLogging(machineId);
       if (eventData.getData() == null || eventData.getName() == null
@@ -711,6 +714,12 @@ public class StateMachineResource {
       return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
           "StateMachineId cannot be null or empty.").build();
     }
+    if (isEventSourceContainsReplayable(eventData.getEventSource())) {
+      return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
+          "EventSource cannot contain " + RuntimeConstants.REPLAY_EVENT
+              + " as it is for internal use only. Modify Event Source and retry.").build();
+    }
+
     LoggingUtils.registerStateMachineIdForLogging(machineId);
     StateMachine stateMachine = stateMachinesDAO.findById(machineId);
     if (stateMachine == null) {
@@ -718,11 +727,7 @@ public class StateMachineResource {
       return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(
           "State Machine with input machineId: " + machineId + " doesn't exist.").build();
     }
-    if (isEventSourceContainsReplayable(eventData.getEventSource())) {
-      return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
-          "EventSource cannot contain " + RuntimeConstants.REPLAY_EVENT
-              + " as it is specific to replay event").build();
-    }
+
     try {
       if (eventData.getData() == null || eventData.getName() == null) {
         return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
