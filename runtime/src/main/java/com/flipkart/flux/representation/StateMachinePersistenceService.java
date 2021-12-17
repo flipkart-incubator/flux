@@ -20,8 +20,10 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -85,25 +87,32 @@ public class StateMachinePersistenceService {
     }
 
     /***
-     * This method Validates if a state has dependency of more than one replay event
-     * For the states which have dependency of multiple replay event are marked as replayable false
+     * 1. This method Validates that no two states have same replay event as a dependency.
+     * 2. It also validates if a state has dependency of more than one replay event.
+     * For the states which has at least one of the above conditions true, CreateStateMachineException is thrown.
      * @param stateMachineDefinition
      * @return
      */
-    public static StateMachineDefinition validateStateWithMultipleReplayEvent(StateMachineDefinition stateMachineDefinition)
-        throws CreateStateMachineException {
+    public static StateMachineDefinition validateReplayableStates(
+        StateMachineDefinition stateMachineDefinition) throws CreateStateMachineException {
 
         Set<StateDefinition> setOfStates = stateMachineDefinition.getStates();
+        Map<String, Integer> replayEventCount = new HashMap<>();
         Map<String, Integer> replayableStates = new HashMap<>();
         for (StateDefinition state : setOfStates) {
             if (state.isReplayable() && !state.getDependencies().isEmpty()) {
                 replayableStates.putIfAbsent(state.getName(), 0);
                 List<EventDefinition> dependentEvents = state.getDependencies();
                 for (EventDefinition dependentEvent : dependentEvents) {
-                    if (dependentEvent.getEventSource() != null && dependentEvent.getEventSource()
-                        .toLowerCase().contains(REPLAY_EVENT.toLowerCase())) {
+                    if (dependentEvent.getEventSource() != null && dependentEvent.getEventSource().toLowerCase().contains(
+                        REPLAY_EVENT.toLowerCase())){
                         replayableStates
                             .put(state.getName(), replayableStates.get(state.getName()) + 1);
+                        if (replayEventCount.get(dependentEvent.getName()) != null) {
+                            replayEventCount.put(dependentEvent.getName(), replayEventCount.get(dependentEvent.getName()) + 1);
+                        }
+                        else
+                            replayEventCount.put(dependentEvent.getName(), 1);
                     }
                 }
                 if (replayableStates.get(state.getName()) != null
@@ -113,52 +122,16 @@ public class StateMachinePersistenceService {
                             + "To make state: {} as replayable, retry submitting workflow"
                             + " with only one dependent event as replayable.", state.getName(),
                         state.getName());
-                    throw new CreateStateMachineException("A single state cannot have multiple replay events");
+                    throw new CreateStateMachineException("A single state cannot have multiple dependent replay events.");
                 }
             }
         }
-        return stateMachineDefinition;
-    }
-
-    /***
-     * This method Validates that no two states have same replay event as a dependency
-     * For the states which which has same replay event as that of any other state, replayable is marked to false.
-     * @param stateMachineDefinition
-     * @return
-     */
-    public static StateMachineDefinition validateMultipleStatesWithSameReplayEvent(StateMachineDefinition stateMachineDefinition) throws CreateStateMachineException{
-
-        Set<StateDefinition> setOfStates = stateMachineDefinition.getStates();
-        Map<String, Integer> replayEventCount = new HashMap<>();
-        setOfStates.forEach(state -> {
-            if (state.isReplayable() && !state.getDependencies().isEmpty()) {
-                List<EventDefinition> dependentEvents = state.getDependencies();
-                for (EventDefinition dependentEvent : dependentEvents) {
-                    if (dependentEvent.getEventSource() != null && dependentEvent.getEventSource().toLowerCase().contains(
-                        REPLAY_EVENT.toLowerCase())){
-                        if (replayEventCount.get(dependentEvent.getName()) != null) {
-                            replayEventCount.put(dependentEvent.getName(), replayEventCount.get(dependentEvent.getName()) + 1);
-                        }
-                        else
-                            replayEventCount.put(dependentEvent.getName(), 1);
-                    }
-                }
-            }
-        });
-        for (StateDefinition state : setOfStates) {
-            if (state.isReplayable() && !state.getDependencies().isEmpty()) {
-                List<EventDefinition> dependentEvents = state.getDependencies();
-                for (EventDefinition dependentEvent : dependentEvents) {
-                    if (replayEventCount.get(dependentEvent.getName()) != null
-                        && replayEventCount.get(dependentEvent.getName()) > 1) {
-                        logger.error(
-                            "There are 2 or more states dependent on same replay event: {}. To make state: {} as replayable,"
-                                + " retry submitting workflow with one replay event being a dependency of only one state.",
-                            state.getName(), dependentEvent, state.getName());
-                        throw new CreateStateMachineException("Multiple states cannot have same Replay Event");
-                    }
-                }
-            }
+        // Check if any replay event is in dependency of more than one state(s)
+        if(!replayEventCount.entrySet().stream()
+            .filter(entry -> entry.getValue() > 1)
+            .map(Entry::getKey)
+            .collect(Collectors.toList()).isEmpty()) {
+            throw new CreateStateMachineException("Multiple states cannot have same Replay Event as dependency.");
         }
         return stateMachineDefinition;
     }
@@ -173,8 +146,7 @@ public class StateMachinePersistenceService {
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public StateMachine createStateMachine(String stateMachineId, StateMachineDefinition stateMachineDefinition) throws CreateStateMachineException{
 
-        validateMultipleStatesWithSameReplayEvent(stateMachineDefinition);
-        validateStateWithMultipleReplayEvent(stateMachineDefinition);
+        validateReplayableStates(stateMachineDefinition);
         final Map<EventDefinition, EventData> eventDataMap = stateMachineDefinition.getEventDataMap();
         Set<Event> allEvents = createAllEvents(eventDataMap);
         Set<StateDefinition> stateDefinitions = stateMachineDefinition.getStates();

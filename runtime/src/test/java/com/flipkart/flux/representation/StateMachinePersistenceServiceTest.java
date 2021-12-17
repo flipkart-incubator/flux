@@ -416,12 +416,12 @@ public class StateMachinePersistenceServiceTest {
         }
     }
 
-	@Test(expected = CreateStateMachineException.class)
-    public void validateMultipleStatesWithSameReplayEvent() throws IOException, CreateStateMachineException {
+    @Test(expected = CreateStateMachineException.class)
+    public void testValidateMultipleStatesWithSameReplayEvent() throws IOException, CreateStateMachineException {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
             "state_machine_definition_5.json"));
         StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
-        StateMachineDefinition stateMachineDefinition1 = StateMachinePersistenceService.validateMultipleStatesWithSameReplayEvent(stateMachineDefinition);
+        StateMachineDefinition stateMachineDefinition1 = StateMachinePersistenceService.validateReplayableStates(stateMachineDefinition);
         Set<StateDefinition> states = stateMachineDefinition1.getStates();
         states.forEach(state -> {
             if (state.getName().equals("test_state2") || state.getName().equals("test_state3"))
@@ -433,7 +433,8 @@ public class StateMachinePersistenceServiceTest {
     public void testValidateStateWithMultipleReplayEvent() throws IOException, CreateStateMachineException {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition_4.json"));
         StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
-        StateMachineDefinition stateMachineDefinition1 = StateMachinePersistenceService.validateStateWithMultipleReplayEvent(stateMachineDefinition);
+        StateMachineDefinition stateMachineDefinition1 =
+        		StateMachinePersistenceService.validateReplayableStates(stateMachineDefinition);
         Set<StateDefinition> states = stateMachineDefinition1.getStates();
         states.forEach(state -> {
             if (state.getName().equals("test_state2"))
