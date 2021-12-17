@@ -72,6 +72,7 @@ import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.StateMachineStatus;
 import com.flipkart.flux.domain.StateTraversalPath;
 import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.exception.CreateStateMachineException;
 import com.flipkart.flux.exception.IllegalEventException;
 import com.flipkart.flux.exception.ReplayEventException;
 import com.flipkart.flux.exception.ReplayableRetryExhaustException;
@@ -214,6 +215,12 @@ public class StateMachineResource {
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).entity(
           ex.getCause() != null ? ex.getCause().getMessage() : null).build();
 
+    } catch (CreateStateMachineException ex) {
+      logger.error(
+          "Failed During Creating StateMachine with id {} {}",
+          stateMachineInstanceId, ex.getStackTrace());
+      return Response.status(Response.Status.PRECONDITION_FAILED.getStatusCode()).entity(
+          ex.getMessage() != null ? ex.getMessage() : null).build();
     } catch (Exception ex) {
       logger.error(
           "Failed During Creating StateMachine and StateTraversal or Initiating StateMachine with id {} {}",
