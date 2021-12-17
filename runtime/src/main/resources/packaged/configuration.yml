@@ -99,6 +99,7 @@ elbCache:
 eventProxyForMigration:
   enabled: "no"
   endpoint: "http://localhost:9998/api/machines"
+  targetClientId: "flux-runtime-local"  
 
 connector:
   max.connections: 100

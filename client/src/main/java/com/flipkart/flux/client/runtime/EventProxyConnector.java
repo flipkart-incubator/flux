@@ -32,9 +32,10 @@ public class EventProxyConnector extends FluxRuntimeConnectorHttpImpl {
     private static final String EXTERNAL = "external";
 
     @Inject
-    public EventProxyConnector(@Named("eventProxyForMigration.endpoint") String endpoint, FluxClientConfiguration fluxClientConfiguration) {
+    public EventProxyConnector(@Named("eventProxyForMigration.endpoint") String endpoint, FluxClientConfiguration fluxClientConfiguration, 
+        @Named("eventProxyForMigration.targetClientId") String targetClientId) {
         super(fluxClientConfiguration.getConnectionTimeout(), fluxClientConfiguration.getSocketTimeout(),
-                endpoint, new ObjectMapper(), SharedMetricRegistries.getOrCreate("mainMetricRegistry"), endpoint);
+                endpoint, new ObjectMapper(), SharedMetricRegistries.getOrCreate("mainMetricRegistry"), targetClientId);
     }
 
     @Override
