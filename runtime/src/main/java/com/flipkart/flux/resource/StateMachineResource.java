@@ -439,12 +439,25 @@ public class StateMachineResource {
       StateMachine stateMachine = null;
       stateMachine = stateMachinesDAO.findById(machineId);
       if (stateMachine == null) {
-        logger.error("stateMachine with id: {} not found while processing replay event {} ",
-            machineId,
-            eventData.getName());
-        return Response.status(Response.Status.NOT_FOUND).entity(
-            "StateMachine with id: " + machineId + " not found while processing replay event: "
-                + eventData.getName()).build();
+        if (eventProxyEnabled.equalsIgnoreCase("yes")) {
+          logger.warn("StateMachine with id: {} not found in this cluster. Forwarding "
+              + "this event to the old cluster. ", machineId);
+          try {
+            eventProxyConnector.submitReplayEvent(eventData.getName(), eventData.getData(), machineId,
+                eventData.getEventSource());
+          } catch (Exception ex) {
+            logger.error("Unable to forward event to old endpoint, error {}", ex);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).entity(ex.getMessage()).build();
+          }
+          return Response.status(Response.Status.ACCEPTED.getStatusCode()).entity(
+              "State Machine with Id: " + machineId
+                  + " not found on this cluster. Forwarding the event to the old cluster").build();
+        } else {
+          logger.error("StateMachine not found with id: {}, rejecting the event", machineId);
+          return Response.status(Response.Status.NOT_FOUND)
+              .entity("StateMachine not found with id: " + machineId + ", rejecting the event")
+              .build();
+        }
       }
       if (stateMachine.getStatus() == StateMachineStatus.cancelled) {
         logger.info("Discarding replay event: {} as State machine: {} is in cancelled state",

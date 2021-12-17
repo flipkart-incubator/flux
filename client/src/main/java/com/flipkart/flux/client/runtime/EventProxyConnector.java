@@ -9,13 +9,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 package com.flipkart.flux.client.runtime;
 
-import com.flipkart.flux.api.EventData;
-import com.flipkart.flux.client.config.FluxClientConfiguration;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.logging.log4j.LogManager;
@@ -23,6 +20,11 @@ import org.apache.logging.log4j.Logger;
 
 import com.codahale.metrics.SharedMetricRegistries;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.api.EventData;
+import com.flipkart.flux.client.config.FluxClientConfiguration;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+
 
 public class EventProxyConnector extends FluxRuntimeConnectorHttpImpl {
 
@@ -75,8 +77,22 @@ public class EventProxyConnector extends FluxRuntimeConnectorHttpImpl {
         }
     }
 
-}
+    @Override
+    public void submitReplayEvent(String name, Object data, String correlationId, String eventSource) {
+        final String eventType = data.getClass().getName();
+        CloseableHttpResponse httpResponse = null;
+        try {
+            final EventData eventData = new EventData(name, eventType, (String) data, eventSource);
+            httpResponse = postOverHttp(eventData, "/" + correlationId + "/context/replayevent?searchField=correlationId");
+        } catch (Exception e) {
+            logger.error("Posting over http errored. Message: {}", e.getMessage(), e);
+            throw new RuntimeException(e);
+        } finally {
+            HttpClientUtils.closeQuietly(httpResponse);
+        }
+    }
 
+}
 
 
 
