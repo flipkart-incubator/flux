@@ -57,7 +57,6 @@ import com.flipkart.flux.domain.StateMachineStatus;
 import com.flipkart.flux.domain.StateTraversalPath;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
-import com.flipkart.flux.exception.RedriverException;
 import com.flipkart.flux.exception.ReplayEventException;
 import com.flipkart.flux.exception.ReplayableRetryExhaustException;
 import com.flipkart.flux.exception.TraversalPathException;
@@ -349,10 +348,7 @@ public class WorkFlowExecutionController {
         }
         // Already validated that only one state is dependent on input Replay Event
         State dependantStateOnReplayEvent = statesDAO.findById(stateMachine.getId(), dependantStateId);
-        if (dependantStateOnReplayEvent == null) {
-            throw new IllegalEventException(
-                "No dependent state found for the event : " + eventData.getName());
-        }
+
         logger.info("This state {} depends on replay event {}", dependantStateOnReplayEvent.getName(), eventData.getName());
         if (!dependantStateOnReplayEvent.getReplayable() || dependantStateOnReplayEvent.getStatus() != Status.completed) {
             throw new IllegalEventException("Dependant state:" + dependantStateOnReplayEvent.getName() +
@@ -592,9 +588,12 @@ public class WorkFlowExecutionController {
                         askedState.getName(),askedState.getExecutionVersion());
                 return;
             } else if (askedState.getStatus() == Status.initialized || askedState.getStatus() == Status.sidelined
-                    || askedState.getStatus() == Status.errored) {
+                    || askedState.getStatus() == Status.errored || askedState.getStatus() == Status.unsidelined) {
                 askedState.setStatus(Status.unsidelined);
                 askedState.setAttemptedNumOfRetries(0L);
+                if(askedState.getReplayable()) {
+                    askedState.setAttemptedNumOfReplayableRetries((short)0);
+                }
                 statesDAO.updateState(stateMachineId, askedState);
                 executeStates(stateMachine, Sets.newHashSet(Arrays.asList(askedState)), false);
             }
@@ -735,19 +734,17 @@ public class WorkFlowExecutionController {
         public void redriveTask (String machineId, Long taskId, Long executionVersion){
             try {
                 State state = statesDAO.findById(machineId, taskId);
-                if (state != null && !state.getExecutionVersion().equals(executionVersion)){
-                    logger.info("The execution version: {} to redrive is invalid for the state machine: "
-                        + "{} with state Id: {} and execution version: {}",executionVersion,machineId,
+                if (state != null && !state.getExecutionVersion().equals(executionVersion)) {
+                    logger.info("Redriver: The execution version: {} to redrive is invalid for the state machine: "
+                        + "{} with state Id: {} and execution version: {}.",executionVersion,machineId,
                         state.getId(), state.getExecutionVersion());
                     //cleanup the tasks which can't be redrived from redriver db
                     this.redriverRegistry.deRegisterTask(machineId, taskId, executionVersion);
-                    throw new RedriverException("The execution version: "+executionVersion+" to redrive is invalid for the state machine: "+machineId+" with state Id: "+state.getId()+" and execution version: "+ state.getExecutionVersion());
-                }else {
-                    //TODO: Add validations for incorrect state and state machine inputs
+                } else {
                     if (state != null && isTaskRedrivable(state.getStatus()) && state.getAttemptedNumOfRetries() <= state.getRetryCount()) {
                         StateMachine stateMachine = retrieveStateMachine(state.getStateMachineId());
                         LoggingUtils.registerStateMachineIdForLogging(stateMachine.getId().toString());
-                        logger.info("Redriving a task with Id: {} and execution version: {} for state machine: {}", state.getId(), executionVersion, state.getStateMachineId());
+                        logger.info("Redriver: Redriving a task with Id: {} and execution version: {} for state machine: {}", state.getId(), executionVersion, state.getStateMachineId());
                         executeStates(stateMachine, Collections.singleton(state), true);
                     } else {
                         //cleanup the tasks which can't be redrived from redriver db

@@ -44,7 +44,6 @@ import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
-import com.flipkart.flux.exception.RedriverException;
 import com.flipkart.flux.exception.ReplayableRetryExhaustException;
 import com.flipkart.flux.exception.TraversalPathException;
 import com.flipkart.flux.impl.message.TaskAndEvents;
@@ -232,8 +231,6 @@ public class WorkFlowExecutionControllerTest {
         when(eventsDAO.findValidEventsByStateMachineIdAndExecutionVersionAndName("standard-machine", "event0",
                 0L)).thenReturn(new Event("event0", "java.lang.String",
                 Event.EventStatus.pending, "1", null, null));
-        VersionedEventData[] expectedEvents = new VersionedEventData[]{new VersionedEventData("event0",
-                "java.lang.String", "42", "runtime")};
         when(eventsDAO.findTriggeredOrCancelledEventsNamesBySMId("standard-machine")).thenReturn(Collections.singletonList("event0"));
         when(executionNodeTaskDispatcher.forwardExecutionMessage(anyString(), anyObject())).thenReturn(Response.Status.ACCEPTED.getStatusCode());
         workFlowExecutionController.postEvent(testEventData, "standard-machine");
@@ -506,7 +503,7 @@ public class WorkFlowExecutionControllerTest {
     }
 
 
-    @Test(expected = RedriverException.class)
+    @Test
     public void testRedriveTask_InvalidExecutionNumber(){
         when(statesDAO.findById("random-state-machine", 1L)).thenReturn(
             new State(1L, "random-state", null, null, null, null,

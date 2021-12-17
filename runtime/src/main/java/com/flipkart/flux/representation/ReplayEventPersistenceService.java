@@ -117,6 +117,7 @@ public class ReplayEventPersistenceService {
           logger.error("Json Parsing : Event Name: {} or Event Type: {} cannot be null ",eventName,eventType);
           throw new IllegalEventException("Json Parsing : Event Name or Event Type cannot be null");
         }
+        // Check and if possible, use : void markEventsAsInvalid(String stateMachineInstanceId, List<String> eventName);
         eventsDAO.markEventAsInvalid_NonTransactional(stateMachineId, eventName, session);
         Event event = new Event(eventName, eventType, Event.EventStatus.pending,
                 stateMachineId, null, null, smExecutionVersion);

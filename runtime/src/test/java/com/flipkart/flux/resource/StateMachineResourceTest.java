@@ -174,7 +174,7 @@ public class StateMachineResourceTest {
     when(stateTraversalPathDAO.findById(smId, state1.getId())).thenReturn(Optional.empty());
     final HttpResponse<String> resetRetriesResponse = Unirest.put(
         STATE_MACHINE_RESOURCE_URL + "/" + smId + "/" + state1.getId()
-            + "/reset_attempted_number_of_retries")
+        	+ "/resetreplayretries")
         .asString();
     assertThat(resetRetriesResponse.getStatus())
         .isEqualTo(Response.Status.ACCEPTED.getStatusCode());
@@ -902,7 +902,7 @@ public class StateMachineResourceTest {
         STATE_MACHINE_RESOURCE_URL + "/redrivetask/"+stateMachineId+"/taskId/3/taskExecutionVersion/2")
         .asString();
 
-    assertThat(httpResponse.getStatus()).isEqualTo(HttpStatus.SC_PRECONDITION_FAILED);
+    assertThat(httpResponse.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
   }
 
   @Test

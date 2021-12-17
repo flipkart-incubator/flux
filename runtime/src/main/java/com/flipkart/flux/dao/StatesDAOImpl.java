@@ -113,7 +113,6 @@ public class StatesDAOImpl extends AbstractDAO<State> implements StatesDAO {
     @Override
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    //TODO: check query
     public void incrementReplayableRetries(String stateMachineId, Long stateId, Short attemptedNumOfReplayableRetries) {
         Query query = currentSession().createQuery("update " + TABLE_NAME + " set " + COLUMN_ATTEMPTED_NUM_OF_REPLAYABLE_RETRIES + " = :attemptedNumOfReplayableRetries " +
                 " where " + COLUMN_ID + " = :stateId and " + COLUMN_STATE_MACHINE_ID + " = :stateMachineId");

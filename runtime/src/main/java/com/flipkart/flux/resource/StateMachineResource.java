@@ -73,7 +73,6 @@ import com.flipkart.flux.domain.StateMachineStatus;
 import com.flipkart.flux.domain.StateTraversalPath;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.exception.IllegalEventException;
-import com.flipkart.flux.exception.RedriverException;
 import com.flipkart.flux.exception.ReplayEventException;
 import com.flipkart.flux.exception.ReplayableRetryExhaustException;
 import com.flipkart.flux.exception.TraversalPathException;
@@ -288,6 +287,20 @@ public class StateMachineResource {
             "EventSource cannot contain " + RuntimeConstants.REPLAY_EVENT
                 + " as it is specific to replay event. Modify Event Source and retry.").build();
       }
+      if (eventData.getData() == null || eventData.getName() == null) {
+        return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
+            "Event Data|Name cannot be null.").build();
+      }
+
+      if (eventData.getCancelled() != null && eventData.getCancelled()) {
+        return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
+            "Event cancellation not allowed here. Please modify isCancelled param to false and retry.").build();
+      }
+      if(eventsDAO.findValidReplayEventBySMIdAndName(machineId,
+          eventData.getName()).isPresent()) {
+        return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
+            "Input event is a Replay Event. Replay Event update not allowed via this api.").build();
+      }
       if (stateMachine == null) {
         if (eventProxyEnabled.equalsIgnoreCase("yes")) {
           logger.warn("StateMachine " + machineId
@@ -399,6 +412,11 @@ public class StateMachineResource {
                 + " as it is for internal use only. Modify Event Source and retry.").build();
       }
 
+      if (eventData.getCancelled() != null && eventData.getCancelled()) {
+        return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
+            "Event cancellation not allowed here. Please modify isCancelled param to false and retry.").build();
+      }
+
       LoggingUtils.registerStateMachineIdForLogging(machineId);
 
       if (eventData.getEventSource() != null) {
@@ -433,8 +451,9 @@ public class StateMachineResource {
         Optional<Event> replayEvent = eventsDAO.findValidReplayEventBySMIdAndName(machineId,
             eventData.getName());
         if (replayEvent.isPresent()) {
-          logger.debug("Found replay event: {} with execution version: {} for SMId: {} ",
+          logger.info("Found replay event: {} with execution version: {} for SMId: {} ",
               eventData.getName(), replayEvent.get().getExecutionVersion(), machineId);
+          eventData.setType(replayEvent.get().getType());
           workFlowExecutionController.postReplayEvent(eventData, stateMachine);
           return Response.status(Response.Status.ACCEPTED).entity("Successfully submitted "
               + "ReplayEvent: " + eventData.getName() +". Check Flux-Dashboard for this StateMachine Id: "
@@ -459,12 +478,12 @@ public class StateMachineResource {
             .build();
       } catch (IllegalEventException ex) {
         logger.error("Error in processing the request. Error: {}", ex.getMessage());
-        return Response.status(Response.Status.FORBIDDEN.getStatusCode())
+        return Response.status(Response.Status.BAD_REQUEST.getStatusCode())
             .entity(ex.getMessage())
             .build();
       } catch (TraversalPathException ex) {
         logger.error("Error in processing the request. Error: {}", ex.getMessage());
-        return Response.status(Response.Status.NOT_FOUND.getStatusCode())
+        return Response.status(Response.Status.BAD_REQUEST.getStatusCode())
             .entity(ex.getMessage())
             .build();
       } catch (RuntimeException ex) {
@@ -585,6 +604,18 @@ public class StateMachineResource {
         return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
             "Event Data|Name|Source cannot be null.").build();
       }
+
+      if (eventData.getCancelled() != null && eventData.getCancelled()) {
+        return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
+            "Event cancellation not allowed here. Please modify isCancelled param to false and retry.").build();
+      }
+
+      if(eventsDAO.findValidReplayEventBySMIdAndName(machineId,
+          eventData.getName()).isPresent()) {
+        return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
+            "Input event is a Replay Event. Replay Event update not allowed via this api.").build();
+      }
+
       Event event = eventsDAO.findValidEventBySMIdAndName(machineId, eventData.getName());
       if (event == null) {
         logger.error("Event with input event Name {} doesn't exist or is invalid.",
@@ -655,7 +686,6 @@ public class StateMachineResource {
   public Response updateInternalEvent(@PathParam("machineId") String machineId,
       EventData eventData
   ) throws Exception {
-    //TODO: Add check
     if (machineId.isEmpty() || machineId == null) {
       logger.error("machineId {} null or empty.", machineId);
       return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
@@ -674,11 +704,22 @@ public class StateMachineResource {
               + " as it is specific to replay event").build();
     }
     try {
-      if (eventData.getData() == null || eventData.getName() == null
-          || eventData.getEventSource() == null) {
+      if (eventData.getData() == null || eventData.getName() == null) {
         return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
-            "Event Data|Name|Source cannot be null.").build();
+            "Event Data|Name cannot be null.").build();
       }
+
+      if (eventData.getCancelled() != null && eventData.getCancelled()) {
+        return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(
+            "Event cancellation not allowed here. Please modify isCancelled param to false and retry.").build();
+      }
+
+      if(eventsDAO.findValidReplayEventBySMIdAndName(machineId,
+          eventData.getName()).isPresent()) {
+        return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
+            "Input event is a Replay Event. Replay Event update is not allowed.").build();
+      }
+
       Event event = eventsDAO.findValidEventBySMIdAndName(machineId, eventData.getName());
       if (event == null) {
         logger.error("Event with input event Name {} doesn't exist.", eventData.getName());
@@ -701,26 +742,28 @@ public class StateMachineResource {
       if (replayableStates.isEmpty()) {
         return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(
             "None of the states having dependency of event " + eventData.getName()
-                + " is replayable.").build();
+                + " is replayable. Prerequisite : At least one of the dependent states of input event"
+                + " must be replayable.").build();
       }
 
       if (validateInternalEventUpdate(replayableStates)) {
-        VersionedEventData versionedEventData = new VersionedEventData(eventData.getName(),
-            eventData.getType(),
-            eventData.getData(), eventData.getEventSource(), eventData.getCancelled(),
+        VersionedEventData versionedEventData = new VersionedEventData(event.getName(),
+            event.getType(),
+            eventData.getData(), event.getEventSource(), Boolean.FALSE,
             event.getExecutionVersion());
         workFlowExecutionController.updateEventData(machineId, versionedEventData);
         return Response.status(Response.Status.ACCEPTED).build();
       }
 
     } catch (Exception e) {
-      throw new Exception(e.getMessage());
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+          .entity(e.getMessage() + e.getStackTrace()).build();
     } finally {
       LoggingUtils.deRegisterStateMachineIdForLogging();
     }
     return Response.status(Response.Status.CONFLICT.getStatusCode())
         .entity("Current stateMachine's state is not " +
-            "eligible for this event's update, try updating using updateEvent.").build();
+            "eligible for this event's update. None of the dependent replayable states is completed.").build();
   }
 
   public boolean validateInternalEventUpdate(List<State> states) {
@@ -788,13 +831,7 @@ public class StateMachineResource {
   public Response redriveTask(@PathParam("machineId") String machineId,
       @PathParam("taskId") Long taskId, @PathParam("taskExecutionVersion") Long executionVersion)
       throws Exception {
-
-    try{
-      this.workFlowExecutionController.redriveTask(machineId, taskId, executionVersion);
-    }catch (RedriverException e){
-      return Response.status(Response.Status.PRECONDITION_FAILED).entity(e.getMessage()).build();
-    }
-
+    this.workFlowExecutionController.redriveTask(machineId, taskId, executionVersion);
     return Response.status(Response.Status.ACCEPTED).build();
   }
 
@@ -902,7 +939,7 @@ public class StateMachineResource {
    * This api is for resetting the retry count for replayable states
    */
   @PUT
-  @Path("/{stateMachineId}/{stateId}/reset_attempted_number_of_retries")
+  @Path("/{stateMachineId}/{stateId}/resetreplayretries")
   @Produces(MediaType.APPLICATION_JSON)
   public Response resetAttemptedNoOfRetries(@PathParam("stateMachineId") String stateMachineId,
       @PathParam("stateId") Long stateId) {
@@ -921,6 +958,7 @@ public class StateMachineResource {
         List<String> eventNames = new ArrayList<>();
         for (State s : statesDAO.findAllStatesForGivenStateIds(stateMachineId, stateIds)) {
           try {
+            // TODO : Add dependent Replay Event of all traversal path states
             eventNames.add(getOutputEventName(s.getOutputEvent()));
           } catch (IOException e) {
             logger.error("Exception in de-serializing the Json output: {} ",
