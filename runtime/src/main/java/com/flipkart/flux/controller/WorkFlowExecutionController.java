@@ -74,7 +74,6 @@ import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.utils.LoggingUtils;
 import com.google.common.collect.Sets;
 
-
 /**
  * <code>WorkFlowExecutionController</code> controls the execution flow of a given state machine
  *
@@ -350,56 +349,80 @@ public class WorkFlowExecutionController {
         State dependantStateOnReplayEvent = statesDAO.findById(stateMachine.getId(), dependantStateId);
 
         logger.info("This state {} depends on replay event {}", dependantStateOnReplayEvent.getName(), eventData.getName());
-        if (!dependantStateOnReplayEvent.getReplayable() || dependantStateOnReplayEvent.getStatus() != Status.completed) {
-            throw new IllegalEventException("Dependant state:" + dependantStateOnReplayEvent.getName() +
-                    " with stateMachineId:" + stateMachine.getId() + " and replay event:" + eventData.getName() +
-                    " and status: "+dependantStateOnReplayEvent.getStatus()+" is not replayable.");
-        }
+        // Replay state only if it is replayable and completed/errored/sidelined
+        if (dependantStateOnReplayEvent.getReplayable() &&
+            (dependantStateOnReplayEvent.getStatus() == Status.completed
+            || dependantStateOnReplayEvent.getStatus() == Status.errored
+            || dependantStateOnReplayEvent.getStatus() == Status.sidelined)) {
 
-        if (dependantStateOnReplayEvent.getAttemptedNumOfReplayableRetries() >= dependantStateOnReplayEvent.getMaxReplayableRetries()) {
-            throw new ReplayableRetryExhaustException("Dependant state:" + dependantStateOnReplayEvent.getName() + " with stateMachineId:" +
-                    stateMachine.getId() + " and replay event:" + eventData.getName() + " is not replayable as the no of retries have been exhausted.");
-        } else {
-            statesDAO.incrementReplayableRetries(stateMachine.getId(), dependantStateId, (short) (dependantStateOnReplayEvent.getAttemptedNumOfReplayableRetries() + 1));
-        }
+            if (dependantStateOnReplayEvent.getAttemptedNumOfReplayableRetries()
+                >= dependantStateOnReplayEvent.getMaxReplayableRetries()) {
+                throw new ReplayableRetryExhaustException(
+                    "Dependant state:" + dependantStateOnReplayEvent.getName()
+                        + " with stateMachineId:" +
+                        stateMachine.getId() + " and replay event:" + eventData.getName()
+                        + " is not replayable as the no of retries have been exhausted.");
+            } else {
+                statesDAO.incrementReplayableRetries(stateMachine.getId(), dependantStateId,
+                    (short) (dependantStateOnReplayEvent.getAttemptedNumOfReplayableRetries() + 1));
+            }
 
-        // Holds list of events in TraversalPath of ReplayEvent. All these events are supposed to be marked as invalid.
-        List<String> traversalPathEvents = new ArrayList<>();
+            // Holds list of events in TraversalPath of ReplayEvent. All these events are supposed to be marked as invalid.
+            List<String> traversalPathEvents = new ArrayList<>();
 
-        // Retrieve StateTraversalPath for given Replayable State from database.
-        // This list has been created for ReplayableStates during StateMachine instance creation.
-        Optional<StateTraversalPath> traversalPathStates = stateTraversalPathDAO.findById(
+            // Retrieve StateTraversalPath for given Replayable State from database.
+            // This list has been created for ReplayableStates during StateMachine instance creation.
+            Optional<StateTraversalPath> traversalPathStates = stateTraversalPathDAO.findById(
                 stateMachine.getId(), dependantStateId);
-        if (traversalPathStates.isPresent()) {
-            List<Long> nextDependentStateIds = traversalPathStates.get().getNextDependentStates();
-            statesDAO.findAllStatesForGivenStateIds(
+            if (traversalPathStates.isPresent()) {
+                List<Long> nextDependentStateIds = traversalPathStates.get()
+                    .getNextDependentStates();
+                statesDAO.findAllStatesForGivenStateIds(
                     stateMachine.getId(), nextDependentStateIds).forEach(state -> {
-                String outputEvent = state.getOutputEvent();
-                if (outputEvent != null && !traversalPathEvents.contains(outputEvent)) {
-                    traversalPathEvents.add(outputEvent);
-                }
-            });
+                    String outputEvent = state.getOutputEvent();
+                    if (outputEvent != null && !traversalPathEvents.contains(outputEvent)) {
+                        traversalPathEvents.add(outputEvent);
+                    }
+                });
 
-            logger.info("StateMachineId: {}, Replay event: {}, Replayable state: {}, Traversal path State ids: {}" +
-                            " and Traversal path Event names: {}", stateMachine.getId(), eventData.getName(),
-                    dependantStateOnReplayEvent.getName(), nextDependentStateIds, traversalPathEvents);
+                logger.info(
+                    "StateMachineId: {}, Replay event: {}, Replayable state: {}, Traversal path State ids: {}"
+                        +
+                        " and Traversal path Event names: {}", stateMachine.getId(),
+                    eventData.getName(),
+                    dependantStateOnReplayEvent.getName(), nextDependentStateIds,
+                    traversalPathEvents);
 
-            replayEventPersistenceService.persistAndProcessReplayEvent(
+                replayEventPersistenceService.persistAndProcessReplayEvent(
                     stateMachine.getId(), eventData, nextDependentStateIds, traversalPathEvents);
 
-            // Fetching the replayable state again which is initialized in ReplayEventPersistenceService
-            dependantStateOnReplayEvent = statesDAO.findById(stateMachine.getId(), dependantStateOnReplayEvent.getId());
+                // Fetching the replayable state again which is initialized in ReplayEventPersistenceService
+                dependantStateOnReplayEvent = statesDAO
+                    .findById(stateMachine.getId(), dependantStateOnReplayEvent.getId());
 
-            // Register the replayable state with redriver for execution
-            long redriverInterval = 0;
-            this.redriverRegistry.registerTask(dependantStateOnReplayEvent.getId(),
-                dependantStateOnReplayEvent.getStateMachineId(), redriverInterval,
-                dependantStateOnReplayEvent.getExecutionVersion());
-        } else {
-            logger.error("No traversal path found for replayable state id:{} in stateMachineId:{} for event:{}.",
+                // Register the replayable state with redriver for execution
+                long redriverInterval = 0;
+                this.redriverRegistry.registerTask(dependantStateOnReplayEvent.getId(),
+                    dependantStateOnReplayEvent.getStateMachineId(), redriverInterval,
+                    dependantStateOnReplayEvent.getExecutionVersion());
+            } else {
+                logger.error(
+                    "No traversal path found for replayable state id:{} in stateMachineId:{} for event:{}.",
                     dependantStateId, stateMachine.getId(), eventData.getName());
-            throw new TraversalPathException("No traversal path found for replayable state id: " + dependantStateId +
-                    " and stateMachineId: " + stateMachine.getId());
+                throw new TraversalPathException(
+                    "No traversal path found for replayable state id: " + dependantStateId +
+                        " and stateMachineId: " + stateMachine.getId());
+            }
+        } else {
+            logger.error(
+                "Dependent state: {} with stateMachineId: {} and replayEvent: {} is  not replayable.",
+                dependantStateOnReplayEvent.getName(), stateMachine.getId(), eventData.getName());
+            throw new IllegalEventException(
+                "Dependant state:" + dependantStateOnReplayEvent.getName() +
+                    " with stateMachineId:" + stateMachine.getId() + " and replay event:"
+                    + eventData.getName() +
+                    " and status: " + dependantStateOnReplayEvent.getStatus()
+                    + " is not replayable.");
         }
     }
 
