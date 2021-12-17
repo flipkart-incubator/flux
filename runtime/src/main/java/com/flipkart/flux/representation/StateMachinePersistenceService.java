@@ -47,6 +47,7 @@ import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.StateTraversalPath;
 import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.exception.CreateStateMachineException;
 import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.Storage;
@@ -88,28 +89,33 @@ public class StateMachinePersistenceService {
      * @param stateMachineDefinition
      * @return
      */
-    public static StateMachineDefinition validateStateWithMultipleReplayEvent(StateMachineDefinition stateMachineDefinition) {
+    public static StateMachineDefinition validateStateWithMultipleReplayEvent(StateMachineDefinition stateMachineDefinition)
+        throws CreateStateMachineException {
 
         Set<StateDefinition> setOfStates = stateMachineDefinition.getStates();
         Map<String, Integer> replayableStates = new HashMap<>();
-        setOfStates.forEach(state -> {
+        for (StateDefinition state : setOfStates) {
             if (state.isReplayable() && !state.getDependencies().isEmpty()) {
                 replayableStates.putIfAbsent(state.getName(), 0);
                 List<EventDefinition> dependentEvents = state.getDependencies();
                 for (EventDefinition dependentEvent : dependentEvents) {
-                    if (dependentEvent.getEventSource() != null && dependentEvent.getEventSource().toLowerCase().contains(ClientConstants.REPLAY_EVENT.toLowerCase())) {
-                        replayableStates.put(state.getName(), replayableStates.get(state.getName()) + 1);
+                    if (dependentEvent.getEventSource() != null && dependentEvent.getEventSource()
+                        .toLowerCase().contains(ClientConstants.REPLAY_EVENT.toLowerCase())) {
+                        replayableStates
+                            .put(state.getName(), replayableStates.get(state.getName()) + 1);
                     }
                 }
-                if (replayableStates.get(state.getName()) != null && replayableStates.get(state.getName()) > 1) {
-                    // TODO : Instead of marking it false here, throw exception
-                    state.setReplayable(Boolean.FALSE);
-                    logger.info("Marked state: {} as not replayable because there are 2 or more dependent"
-                        + " replay events. To make state: {} as replayable, retry submitting workflow"
-                        + " with only one dependent event as replayable.", state.getName(), state.getName());
+                if (replayableStates.get(state.getName()) != null
+                    && replayableStates.get(state.getName()) > 1) {
+                    logger.error(
+                        "There are 2 or more dependent replay events. "
+                            + "To make state: {} as replayable, retry submitting workflow"
+                            + " with only one dependent event as replayable.", state.getName(),
+                        state.getName());
+                    throw new CreateStateMachineException("A single state cannot have multiple replay events");
                 }
             }
-        });
+        }
         return stateMachineDefinition;
     }
 
@@ -119,7 +125,7 @@ public class StateMachinePersistenceService {
      * @param stateMachineDefinition
      * @return
      */
-    public static StateMachineDefinition validateMultipleStatesWithSameReplayEvent(StateMachineDefinition stateMachineDefinition) {
+    public static StateMachineDefinition validateMultipleStatesWithSameReplayEvent(StateMachineDefinition stateMachineDefinition) throws CreateStateMachineException{
 
         Set<StateDefinition> setOfStates = stateMachineDefinition.getStates();
         Map<String, Integer> replayEventCount = new HashMap<>();
@@ -137,21 +143,21 @@ public class StateMachinePersistenceService {
                 }
             }
         });
-        setOfStates.forEach(state -> {
+        for (StateDefinition state : setOfStates) {
             if (state.isReplayable() && !state.getDependencies().isEmpty()) {
                 List<EventDefinition> dependentEvents = state.getDependencies();
                 for (EventDefinition dependentEvent : dependentEvents) {
-                    if (replayEventCount.get(dependentEvent.getName()) != null && replayEventCount.get(dependentEvent.getName()) > 1) {
-                        // TODO : Instead of marking it false here, throw exception
-                        state.setReplayable(Boolean.FALSE);
-                        logger.info("Marked state: {} as not replayable because there are 2 or more states"
-                            + " dependent on same replay event: {}. To make state: {} as replayable,"
-                            + " retry submitting workflow with one replay event being a dependency of only one state.",
+                    if (replayEventCount.get(dependentEvent.getName()) != null
+                        && replayEventCount.get(dependentEvent.getName()) > 1) {
+                        logger.error(
+                            "There are 2 or more states dependent on same replay event: {}. To make state: {} as replayable,"
+                                + " retry submitting workflow with one replay event being a dependency of only one state.",
                             state.getName(), dependentEvent, state.getName());
+                        throw new CreateStateMachineException("Multiple states cannot have same Replay Event");
                     }
                 }
             }
-        });
+        }
         return stateMachineDefinition;
     }
 
@@ -163,7 +169,7 @@ public class StateMachinePersistenceService {
      */
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
-    public StateMachine createStateMachine(String stateMachineId, StateMachineDefinition stateMachineDefinition) {
+    public StateMachine createStateMachine(String stateMachineId, StateMachineDefinition stateMachineDefinition) throws CreateStateMachineException{
 
         validateMultipleStatesWithSameReplayEvent(stateMachineDefinition);
         validateStateWithMultipleReplayEvent(stateMachineDefinition);

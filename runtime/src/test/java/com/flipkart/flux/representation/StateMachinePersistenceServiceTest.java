@@ -33,6 +33,7 @@ import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.exception.CreateStateMachineException;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.OrchestrationTaskModule;
 import com.flipkart.flux.guice.module.ShardModule;
@@ -83,7 +84,7 @@ public class StateMachinePersistenceServiceTest {
 
 
     @Test
-    public void maxTaskRetryCountShouldBeTakenIfRetryCountIsHigher() {
+    public void maxTaskRetryCountShouldBeTakenIfRetryCountIsHigher() throws Exception{
         Integer maxTaskRetryCount = 10;
         StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(
                 stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
@@ -105,7 +106,7 @@ public class StateMachinePersistenceServiceTest {
     }
 
     @Test
-    public void retryCountShouldBeTakenIfItIsLessthanMaxAllowed() {
+    public void retryCountShouldBeTakenIfItIsLessthanMaxAllowed() throws Exception{
         Integer maxTaskRetryCount = 10;
         StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(
                 stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
@@ -363,7 +364,7 @@ public class StateMachinePersistenceServiceTest {
     }
 
     @Test
-    public void verifyReplayStateTraversalPath() {
+    public void verifyReplayStateTraversalPath() throws Exception{
         Integer maxTaskRetryCount = 10;
         StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(
                 stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
@@ -415,16 +416,12 @@ public class StateMachinePersistenceServiceTest {
         }
     }
 
-    @SuppressWarnings("static-access")
-	@Test
-    public void validateMultipleStatesWithSameReplayEvent() throws IOException {
-        Integer maxTaskRetryCount = 10;
-        StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(
-            stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
+	@Test(expected = CreateStateMachineException.class)
+    public void validateMultipleStatesWithSameReplayEvent() throws IOException, CreateStateMachineException {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(
             "state_machine_definition_5.json"));
         StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
-        StateMachineDefinition stateMachineDefinition1 = stateMachinePersistenceService.validateMultipleStatesWithSameReplayEvent(stateMachineDefinition);
+        StateMachineDefinition stateMachineDefinition1 = StateMachinePersistenceService.validateMultipleStatesWithSameReplayEvent(stateMachineDefinition);
         Set<StateDefinition> states = stateMachineDefinition1.getStates();
         states.forEach(state -> {
             if (state.getName().equals("test_state2") || state.getName().equals("test_state3"))
@@ -432,15 +429,11 @@ public class StateMachinePersistenceServiceTest {
         });
     }
 
-    @SuppressWarnings("static-access")
-    @Test
-    public void testValidateStateWithMultipleReplayEvent() throws IOException {
-        Integer maxTaskRetryCount = 10;
-        StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(
-            stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
+    @Test(expected = CreateStateMachineException.class)
+    public void testValidateStateWithMultipleReplayEvent() throws IOException, CreateStateMachineException {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition_4.json"));
         StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
-        StateMachineDefinition stateMachineDefinition1 = stateMachinePersistenceService.validateStateWithMultipleReplayEvent(stateMachineDefinition);
+        StateMachineDefinition stateMachineDefinition1 = StateMachinePersistenceService.validateStateWithMultipleReplayEvent(stateMachineDefinition);
         Set<StateDefinition> states = stateMachineDefinition1.getStates();
         states.forEach(state -> {
             if (state.getName().equals("test_state2"))
