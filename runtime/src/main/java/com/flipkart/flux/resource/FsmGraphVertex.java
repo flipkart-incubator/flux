@@ -32,15 +32,19 @@ public class FsmGraphVertex {
     @JsonProperty
     private String status;
 
+    @JsonProperty
+    private Long executionVersion;
+
     /* For Jackson */
     FsmGraphVertex() {
-        this(null,null,null);
+        this(null,null,null, null);
     }
 
-    public FsmGraphVertex(Long id, String label, String status) {
+    public FsmGraphVertex(Long id, String label, String status, Long executionVersion) {
         this.id = id;
         this.label = (label == null ? "" : label.trim());
         this.status = status;
+        this.executionVersion = executionVersion;
     }
 
     public Long getId() {
@@ -55,6 +59,7 @@ public class FsmGraphVertex {
         FsmGraphVertex that = (FsmGraphVertex) o;
 
         if (!id.equals(that.id)) return false;
+        if (!executionVersion.equals(that.executionVersion)) return false;
         return label.equals(that.label) && status.equals(that.status);
     }
 
@@ -63,11 +68,12 @@ public class FsmGraphVertex {
         int result = id.hashCode();
         result = 31 * result + label.hashCode();
         result = 31 * result + status.hashCode();
+        result = 31 * result + executionVersion.hashCode();
         return result;
     }
 
     @Override
     public String toString() {
-        return id + ":" + label+ ":" + status;
+        return id + ":" + label+ ":" + status + ":" +executionVersion;
     }
 }

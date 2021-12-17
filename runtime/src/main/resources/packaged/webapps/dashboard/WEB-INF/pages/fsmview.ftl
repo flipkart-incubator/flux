@@ -39,8 +39,11 @@
             <table style="width: 10%">
                 <tr>
                     <td>
-                        <div class="Cell" style="width: 175px">
+                        <#--<div class="Cell" style="width: 175px">
                             <button style="margin-left: -5px;margin-bottom: 5px; width: 160px; height: 35px;" class="btn btn-sm btn-primary" id="fsm-unsideline-btn" data-toggle="modal" onclick="unsidelineModal()" data-target="#unsideline-modal">Unsideline </button>
+                        </div>-->
+                        <div class="Cell" style="width: 175px">
+                          <button style="margin-left: -5px;margin-bottom: 5px; width: 160px; height: 35px;" class="btn btn-sm btn-primary" id="fsm-state-info-btn" data-toggle="modal" data-target="#state-details-modal">State Information </button>
                         </div>
                         <div class="Cell" style="width: 175px">
                             <button style="margin-bottom: 5px; width: 175px; height: 35px;" class="btn btn-sm btn-primary" id="fsm-event-details-btn" data-toggle="modal" data-target="#event-details-modal" >Event Information </button>
@@ -120,6 +123,35 @@
             </div>
         </div>
     </div>
+
+
+    <div id="state-details-modal" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content" style="height: 200px;">
+          <div class="modal-header" >
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">State Information</h4>
+          </div>
+          <div class="modal-body">
+            <div class="container col-md-12">
+              <div class="form-group">
+                <select style="height:28px;width:550px" class="selectpicker" id="state-data-select" ><#--all option will come here--></select>
+              </div>
+              <div>
+                <div>
+                  <span style="text-align: left">Execution Version:</span>
+                </div>
+                <div>
+                  <span style="text-align: left;" id="state-execution-version-label"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
 
     <!-- This is Bootstarap modal to see event details -->
     <div id="event-details-modal" class="modal fade" role="dialog">
@@ -213,6 +245,7 @@
     <script type="text/javascript">
 
         var eventNameDataMap=new Object();
+        var stateInfoMap= new Object();
         var eventNames = [];
         var graph = new joint.dia.Graph;
         var paper = new joint.dia.Paper({
@@ -589,13 +622,15 @@
                         layout(data.fsmGraphData, data.initStateEdges);
                         createAuditTable(data.fsmGraphData, data.auditData);
                         displayFsmInfo(data.stateMachineId, data.fsmVersion, data.fsmName);
-                        document.getElementById("fsm-unsideline-btn").style.display = 'block';
+                        // document.getElementById("fsm-unsideline-btn").style.display = 'block';
+                        document.getElementById("fsm-state-info-btn").style.display = 'block';
                         document.getElementById("fsm-event-details-btn").style.display='block';
                         document.getElementById("fsm-details").style.display='block';
                         document.getElementById("legend-details").style.display='block';
 
                         populateErroredStatesList(data);
                         populateEventInformation(data);
+                        populateStateInformation(data);
                     },
                     error: function (XMLHttpRequest, textStatus, errorThrown) {
                         alert("Status: " + XMLHttpRequest.status + " Response:" + XMLHttpRequest.responseText);
@@ -613,6 +648,16 @@
             }
         }
 
+        function populateStateInformation(data) {
+          $("#state-data-select").empty();
+          clearStateInfoModalParams();
+          $('#state-data-select').append('<option value="" disabled selected value>--select State--</option>');
+          for(var stateIdentifier in data.fsmGraphData) {
+            $('#state-data-select').append('<option>' + stateIdentifier.split(":")[1] + '</option>');
+            stateInfoMap[stateIdentifier.split(":")[1]] = stateIdentifier.split(":")[3];
+          }
+        }
+
         //does necessary operations to show event information on list box select
         function populateEventInformation(data) {
             $("#event-data-select").empty();
@@ -620,8 +665,8 @@
             var count=0;
             for(var i=0;i<data.initStateEdges.length;i++){
                 eventNameDataMap[data.initStateEdges[i].label] = {
-                  eventData: data.initStateEdges[i].eventData.split("#")[0],
-                  executionVersion: data.initStateEdges[i].eventData.split("#")[1],
+                  eventData: data.initStateEdges[i].eventData &&  data.initStateEdges[i].eventData.split("#")[0],
+                  executionVersion: data.initStateEdges[i].eventData && data.initStateEdges[i].eventData.split("#")[1],
                   status: data.initStateEdges[i].status,
                   updatedAt: data.initStateEdges[i].updatedAt};
                 eventNames[count] = data.initStateEdges[i].label;
@@ -629,9 +674,9 @@
             }
             for(var stateIdentifier in data.fsmGraphData) {
                 if(data.fsmGraphData[stateIdentifier].label != "") {
-                    eventNameDataMap[data.fsmGraphData[stateIdentifier].label] = {
-                      eventData: data.fsmGraphData[stateIdentifier]["eventData"].split("#")[0],
-                      executionVersion: data.fsmGraphData[stateIdentifier]["eventData"].split("#")[1],
+                  eventNameDataMap[data.fsmGraphData[stateIdentifier].label] = {
+                      eventData: data.fsmGraphData[stateIdentifier]["eventData"] && data.fsmGraphData[stateIdentifier]["eventData"].split("#")[0],
+                      executionVersion: data.fsmGraphData[stateIdentifier]["eventData"] && data.fsmGraphData[stateIdentifier]["eventData"].split("#")[1],
                       status: data.fsmGraphData[stateIdentifier]["status"],
                       updatedAt: data.fsmGraphData[stateIdentifier]["updatedAt"]
                     };
@@ -683,7 +728,6 @@
         }
 
         function clearEventInfoModalParams() {
-            $("#event-data-txt-box").empty();
             $("#event-execution-version-label").empty();
             $("#event-status-label").empty();
             $("#event-updated-at-label").empty();
@@ -691,7 +735,7 @@
 
         //function to get event data on select of event name
         $(function() {
-            $('.selectpicker').on('change', function(){
+            $('#event-data-select').on('change', function(){
                 clearEventInfoModalParams();
                 var selectedEventName = $(this).find("option:selected").val();
                 $("#event-data-txt-box").append(eventNameDataMap[selectedEventName].eventData);
@@ -701,9 +745,22 @@
             });
         });
 
+        function clearStateInfoModalParams() {
+          $("#state-execution-version-label").empty();
+        }
+
+        $(function() {
+          $('#state-data-select').on('change', function(){
+            clearStateInfoModalParams();
+            var selectedStateName = $(this).find("option:selected").val();
+            $("#state-execution-version-label").append(stateInfoMap[selectedStateName]);
+          });
+        });
+
         document.getElementById("graph-div").style.display = 'none';
         document.getElementById("alert-msg").style.display = 'none';
-        document.getElementById("fsm-unsideline-btn").style.display = 'none';
+        // document.getElementById("fsm-unsideline-btn").style.display = 'none';
+        document.getElementById("fsm-state-info-btn").style.display = 'none';
         document.getElementById("fsm-event-details-btn").style.display='none';
         document.getElementById("unsideline-msg").style.display='none';
         document.getElementById("fsm-details").style.display='none';

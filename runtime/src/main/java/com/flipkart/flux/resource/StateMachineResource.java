@@ -1065,7 +1065,7 @@ public class StateMachineResource {
         /* After this operation, we'll have nodes for each state and its corresponding output event along with the output event's dependencies mapped out*/
     for (State state : stateMachine.getStates()) {
       final FsmGraphVertex vertex = new FsmGraphVertex(state.getId(),
-          this.getStateDisplayName(state.getName()), state.getStatus().name());
+          this.getStateDisplayName(state.getName()), state.getStatus().name(),state.getExecutionVersion());
       if (state.getOutputEvent() != null) {
         EventDefinition eventDefinition = objectMapper
             .readValue(state.getOutputEvent(), EventDefinition.class);
