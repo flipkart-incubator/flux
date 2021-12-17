@@ -835,10 +835,10 @@ public class WorkFlowExecutionController {
    * @param taskExecutionVersion
    * @return
    */
-  public String getEventData(String smId, String eventName, Long taskExecutionVersion) {
+  public Event getEventData(String smId, String eventName, Long taskExecutionVersion) {
     Event event = eventsDAO.findBySmIdAndNameAndVersion(smId, eventName, taskExecutionVersion);
-    if (event != null && Optional.ofNullable(event.getEventData()).isPresent()) {
-      return Optional.ofNullable(event.getEventData()).get();
+    if (event != null) {
+      return event;
     } else {
       logger.error(
           "Event data not found for smId: {} eventName: {} taskExecutionVersion: {}",

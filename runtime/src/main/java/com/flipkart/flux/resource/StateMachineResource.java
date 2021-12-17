@@ -86,6 +86,7 @@ import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
 import com.flipkart.flux.utils.LoggingUtils;
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 
 /**
@@ -1157,9 +1158,11 @@ public class StateMachineResource {
     }
 
     try {
-      String eventData =
+      Event event =
           workFlowExecutionController.getEventData(smId, eventName, taskExecutionVersion);
-      return Response.status(Response.Status.OK).entity(eventData).build();
+
+      Gson gson = new Gson();
+      return Response.status(Response.Status.OK).entity(gson.toJson(event)).build();
     } catch (IllegalEventException e) {
       return Response.status(Response.Status.NOT_FOUND).entity(e.getMessage()).build();
     } catch (Exception e) {

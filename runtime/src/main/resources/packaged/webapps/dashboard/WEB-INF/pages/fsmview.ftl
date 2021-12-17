@@ -167,38 +167,40 @@
     </div>
 
     <!-- This is Bootstarap modal to see event details for the given exec version-->
-    <div id="event-details-modal-exec-version" class="modal fade" role="dialog">
+    <div id="event-details-modal-exec-version" class="modal" role="dialog">
       <div class="modal-dialog">
         <!-- Modal content-->
         <div class="modal-content" style="height: 570px;">
           <div class="modal-header" >
             <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title">Event Information</h4>
+            <h4 class="modal-title">Event Data</h4>
           </div>
           <div class="modal-body">
             <div class="container col-md-12">
-              <div id="event-data-exec-version">
+              <div>
+                <span style="text-align: left">Event Name:</span>
+                <span style="text-align: left" id="event-name-exec-version"></span>
+              </div>
+              <br>
+              <div>
+                <span style="text-align: left">Event Data:</span>
+              </div>
+              <div id="event-data-exec-version-div">
                 <textarea readonly rows="15" cols="50" id="event-data-txt-box-exec-version" style="height: 262px;width: 550px;max-height: 262px;overflow-y: auto;resize: none;" data-role="none"></textarea>
               </div>
               <div>
                 <div>
                   <span style="text-align: left">Execution Version:</span>
-                </div>
-                <div>
                   <span style="text-align: left;" id="event-execution-version-label-exec-version"></span>
                 </div>
                 <br>
                 <div>
                   <span style="text-align: left">Status:</span>
-                </div>
-                <div>
                   <span style="text-align: left;" id="event-status-label-exec-version"></span>
                 </div>
                 <br>
                 <div>
                   <span style="text-align: left">Updated At:</span>
-                </div>
-                <div>
                   <span style="text-align: left" id="event-updated-at-label-exec-version"></span>
                 </div>
               </div>
@@ -242,6 +244,7 @@
 
             var table = document.createElement("table");
             table.className = "table table-hover";
+            table.setAttribute("id","audit-table");
 
             table.border = '1';
 
@@ -312,16 +315,15 @@
               var eventDependenciesArray = [];
               try {
                 eventDependenciesArray = JSON.parse(auditRecord.eventDependencies);
-                console.log(eventDependenciesArray);
 
                 // move all of this to a function
                 for (var index = 0; index < eventDependenciesArray.length; index++) {
-                  console.log("index: " + index + " value: " + eventDependenciesArray[index]);
+                  // console.log("index: " + index + " value: " + eventDependenciesArray[index]);
                   var eventNameFull = Object.keys(eventDependenciesArray[index])[0];
                   var execVersion = Object.values(eventDependenciesArray[index])[0];
                   var eventName = eventNameFull.split(".")[eventNameFull.split(".").length - 1];
-                  console.log("eventName: " + eventName + " execVersion: " + execVersion);
-                  console.log(eventDependenciesArray[index]);
+                  // console.log("eventName: " + eventName + " execVersion: " + execVersion);
+                  // console.log(eventDependenciesArray[index]);
 
                   var link = document.createElement('a');
                   var linkText = document.createTextNode(execVersion);
@@ -330,25 +332,6 @@
                   link.setAttribute('href','${flux_api_url}/api/machines/' + auditRecord.stateMachineInstanceId
                       + "/"+eventNameFull+"/"+execVersion+"/eventdata");
                   link.setAttribute('target', '_blank');
-
-                  // Display pop-up window
-                  /*link.setAttribute("id","exec-ver-link");
-                  $('#exec-ver-link').click(function(e) {
-                    e.preventDefault();
-                    $.ajax({
-                      type:'GET',
-                      url: 'http://www.google.com',
-                      // data:$('#Form-id-selector').serialize(),
-                      success: function(response) {
-                        // Any code to execute on a successful return
-                        alert('hello');
-                      }
-                    });
-                  });
-                  // link.onclick = function () {
-                  //   document.getElementById("event-details-modal-exec-version").style.display = 'block';
-                  // }
-                  */
 
                   td.appendChild(document.createTextNode("{".concat(eventName).concat(":")));
                   td.appendChild(link);
@@ -363,9 +346,6 @@
                 tr.appendChild(td);
               }
 
-
-                // td.appendChild(document.createTextNode(auditRecord.eventDependencies));
-                // tr.appendChild(td);
 
                 td = document.createElement("td");
                 td.appendChild(document.createTextNode(auditRecord.retryAttempt));
@@ -393,7 +373,33 @@
 
                 //todo: assign color code based on rollback status as well
             });
+          table.onclick = function (ev) {
+            ev.preventDefault();
+            // console.log(event.target);
 
+            var attribute = event.target.getAttribute('href');
+            // console.log(attribute);
+            if (attribute != null){
+              $.ajax({
+                url: attribute,
+                type: 'GET',
+                success: function (data, status, jqXHR) {
+                  document.getElementById("event-name-exec-version").innerText = data.name;
+                  document.getElementById("event-data-txt-box-exec-version").innerText = data.eventData;
+                  document.getElementById("event-execution-version-label-exec-version").innerText = data.executionVersion;
+                  document.getElementById("event-status-label-exec-version").innerText = data.status;
+                  document.getElementById("event-updated-at-label-exec-version").innerText = data.updatedAt;
+
+                  $('#event-details-modal-exec-version').modal('show');
+                  // console.log(data);
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                  alert("Status: " + XMLHttpRequest.status + " Response:" + XMLHttpRequest.responseText);
+                }
+              });
+            }
+
+          };
             auditDiv.appendChild(table);
         }
 
