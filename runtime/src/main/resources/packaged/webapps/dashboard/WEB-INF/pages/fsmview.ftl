@@ -461,6 +461,9 @@
                 case 'sidelined':
                     rowColor = 'danger';
                     break;
+				case 'invalid':
+                    rowColor = 'info';
+                    break;                    
             }
             return rowColor;
         }

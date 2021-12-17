@@ -576,6 +576,10 @@ public class StateMachineResource {
               machineId, versionedEventData.getExecutionVersion());
           //Persist the event with the new event data from akka
           workFlowExecutionController.persistDiscardedEvent(machineId, versionedEventData);
+          auditDAO.create(machineId, new AuditRecord(machineId, executionUpdateData.getTaskId(),
+              executionUpdateData.getCurrentRetryCount(), Status.invalid, null,
+              "Discarded : StateExecutionVersion is no more valid.",
+              executionUpdateData.getTaskExecutionVersion(), executionUpdateData.getDependentAuditEvents()));
         }
       } catch (IllegalEventException ex) {
         return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(ex.getMessage())
