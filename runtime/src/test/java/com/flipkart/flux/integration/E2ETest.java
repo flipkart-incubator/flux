@@ -228,7 +228,7 @@ public class E2ETest {
      * interval is 2.5 secs and further sleep of 9.5 secs is for all states
      * to get completed (7 states, each with timeout of 0.5 secs).
      */
-    Thread.sleep(12000L);
+    Thread.sleep(15000L);
 
     stateMachine = stateMachinesDAO.findById(smId);
     /* Assertions */
