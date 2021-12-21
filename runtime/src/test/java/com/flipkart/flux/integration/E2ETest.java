@@ -224,8 +224,8 @@ public class E2ETest {
 
     /* Wait for redriver to pick replayable state and then let the things complete with that execution version.
      * Replayable state are redrived by redriver, thread sleep in between
-     * is set to 12 secs for each RE trigger because redriver batch read
-     * interval is 2.5 secs and further sleep of 9.5 secs is for all states
+     * is set to 15 secs for each RE trigger because redriver batch read
+     * interval is 2.5 secs and further sleep of 12.5 secs is for all states
      * to get completed (7 states, each with timeout of 0.5 secs).
      */
     Thread.sleep(15000L);
