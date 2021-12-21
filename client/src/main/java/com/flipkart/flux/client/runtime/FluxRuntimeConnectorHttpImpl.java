@@ -63,14 +63,12 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
     private final MetricRegistry metricRegistry;
 
     @VisibleForTesting
-    public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint,
-                                        String targetClientId) {
-        this(connectionTimeout, socketTimeout, fluxEndpoint, new ObjectMapper(), SharedMetricRegistries.getOrCreate("mainMetricRegistry")
-        , targetClientId);
+    public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint) {
+        this(connectionTimeout, socketTimeout, fluxEndpoint, new ObjectMapper(), SharedMetricRegistries.getOrCreate("mainMetricRegistry"));
     }
 
     public FluxRuntimeConnectorHttpImpl(Long connectionTimeout, Long socketTimeout, String fluxEndpoint, ObjectMapper objectMapper,
-                                        MetricRegistry metricRegistry, String targetClientId) {
+                                        MetricRegistry metricRegistry) {
         this.fluxEndpoint = fluxEndpoint;
         this.objectMapper = objectMapper;
         RequestConfig clientConfig = RequestConfig.custom()
@@ -263,7 +261,7 @@ public class FluxRuntimeConnectorHttpImpl implements FluxRuntimeConnector {
         try {
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             objectMapper.writeValue(byteArrayOutputStream, dataToPost);
-            logger.info("Posting data: {} over http to Flux Endpoint : {} with authN targetClientId : {}",dataToPost, fluxEndpoint);
+            logger.info("Posting data: {} over http to Flux Endpoint : {}",dataToPost, fluxEndpoint);
             httpPostRequest.setEntity(new ByteArrayEntity(byteArrayOutputStream.toByteArray(), ContentType.APPLICATION_JSON));
             httpResponse = closeableHttpClient.execute(httpPostRequest);
             final int statusCode = httpResponse.getStatusLine().getStatusCode();

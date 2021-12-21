@@ -34,18 +34,16 @@ public class FluxClientConfiguration {
     private String clientElbId = "defaultElbId";
     private long socketTimeout = 10000;
     private long connectionTimeout = 10000;
-    private String targetClientId = "flux-runtime-local";
 
     /** Constructors*/
     public FluxClientConfiguration() {}
 
     public FluxClientConfiguration(String fluxRuntimeUrl, String clientElbId, long socketTimeout,
-                                   long connectionTimeout,  String targetClientId) {
+                                   long connectionTimeout) {
         this.fluxRuntimeUrl = fluxRuntimeUrl;
         this.clientElbId = clientElbId;
         this.socketTimeout = socketTimeout;
         this.connectionTimeout = connectionTimeout;
-        this.targetClientId = targetClientId;
 
     }
 
@@ -70,11 +68,5 @@ public class FluxClientConfiguration {
     }
     public String getClientElbId() {
         return clientElbId;
-    }
-    public String getTargetClientId() {
-        return targetClientId;
-    }
-    public void setTargetClientId(String targetClientId) {
-        this.targetClientId = targetClientId;
     }
 }

@@ -45,6 +45,6 @@ public class FluxClientSpyModuleForTests extends AbstractModule {
     @Singleton
     public FluxRuntimeConnector provideFluxRuntimeConnector() {
         return Mockito.spy(new FluxRuntimeConnectorHttpImpl(1000l, 1000l,
-                "http://localhost:9091/flux/machines", "flux-runtime-local"));
+                "http://localhost:9091/flux/machines"));
     }
 }
