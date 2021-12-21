@@ -17,6 +17,15 @@ package com.flipkart.flux.integration;
 import static com.flipkart.flux.resource.StateMachineResourceTest.STATE_MACHINE_RESOURCE_URL;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Set;
+
+import org.apache.commons.io.IOUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.api.Status;
@@ -36,6 +45,7 @@ import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.ExecutionContainerModule;
 import com.flipkart.flux.guice.module.ExecutionTaskModule;
 import com.flipkart.flux.guice.module.OrchestrationTaskModule;
+import com.flipkart.flux.guice.module.OrchestratorContainerModule;
 import com.flipkart.flux.guice.module.ShardModule;
 import com.flipkart.flux.initializer.ExecutionOrderedComponentBooter;
 import com.flipkart.flux.initializer.OrchestrationOrderedComponentBooter;
@@ -50,18 +60,11 @@ import com.flipkart.flux.runner.Modules;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import java.util.Set;
-import org.apache.commons.io.IOUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
 @RunWith(GuiceJunit4Runner.class)
 @Modules(orchestrationModules = {FluxClientComponentModule.class, ShardModule.class,
     RuntimeTestModule.class, ContainerModule.class,
-    OrchestrationTaskModule.class, FluxClientInterceptorModule.class},
+    OrchestrationTaskModule.class, OrchestratorContainerModule.class, FluxClientInterceptorModule.class},
     executionModules = {FluxClientComponentModule.class, DeploymentUnitTestModule.class,
         AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class,
         FluxClientInterceptorModule.class})
