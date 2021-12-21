@@ -318,7 +318,7 @@ public class E2ETest {
         .header("Content-Type", "application/json").body(replayEvent2_Json).asString();
 
     /* Wait for redriver to pick replayable state and then let the things complete with that execution version. */
-    Thread.sleep(8000L);
+    Thread.sleep(12000L);
 
     stateMachine = stateMachinesDAO.findById(smId);
     /* Assertions */

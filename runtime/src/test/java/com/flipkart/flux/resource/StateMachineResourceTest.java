@@ -206,7 +206,7 @@ public class StateMachineResourceTest {
           .header("Content-Type", "application/json").body(eventJson).asString();
       assertThat(eventPostResponse.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
       //  give some time to execute
-      Thread.sleep(6000);
+      Thread.sleep(9000);
 
       //status of state should be sidelined
       String smId = smCreationResponse.getBody();
@@ -520,7 +520,7 @@ public class StateMachineResourceTest {
       assertThat(eventPostResponse1.getStatus())
           .isEqualTo(Response.Status.ACCEPTED.getStatusCode());
             /* Give some time to task to execute, task thread sleeps for 1000 ms with 1 retry. */
-      Thread.sleep(4000);
+      Thread.sleep(9000);
 
       //status of state should be sidelined and should be able to update event data now
       String smId = smCreationResponse.getBody();
