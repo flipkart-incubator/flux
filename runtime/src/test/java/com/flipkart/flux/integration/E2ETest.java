@@ -60,7 +60,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiceJunit4Runner.class)
 @Modules(orchestrationModules = {FluxClientComponentModule.class, ShardModule.class,
-    RuntimeTestModule.class, ContainerModule.class, 
+    RuntimeTestModule.class, ContainerModule.class,
     OrchestrationTaskModule.class, FluxClientInterceptorModule.class},
     executionModules = {FluxClientComponentModule.class, DeploymentUnitTestModule.class,
         AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class,
@@ -146,7 +146,7 @@ public class E2ETest {
     /* Invocation */
     testCancelPathWorkflow.create(new StartEvent("test_cancel_path"));
     // sleep for a while to let things complete and then eval results and shutdown
-    Thread.sleep(2000L);
+    Thread.sleep(6000L);
 
     /* Asserts*/
     final Set<StateMachine> smInDb = parallelScatterGatherQueryHelper
@@ -221,14 +221,14 @@ public class E2ETest {
     Unirest.post(
         STATE_MACHINE_RESOURCE_URL + "/" + smId + "/context/replayevent")
         .header("Content-Type", "application/json").body(replayEventJson).asString();
-    
+
     /* Wait for redriver to pick replayable state and then let the things complete with that execution version.
-    * Replayable state are redrived by redriver, thread sleep in between
-    * is set to 8 secs for each RE trigger because redriver batch read
-    * interval is 2.5 secs and further sleep of 5.5 secs is for all states
-    * to get completed (7 states, each with timeout of 0.5 secs).
-    */
-    Thread.sleep(8000L);
+     * Replayable state are redrived by redriver, thread sleep in between
+     * is set to 12 secs for each RE trigger because redriver batch read
+     * interval is 2.5 secs and further sleep of 9.5 secs is for all states
+     * to get completed (7 states, each with timeout of 0.5 secs).
+     */
+    Thread.sleep(12000L);
 
     stateMachine = stateMachinesDAO.findById(smId);
     /* Assertions */

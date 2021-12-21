@@ -223,7 +223,7 @@ public class StateMachineResourceTest {
           .asString();
       assertThat(unsidelineResponse.getStatus())
           .isEqualTo(Response.Status.ACCEPTED.getStatusCode());
-      Thread.sleep(2000);
+      Thread.sleep(6000);
 
       state4 = stateMachinesDAO.findById(smId).getStates().stream()
           .filter(e -> e.getName().equals("test_state4")).findFirst().orElse(null);
