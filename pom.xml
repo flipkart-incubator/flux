@@ -1,85 +1,124 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>com.flipkart</groupId>
-    <artifactId>flux</artifactId>
-    <version>1.2.4</version>
-    <packaging>pom</packaging>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.flipkart</groupId>
+	<artifactId>flux</artifactId>
+	<version>1.2.4</version>
+	<packaging>pom</packaging>
 
-    <name>flux</name>
-    <url>http://maven.apache.org</url>
+	<name>flux</name>
+	<url>http://maven.apache.org</url>
 
-    <licenses>
-        <license>
-            <name>The Apache Software License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-        </license>
-    </licenses>
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
 
-    <distributionManagement>
-        <repository>
-            <id>clojars</id>
-            <name>Clojars repository</name>
-            <url>https://clojars.org/repo</url>
-        </repository>
-    </distributionManagement>
+	<distributionManagement>
+		<repository>
+			<id>clojars</id>
+			<name>Clojars repository</name>
+			<url>https://clojars.org/repo</url>
+		</repository>
+	</distributionManagement>
 
-    <repositories>
-        <repository>
-            <id>clojars</id>
-            <name>Clojars repository</name>
-            <url>https://clojars.org/repo</url>
-        </repository>
-        <repository>
-            <id>central</id>
-            <name>Maven Central</name>
-            <url>https://repo1.maven.org/maven2/</url>
-        </repository>
-    </repositories>
+	<repositories>
+		<repository>
+			<id>clojars</id>
+			<name>Clojars repository</name>
+			<url>https://clojars.org/repo</url>
+		</repository>
+		<repository>
+			<id>central</id>
+			<name>Maven Central</name>
+			<url>https://repo1.maven.org/maven2/</url>
+		</repository>
+	</repositories>
 
-    <scm>
-        <url>https://github.com/flipkart-incubator/flux</url>
-        <connection>https://github.com/flipkart-incubator/flux.git</connection>
-    </scm>
+	<scm>
+		<url>https://github.com/flipkart-incubator/flux</url>
+		<connection>https://github.com/flipkart-incubator/flux.git</connection>
+	</scm>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <jdk.version>1.8</jdk.version>
-        <maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
-        <maven-jar-plugin.version>2.2</maven-jar-plugin.version>
-        <junit.version>4.12</junit.version>
-        <hibernate.version>5.1.0.Final</hibernate.version>
-        <guice.version>4.0</guice.version>
-        <polyguice.version>1.0.2-SNAPSHOT.patched</polyguice.version>
-        <javax.inject.version>1</javax.inject.version>
-        <hystrix.version>1.5.1</hystrix.version>
-        <akka.version>2.4.6</akka.version>
-        <org.springframework.version>4.2.2.RELEASE</org.springframework.version>
-        <akka.cluster.metrics.version>2.4.4</akka.cluster.metrics.version>
-        <kamon.version>0.6.1</kamon.version>
-        <log4j.version>2.17.0</log4j.version>
-        <assertj-core.version>2.0.0</assertj-core.version>
-        <jackson.version>2.12.0</jackson.version>
-        <mockito-all.version>1.9.0</mockito-all.version>
-        <slf4j-api.version>1.7.12</slf4j-api.version>
-        <io.dropwizard.metrics.version>4.2.3</io.dropwizard.metrics.version>
-        <javax.transaction-api.version>1.2</javax.transaction-api.version>
-        <jersey.version>2.30</jersey.version>
-        <jetty.version>9.4.43.v20210629</jetty.version>        
-    </properties>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<jdk.version>1.8</jdk.version>
+		<maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
+		<maven-jar-plugin.version>2.2</maven-jar-plugin.version>
+		<junit.version>4.12</junit.version>
+		<hibernate.version>5.1.0.Final</hibernate.version>
+		<guice.version>4.0</guice.version>
+		<polyguice.version>1.0.2-SNAPSHOT.patched</polyguice.version>
+		<javax.inject.version>1</javax.inject.version>
+		<hystrix.version>1.5.1</hystrix.version>
+		<akka.version>2.4.6</akka.version>
+		<org.springframework.version>4.2.2.RELEASE</org.springframework.version>
+		<akka.cluster.metrics.version>2.4.4</akka.cluster.metrics.version>
+		<kamon.version>0.6.1</kamon.version>
+		<log4j.version>2.17.0</log4j.version>
+		<assertj-core.version>2.0.0</assertj-core.version>
+		<jackson.version>2.12.0</jackson.version>
+		<mockito-all.version>1.9.0</mockito-all.version>
+		<slf4j-api.version>1.7.12</slf4j-api.version>
+		<io.dropwizard.metrics.version>4.2.3</io.dropwizard.metrics.version>
+		<javax.transaction-api.version>1.2</javax.transaction-api.version>
+		<jersey.version>2.30</jersey.version>
+		<jetty.version>9.4.43.v20210629</jetty.version>
+		<jacoco.version>0.7.5.201505241946</jacoco.version>
+		<junit-jupiter.version>5.5.2</junit-jupiter.version>
+	</properties>
 
-    <modules>
-        <module>model</module>
-        <module>common</module>
-        <module>scheduler</module>
-        <module>persistence-mysql</module>
-        <module>runtime</module>
-        <module>task</module>
-        <module>client</module>
-        <module>examples</module>
-        <module>api</module>
-    </modules>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.jacoco</groupId>
+				<artifactId>org.jacoco.agent</artifactId>
+				<classifier>runtime</classifier>
+				<version>${jacoco.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.2</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<!-- attached to Maven test phase -->
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	
+	<modules>
+		<module>model</module>
+		<module>common</module>
+		<module>scheduler</module>
+		<module>persistence-mysql</module>
+		<module>runtime</module>
+		<module>task</module>
+		<module>client</module>
+		<module>examples</module>
+		<module>api</module>
+	</modules>
 
 </project>
