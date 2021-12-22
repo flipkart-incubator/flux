@@ -24,9 +24,9 @@ public class RunReplayEventWorkflow {
         String correlation_id_1 = "example_replay_event_workflow_100";
         replayEventWorkflow.create(new StartEvent(correlation_id_1));
 
-        System.out.println("[Main] Sleeping for 2 seconds before posting replay event to flux"
+        System.out.println("[Main] Sleeping for 10 seconds before posting replay event to flux"
             + " runtime so that replayable state is completed");
-        Thread.sleep(2000l); // Just a 2 second wait to ensure that the replayable state is completed
+        Thread.sleep(10000l); // Just a 10 second wait to ensure that the replayable state is completed
         fluxHttpConnector.submitReplayEvent("someReplayEvent1",
             new ParamEvent("task44", false), correlation_id_1, null);
         System.out.println("[Main] Posted replay event to flux runtime, the workflow should have continued");
@@ -37,12 +37,12 @@ public class RunReplayEventWorkflow {
 
         for (int i = 0; i < 6; i++) {
             System.out.println(
-                "[Main] Sleeping for 4 seconds before posting replay event to flux runtime so that "
+                "[Main] Sleeping for 10 seconds before posting replay event to flux runtime so that "
                     + "replayable state is completed");
             Thread.sleep(
-                4000l); // Just a 4 second wait to ensure that the replayable state is completed
+                10000l); // Just a 10 second wait to ensure that the replayable state is completed
             if(i%2 == 0) {
-            fluxHttpConnector.submitReplayEvent("RE1",
+            	fluxHttpConnector.submitReplayEvent("RE1",
                 new IntegerEvent(5), correlation_id_2, "my-replay-event");
             }
             else {

@@ -1,5 +1,8 @@
 package com.flipkart.flux.examples.replayevents;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flipkart.flux.client.model.*;
 
@@ -9,6 +12,12 @@ import com.flipkart.flux.client.model.*;
  * Created by vartika.bhatia on 15/06/2019.
  */
 public class ReplayEventWorkflow {
+	
+	/**
+	 * Logger instance for this class
+	 */
+	private static final Logger logger = LogManager.getLogger(ReplayEventWorkflow.class);
+	
 
     @SuppressWarnings("unused")
 	@Workflow(version = 1)
@@ -27,6 +36,7 @@ public class ReplayEventWorkflow {
 
     @Task(version = 1, retries = 0, timeout = 400L, isReplayable = true, replayRetries = 3)
     public ParamEvent task2( @ReplayEvent("someReplayEvent1") ParamEvent event, ParamEvent event1) {
+		logger.info("Executing replayable task task2 with Param Event : {}", event);    	
         return new ParamEvent("task2", false);
     }
 
@@ -47,6 +57,7 @@ public class ReplayEventWorkflow {
 
     @Task(version = 1, retries = 0, timeout = 1000L, isReplayable = true, replayRetries = 3)
     public ParamEvent task6( @ReplayEvent("someReplayEvent2") ParamEvent event, ParamEvent event1) {
+		logger.info("Executing replayable task task6 with Param Event : {}", event);    	
         return new ParamEvent("task6", false);
     }
 

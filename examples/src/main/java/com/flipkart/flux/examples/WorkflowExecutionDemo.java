@@ -93,7 +93,13 @@ public class WorkflowExecutionDemo {
         //copy dependencies to deployment unit
         FileUtils.copyFile(new File(moduleName + "/target/").listFiles((FilenameFilter) new WildcardFileFilter(moduleName + "*.jar"))[0], new File(mainDirPath + "/" + moduleName + ".jar"));
         FileUtils.copyDirectory(new File(moduleName + "/target/dependency"), new File(libDirPath));
-        FileUtils.copyFile(new File(moduleName + "/src/main/resources/" + configFileName), new File(deploymentUnitsPath + deploymentUnitName + "/flux_config.yml"));
+        File mainResources = new File(moduleName + "/src/main/resources/" + configFileName);
+        File testResources = new File(moduleName + "/src/test/resources/" + configFileName);
+        if (mainResources.exists()) {
+        	FileUtils.copyFile(new File(moduleName + "/src/main/resources/" + configFileName), new File(deploymentUnitsPath + deploymentUnitName + "/flux_config.yml"));
+        } else if (testResources.exists()) {
+        	FileUtils.copyFile(new File(moduleName + "/src/test/resources/" + configFileName), new File(deploymentUnitsPath + deploymentUnitName + "/flux_config.yml"));        	
+        }
 
         //start flux runtime
         FluxInitializer.main(new String[]{});
