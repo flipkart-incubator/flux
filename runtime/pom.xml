@@ -86,7 +86,6 @@
 			<artifactId>jackson-jaxrs-json-provider</artifactId>
 			<version>${jackson.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
@@ -316,7 +315,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>${maven-jar-plugin.version}</version>
+				<version>${maven-jar-plugin.version}</version>				
 				<configuration>
 					<archive>
 						<manifest>
@@ -328,6 +327,14 @@
 						<include>packaged/**/*</include>
 					</includes>
 				</configuration>
+				<!-- Creating a jar of the test classes as we haave few workflow examples there that can be run independently using WorkflowExecutionDemo.java in 'examples' module -->
+		        <executions>
+		          <execution>
+		            <goals>
+		              <goal>test-jar</goal>
+		            </goals>
+		          </execution>
+		        </executions>				
 			</plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
