@@ -66,7 +66,7 @@ import com.mashape.unirest.http.exceptions.UnirestException;
     RuntimeTestModule.class, ContainerModule.class,
     OrchestrationTaskModule.class, OrchestratorContainerModule.class, FluxClientInterceptorModule.class},
     executionModules = {FluxClientComponentModule.class, DeploymentUnitTestModule.class,
-        AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class,
+        AkkaModule.class, ExecutionTaskModule.class, ExecutionContainerModule.class,ContainerModule.class,
         FluxClientInterceptorModule.class})
 public class E2ETest {
 
