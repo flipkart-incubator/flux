@@ -1,6 +1,3 @@
-## Important Note
-Active contributions to Flux from Flipkart development team have shifted to Flipkart internal repository since December 2018  due to integration of security related Flipkart specific features.
-
 # Flux
 Flux is an asynchronous, scalable, optionally multi-tenant & distributed and reliable state machine based orchestrator. 
 Flux can be used to build Workflows and Reactive apps that are stateful. 
