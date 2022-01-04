@@ -7,12 +7,12 @@
     <parent>
         <groupId>com.flipkart</groupId>
         <artifactId>flux</artifactId>
-        <version>1.2.5-SNAPSHOT</version>
+        <version>1.2.4</version>
     </parent>
 
     <groupId>com.flipkart.flux</groupId>
-    <artifactId>scheduler</artifactId>
-    <name>scheduler</name>
+    <artifactId>common</artifactId>
+    <name>common</name>
     <url>http://maven.apache.org</url>
 
     <licenses>
@@ -43,10 +43,29 @@
             <version>${javax.inject.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <version>2.0.0</version>
-            <scope>test</scope>
+            <groupId>com.flipkart.polyguice</groupId>
+            <artifactId>polyguice-core</artifactId>
+            <version>${polyguice.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>        
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.transaction</groupId>
+            <artifactId>javax.transaction-api</artifactId>
+            <version>${javax.transaction-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.flipkart.polyguice</groupId>
+            <artifactId>polyguice-config</artifactId>
+            <version>${polyguice.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -61,41 +80,14 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.flipkart.polyguice</groupId>
-            <artifactId>polyguice-core</artifactId>
-            <version>${polyguice.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-core</artifactId>
-            <version>${io.dropwizard.metrics.version}</version>
+            <groupId>com.flipkart.flux</groupId>
+            <artifactId>model</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.flipkart.flux</groupId>
             <artifactId>api</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.flipkart.flux</groupId>
-            <artifactId>common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.flipkart.flux</groupId>
-            <artifactId>common</artifactId>
-            <version>${project.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.flipkart.flux</groupId>
-            <artifactId>persistence-mysql</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
         </dependency>
     </dependencies>
 
@@ -121,10 +113,15 @@
                             <addClasspath>true</addClasspath>
                         </manifest>
                     </archive>
-                    <includes>
-                        <include>com/**/*</include>
-                    </includes>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -132,14 +129,6 @@
                 <configuration>
                     <source>${jdk.version}</source>
                     <target>${jdk.version}</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.18.1</version>
-                <configuration>
-                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
                 </configuration>
             </plugin>
         </plugins>

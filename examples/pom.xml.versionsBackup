@@ -1,38 +1,46 @@
 <?xml version="1.0"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+         
     <modelVersion>4.0.0</modelVersion>
-    <properties>
-        <liquibase-maven-plugin.dbname>flux</liquibase-maven-plugin.dbname>
-    </properties>
-
+    
     <parent>
         <groupId>com.flipkart</groupId>
         <artifactId>flux</artifactId>
-        <version>1.2.5-SNAPSHOT</version>
+        <version>1.2.4</version>
     </parent>
-
+    
     <groupId>com.flipkart.flux</groupId>
-    <artifactId>persistence-mysql</artifactId>
-    <name>persistence-mysql</name>
+    <artifactId>examples</artifactId>
+    <name>examples</name>
     <url>http://maven.apache.org</url>
 
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <distributionManagement>
+        <repository>
+            <id>clojars</id>
+            <name>Clojars repository</name>
+            <url>https://clojars.org/repo</url>
+        </repository>
+    </distributionManagement>
+
+    <scm>
+        <url>https://github.com/flipkart-incubator/flux</url>
+        <connection>https://github.com/flipkart-incubator/flux.git</connection>
+    </scm>
+
     <dependencies>
-        <!-- Third party dependencies -->
+        <!-- Flux dependencies -->
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.20</version>
-        </dependency>
-        <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
-            <version>3.5.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.flipkart.polyguice</groupId>
-            <artifactId>polyguice-config</artifactId>
-            <version>${polyguice.version}</version>
+            <groupId>com.flipkart.flux</groupId>
+            <artifactId>runtime</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
@@ -70,24 +78,6 @@
                     <source>${jdk.version}</source>
                     <target>${jdk.version}</target>
                 </configuration>
-            </plugin>
-            <!-- mysql db migration plugin-->
-            <plugin>
-                <groupId>org.liquibase</groupId>
-                <artifactId>liquibase-maven-plugin</artifactId>
-                <version>3.4.2</version>
-                <configuration>
-                    <changeLogFile>${liquibase-maven-plugin.dbname}/migrations.xml</changeLogFile>
-                    <driver>com.mysql.jdbc.Driver</driver>
-                    <url>jdbc:mysql://localhost:3306/${liquibase-maven-plugin.dbname}</url>
-                    <username>root</username>
-                    <dropFirst>false</dropFirst>
-                    <promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>
-                    <logging>info</logging>
-                </configuration>
-                <goals>
-                    <goal>update</goal>
-                </goals>
             </plugin>
         </plugins>
     </build>

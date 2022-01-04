@@ -7,12 +7,12 @@
     <parent>
         <groupId>com.flipkart</groupId>
         <artifactId>flux</artifactId>
-        <version>1.2.5-SNAPSHOT</version>
+        <version>1.2.4</version>
     </parent>
 
     <groupId>com.flipkart.flux</groupId>
-    <artifactId>scheduler</artifactId>
-    <name>scheduler</name>
+    <artifactId>model</artifactId>
+    <name>model</name>
     <url>http://maven.apache.org</url>
 
     <licenses>
@@ -38,59 +38,14 @@
     <dependencies>
         <!-- Third party dependencies -->
         <dependency>
-            <groupId>javax.inject</groupId>
-            <artifactId>javax.inject</artifactId>
-            <version>${javax.inject.version}</version>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <version>2.0.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>${mockito-all.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.flipkart.polyguice</groupId>
-            <artifactId>polyguice-core</artifactId>
-            <version>${polyguice.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-core</artifactId>
-            <version>${io.dropwizard.metrics.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.flipkart.flux</groupId>
-            <artifactId>api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.flipkart.flux</groupId>
-            <artifactId>common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.flipkart.flux</groupId>
-            <artifactId>common</artifactId>
-            <version>${project.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.flipkart.flux</groupId>
-            <artifactId>persistence-mysql</artifactId>
-            <version>${project.version}</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -132,14 +87,6 @@
                 <configuration>
                     <source>${jdk.version}</source>
                     <target>${jdk.version}</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.18.1</version>
-                <configuration>
-                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
                 </configuration>
             </plugin>
         </plugins>
