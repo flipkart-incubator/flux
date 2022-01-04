@@ -1,3 +1,8 @@
+## 1.2.5-SNAPSHOT (Jan 4, 2022)
+- **Changes:**
+  - Support for Versioned Workflow / Replay Events
+  - Isolation of Orchestration and Execution cluster, ability to run in Combined mode
+  
 ## 1.2.0 (Oct 27, 2017) - Beta
 - **Changes:**
   - Few DB Schema Changes to accomodate new feature set like ScheduledEvents, Dynamic conditioning, stateMachine cancellation.
