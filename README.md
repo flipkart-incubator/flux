@@ -7,7 +7,7 @@ Flux quick introduction video is available [here](https://www.youtube.com/watch?
 ## Releases
 | Release | Date | Description |
 |:---------------------------------|:--------------|:------------|
-| Version 1.2.5-SNAPSHOT           | Jan 2022      |  Versioned workflows, multiple runtime modes
+| Version 1.2.5                    | Feb 2022      |  Versioned workflows, multiple runtime modes
 | Version 1.2.1(stable)(tag 1.2.1) | Oct 2017      |  new features set
 | Version 1.2.0(beta)              | Oct 2017      |  new features set
 | Version 1.0.1                    | Feb 2017      |  Bug fixes

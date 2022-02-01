@@ -1,4 +1,4 @@
-## 1.2.5-SNAPSHOT (Jan 4, 2022)
+## 1.2.5 (Feb 1, 2022)
 - **Changes:**
   - Support for Versioned Workflow / Replay Events
   - Isolation of Orchestration and Execution cluster, ability to run in Combined mode
