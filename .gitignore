@@ -12,3 +12,4 @@ target/
 *.versionsBac
 logs
 /.metadata/
+/pom.xml.versionsBackup

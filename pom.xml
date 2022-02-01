@@ -6,7 +6,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.flipkart</groupId>
 	<artifactId>flux</artifactId>
-	<version>1.2.5-SNAPSHOT</version>
+	<version>1.2.5</version>
 	<packaging>pom</packaging>
 
 	<name>flux</name>
