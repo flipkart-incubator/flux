@@ -21,7 +21,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.flipkart.flux.FluxRuntimeRole;
-import com.flipkart.flux.MigrationUtil.MigrationsRunner;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.guice.module.AkkaModule;
@@ -33,6 +32,7 @@ import com.flipkart.flux.guice.module.ExecutionTaskModule;
 import com.flipkart.flux.guice.module.OrchestrationTaskModule;
 import com.flipkart.flux.guice.module.OrchestratorContainerModule;
 import com.flipkart.flux.guice.module.ShardModule;
+import com.flipkart.flux.migration.MigrationsRunner;
 import com.flipkart.polyguice.core.support.Polyguice;
 
 /**
