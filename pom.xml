@@ -6,7 +6,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.flipkart</groupId>
 	<artifactId>flux</artifactId>
-	<version>1.2.5</version>
+	<version>1.2.6-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>flux</name>
@@ -51,7 +51,7 @@
 		<maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
 		<maven-jar-plugin.version>2.2</maven-jar-plugin.version>
 		<junit.version>4.12</junit.version>
-		<hibernate.version>5.1.0.Final</hibernate.version>
+		<hibernate.version>5.3.2.Final</hibernate.version>
 		<guice.version>4.0</guice.version>
 		<polyguice.version>1.0.2-SNAPSHOT.patched</polyguice.version>
 		<javax.inject.version>1</javax.inject.version>
@@ -113,6 +113,7 @@
 		<module>model</module>
 		<module>common</module>
 		<module>scheduler</module>
+		<module>persistence</module>
 		<module>persistence-mysql</module>
 		<module>runtime</module>
 		<module>task</module>

@@ -62,5 +62,4 @@ public class RuntimeConstants {
 
     public static final String DEPENDENT_EVENTS_MESSAGE_TASK_CANCELLATION = "Not applicable";
 
-    public static final int ERROR_MSG_LENGTH_IN_AUDIT = 995;
 }

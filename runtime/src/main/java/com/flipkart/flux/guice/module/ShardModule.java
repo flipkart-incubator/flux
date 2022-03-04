@@ -13,16 +13,47 @@
 
 package com.flipkart.flux.guice.module;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import javax.inject.Provider;
+import javax.transaction.Transactional;
+
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.core.FluxError;
 import com.flipkart.flux.clientelb.dao.ClientElbDAOImpl;
 import com.flipkart.flux.clientelb.dao.iface.ClientElbDAO;
-import com.flipkart.flux.dao.*;
-import com.flipkart.flux.dao.iface.*;
-import com.flipkart.flux.domain.*;
+import com.flipkart.flux.domain.AuditRecord;
+import com.flipkart.flux.domain.ClientElb;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.domain.State;
+import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.StateTraversalPath;
 import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
+import com.flipkart.flux.persistence.AuditEntityManager;
 import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.StateMachineEntityManager;
+import com.flipkart.flux.persistence.dao.iface.AuditDAO;
+import com.flipkart.flux.persistence.dao.iface.AuditDAOV1;
+import com.flipkart.flux.persistence.dao.iface.EventsDAO;
+import com.flipkart.flux.persistence.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.persistence.dao.iface.StateMachinesDAOV1;
+import com.flipkart.flux.persistence.dao.iface.StateTraversalPathDAO;
+import com.flipkart.flux.persistence.dao.iface.StatesDAO;
+import com.flipkart.flux.persistence.dao.impl.AuditDAOImpl;
+import com.flipkart.flux.persistence.dao.impl.AuditDAOV1Impl;
+import com.flipkart.flux.persistence.dao.impl.EventsDAOImpl;
+import com.flipkart.flux.persistence.dao.impl.StateMachinesDAOImpl;
+import com.flipkart.flux.persistence.dao.impl.StateMachinesDAOV1Impl;
+import com.flipkart.flux.persistence.dao.impl.StateTraversalPathDAOImpl;
+import com.flipkart.flux.persistence.dao.impl.StatesDAOImpl;
 import com.flipkart.flux.persistence.impl.SessionFactoryContextImpl;
 import com.flipkart.flux.redriver.dao.MessageDao;
 import com.flipkart.flux.redriver.model.ScheduledMessage;
@@ -39,12 +70,6 @@ import com.google.inject.Singleton;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
-import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
-
-import javax.inject.Provider;
-import javax.transaction.Transactional;
-import java.util.*;
 
 /**
  * <code>ShardModule</code> is a Guice {@link AbstractModule} implementation used for wiring SessionFactory, DAO and Interceptor classes for the shards.
@@ -66,8 +91,10 @@ public class ShardModule extends AbstractModule {
     protected void configure() {
         //bind entity classes
         bind(AuditDAO.class).to(AuditDAOImpl.class).in(Singleton.class);
+        bind(AuditDAOV1.class).to(AuditDAOV1Impl.class).in(Singleton.class);
         bind(EventsDAO.class).to(EventsDAOImpl.class).in(Singleton.class);
         bind(StateMachinesDAO.class).to(StateMachinesDAOImpl.class).in(Singleton.class);
+        bind(StateMachinesDAOV1.class).to(StateMachinesDAOV1Impl.class).in(Singleton.class);
         bind(StatesDAO.class).to(StatesDAOImpl.class).in(Singleton.class);
         bind(ClientElbDAO.class).to(ClientElbDAOImpl.class).in(Singleton.class);
         bind(StateTraversalPathDAO.class).to(StateTraversalPathDAOImpl.class).in(Singleton.class);
@@ -82,6 +109,9 @@ public class ShardModule extends AbstractModule {
                 Matchers.annotatedWith(Transactional.class), transactionInterceptor);
         bindInterceptor(Matchers.not(Matchers.inPackage(ScheduledMessage.class.getPackage())),
                 Matchers.annotatedWith(Transactional.class), transactionInterceptor);
+        
+        requestStaticInjection(StateMachineEntityManager.class);
+        requestStaticInjection(AuditEntityManager.class);
     }
 
     @Provides

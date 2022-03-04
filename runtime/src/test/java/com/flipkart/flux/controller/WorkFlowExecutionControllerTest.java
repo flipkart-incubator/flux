@@ -15,16 +15,32 @@
 package com.flipkart.flux.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.anyObject;
-import static org.mockito.Mockito.anyString;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.testkit.TestActorRef;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import javax.ws.rs.core.Response;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.MockActorRef;
 import com.flipkart.flux.api.EventData;
@@ -33,11 +49,6 @@ import com.flipkart.flux.api.ExecutionUpdateData;
 import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.api.core.TaskExecutionMessage;
 import com.flipkart.flux.constant.RuntimeConstants;
-import com.flipkart.flux.dao.iface.AuditDAO;
-import com.flipkart.flux.dao.iface.EventsDAO;
-import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
-import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
@@ -48,28 +59,21 @@ import com.flipkart.flux.exception.TraversalPathException;
 import com.flipkart.flux.impl.message.TaskAndEvents;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.flipkart.flux.metrics.iface.MetricsClient;
+import com.flipkart.flux.persistence.dao.iface.AuditDAO;
+import com.flipkart.flux.persistence.dao.iface.EventsDAO;
+import com.flipkart.flux.persistence.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.persistence.dao.iface.StateTraversalPathDAO;
+import com.flipkart.flux.persistence.dao.iface.StatesDAO;
 import com.flipkart.flux.representation.ClientElbPersistenceService;
 import com.flipkart.flux.representation.ReplayEventPersistenceService;
 import com.flipkart.flux.task.redriver.RedriverRegistry;
 import com.flipkart.flux.taskDispatcher.ExecutionNodeTaskDispatcher;
 import com.flipkart.flux.util.TestUtils;
 import com.typesafe.config.ConfigFactory;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import javax.ws.rs.core.Response;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.testkit.TestActorRef;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WorkFlowExecutionControllerTest {

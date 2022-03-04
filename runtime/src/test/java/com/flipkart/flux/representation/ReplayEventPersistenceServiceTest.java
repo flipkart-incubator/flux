@@ -3,6 +3,15 @@ package com.flipkart.flux.representation;
 import static com.flipkart.flux.constant.RuntimeConstants.MAX_REPLAYABLE_RETRIES;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.api.EventData;
@@ -10,10 +19,6 @@ import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.constant.RuntimeConstants;
-import com.flipkart.flux.dao.iface.AuditDAO;
-import com.flipkart.flux.dao.iface.EventsDAO;
-import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.Event.EventStatus;
 import com.flipkart.flux.domain.State;
@@ -23,16 +28,13 @@ import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.OrchestrationTaskModule;
 import com.flipkart.flux.guice.module.ShardModule;
 import com.flipkart.flux.module.RuntimeTestModule;
+import com.flipkart.flux.persistence.dao.iface.AuditDAO;
+import com.flipkart.flux.persistence.dao.iface.EventsDAO;
+import com.flipkart.flux.persistence.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.persistence.dao.iface.StatesDAO;
 import com.flipkart.flux.rule.DbClearWithTestSMRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
-import java.util.ArrayList;
-import java.util.List;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * <code>ReplayEventPersistenceServiceTest</code> class tests the functionality of {@link

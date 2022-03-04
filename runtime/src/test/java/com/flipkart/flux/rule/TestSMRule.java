@@ -13,15 +13,17 @@
 
 package com.flipkart.flux.rule;
 
-import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.domain.State;
-import com.flipkart.flux.domain.StateMachine;
-import org.junit.rules.ExternalResource;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.HashSet;
-import java.util.Set;
+
+import org.junit.rules.ExternalResource;
+
+import com.flipkart.flux.domain.State;
+import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.persistence.dao.iface.StateMachinesDAO;
 
 /**
  * <code>TestSMRule</code> is a Junit Rule which creates a state machine.

@@ -20,10 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.constant.RuntimeConstants;
-import com.flipkart.flux.dao.iface.AuditDAO;
-import com.flipkart.flux.dao.iface.EventsDAO;
-import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
@@ -35,6 +31,10 @@ import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.Storage;
+import com.flipkart.flux.persistence.dao.iface.AuditDAO;
+import com.flipkart.flux.persistence.dao.iface.EventsDAO;
+import com.flipkart.flux.persistence.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.persistence.dao.iface.StatesDAO;
 import com.google.inject.name.Named;
 
 /**

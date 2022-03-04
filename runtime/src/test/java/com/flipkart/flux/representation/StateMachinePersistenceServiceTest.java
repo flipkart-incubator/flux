@@ -17,6 +17,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
 import com.flipkart.flux.api.EventDefinition;
@@ -25,9 +40,6 @@ import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.constant.RuntimeConstants;
-import com.flipkart.flux.dao.iface.AuditDAO;
-import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.domain.Context;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
@@ -39,20 +51,10 @@ import com.flipkart.flux.guice.module.OrchestrationTaskModule;
 import com.flipkart.flux.guice.module.ShardModule;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.module.RuntimeTestModule;
+import com.flipkart.flux.persistence.dao.iface.AuditDAO;
+import com.flipkart.flux.persistence.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.persistence.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.runner.Modules;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 /**
  * @author shyam.akirala

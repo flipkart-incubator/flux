@@ -91,7 +91,7 @@ public class State {
     /**
      * List of event names this state is dependent on
      */
-    @Type(type = "ListJsonType")
+    @Type(type = "ListJsonType") // This dependency on Hibernate is not a good option, however don't have a replacement for this in JPA
     private List<String> dependencies;
 
     private String outputEvent;

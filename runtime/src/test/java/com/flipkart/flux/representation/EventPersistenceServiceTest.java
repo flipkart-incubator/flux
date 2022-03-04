@@ -12,8 +12,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventDefinition;
-import com.flipkart.flux.dao.iface.EventsDAO;
 import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.persistence.dao.iface.EventsDAO;
 
 
 /**

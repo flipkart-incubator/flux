@@ -13,11 +13,12 @@
 
 package com.flipkart.flux.representation;
 
-import com.flipkart.flux.api.EventDefinition;
-import com.flipkart.flux.dao.iface.EventsDAO;
-import com.flipkart.flux.domain.Event;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+
+import com.flipkart.flux.api.EventDefinition;
+import com.flipkart.flux.domain.Event;
+import com.flipkart.flux.persistence.dao.iface.EventsDAO;
 
 /**
  * <code>EventPersistenceService</code> class converts user provided Event entity definition to

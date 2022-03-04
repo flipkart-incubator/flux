@@ -18,6 +18,7 @@ import static com.flipkart.flux.constant.RuntimeConstants.DEFAULT_ELB_ID;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -58,12 +59,6 @@ import com.flipkart.flux.api.VersionedEventData;
 import com.flipkart.flux.client.runtime.EventProxyConnector;
 import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
-import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
-import com.flipkart.flux.dao.iface.AuditDAO;
-import com.flipkart.flux.dao.iface.EventsDAO;
-import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
-import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Context;
 import com.flipkart.flux.domain.Event;
@@ -79,9 +74,18 @@ import com.flipkart.flux.exception.ReplayableRetryExhaustException;
 import com.flipkart.flux.exception.TraversalPathException;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.metrics.iface.MetricsClient;
+import com.flipkart.flux.persistence.AuditEntityManager;
 import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
+import com.flipkart.flux.persistence.StateMachineEntityManager;
 import com.flipkart.flux.persistence.Storage;
+import com.flipkart.flux.persistence.dao.iface.AuditDAO;
+import com.flipkart.flux.persistence.dao.iface.EventsDAO;
+import com.flipkart.flux.persistence.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.persistence.dao.iface.StateTraversalPathDAO;
+import com.flipkart.flux.persistence.dao.iface.StatesDAO;
+import com.flipkart.flux.persistence.dao.impl.ParallelScatterGatherQueryHelper;
+import com.flipkart.flux.persistence.key.FSMId;
 import com.flipkart.flux.representation.IllegalRepresentationException;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
@@ -117,12 +121,14 @@ public class StateMachineResource {
   private WorkFlowExecutionController workFlowExecutionController;
 
   private StateMachinesDAO stateMachinesDAO;
+  private StateMachineEntityManager smEntityManager;
 
   private StatesDAO statesDAO;
 
   private EventsDAO eventsDAO;
 
   private AuditDAO auditDAO;
+  private AuditEntityManager auditEntityManager;
 
   private EventSchedulerRegistry eventSchedulerRegistry;
 
@@ -141,8 +147,8 @@ public class StateMachineResource {
   @Inject
   public StateMachineResource(EventsDAO eventsDAO,
       StateMachinePersistenceService stateMachinePersistenceService,
-      AuditDAO auditDAO, StateMachinesDAO stateMachinesDAO, StatesDAO statesDAO,
-      WorkFlowExecutionController workFlowExecutionController, MetricsClient metricsClient,
+      AuditDAO auditDAO, AuditEntityManager auditEntityManager, StateMachinesDAO stateMachinesDAO, StateMachineEntityManager smEntityManager,
+      StatesDAO statesDAO, WorkFlowExecutionController workFlowExecutionController, MetricsClient metricsClient,
       ParallelScatterGatherQueryHelper parallelScatterGatherQueryHelper,
       EventSchedulerRegistry eventSchedulerRegistry,
       EventProxyConnector eventProxyConnector,
@@ -152,8 +158,10 @@ public class StateMachineResource {
     this.eventsDAO = eventsDAO;
     this.stateMachinePersistenceService = stateMachinePersistenceService;
     this.stateMachinesDAO = stateMachinesDAO;
+    this.smEntityManager = smEntityManager;
     this.statesDAO = statesDAO;
     this.auditDAO = auditDAO;
+    this.auditEntityManager = auditEntityManager;
     this.eventSchedulerRegistry = eventSchedulerRegistry;
     this.workFlowExecutionController = workFlowExecutionController;
     this.objectMapper = new ObjectMapper();
@@ -1069,7 +1077,8 @@ public class StateMachineResource {
     String fsmId = machineId;
 
     StateMachine stateMachine;
-    stateMachine = stateMachinesDAO.findById(fsmId);
+    //stateMachine = stateMachinesDAO.findById(fsmId);
+    stateMachine = smEntityManager.findEntity(new FSMId(fsmId));
 
     if (stateMachine == null) {
       throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND)
@@ -1147,7 +1156,8 @@ public class StateMachineResource {
       fsmGraph.addInitStateEdge(initEdge);
     });
 
-    fsmGraph.setAuditData(auditDAO.findBySMInstanceId(stateMachine.getId()));
+    //fsmGraph.setAuditData(auditDAO.findBySMInstanceId(stateMachine.getId()));
+    fsmGraph.setAuditData(Arrays.asList(auditEntityManager.findEntitities(new FSMId(stateMachine.getId()))));
 
     return fsmGraph;
   }

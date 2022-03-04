@@ -14,6 +14,7 @@
 package com.flipkart.flux.guice.interceptor;
 
 import javax.inject.Provider;
+import javax.persistence.PersistenceException;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -30,6 +31,7 @@ import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.shard.ShardId;
+import com.flipkart.flux.shard.ShardedEntity;
 
 /**
  * @author shyam.akirala
@@ -91,6 +93,16 @@ public class TransactionInterceptor implements MethodInterceptor {
                                 // whose sessionFactory will be used
                                 case READ_ONLY: {
                                     Object[] args = invocation.getArguments();
+                                    //TODO remove this hack
+                                    if (args[0] instanceof ShardedEntity) {
+                                    	ShardedEntity shardedEntity = (ShardedEntity)args[0];
+                                    	if (shardedEntity.getShardId() != null) {
+                                            sessionFactory = context.getROSessionFactory(shardedEntity.getShardId());                                    		
+                                    	} else {
+                                            sessionFactory = context.getRWSessionFactory(CryptHashGenerator.getUniformCryptHash(shardedEntity.getShardKey()));                                    		
+                                    	}
+                                    	break;
+                                    }
                                     ShardId shardId = (ShardId) args[0];
                                     sessionFactory = context.getROSessionFactory(shardId);
                                     break;
@@ -99,6 +111,16 @@ public class TransactionInterceptor implements MethodInterceptor {
                                 // which will determine to which shard the query should go to.
                                 case READ_WRITE: {
                                     Object[] args = invocation.getArguments();
+                                    //TODO remove this hack
+                                    if (args[0] instanceof ShardedEntity) {
+                                    	ShardedEntity shardedEntity = (ShardedEntity)args[0];
+                                    	if (shardedEntity.getShardId() != null) {
+                                            sessionFactory = context.getROSessionFactory(shardedEntity.getShardId());                                    		
+                                    	} else {
+                                            sessionFactory = context.getRWSessionFactory(CryptHashGenerator.getUniformCryptHash(shardedEntity.getShardKey()));                                    		
+                                    	}
+                                    	break;
+                                    }
                                     shardKey = (String) args[0];
                                     String shardKeyPrefix = CryptHashGenerator.getUniformCryptHash(shardKey);
                                     sessionFactory = context.getRWSessionFactory(shardKeyPrefix);
@@ -106,9 +128,9 @@ public class TransactionInterceptor implements MethodInterceptor {
                                 }
                             }
                         } catch (Exception ex) {
-                            logger.error("Current Transactional Method doesn't have annotation @SelectDataSource Method_name:{} {}"
-                                    , invocation.getMethod().getName(), ex.getStackTrace());
-                            return new Error("Something wrong with Method's annotations " + ex.getMessage());
+                            logger.error("Error reading Transactional Method with annotation @SelectDataSource Method_name:{} "
+                                    , invocation.getMethod().getName(), ex);
+                            return new PersistenceException("Something wrong with Method's annotations " + ex.getMessage(), ex);
                         }
                         break;
                     }

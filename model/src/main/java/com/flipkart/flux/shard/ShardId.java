@@ -13,7 +13,8 @@
 
 package com.flipkart.flux.shard;
 
-/* Unique numeric Identifier for a Particular MySQl shard
+/**
+ * Unique numeric Identifier for a Particular MySQl shard
  * @author amitkumar.o
  */
 public class ShardId {
@@ -36,11 +37,8 @@ public class ShardId {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ShardId)) return false;
-
         ShardId shardId1 = (ShardId) o;
-
         return getShardId() == shardId1.getShardId();
-
     }
 
     @Override

@@ -40,9 +40,6 @@ import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.constant.RuntimeConstants;
-import com.flipkart.flux.dao.iface.AuditDAO;
-import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Context;
 import com.flipkart.flux.domain.Event;
@@ -54,6 +51,9 @@ import com.flipkart.flux.exception.CreateStateMachineException;
 import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.Storage;
+import com.flipkart.flux.persistence.dao.iface.AuditDAO;
+import com.flipkart.flux.persistence.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.persistence.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.utils.SearchUtil;
 
 /**

@@ -13,31 +13,32 @@
 
 package com.flipkart.flux.dao;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
-import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.StateTraversalPath;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.OrchestrationTaskModule;
 import com.flipkart.flux.guice.module.ShardModule;
 import com.flipkart.flux.module.RuntimeTestModule;
+import com.flipkart.flux.persistence.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.persistence.dao.iface.StateTraversalPathDAO;
 import com.flipkart.flux.rule.DbClearWithTestSMRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
 import com.flipkart.flux.util.TestUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * <code>StateTraversalPathDAOTest</code> class tests the functionality of {@link StateTraversalPathDAO} using JUnit tests.

@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.flipkart</groupId>
+        <artifactId>flux</artifactId>
+        <version>1.2.6-SNAPSHOT</version>
+    </parent>
+
+    <groupId>com.flipkart.flux</groupId>
+    <artifactId>persistence</artifactId>
+    <name>persistence</name>
+    <url>http://maven.apache.org</url>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <distributionManagement>
+        <repository>
+            <id>clojars</id>
+            <name>Clojars repository</name>
+            <url>https://clojars.org/repo</url>
+        </repository>
+    </distributionManagement>
+
+    <scm>
+        <url>https://github.com/flipkart-incubator/flux</url>
+        <connection>https://github.com/flipkart-incubator/flux.git</connection>
+    </scm>
+
+    <dependencies>
+		<!-- Flux dependencies -->
+		<dependency>
+			<groupId>com.flipkart.flux</groupId>
+			<artifactId>model</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.flipkart.flux</groupId>
+			<artifactId>common</artifactId>
+			<version>${project.version}</version>
+		</dependency>		
+		<dependency>
+			<groupId>com.flipkart.flux</groupId>
+			<artifactId>api</artifactId>
+			<version>${project.version}</version>
+		</dependency>		
+		<!-- Third party dependencies -->
+		<dependency>
+			<groupId>javax.transaction</groupId>
+			<artifactId>javax.transaction-api</artifactId>
+			<version>${javax.transaction-api.version}</version>
+		</dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.*</include>
+                </includes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven-jar-plugin.version}</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                        </manifest>
+                    </archive>
+                    <includes>
+                        <include>com/**/*</include>
+                    </includes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${jdk.version}</source>
+                    <target>${jdk.version}</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

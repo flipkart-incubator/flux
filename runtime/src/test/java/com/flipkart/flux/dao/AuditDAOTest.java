@@ -24,8 +24,6 @@ import org.junit.runner.RunWith;
 import com.flipkart.flux.InjectFromRole;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
-import com.flipkart.flux.constant.RuntimeConstants;
-import com.flipkart.flux.dao.iface.AuditDAO;
 import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
@@ -34,6 +32,7 @@ import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.OrchestrationTaskModule;
 import com.flipkart.flux.guice.module.ShardModule;
 import com.flipkart.flux.module.RuntimeTestModule;
+import com.flipkart.flux.persistence.dao.iface.AuditDAO;
 import com.flipkart.flux.rule.DbClearWithTestSMRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
 import com.flipkart.flux.runner.Modules;
@@ -92,7 +91,7 @@ public class AuditDAOTest {
         Long recordId = auditDAO.create(stateMachine.getId(), auditRecord).getId();
 
         AuditRecord auditRecord1 = auditDAO.findById(stateMachine.getId(), recordId);
-        assertThat(auditRecord1.getErrors().length()).isEqualTo(RuntimeConstants.ERROR_MSG_LENGTH_IN_AUDIT);
+        assertThat(auditRecord1.getErrors().length()).isEqualTo(AuditDAO.ERROR_MSG_LENGTH_IN_AUDIT);
     }
 
     @Test

@@ -16,6 +16,25 @@ package com.flipkart.flux.resource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import java.sql.Timestamp;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpStatus;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.FluxRuntimeRole;
 import com.flipkart.flux.InjectFromRole;
@@ -23,12 +42,7 @@ import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.constant.RuntimeConstants;
-import com.flipkart.flux.dao.ParallelScatterGatherQueryHelper;
 import com.flipkart.flux.dao.TestWorkflow;
-import com.flipkart.flux.dao.iface.EventsDAO;
-import com.flipkart.flux.dao.iface.StateMachinesDAO;
-import com.flipkart.flux.dao.iface.StateTraversalPathDAO;
-import com.flipkart.flux.dao.iface.StatesDAO;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
@@ -46,6 +60,11 @@ import com.flipkart.flux.initializer.ExecutionOrderedComponentBooter;
 import com.flipkart.flux.initializer.OrchestrationOrderedComponentBooter;
 import com.flipkart.flux.module.DeploymentUnitTestModule;
 import com.flipkart.flux.module.RuntimeTestModule;
+import com.flipkart.flux.persistence.dao.iface.EventsDAO;
+import com.flipkart.flux.persistence.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.persistence.dao.iface.StateTraversalPathDAO;
+import com.flipkart.flux.persistence.dao.iface.StatesDAO;
+import com.flipkart.flux.persistence.dao.impl.ParallelScatterGatherQueryHelper;
 import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.flipkart.flux.rule.DbClearRule;
 import com.flipkart.flux.runner.GuiceJunit4Runner;
@@ -54,22 +73,6 @@ import com.flipkart.flux.util.TestUtils;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import javax.ws.rs.core.Response;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpStatus;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 @RunWith(GuiceJunit4Runner.class)
 @Modules(orchestrationModules = {FluxClientComponentModule.class, OrchestrationTaskModule.class,
