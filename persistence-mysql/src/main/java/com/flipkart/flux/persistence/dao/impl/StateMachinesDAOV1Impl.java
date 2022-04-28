@@ -140,7 +140,7 @@ public class StateMachinesDAOV1Impl extends AbstractDAO<StateMachine> implements
     	cu.set("executionVersion", versionUpdate.version);
     	cu.where(cb.equal(root.get("id"), versionUpdate.fsmId.statemachineId));
     	currentSession().createQuery(cu).executeUpdate();
-    }    
+    }
 	
 	
 }

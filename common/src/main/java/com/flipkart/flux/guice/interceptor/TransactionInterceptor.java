@@ -26,10 +26,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
 import com.flipkart.flux.persistence.CryptHashGenerator;
-import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.SessionFactoryContext;
-import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.shard.ShardId;
 import com.flipkart.flux.shard.ShardedEntity;
 
@@ -83,47 +81,58 @@ public class TransactionInterceptor implements MethodInterceptor {
             SessionFactory sessionFactory = null;
 
             try {
-                Storage storage = invocation.getMethod().getAnnotation(SelectDataSource.class).storage();
-                switch (storage) {
+            	SelectDataSource ds = invocation.getMethod().getAnnotation(SelectDataSource.class);
+                switch ( ds.storage()) {
                     case SHARDED: {
                         try {
-                            DataSourceType dataSourceType = invocation.getMethod().getAnnotation(SelectDataSource.class).type();
-                            switch (dataSourceType) {
+                            switch (ds.type()) {
                                 // in this case invocation method will provide shardKey as the first argument,
                                 // whose sessionFactory will be used
                                 case READ_ONLY: {
+                                	ShardedEntity shardedEntity = null;                                	
                                     Object[] args = invocation.getArguments();
+                                    for (Object arg : args) {
+                                    	if (ShardedEntity.class.isAssignableFrom(arg.getClass())) {
+                                    		shardedEntity = (ShardedEntity)arg;
+                                    		break;
+                                    	}
+                                    }
                                     //TODO remove this hack
-                                    if (args[0] instanceof ShardedEntity) {
-                                    	ShardedEntity shardedEntity = (ShardedEntity)args[0];
+                                    if (shardedEntity != null) {
                                     	if (shardedEntity.getShardId() != null) {
                                             sessionFactory = context.getROSessionFactory(shardedEntity.getShardId());                                    		
                                     	} else {
                                             sessionFactory = context.getRWSessionFactory(CryptHashGenerator.getUniformCryptHash(shardedEntity.getShardKey()));                                    		
                                     	}
-                                    	break;
+                                    } else {
+	                                    ShardId shardId = (ShardId) args[0];
+	                                    sessionFactory = context.getROSessionFactory(shardId);
                                     }
-                                    ShardId shardId = (ShardId) args[0];
-                                    sessionFactory = context.getROSessionFactory(shardId);
                                     break;
                                 }
                                 // in this case invocation method will provide shardKey i.e stateMachineId, as the first argument,
                                 // which will determine to which shard the query should go to.
                                 case READ_WRITE: {
+                                	ShardedEntity shardedEntity = null;                                	
                                     Object[] args = invocation.getArguments();
+                                    for (Object arg : args) {
+                                    	if (ShardedEntity.class.isAssignableFrom(arg.getClass())) {
+                                    		shardedEntity = (ShardedEntity)arg;
+                                    		break;
+                                    	}
+                                    }
                                     //TODO remove this hack
-                                    if (args[0] instanceof ShardedEntity) {
-                                    	ShardedEntity shardedEntity = (ShardedEntity)args[0];
+                                    if (shardedEntity != null) {
                                     	if (shardedEntity.getShardId() != null) {
                                             sessionFactory = context.getROSessionFactory(shardedEntity.getShardId());                                    		
                                     	} else {
                                             sessionFactory = context.getRWSessionFactory(CryptHashGenerator.getUniformCryptHash(shardedEntity.getShardKey()));                                    		
                                     	}
-                                    	break;
+                                    } else {
+	                                    shardKey = (String) args[0];
+	                                    String shardKeyPrefix = CryptHashGenerator.getUniformCryptHash(shardKey);
+	                                    sessionFactory = context.getRWSessionFactory(shardKeyPrefix);
                                     }
-                                    shardKey = (String) args[0];
-                                    String shardKeyPrefix = CryptHashGenerator.getUniformCryptHash(shardKey);
-                                    sessionFactory = context.getRWSessionFactory(shardKeyPrefix);
                                     break;
                                 }
                             }

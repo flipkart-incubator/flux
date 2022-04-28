@@ -13,10 +13,14 @@
 
 package com.flipkart.flux.persistence.dao.impl;
 
-import com.flipkart.flux.persistence.SessionFactoryContext;
+import java.lang.reflect.ParameterizedType;
+
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
+
+import com.flipkart.flux.persistence.SessionFactoryContext;
+import com.flipkart.flux.persistence.dao.iface.DAO;
 
 /**
  * <code>AbstractDAO</code> class provides methods to perform CRUD operations on an object using Hibernate.
@@ -137,4 +141,14 @@ public abstract class AbstractDAO<T> {
     public void delete(T object) {
         currentSession().delete(object);
     }
+    
+    /**
+     * Implementation for {@link DAO}{@link #getPersistedEntityType()}
+     * @return
+     */
+	@SuppressWarnings("rawtypes")
+	public Class getPersistedEntityType() {
+		return ((Class)((ParameterizedType)getClass().getGenericSuperclass()).getActualTypeArguments()[0]);
+	}    
+    
 }

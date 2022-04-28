@@ -12,11 +12,15 @@
  */
 package com.flipkart.flux.persistence;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.persistence.PersistenceException;
 import javax.transaction.Transactional;
 
 import com.flipkart.flux.persistence.dao.iface.DAO;
+import com.flipkart.flux.shard.ShardedEntity;
 
 /**
  * A JPA inspired EntityManager for managing persistence operations on entities. Demarcates transaction boundaries for the data operations.
@@ -24,7 +28,7 @@ import com.flipkart.flux.persistence.dao.iface.DAO;
  * @author regu.b
  *
  */
-public class EntityManager<T> {
+public abstract class EntityManager<T> {
 
 	/** The DAO instance for performing the persistence operations*/
 	private DAO<T> dao;
@@ -47,15 +51,34 @@ public class EntityManager<T> {
 	}
 	
 	/**
-	 * Creates the specified entities
+	 * Creates the specified entities. Throws an exception for unsupported entities or when entities belonging to different shards are persisted.
 	 * @param entities the domain entities to persist
 	 * @return the persisted entities
 	 */
-    @Transactional
+	@Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
+    @SuppressWarnings("unchecked")
 	public Object[] create(Object[] entities) {
-		throw new PersistenceException("Generic bulk creation of entities is not supported!");
-	}
+    	List<Object> persistedEntities = new LinkedList<Object>();
+    	ShardedEntity uniqueShard = null;    	
+    	for (Object entity : entities) {
+    		if (ShardedEntity.class.isAssignableFrom(entity.getClass())) {
+    			ShardedEntity newShard = (ShardedEntity)entity;
+    			if (uniqueShard == null) {
+    				uniqueShard = newShard;
+    			} else if (!uniqueShard.equals(newShard)) {
+    				throw new PersistenceException("Attempt to persist entities belonging to two different shards : " + uniqueShard.toString() + "," + newShard.toString());
+    			}
+    		}
+    		if (entity.getClass().isAssignableFrom(dao.getPersistedEntityType())) {
+	    		throw new PersistenceException("Unable to persist unsupported entity type : " + entity.getClass().getName());
+    		}
+    	}
+    	for (Object entity : entities) {
+    		persistedEntities.add(dao.create((T)entity));
+    	}
+    	return (Object[])persistedEntities.toArray(new Object[0]);
+	}	
 
 	/**
 	 * Updates the specified entity

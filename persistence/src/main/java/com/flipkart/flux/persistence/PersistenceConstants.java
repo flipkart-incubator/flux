@@ -10,23 +10,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.flipkart.flux.persistence;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+public class PersistenceConstants {
 
-/**
- * Annotation to select a particular data source based on the usage pattern. To be used along with
- * {@link javax.transaction.Transactional}.
- * <p>
- * Created by gaurav.ashok on 24/11/16.
- */
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface SelectDataSource {
-    DataSourceType type() default DataSourceType.READ_WRITE;
-    Storage storage() default Storage.SHARDED;
+	public enum Operation {
+		Create, Update;
+	}
+	
 }

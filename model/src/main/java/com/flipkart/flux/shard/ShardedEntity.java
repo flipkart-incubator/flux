@@ -40,4 +40,25 @@ public abstract class ShardedEntity {
 	public void setShardKey(String shardKey) {
 		this.shardKey = shardKey;
 	}	
+	@Override
+	public boolean equals(Object object) {		
+		if (object == null || !ShardedEntity.class.isAssignableFrom(object.getClass())) {
+			return false;
+		}
+		ShardedEntity anotherEntity = (ShardedEntity)object;
+		if (this.getShardId() != null && anotherEntity.getShardId()!= null) {
+			return this.getShardId().equals(anotherEntity.getShardId());
+		}
+		if (this.getShardKey() != null && anotherEntity.getShardKey() != null) {
+			return this.getShardKey().equals(anotherEntity.getShardKey());
+		}
+		return false;
+	}
+	@Override
+	public String toString() {
+		return "ShardedEntity{" +
+                "shardId=" + shardId + 
+                ",shardKey=" + shardKey +
+                '}';
+	}
 }

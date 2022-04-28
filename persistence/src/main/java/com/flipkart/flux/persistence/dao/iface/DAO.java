@@ -53,4 +53,11 @@ public interface DAO <T> {
 	 */
 	public T[] findEntities (Object key);
 	
+	/**
+	 * Returns the type of the enity persisted by this DAO
+	 * @return Type of the entity persisted by this DAO
+	 */
+	@SuppressWarnings("rawtypes")
+	public Class getPersistedEntityType();
+	
 }
