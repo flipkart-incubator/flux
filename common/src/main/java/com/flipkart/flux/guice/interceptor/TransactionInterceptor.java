@@ -89,14 +89,8 @@ public class TransactionInterceptor implements MethodInterceptor {
                                 // in this case invocation method will provide shardKey as the first argument,
                                 // whose sessionFactory will be used
                                 case READ_ONLY: {
-                                	ShardedEntity shardedEntity = null;                                	
                                     Object[] args = invocation.getArguments();
-                                    for (Object arg : args) {
-                                    	if (ShardedEntity.class.isAssignableFrom(arg.getClass())) {
-                                    		shardedEntity = (ShardedEntity)arg;
-                                    		break;
-                                    	}
-                                    }
+                                	ShardedEntity shardedEntity = this.getShardedEntity(args);                                	
                                     //TODO remove this hack
                                     if (shardedEntity != null) {
                                     	if (shardedEntity.getShardId() != null) {
@@ -113,14 +107,8 @@ public class TransactionInterceptor implements MethodInterceptor {
                                 // in this case invocation method will provide shardKey i.e stateMachineId, as the first argument,
                                 // which will determine to which shard the query should go to.
                                 case READ_WRITE: {
-                                	ShardedEntity shardedEntity = null;                                	
                                     Object[] args = invocation.getArguments();
-                                    for (Object arg : args) {
-                                    	if (ShardedEntity.class.isAssignableFrom(arg.getClass())) {
-                                    		shardedEntity = (ShardedEntity)arg;
-                                    		break;
-                                    	}
-                                    }
+                                	ShardedEntity shardedEntity = this.getShardedEntity(args);                                	
                                     //TODO remove this hack
                                     if (shardedEntity != null) {
                                     	if (shardedEntity.getShardId() != null) {
@@ -182,5 +170,20 @@ public class TransactionInterceptor implements MethodInterceptor {
             return result;
         }
     }
+    
+    private ShardedEntity getShardedEntity(Object[] args) {
+    	for (Object arg : args) {
+    		if (ShardedEntity.class.isAssignableFrom(arg.getClass())){
+    			return (ShardedEntity)arg;
+    		} else if (Object[].class.isAssignableFrom(arg.getClass())) {
+    			ShardedEntity shardedEntity = getShardedEntity((Object[]) arg);
+    			if (shardedEntity != null) {
+    				return shardedEntity;
+    			}
+    		}
+    	}
+    	return null;
+    }
+    
 }
 

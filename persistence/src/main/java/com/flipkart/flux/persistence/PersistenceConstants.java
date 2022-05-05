@@ -18,4 +18,11 @@ public class PersistenceConstants {
 		Create, Update;
 	}
 	
+    /***
+     * default eventSource for replay event
+     */
+    public static final String REPLAY_EVENT = "flux_runtime_replay_internal";
+    
+    public static final Short MAX_REPLAYABLE_RETRIES = 5;    
+	
 }

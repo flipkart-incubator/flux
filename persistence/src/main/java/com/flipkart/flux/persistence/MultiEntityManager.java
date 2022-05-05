@@ -29,7 +29,7 @@ import com.flipkart.flux.utils.Pair;
  * @author regu.b
  *
  */
-public class MultiEntityManager {
+public abstract class MultiEntityManager {
 	
 	@SuppressWarnings("rawtypes")
 	private List<DAO> daos;
