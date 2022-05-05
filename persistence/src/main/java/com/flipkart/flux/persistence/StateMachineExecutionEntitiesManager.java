@@ -18,8 +18,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -36,12 +36,20 @@ import com.flipkart.flux.api.EventDefinition;
 import com.flipkart.flux.api.StateDefinition;
 import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.domain.AuditRecord;
+import com.flipkart.flux.domain.Context;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
+import com.flipkart.flux.domain.StateTraversalPath;
 import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.impl.RAMContext;
+import com.flipkart.flux.persistence.dao.iface.AuditDAOV1;
 import com.flipkart.flux.persistence.dao.iface.DAO;
+import com.flipkart.flux.persistence.dao.iface.EventsDAOV1;
+import com.flipkart.flux.persistence.dao.iface.StateMachinesDAOV1;
+import com.flipkart.flux.persistence.dao.iface.StateTraversalPathDAOV1;
 import com.flipkart.flux.persistence.key.FSMId;
+import com.flipkart.flux.utils.SearchUtil;
 
 /**
  * A persistence manager class for State Machine execution entities .
@@ -59,13 +67,24 @@ public class StateMachineExecutionEntitiesManager extends MultiEntityManager {
 	
     private Integer maxRetryCount;
     
+    private  SearchUtil searchUtil;
+    
 	/** Constructor */
 	@SuppressWarnings("rawtypes")
 	@Inject
-	public StateMachineExecutionEntitiesManager(List<DAO> daos, @Named("task.maxTaskRetryCount") Integer maxRetryCount) {
-		super(daos);
+	public StateMachineExecutionEntitiesManager(StateMachinesDAOV1 stateMachinesDAOV1, AuditDAOV1 auditDAOV1,
+            StateTraversalPathDAOV1 stateTraversalPathDAOV1,
+            EventsDAOV1 eventsDAOV1, @Named("task.maxTaskRetryCount") Integer maxRetryCount, SearchUtil searchUtil) {
+		List<DAO> daos = new LinkedList<DAO>();
+		daos.add(stateMachinesDAOV1);
+		daos.add(auditDAOV1);
+		daos.add(stateTraversalPathDAOV1);
+		daos.add(eventsDAOV1);
+		super.setDaos(daos);
 		this.maxRetryCount = maxRetryCount;
 		this.objectMapper = new ObjectMapper();
+		this.searchUtil = searchUtil;
+		System.out.println("Search util is : " + searchUtil);
 	}
 	
 	public StateMachine createStateMachine(FSMId fsmId, StateMachineDefinition stateMachineDefinition) {
@@ -95,13 +114,26 @@ public class StateMachineExecutionEntitiesManager extends MultiEntityManager {
             event.setStateMachineInstanceId(stateMachine.getId());
             createEntities.add(event);
         }
-
         //Add audit records for all the states for creation
         for (State state : stateMachine.getStates()) {
         	createEntities.add(new AuditRecord(stateMachine.getId(), state.getId(), 0L,
                     Status.initialized, null, null, 0L,
                     getDependentEvents(state.getDependencies(), 0L)));
         }
+        // add StateTraversal path entities
+        // Map to store result and return, this will help to test the functionality
+        Map<Long, List<Long>> replayStateTraversalPath = new HashMap<>();
+        Set<Long> replayableStateIds = filterReplayableStates(stateMachine.getStates());
+        Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
+        for (Long replayableStateId : replayableStateIds) {
+            List<Long> nextDependentStateIds = searchUtil.findStatesInTraversalPath(context, stateMachine,
+                    replayableStateId);
+            replayStateTraversalPath.put(replayableStateId, nextDependentStateIds);
+            //create and store traversal path for given replayable state
+            createEntities.add(new StateTraversalPath(stateMachine.getId(), replayableStateId,
+                        replayStateTraversalPath.get(replayableStateId)));
+        }
+        
         // create the entities in one Transaction scope
         super.create((Object[])createEntities.toArray(new Object[0]));
         return stateMachine;
@@ -242,4 +274,18 @@ public class StateMachineExecutionEntitiesManager extends MultiEntityManager {
         return dependentEvents.toString();
     }
 	
+    /**
+     * For given set of states, filter states which are marked as replayable.
+     * @param states
+     * @return
+     */
+    private Set<Long> filterReplayableStates(Set<State> states) {
+        Set<Long> replayableStateIds = new HashSet<>();
+        for (State state : states) {
+            if (state.getReplayable())
+                replayableStateIds.add(state.getId());
+        }
+        return replayableStateIds;
+    }
+    
 }

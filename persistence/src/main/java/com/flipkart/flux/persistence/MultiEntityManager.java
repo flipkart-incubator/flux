@@ -15,7 +15,6 @@ package com.flipkart.flux.persistence;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.inject.Inject;
 import javax.persistence.PersistenceException;
 import javax.transaction.Transactional;
 
@@ -35,9 +34,15 @@ public abstract class MultiEntityManager {
 	private List<DAO> daos;
 
 	/** Constructor */
+	public MultiEntityManager() {
+	}
+
 	@SuppressWarnings("rawtypes")
-	@Inject
-	public MultiEntityManager(List<DAO> daos) {
+	public List<DAO> getDaos() {
+		return daos;
+	}
+	@SuppressWarnings("rawtypes")
+	public void setDaos(List<DAO> daos) {
 		this.daos = daos;
 	}
 	

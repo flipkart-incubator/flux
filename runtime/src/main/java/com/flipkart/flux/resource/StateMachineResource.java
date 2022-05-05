@@ -78,6 +78,7 @@ import com.flipkart.flux.persistence.AuditEntityManager;
 import com.flipkart.flux.persistence.DataSourceType;
 import com.flipkart.flux.persistence.SelectDataSource;
 import com.flipkart.flux.persistence.StateMachineEntityManager;
+import com.flipkart.flux.persistence.StateMachineExecutionEntitiesManager;
 import com.flipkart.flux.persistence.Storage;
 import com.flipkart.flux.persistence.dao.iface.AuditDAO;
 import com.flipkart.flux.persistence.dao.iface.EventsDAO;
@@ -122,6 +123,7 @@ public class StateMachineResource {
 
   private StateMachinesDAO stateMachinesDAO;
   private StateMachineEntityManager smEntityManager;
+  private StateMachineExecutionEntitiesManager smExecutionEntitiesManager;
 
   private StatesDAO statesDAO;
 
@@ -148,6 +150,7 @@ public class StateMachineResource {
   public StateMachineResource(EventsDAO eventsDAO,
       StateMachinePersistenceService stateMachinePersistenceService,
       AuditDAO auditDAO, AuditEntityManager auditEntityManager, StateMachinesDAO stateMachinesDAO, StateMachineEntityManager smEntityManager,
+      StateMachineExecutionEntitiesManager smExecutionEntitiesManager,
       StatesDAO statesDAO, WorkFlowExecutionController workFlowExecutionController, MetricsClient metricsClient,
       ParallelScatterGatherQueryHelper parallelScatterGatherQueryHelper,
       EventSchedulerRegistry eventSchedulerRegistry,
@@ -159,6 +162,7 @@ public class StateMachineResource {
     this.stateMachinePersistenceService = stateMachinePersistenceService;
     this.stateMachinesDAO = stateMachinesDAO;
     this.smEntityManager = smEntityManager;
+    this.smExecutionEntitiesManager = smExecutionEntitiesManager;
     this.statesDAO = statesDAO;
     this.auditDAO = auditDAO;
     this.auditEntityManager = auditEntityManager;

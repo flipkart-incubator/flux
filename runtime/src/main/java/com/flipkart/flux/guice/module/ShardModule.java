@@ -40,19 +40,24 @@ import com.flipkart.flux.guice.interceptor.TransactionInterceptor;
 import com.flipkart.flux.persistence.AuditEntityManager;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.StateMachineEntityManager;
+import com.flipkart.flux.persistence.StateMachineExecutionEntitiesManager;
 import com.flipkart.flux.persistence.dao.iface.AuditDAO;
 import com.flipkart.flux.persistence.dao.iface.AuditDAOV1;
 import com.flipkart.flux.persistence.dao.iface.EventsDAO;
+import com.flipkart.flux.persistence.dao.iface.EventsDAOV1;
 import com.flipkart.flux.persistence.dao.iface.StateMachinesDAO;
 import com.flipkart.flux.persistence.dao.iface.StateMachinesDAOV1;
 import com.flipkart.flux.persistence.dao.iface.StateTraversalPathDAO;
+import com.flipkart.flux.persistence.dao.iface.StateTraversalPathDAOV1;
 import com.flipkart.flux.persistence.dao.iface.StatesDAO;
 import com.flipkart.flux.persistence.dao.impl.AuditDAOImpl;
 import com.flipkart.flux.persistence.dao.impl.AuditDAOV1Impl;
 import com.flipkart.flux.persistence.dao.impl.EventsDAOImpl;
+import com.flipkart.flux.persistence.dao.impl.EventsDAOV1Impl;
 import com.flipkart.flux.persistence.dao.impl.StateMachinesDAOImpl;
 import com.flipkart.flux.persistence.dao.impl.StateMachinesDAOV1Impl;
 import com.flipkart.flux.persistence.dao.impl.StateTraversalPathDAOImpl;
+import com.flipkart.flux.persistence.dao.impl.StateTraversalPathDAOV1Impl;
 import com.flipkart.flux.persistence.dao.impl.StatesDAOImpl;
 import com.flipkart.flux.persistence.impl.SessionFactoryContextImpl;
 import com.flipkart.flux.redriver.dao.MessageDao;
@@ -93,11 +98,13 @@ public class ShardModule extends AbstractModule {
         bind(AuditDAO.class).to(AuditDAOImpl.class).in(Singleton.class);
         bind(AuditDAOV1.class).to(AuditDAOV1Impl.class).in(Singleton.class);
         bind(EventsDAO.class).to(EventsDAOImpl.class).in(Singleton.class);
+        bind(EventsDAOV1.class).to(EventsDAOV1Impl.class).in(Singleton.class);
         bind(StateMachinesDAO.class).to(StateMachinesDAOImpl.class).in(Singleton.class);
         bind(StateMachinesDAOV1.class).to(StateMachinesDAOV1Impl.class).in(Singleton.class);
         bind(StatesDAO.class).to(StatesDAOImpl.class).in(Singleton.class);
         bind(ClientElbDAO.class).to(ClientElbDAOImpl.class).in(Singleton.class);
         bind(StateTraversalPathDAO.class).to(StateTraversalPathDAOImpl.class).in(Singleton.class);
+        bind(StateTraversalPathDAOV1.class).to(StateTraversalPathDAOV1Impl.class).in(Singleton.class);
 
         //bind Transactional Interceptor to intercept methods which are annotated with javax.transaction.Transactional
         Provider<SessionFactoryContext> provider = getProvider(Key.get(SessionFactoryContext.class,
@@ -112,6 +119,7 @@ public class ShardModule extends AbstractModule {
         
         requestStaticInjection(StateMachineEntityManager.class);
         requestStaticInjection(AuditEntityManager.class);
+        requestStaticInjection(StateMachineExecutionEntitiesManager.class);
     }
 
     @Provides
@@ -276,7 +284,6 @@ public class ShardModule extends AbstractModule {
         return new SessionFactoryContextImpl(fluxRWSessionFactoriesMap, fluxROSessionFactoriesMap, shardKeyToShardIdMap,
                 schedulerSessionFactory);
     }
-
 
     /**
      * Adds annotated classes and custom types to passed Hibernate configuration.

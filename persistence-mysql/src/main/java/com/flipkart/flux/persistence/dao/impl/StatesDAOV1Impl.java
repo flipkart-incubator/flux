@@ -138,14 +138,6 @@ public class StatesDAOV1Impl extends AbstractDAO<State> implements StatesDAOV1{
     	};    	
     	cq.select(root).where(restrictions);     	    	
     	return currentSession().createQuery(cq).setLockMode(LockModeType.PESSIMISTIC_WRITE).getSingleResult().getAttemptedNumOfReplayableRetries();
-    	/*
-        SQLQuery sqlQuery = currentSession().createSQLQuery(
-            "select " + COLUMN_ATTEMPTED_NUM_OF_REPLAYABLE_RETRIES + " from States where"
-                + " id = :stateId and stateMachineId = :stateMachineId "+ FOR_UPDATE);
-        sqlQuery.setLong("stateId", stateId);
-        sqlQuery.setString("stateMachineId",stateMachineId);
-        return Short.valueOf(sqlQuery.uniqueResult().toString());
-    	 */
     }
 	
     private void updateStatus(StateUpdate.StatusUpdate statusUpdate) {
@@ -159,20 +151,6 @@ public class StatesDAOV1Impl extends AbstractDAO<State> implements StatesDAOV1{
 		};
     	cu.where(restrictions);
     	currentSession().createQuery(cu).executeUpdate();    	
-    	/*
-        StringBuilder inClause = new StringBuilder();
-        if (stateIds!=null && stateIds.length > 0) {
-            inClause.append(" and id in (");
-            for (Long stateId : stateIds) {
-                inClause.append(stateId).append(",");
-            }
-        }
-        inClause.deleteCharAt(inClause.length() - 1).append(")");
-        Query query = currentSession().createQuery("update State set status = :status where stateMachineId = :stateMachineId".concat(inClause.toString()));
-        query.setString("status", status != null ? status.toString() : null);
-        query.setString("stateMachineId", fsmIdId.statemachineId);
-        query.executeUpdate();
-        */
     }
     
     private void updateRollbackStatus(StateUpdate.RollbackStatusUpdate rollbackStatusUpdate) {
@@ -186,13 +164,6 @@ public class StatesDAOV1Impl extends AbstractDAO<State> implements StatesDAOV1{
     	};
     	cu.where(restrictions);
     	currentSession().createQuery(cu).executeUpdate();    	
-    	/*
-        Query query = currentSession().createQuery("update State set rollbackStatus = :rollbackStatus where id = :stateId and stateMachineId = :stateMachineId");
-        query.setString("rollbackStatus", rollbackStatus != null ? rollbackStatus.toString() : null);
-        query.setLong("stateId", stateId);
-        query.setString("stateMachineId", fsmIdId.statemachineId);
-        query.executeUpdate();
-        */
     }  
     
     private void incrementRetryCount(StateUpdate.NoOfRetriesIncrement retriesIncrementUpdate) {
@@ -200,12 +171,6 @@ public class StatesDAOV1Impl extends AbstractDAO<State> implements StatesDAOV1{
         query.setParameter("id", retriesIncrementUpdate.fsmIdEntityId.entityId.entityId);
         query.setParameter("stateMachineId", retriesIncrementUpdate.fsmIdEntityId.fsmId.statemachineId);
         query.executeUpdate();
-        /*
-        Query query = currentSession().createQuery("update State set attemptedNoOfRetries = attemptedNoOfRetries + 1 where id = :stateId and stateMachineId = :stateMachineId");
-        query.setLong("stateId", stateId);
-        query.setString("stateMachineId", fsmIdId.statemachineId);
-        query.executeUpdate();         
-         */
     }
     
     private void updateReplayableRetries(StateUpdate.ReplayableRetriesUpdate replayableRetriesUpdate) {
@@ -219,13 +184,6 @@ public class StatesDAOV1Impl extends AbstractDAO<State> implements StatesDAOV1{
     	};
     	cu.where(restrictions);
     	currentSession().createQuery(cu).executeUpdate();
-    	/*
-        Query query = currentSession().createQuery("update State set attemptedNumOfReplayableRetries  = :attemptedNumOfReplayableRetries where id  = :stateId and stateMachineId  = :stateMachineId");
-        query.setString("stateMachineId", fsmIdId.statemachineId);
-        query.setLong("stateId", stateId);
-        query.setShort("attemptedNumOfReplayableRetries", replayableRetries);
-        query.executeUpdate();
-        */
     }    
 	
     private void updateExecutionVersion(StateUpdate.ExecutionVersionUpdate executionVersionUpdate) {
@@ -239,14 +197,6 @@ public class StatesDAOV1Impl extends AbstractDAO<State> implements StatesDAOV1{
     	};
     	cu.where(restrictions);
     	currentSession().createQuery(cu).executeUpdate();
-    	/*
-        Query query = currentSession().createQuery("update State set executionVersion = :executionVersion" +
-                " where id = :stateId and stateMachineId = :stateMachineId");
-        query.setLong("executionVersion", executionVersion);
-        query.setLong("stateId", stateId);
-        query.setString("stateMachineId", fsmIdId.statemachineId);
-        query.executeUpdate();
-        */
     }    
     
 	private State[] findStatesForStateIds(FSMIdStateIds fsmIdStateIds) {
@@ -255,13 +205,6 @@ public class StatesDAOV1Impl extends AbstractDAO<State> implements StatesDAOV1{
     	Root<State> root = cq.from(State.class);
     	cq.select(root).where(cb.in((root.get("id").in(Arrays.asList(fsmIdStateIds.stateIds)))));     	
     	return currentSession().createQuery(cq).getResultList().toArray(new State[0]);
-    	/*
-        String inClause = Arrays.toString(fsmIdStateIds.stateIds).replace("[","(").replace("]",")");
-        Query query = currentSession().createQuery(
-                "select s from State s where stateMachineId = :stateMachineId and id in " + inClause);
-        query.setString("stateMachineId",fsmIdStateIds.fsmId.statemachineId);
-        return query.list();
-        */
     }
     
 	private State findByCompositeId(FSMIdEntityId fsmIdEntityId) {
@@ -274,14 +217,6 @@ public class StatesDAOV1Impl extends AbstractDAO<State> implements StatesDAOV1{
     	};    	
     	cq.select(root).where(restrictions);     	
     	return currentSession().createQuery(cq).getSingleResult();
-		
-		/*
-        Criteria criteria = currentSession().createCriteria(State.class)
-                .add(Restrictions.eq("stateMachineId", fsmIdEntityId.statemachineId.statemachineId))
-                .add(Restrictions.eq("id", fsmIdEntityId.entityId.entityId));
-        Object object = criteria.uniqueResult();
-        return object != null ? (State)null: null;
-        */
     }
     
     private State[] findStatesByStatusCriteria(FSMStatusCriteria statusCriteria) {
@@ -300,31 +235,6 @@ public class StatesDAOV1Impl extends AbstractDAO<State> implements StatesDAOV1{
     	}
     	cq.where(predicateList.toArray(new Predicate[0]));
     	return currentSession().createQuery(cq).getResultList().toArray(new State[0]);
-    	
-    	/*
-        Query query;
-        String queryString = "select state.stateMachineId, state.id, state.status from State state join StateMachine sm " +
-                "on sm.id = state.stateMachineId and sm.createdAt between :fromTime and :toTime and sm.name = :stateMachineName";
-        if (statuses != null && statuses.length > 0) {
-            StringBuilder sb = new StringBuilder(" and state.status in (");
-            for (Status status : statuses) {
-                sb.append("'" + status.toString() + "',");
-            }
-            sb.deleteCharAt(sb.length() - 1).append(")");
-            String statusClause = sb.toString();
-            queryString = queryString.concat(statusClause);
-        }
-        if (stateName == null) {
-            query = currentSession().createQuery(queryString);
-        } else {
-            query = currentSession().createQuery(queryString + " and state.name = :stateName");
-            query.setString("stateName", stateName);
-        }
-        query.setString("stateMachineName", stateMachineName);
-        query.setTimestamp("fromTime", fromTime);
-        query.setTimestamp("toTime", toTime);
-        return query.list();
-        */
     }
     
     private State[] findStatesByDependentEvent(DependentEventCriteria eventCriteria) {
@@ -337,14 +247,6 @@ public class StatesDAOV1Impl extends AbstractDAO<State> implements StatesDAOV1{
     	};    	
     	cq.select(root).where(restrictions);     	    	
     	return currentSession().createQuery(cq).getResultList().toArray(new State[0]);
-    	/*
-        Query query = currentSession().createQuery(
-                "select state from State state where stateMachineId = :stateMachineId and" +
-                        " dependencies like :eventName");
-        query.setString("stateMachineId", stateMachineId);
-        query.setString("eventName", "%" + eventName + "%");
-        return query.list();
-    	*/
     }
         
 }
