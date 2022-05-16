@@ -73,11 +73,6 @@ public class AuditDAOV1Impl extends AbstractDAO<AuditRecord> implements AuditDAO
     	Root<AuditRecord> root = cq.from(AuditRecord.class);
     	cq.select(root).where(cb.equal(root.get("stateMachineInstanceId"), key.statemachineId));     	
     	return currentSession().createQuery(cq).getResultList().toArray(new AuditRecord[0]);
-		/*
-        Criteria criteria = currentSession().createCriteria(AuditRecord.class).add(Restrictions.eq("stateMachineInstanceId", stateMachineInstanceId));
-        List<AuditRecord> records = criteria.list();
-        return records;
-        */
 	}
 
 }

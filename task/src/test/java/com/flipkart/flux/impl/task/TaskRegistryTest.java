@@ -14,18 +14,22 @@
 
 package com.flipkart.flux.impl.task;
 
-import com.flipkart.flux.client.intercept.UnknownIdentifierException;
-import com.flipkart.flux.client.registry.Executable;
-import com.flipkart.flux.client.registry.ExecutableImpl;
-import com.flipkart.flux.client.registry.ExecutableRegistry;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import com.flipkart.flux.client.intercept.UnknownIdentifierException;
+import com.flipkart.flux.client.registry.Executable;
+import com.flipkart.flux.client.registry.ExecutableImpl;
+import com.flipkart.flux.client.registry.ExecutableRegistry;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TaskRegistryTest {

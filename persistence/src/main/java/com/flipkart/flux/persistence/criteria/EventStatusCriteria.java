@@ -14,7 +14,7 @@ package com.flipkart.flux.persistence.criteria;
 
 import com.flipkart.flux.domain.Event.EventStatus;
 import com.flipkart.flux.persistence.key.FSMId;
-import com.flipkart.flux.shard.ShardedEntity;
+import com.flipkart.flux.shard.AbstractShardedEntity;
 
 /**
  * A Criteria for constructing queries on the Events data store. The attributes of this class determine the data filters applied when retrieving the 
@@ -23,7 +23,7 @@ import com.flipkart.flux.shard.ShardedEntity;
  * @author regu.b
  *
  */
-public class EventStatusCriteria extends ShardedEntity {
+public class EventStatusCriteria extends AbstractShardedEntity {
 
 	public FSMId fsmId;
 	public String[] eventNames;

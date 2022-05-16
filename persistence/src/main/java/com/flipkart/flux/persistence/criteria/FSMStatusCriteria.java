@@ -15,8 +15,8 @@ package com.flipkart.flux.persistence.criteria;
 import java.sql.Timestamp;
 
 import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.shard.AbstractShardedEntity;
 import com.flipkart.flux.shard.ShardId;
-import com.flipkart.flux.shard.ShardedEntity;
 
 /**
  * A Criteria for constructing queries on the States data store. The attributes of this class determine the data filters applied when retrieving the 
@@ -24,7 +24,7 @@ import com.flipkart.flux.shard.ShardedEntity;
  * @author regu.b
  *
  */
-public class FSMStatusCriteria extends ShardedEntity {
+public class FSMStatusCriteria extends AbstractShardedEntity {
 
 	public ShardId shardId; // needed to identify/specify the shard on which this the query formed by this criteria will execute on
 	public String stateMachineName;

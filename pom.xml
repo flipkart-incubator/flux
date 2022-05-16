@@ -63,7 +63,7 @@
 		<log4j.version>2.17.1</log4j.version>
 		<assertj-core.version>2.0.0</assertj-core.version>
 		<jackson.version>2.12.0</jackson.version>
-		<mockito-all.version>1.9.0</mockito-all.version>
+		<mockito-core.version>4.5.1</mockito-core.version>
 		<slf4j-api.version>1.7.12</slf4j-api.version>
 		<io.dropwizard.metrics.version>4.2.3</io.dropwizard.metrics.version>
 		<javax.transaction-api.version>1.2</javax.transaction-api.version>

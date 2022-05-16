@@ -14,22 +14,24 @@
 package com.flipkart.flux.redriver.scheduler;
 
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-import com.flipkart.flux.redriver.model.ScheduledMessage;
-import com.flipkart.flux.redriver.service.MessageManagerService;
-import com.flipkart.flux.redriver.service.RedriverService;
-import com.flipkart.flux.task.redriver.RedriverRegistry;
 import java.util.ArrayList;
 import java.util.Arrays;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import com.flipkart.flux.redriver.model.ScheduledMessage;
+import com.flipkart.flux.redriver.service.MessageManagerService;
+import com.flipkart.flux.redriver.service.RedriverService;
+import com.flipkart.flux.task.redriver.RedriverRegistry;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RedriverServiceTest {
@@ -53,8 +55,8 @@ public class RedriverServiceTest {
     public void testIdle() throws Exception {
         Thread.sleep(200);
         Assert.assertFalse(redriverService.isRunning());
-        verifyZeroInteractions(messageManagerService);
-        verifyZeroInteractions(redriverRegistry);
+        verifyNoInteractions(messageManagerService);
+        verifyNoInteractions(redriverRegistry);
     }
 
     @Test

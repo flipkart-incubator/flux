@@ -12,8 +12,8 @@
  */
 package com.flipkart.flux.persistence.criteria;
 
+import com.flipkart.flux.shard.AbstractShardedEntity;
 import com.flipkart.flux.shard.ShardId;
-import com.flipkart.flux.shard.ShardedEntity;
 
 /**
  * A Criteria for constructing queries on the State Machines data store. The attributes of this class determine the data filters applied when retrieving the 
@@ -21,7 +21,7 @@ import com.flipkart.flux.shard.ShardedEntity;
  * @author regu.b
  *
  */
-public class FSMNameCriteria extends ShardedEntity {
+public class FSMNameCriteria extends AbstractShardedEntity {
 
 	public ShardId shardId; // needed to identify/specify the shard on which this the query formed by this criteria will execute on
 	public String fsmName;

@@ -64,7 +64,6 @@ public class TransactionInterceptor implements MethodInterceptor {
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
-
         Transaction transaction = null;
         Session session = null;
         SessionFactoryContext context = contextProvider.get();
@@ -173,13 +172,15 @@ public class TransactionInterceptor implements MethodInterceptor {
     
     private ShardedEntity getShardedEntity(Object[] args) {
     	for (Object arg : args) {
-    		if (ShardedEntity.class.isAssignableFrom(arg.getClass())){
-    			return (ShardedEntity)arg;
-    		} else if (Object[].class.isAssignableFrom(arg.getClass())) {
-    			ShardedEntity shardedEntity = getShardedEntity((Object[]) arg);
-    			if (shardedEntity != null) {
-    				return shardedEntity;
-    			}
+    		if (arg != null) {
+	    		if (ShardedEntity.class.isAssignableFrom(arg.getClass())){
+	    			return (ShardedEntity)arg;
+	    		} else if (Object[].class.isAssignableFrom(arg.getClass())) {
+	    			ShardedEntity shardedEntity = getShardedEntity((Object[]) arg);
+	    			if (shardedEntity != null) {
+	    				return shardedEntity;
+	    			}
+	    		}
     		}
     	}
     	return null;

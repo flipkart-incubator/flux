@@ -60,7 +60,6 @@ import com.flipkart.flux.client.runtime.EventProxyConnector;
 import com.flipkart.flux.constant.RuntimeConstants;
 import com.flipkart.flux.controller.WorkFlowExecutionController;
 import com.flipkart.flux.domain.AuditRecord;
-import com.flipkart.flux.domain.Context;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
@@ -88,7 +87,6 @@ import com.flipkart.flux.persistence.dao.iface.StatesDAO;
 import com.flipkart.flux.persistence.dao.impl.ParallelScatterGatherQueryHelper;
 import com.flipkart.flux.persistence.key.FSMId;
 import com.flipkart.flux.representation.IllegalRepresentationException;
-import com.flipkart.flux.representation.StateMachinePersistenceService;
 import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
 import com.flipkart.flux.utils.LoggingUtils;
 import com.google.gson.Gson;
@@ -117,7 +115,6 @@ public class StateMachineResource {
    * Logger instance for this class
    */
   private static final Logger logger = LogManager.getLogger(StateMachineResource.class);
-  private StateMachinePersistenceService stateMachinePersistenceService;
 
   private WorkFlowExecutionController workFlowExecutionController;
 
@@ -148,7 +145,6 @@ public class StateMachineResource {
 
   @Inject
   public StateMachineResource(EventsDAO eventsDAO,
-      StateMachinePersistenceService stateMachinePersistenceService,
       AuditDAO auditDAO, AuditEntityManager auditEntityManager, StateMachinesDAO stateMachinesDAO, StateMachineEntityManager smEntityManager,
       StateMachineExecutionEntitiesManager smExecutionEntitiesManager,
       StatesDAO statesDAO, WorkFlowExecutionController workFlowExecutionController, MetricsClient metricsClient,
@@ -159,7 +155,6 @@ public class StateMachineResource {
       StateTraversalPath stateTraversalPath,
       StateTraversalPathDAO stateTraversalPathDAO) {
     this.eventsDAO = eventsDAO;
-    this.stateMachinePersistenceService = stateMachinePersistenceService;
     this.stateMachinesDAO = stateMachinesDAO;
     this.smEntityManager = smEntityManager;
     this.smExecutionEntitiesManager = smExecutionEntitiesManager;
@@ -236,7 +231,7 @@ public class StateMachineResource {
     } catch (Exception ex) {
       logger.error(
           "Failed During Creating StateMachine and StateTraversal or Initiating StateMachine with id {} {}",
-          stateMachineInstanceId, ex.getStackTrace());
+          stateMachineInstanceId, ex.getMessage(), ex);
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()).entity(
           ex.getCause() != null ? ex.getCause().getMessage() : null).build();
     }
@@ -251,25 +246,19 @@ public class StateMachineResource {
    */
 
   protected StateMachine createAndInitStateMachine(String stateMachineInstanceId,
-      StateMachineDefinition stateMachineDefinition)
-      throws Exception {
-    try {
-      // 1. Convert to StateMachine (domain object) and save in DB
-      StateMachine stateMachine = stateMachinePersistenceService
-          .createStateMachine(stateMachineInstanceId, stateMachineDefinition);
-
-      //create context and dependency graph
-      Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);//TODO: set context id, should we need it ?
-      stateMachinePersistenceService
-          .createAndPersistStateTraversal(stateMachineInstanceId, stateMachine, context);
-      LoggingUtils.registerStateMachineIdForLogging(stateMachine.getId());
-      logger.info("Created state machine with Id: {}", stateMachine.getId());
-      // 2. initialize and start State Machine
-      workFlowExecutionController.initAndStart(stateMachine, context);
-      return stateMachine;
-    } finally {
-      LoggingUtils.deRegisterStateMachineIdForLogging();
-    }
+		  StateMachineDefinition stateMachineDefinition)
+				  throws Exception {
+	  try {
+		  // 1. Convert to StateMachine (domain object) and save in DB
+		  StateMachine stateMachine = smExecutionEntitiesManager.createStateMachine(new FSMId(stateMachineInstanceId), stateMachineDefinition);
+		  LoggingUtils.registerStateMachineIdForLogging(stateMachine.getId());
+		  logger.info("Created state machine with Id: {}", stateMachine.getId());
+		  // 2. initialize and start State Machine
+		  workFlowExecutionController.initAndStart(stateMachine, stateMachine.getContext());
+		  return stateMachine;
+	  } finally {
+		  LoggingUtils.deRegisterStateMachineIdForLogging();
+	  }
   }
 
   private Boolean isEventSourceContainsReplayable(String eventSource) {

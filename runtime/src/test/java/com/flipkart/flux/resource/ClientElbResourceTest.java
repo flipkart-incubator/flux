@@ -11,7 +11,7 @@ import javax.ws.rs.core.Response;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import com.flipkart.flux.api.ClientElbDefinition;
 import com.flipkart.flux.domain.ClientElb;

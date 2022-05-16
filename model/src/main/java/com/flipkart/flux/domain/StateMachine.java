@@ -13,9 +13,22 @@
 
 package com.flipkart.flux.domain;
 
-import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Set;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.flipkart.flux.shard.ShardId;
+import com.flipkart.flux.shard.ShardedEntity;
 
 /**
  * <code>StateMachine</code> represents a state machine submitted for execution in Flux.
@@ -28,7 +41,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "StateMachines")
-public class StateMachine {
+public class StateMachine implements ShardedEntity {
 
     /**
      * Unique identifier of the state machine
@@ -237,5 +250,15 @@ public class StateMachine {
                 ", updatedAt=" + updatedAt +
                 '}';
     }
+
+	@Override
+	public ShardId getShardId() {
+		return null; // no shard int identifier 
+	}
+
+	@Override
+	public String getShardKey() {
+		return this.id; // the state machine ID is the shard identifying key
+	}
 
 }

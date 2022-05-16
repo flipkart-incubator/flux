@@ -12,7 +12,7 @@
  */
 package com.flipkart.flux.persistence.key;
 
-import com.flipkart.flux.shard.ShardedEntity;
+import com.flipkart.flux.shard.AbstractShardedEntity;
 
 /**
  * The FSM identifier object/key. Sharding is primarily at the FSM level and therefore this identifier is a @ShardedEntity that uses the FSM identifier
@@ -21,7 +21,7 @@ import com.flipkart.flux.shard.ShardedEntity;
  * @author regu.b
  *
  */
-public class FSMId extends ShardedEntity {
+public class FSMId extends AbstractShardedEntity {
 	public String statemachineId;
 
 	public FSMId(String statemachineId) {

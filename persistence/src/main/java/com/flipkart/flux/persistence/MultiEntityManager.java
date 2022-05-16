@@ -86,7 +86,7 @@ public abstract class MultiEntityManager {
 		this.checkPersistenceContraints(allInputEntities);
 		Pair[] results = {
 				new Pair<PersistenceConstants.Operation, Object[]>(Operation.Create,this.createEntities(createEntities)),
-				new Pair<PersistenceConstants.Operation, Object[]>(Operation.Create,this.updateEntities(updateEntities)),
+				new Pair<PersistenceConstants.Operation, Object[]>(Operation.Update,this.updateEntities(updateEntities)),
 		};
 		return results;
 	}
@@ -134,7 +134,7 @@ public abstract class MultiEntityManager {
     			} else if (!uniqueShard.equals(newShard)) {
     				throw new PersistenceException("Attempt to persist entities belonging to two different shards : " + uniqueShard.toString() + "," + newShard.toString());
     			}
-    		}
+    		}    		
     		if (!daos.stream().anyMatch(dao -> entity.getClass().isAssignableFrom(dao.getPersistedEntityType()))) {
 	    		throw new PersistenceException("Unable to persist unsupported entity type : " + entity.getClass().getName());
     		}

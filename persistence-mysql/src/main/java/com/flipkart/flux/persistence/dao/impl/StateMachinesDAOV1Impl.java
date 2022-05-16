@@ -110,7 +110,7 @@ public class StateMachinesDAOV1Impl extends AbstractDAO<StateMachine> implements
     	cq.select(root).where(restrictions);     	    	
     	return currentSession().createQuery(cq).setLockMode(LockModeType.PESSIMISTIC_WRITE).getSingleResult().getExecutionVersion();
 	}
-	
+		
 	private StateMachine[] findByFSMName(FSMNameCriteria nameCriteria) {
     	CriteriaBuilder cb = currentSession().getCriteriaBuilder();
     	CriteriaQuery<StateMachine> cq = cb.createQuery(StateMachine.class);

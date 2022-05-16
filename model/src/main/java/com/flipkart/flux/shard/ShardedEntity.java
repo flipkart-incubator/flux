@@ -13,52 +13,24 @@
 package com.flipkart.flux.shard;
 
 /**
- * A marker class to indicate that any derived type can be persisted in a sharded (i.e physically split/distributed manner) set up.
+ * A marker interface to indicate that any derived type can be persisted in a sharded (i.e physically split/distributed manner) set up.
  * The destination shard is identified by either a @ShardId or a shard identifier String.  
  * 
  * @author regu.b
  *
  */
-public abstract class ShardedEntity {
-	private ShardId shardId;
-	private String shardKey;
-	public ShardedEntity(ShardId shardId) {
-		this.shardId = shardId;
-	}
-	public ShardedEntity(String shardKey) {
-		this.shardKey = shardKey;
-	}
-	public ShardId getShardId() {
-		return shardId;
-	}
-	public String getShardKey() {
-		return shardKey;
-	}
-	public void setShardId(ShardId shardId) {
-		this.shardId = shardId;
-	}
-	public void setShardKey(String shardKey) {
-		this.shardKey = shardKey;
-	}	
-	@Override
-	public boolean equals(Object object) {		
-		if (object == null || !ShardedEntity.class.isAssignableFrom(object.getClass())) {
-			return false;
-		}
-		ShardedEntity anotherEntity = (ShardedEntity)object;
-		if (this.getShardId() != null && anotherEntity.getShardId()!= null) {
-			return this.getShardId().equals(anotherEntity.getShardId());
-		}
-		if (this.getShardKey() != null && anotherEntity.getShardKey() != null) {
-			return this.getShardKey().equals(anotherEntity.getShardKey());
-		}
-		return false;
-	}
-	@Override
-	public String toString() {
-		return "ShardedEntity{" +
-                "shardId=" + shardId + 
-                ",shardKey=" + shardKey +
-                '}';
-	}
+
+public interface ShardedEntity {
+	
+	/**
+	 * null or the ShardId for the entity
+	 * @return null or a valid ShardId
+	 */
+	public ShardId getShardId();
+	/**
+	 * null or the shard identifying key for the entity
+	 * @return null or a valid shard key
+	 */
+	public String getShardKey();
+	
 }

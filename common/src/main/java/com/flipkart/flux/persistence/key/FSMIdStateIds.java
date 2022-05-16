@@ -12,9 +12,9 @@
  */
 package com.flipkart.flux.persistence.key;
 
-import com.flipkart.flux.shard.ShardedEntity;
+import com.flipkart.flux.shard.AbstractShardedEntity;
 
-public class FSMIdStateIds extends ShardedEntity {
+public class FSMIdStateIds extends AbstractShardedEntity {
 	public FSMId fsmId;
 	public Long[] stateIds;
 	public FSMIdStateIds(FSMId fsmId, Long[] stateIds) {

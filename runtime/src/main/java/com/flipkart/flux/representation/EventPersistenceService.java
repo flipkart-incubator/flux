@@ -41,7 +41,6 @@ public class EventPersistenceService {
    *
    * @return event domain object
    */
-  //TODO: Add test cases
   public Event convertEventDefinitionToEvent(EventDefinition eventDefinition) {
     if (eventDefinition.getEventSource() != null) {
       return new Event(eventDefinition.getName(), eventDefinition.getType(),

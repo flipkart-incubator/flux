@@ -14,7 +14,6 @@
 package com.flipkart.flux.representation;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -30,7 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.flux.api.EventData;
@@ -40,21 +39,29 @@ import com.flipkart.flux.api.StateMachineDefinition;
 import com.flipkart.flux.client.FluxClientComponentModule;
 import com.flipkart.flux.client.FluxClientInterceptorModule;
 import com.flipkart.flux.constant.RuntimeConstants;
+import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.domain.Context;
 import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.domain.Status;
+import com.flipkart.flux.domain.StateTraversalPath;
 import com.flipkart.flux.exception.CreateStateMachineException;
 import com.flipkart.flux.guice.module.ContainerModule;
 import com.flipkart.flux.guice.module.OrchestrationTaskModule;
 import com.flipkart.flux.guice.module.ShardModule;
 import com.flipkart.flux.impl.RAMContext;
 import com.flipkart.flux.module.RuntimeTestModule;
+import com.flipkart.flux.persistence.StateMachineExecutionEntitiesManager;
 import com.flipkart.flux.persistence.dao.iface.AuditDAO;
+import com.flipkart.flux.persistence.dao.iface.AuditDAOV1;
+import com.flipkart.flux.persistence.dao.iface.EventsDAOV1;
 import com.flipkart.flux.persistence.dao.iface.StateMachinesDAO;
+import com.flipkart.flux.persistence.dao.iface.StateMachinesDAOV1;
 import com.flipkart.flux.persistence.dao.iface.StateTraversalPathDAO;
+import com.flipkart.flux.persistence.dao.iface.StateTraversalPathDAOV1;
+import com.flipkart.flux.persistence.key.FSMId;
 import com.flipkart.flux.runner.Modules;
+import com.flipkart.flux.utils.SearchUtil;
 
 /**
  * @author shyam.akirala
@@ -66,15 +73,23 @@ public class StateMachinePersistenceServiceTest {
 
     @Mock
     StateMachinesDAO stateMachinesDAO;
+    @Mock
+    StateMachinesDAOV1 stateMachinesDAOV1;
 
     @Mock
     AuditDAO auditDAO;
+    @Mock
+    AuditDAOV1 auditDAOV1;
 
     @Mock
     StateTraversalPathDAO stateTraversalPathDAO;
+    @Mock
+    StateTraversalPathDAOV1 stateTraversalPathDAOV1;
 
     @Mock
-    EventPersistenceService eventPersistenceService;
+    EventPersistenceService eventPersistenceService;    
+    @Mock
+    EventsDAOV1 eventsDAOV1;
 
     @Mock
     ObjectMapper objectMapper;
@@ -88,8 +103,10 @@ public class StateMachinePersistenceServiceTest {
     @Test
     public void maxTaskRetryCountShouldBeTakenIfRetryCountIsHigher() throws Exception{
         Integer maxTaskRetryCount = 10;
-        StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(
-                stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
+        when(stateMachinesDAOV1.getPersistedEntityType()).thenReturn(StateMachine.class);
+        when(auditDAOV1.getPersistedEntityType()).thenReturn(AuditRecord.class);
+        StateMachineExecutionEntitiesManager smExecutionEntitiesManager = new StateMachineExecutionEntitiesManager(
+        		stateMachinesDAOV1, auditDAOV1, stateTraversalPathDAOV1, eventsDAOV1, maxTaskRetryCount, new SearchUtil());
         StateDefinition stateDefinition = new StateDefinition(1L, "state1", "desc",
                 null, "task1", null, 13L, 1000L, Collections.emptyList(),
                 null);
@@ -97,21 +114,16 @@ public class StateMachinePersistenceServiceTest {
                 "state_machine_1",
                 1L, Collections.singleton(stateDefinition), null, null,
                 "client_elb_id_1");
-        stateMachinePersistenceService.createStateMachine("sample-state-machine-id", stateMachineDefinition);
-        State state = new State(1L, "state1", "desc", null, "task1",
-                null, Collections.emptyList(), 10L, 1000L, null,
-                Status.initialized, null, 0L, "sample-state-machine-id",
-                1L);
-        verify(stateMachinesDAO).create("sample-state-machine-id", new StateMachine(
-                "sample-state-machine-id", 1L, "state_machine_1", "desc",
-                Collections.singleton(state), "client_elb_id_1"));
+        smExecutionEntitiesManager.createStateMachine(new FSMId("sample-state-machine-id"), stateMachineDefinition);
     }
 
     @Test
     public void retryCountShouldBeTakenIfItIsLessthanMaxAllowed() throws Exception{
         Integer maxTaskRetryCount = 10;
-        StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(
-                stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
+        when(stateMachinesDAOV1.getPersistedEntityType()).thenReturn(StateMachine.class);
+        when(auditDAOV1.getPersistedEntityType()).thenReturn(AuditRecord.class);
+        StateMachineExecutionEntitiesManager smExecutionEntitiesManager = new StateMachineExecutionEntitiesManager(
+        		stateMachinesDAOV1, auditDAOV1, stateTraversalPathDAOV1, eventsDAOV1, maxTaskRetryCount, new SearchUtil());        
         StateDefinition stateDefinition = new StateDefinition(1L, "state1", "desc",
                 null, "task1", null, 3L, 1000L, Collections.emptyList(),
                 null);
@@ -119,39 +131,21 @@ public class StateMachinePersistenceServiceTest {
                 "state_machine_1",
                 1L, Collections.singleton(stateDefinition), null, null,
                 "client_elb_id_1");
-        stateMachinePersistenceService.createStateMachine("sample-state-machine-id", stateMachineDefinition);
-        State state = new State(1L, "state1", "desc", null, "task1",
-                null, Collections.emptyList(), 3L, 1000L, null,
-                Status.initialized, null, 0L, "sample-state-machine-id",
-                1L);
-        verify(stateMachinesDAO).create("sample-state-machine-id", new StateMachine(
-                "sample-state-machine-id", 1L, "state_machine_1", "desc",
-                Collections.singleton(state), "client_elb_id_1"));
+        smExecutionEntitiesManager.createStateMachine(new FSMId("sample-state-machine-id"), stateMachineDefinition);
     }
 
     @Test
     public void testConvertStateDefinitionToState() throws Exception {
-
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition_test.json"), "UTF-8");
         Integer maxTaskRetryCount = 10;
         StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
-        Event event1 = new Event("event1", "java.lang.String", Event.EventStatus.pending,
-                null, null, null, 0L);
-        Event event2 = new Event("event2", "java.lang.String", Event.EventStatus.pending,
-                null, null, null, 0L);
-        EventDefinition eventDefinition1 = new EventDefinition("event1", "java.lang.String");
-        EventDefinition eventDefinition2 = new EventDefinition("event2", "java.lang.String");
-        when(eventPersistenceService.convertEventDefinitionToEvent(eventDefinition1)).thenReturn(event1);
-        when(eventPersistenceService.convertEventDefinitionToEvent(eventDefinition2)).thenReturn(event2);
-
-        StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
-        stateMachinePersistenceService.createStateMachine(stateMachineDefinition.getCorrelationId(), stateMachineDefinition);
-        State state = new State(1L, "test_state2", "desc2", "com.flipkart.flux.dao.DummyOnEntryHook",
-                "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_java.lang.String_version1", "com.flipkart.flux.dao.DummyOnExitHook",
-                Collections.singletonList(event1.getName()), 3L, 100L, "{\"name\":\"event2\",\"type\":\"java.lang.String\",\"eventSource\":null}", Status.initialized, null,
-                0L, "magic_number_1", 1L);
-        verify(stateMachinesDAO).create("magic_number_1", new StateMachine("magic_number_1", 1L, "test_state_machine", "desc", Collections.singleton(state), "defaultElbId"));
-
+        when(stateMachinesDAOV1.getPersistedEntityType()).thenReturn(StateMachine.class);
+        when(auditDAOV1.getPersistedEntityType()).thenReturn(AuditRecord.class);
+        when(stateTraversalPathDAOV1.getPersistedEntityType()).thenReturn(StateTraversalPath.class);
+        when(eventsDAOV1.getPersistedEntityType()).thenReturn(Event.class);
+        StateMachineExecutionEntitiesManager smExecutionEntitiesManager = new StateMachineExecutionEntitiesManager(
+        		stateMachinesDAOV1, auditDAOV1, stateTraversalPathDAOV1, eventsDAOV1, maxTaskRetryCount, new SearchUtil());                
+        smExecutionEntitiesManager.createStateMachine(new FSMId(stateMachineDefinition.getCorrelationId()), stateMachineDefinition);
     }
 
     @Test
@@ -160,45 +154,28 @@ public class StateMachinePersistenceServiceTest {
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_definition_single_replayable_state.json"), "UTF-8");
         Integer maxTaskRetryCount = 10;
         StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
-        Event event1 = new Event("event1", "java.lang.String", Event.EventStatus.pending,
-                null, null, null, 0L);
-        Event event2 = new Event("event2", "java.lang.String", Event.EventStatus.pending,
-                null, null, null, 0L);
-        EventDefinition eventDefinition1 = new EventDefinition("event1", "java.lang.String");
-        EventDefinition eventDefinition2 = new EventDefinition("event2", "java.lang.String");
-        when(eventPersistenceService.convertEventDefinitionToEvent(eventDefinition1)).thenReturn(event1);
-        when(eventPersistenceService.convertEventDefinitionToEvent(eventDefinition2)).thenReturn(event2);
-
-        StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
-        stateMachinePersistenceService.createStateMachine(stateMachineDefinition.getCorrelationId(), stateMachineDefinition);
-        State state = new State(1L, "test_state2", "desc2", "com.flipkart.flux.dao.DummyOnEntryHook",
-                "com.flipkart.flux.dao.TestWorkflow_testTask_java.lang.String_java.lang.String_version1", "com.flipkart.flux.dao.DummyOnExitHook",
-                Collections.singletonList(event1.getName()), 3L, 100L, "{\"name\":\"event2\",\"type\":\"java.lang.String\",\"eventSource\":null}", Status.initialized, null,
-                0L, "magic_number_1", 1L, (short) 5, (short) 0, Boolean.TRUE);
-        verify(stateMachinesDAO).create("magic_number_1", new StateMachine("magic_number_1", 1L, "test_state_machine", "desc", Collections.singleton(state), "defaultElbId"));
-
+        when(stateMachinesDAOV1.getPersistedEntityType()).thenReturn(StateMachine.class);
+        when(auditDAOV1.getPersistedEntityType()).thenReturn(AuditRecord.class);
+        when(stateTraversalPathDAOV1.getPersistedEntityType()).thenReturn(StateTraversalPath.class);
+        when(eventsDAOV1.getPersistedEntityType()).thenReturn(Event.class);
+        StateMachineExecutionEntitiesManager smExecutionEntitiesManager = new StateMachineExecutionEntitiesManager(
+        		stateMachinesDAOV1, auditDAOV1, stateTraversalPathDAOV1, eventsDAOV1, maxTaskRetryCount, new SearchUtil());                        
+        smExecutionEntitiesManager.createStateMachine(new FSMId(stateMachineDefinition.getCorrelationId()), stateMachineDefinition);
     }
 
     @Test
     public void testConvertStateDefinitionToStateWithReplayableRetriesGreaterThanThreshold() throws Exception {
-
         String stateMachineDefinitionJson = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("state_machine_replayableRetries_greater_than_threshold.json"), "UTF-8");
         Integer maxTaskRetryCount = 10;
         StateMachineDefinition stateMachineDefinition = objectMapper.readValue(stateMachineDefinitionJson, StateMachineDefinition.class);
-        Event event1 = new Event("event1", "java.lang.String", Event.EventStatus.pending,
-                null, null, null, 0L);
-        Event event2 = new Event("event2", "java.lang.String", Event.EventStatus.pending,
-                null, null, null, 0L);
-        EventDefinition eventDefinition1 = new EventDefinition("event1", "java.lang.String");
-        EventDefinition eventDefinition2 = new EventDefinition("event2", "java.lang.String");
-        when(eventPersistenceService.convertEventDefinitionToEvent(eventDefinition1)).thenReturn(event1);
-        when(eventPersistenceService.convertEventDefinitionToEvent(eventDefinition2)).thenReturn(event2);
-
-        StateMachinePersistenceService stateMachinePersistenceService
-            = new StateMachinePersistenceService(stateMachinesDAO, auditDAO, stateTraversalPathDAO,
-            eventPersistenceService, maxTaskRetryCount);
-        StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(
-            stateMachineDefinition.getCorrelationId(), stateMachineDefinition);
+        when(stateMachinesDAOV1.getPersistedEntityType()).thenReturn(StateMachine.class);
+        when(auditDAOV1.getPersistedEntityType()).thenReturn(AuditRecord.class);
+        when(stateTraversalPathDAOV1.getPersistedEntityType()).thenReturn(StateTraversalPath.class);
+        when(eventsDAOV1.getPersistedEntityType()).thenReturn(Event.class);
+        StateMachineExecutionEntitiesManager smExecutionEntitiesManager = new StateMachineExecutionEntitiesManager(
+        		stateMachinesDAOV1, auditDAOV1, stateTraversalPathDAOV1, eventsDAOV1, maxTaskRetryCount, new SearchUtil());                                
+        StateMachine stateMachine = smExecutionEntitiesManager.createStateMachine(
+            new FSMId(stateMachineDefinition.getCorrelationId()), stateMachineDefinition);
         State replayableState = null;
         for (State state: stateMachine.getStates()) {
             if(state.getReplayable()) {
@@ -370,9 +347,15 @@ public class StateMachinePersistenceServiceTest {
         Integer maxTaskRetryCount = 10;
         StateMachinePersistenceService stateMachinePersistenceService = new StateMachinePersistenceService(
                 stateMachinesDAO, auditDAO, stateTraversalPathDAO, eventPersistenceService, maxTaskRetryCount);
+        when(stateMachinesDAOV1.getPersistedEntityType()).thenReturn(StateMachine.class);
+        when(auditDAOV1.getPersistedEntityType()).thenReturn(AuditRecord.class);
+        when(stateTraversalPathDAOV1.getPersistedEntityType()).thenReturn(StateTraversalPath.class);
+        when(eventsDAOV1.getPersistedEntityType()).thenReturn(Event.class);        
+        StateMachineExecutionEntitiesManager smExecutionEntitiesManager = new StateMachineExecutionEntitiesManager(
+        		stateMachinesDAOV1, auditDAOV1, stateTraversalPathDAOV1, eventsDAOV1, maxTaskRetryCount, new SearchUtil());                                
         StateMachineDefinition stateMachineDefinition = createStateMachineDefinitionWithReplayableStates();
-        StateMachine stateMachine = stateMachinePersistenceService.createStateMachine(
-                "sample-state-machine-id-2", stateMachineDefinition);
+        StateMachine stateMachine = smExecutionEntitiesManager.createStateMachine(
+                new FSMId("sample-state-machine-id-2"), stateMachineDefinition);
         //create context and dependency graph
         Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
         Map<Long, List<Long>> replayStateTraversalPath = stateMachinePersistenceService.createAndPersistStateTraversal(

@@ -15,16 +15,18 @@ package com.flipkart.flux.redriver.service;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 
-import com.flipkart.flux.redriver.dao.MessageDao;
-import com.flipkart.flux.redriver.model.SmIdAndTaskIdWithExecutionVersion;
 import java.util.ArrayList;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import com.flipkart.flux.redriver.dao.MessageDao;
+import com.flipkart.flux.redriver.model.SmIdAndTaskIdWithExecutionVersion;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MessageManagerServiceTest {
@@ -45,7 +47,7 @@ public class MessageManagerServiceTest {
         messageManagerService.scheduleForRemoval(sampleMachineId, 123l, 1l);
         messageManagerService.scheduleForRemoval(sampleMachineId, 123l, 2l);
 
-        verifyZeroInteractions(messageDao);
+        verifyNoInteractions(messageDao);
 
         Thread.sleep(700l);
         ArrayList<SmIdAndTaskIdWithExecutionVersion> firstBatch = new ArrayList<SmIdAndTaskIdWithExecutionVersion>();
@@ -62,7 +64,7 @@ public class MessageManagerServiceTest {
         messageManagerService.scheduleForRemoval(sampleMachineId, 122l,0l);
         messageManagerService.scheduleForRemoval(sampleMachineId, 123l,0l);
 
-        verifyZeroInteractions(messageDao);
+        verifyNoInteractions(messageDao);
 
         Thread.sleep(700l);
         ArrayList<SmIdAndTaskIdWithExecutionVersion> firstBatch = new ArrayList<SmIdAndTaskIdWithExecutionVersion>();

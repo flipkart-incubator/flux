@@ -84,7 +84,6 @@ public class StateMachineExecutionEntitiesManager extends MultiEntityManager {
 		this.maxRetryCount = maxRetryCount;
 		this.objectMapper = new ObjectMapper();
 		this.searchUtil = searchUtil;
-		System.out.println("Search util is : " + searchUtil);
 	}
 	
 	public StateMachine createStateMachine(FSMId fsmId, StateMachineDefinition stateMachineDefinition) {
@@ -105,6 +104,9 @@ public class StateMachineExecutionEntitiesManager extends MultiEntityManager {
                 stateMachineDefinition.getName(),
                 stateMachineDefinition.getDescription(),
                 states, stateMachineDefinition.getClientElbId());
+        
+        // create the Context
+	    Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
 
         List<Object> createEntities = new LinkedList<Object>();
         // add the StateMachine for creation
@@ -124,7 +126,6 @@ public class StateMachineExecutionEntitiesManager extends MultiEntityManager {
         // Map to store result and return, this will help to test the functionality
         Map<Long, List<Long>> replayStateTraversalPath = new HashMap<>();
         Set<Long> replayableStateIds = filterReplayableStates(stateMachine.getStates());
-        Context context = new RAMContext(System.currentTimeMillis(), null, stateMachine);
         for (Long replayableStateId : replayableStateIds) {
             List<Long> nextDependentStateIds = searchUtil.findStatesInTraversalPath(context, stateMachine,
                     replayableStateId);
@@ -134,8 +135,8 @@ public class StateMachineExecutionEntitiesManager extends MultiEntityManager {
                         replayStateTraversalPath.get(replayableStateId)));
         }
         
-        // create the entities in one Transaction scope
-        super.create((Object[])createEntities.toArray(new Object[0]));
+        // create the entities in one Transaction scope. DO NOT call super.create(...) as TransactionInterceptor will not be invoked
+        create((Object[])createEntities.toArray(new Object[0]));
         return stateMachine;
 	}
 

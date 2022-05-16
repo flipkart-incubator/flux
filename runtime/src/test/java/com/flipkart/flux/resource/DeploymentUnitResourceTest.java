@@ -1,22 +1,27 @@
 package com.flipkart.flux.resource;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collections;
+
+import javax.ws.rs.core.Response;
+
+import org.assertj.core.api.Assertions;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
+
 import com.flipkart.flux.client.model.Task;
 import com.flipkart.flux.config.TaskRouterUtil;
 import com.flipkart.flux.deploymentunit.DeploymentUnit;
 import com.flipkart.flux.deploymentunit.iface.DeploymentUnitsManager;
 import com.flipkart.flux.impl.task.registry.RouterRegistry;
 import com.flipkart.polyguice.config.YamlConfiguration;
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
-
-import javax.ws.rs.core.Response;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collections;
-
-import static org.mockito.Mockito.*;
 
 /**
  * @author gaurav.ashok
@@ -37,7 +42,7 @@ public class DeploymentUnitResourceTest {
         DeploymentUnit unit1 = getMockedDUnit("unit1", 1, "task1", getMethod1());
         DeploymentUnit unit2 = getMockedDUnit("unit2", 1, "task2", getMethod2());
         DeploymentUnit unit1_new = getMockedDUnit("unit1", 2, "task1", getMethod1());
-        when(deploymentUnitsManager.getAllDeploymentUnits()).thenReturn(Arrays.asList(unit1, unit2));
+        //when(deploymentUnitsManager.getAllDeploymentUnits()).thenReturn(Arrays.asList(unit1, unit2));
         when(deploymentUnitsManager.load("unit1", 2)).thenReturn(unit1_new);
 
         Response response = deploymentUnitResource.loadDeploymentUnit("unit1", 2, false);

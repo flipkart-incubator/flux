@@ -13,20 +13,24 @@
 
 package com.flipkart.flux.eventscheduler.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.flux.eventscheduler.dao.EventSchedulerDao;
-import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
-import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Arrays;
-
-import static org.mockito.Mockito.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.flux.eventscheduler.dao.EventSchedulerDao;
+import com.flipkart.flux.eventscheduler.model.ScheduledEvent;
+import com.flipkart.flux.task.eventscheduler.EventSchedulerRegistry;
 
 /**
  * @author shyam.akirala
@@ -54,7 +58,7 @@ public class EventSchedulerServiceTest {
     public void testIdle() throws Exception {
         Thread.sleep(200);
         Assert.assertFalse(eventSchedulerService.isRunning());
-        verifyZeroInteractions(eventSchedulerRegistry);
+        verifyNoInteractions(eventSchedulerRegistry);
     }
 
     @Test
@@ -84,7 +88,7 @@ public class EventSchedulerServiceTest {
         eventSchedulerService.start();
 
         Thread.sleep(1000);
-        verifyZeroInteractions(eventSchedulerRegistry);
+        verifyNoInteractions(eventSchedulerRegistry);
     }
 
     @Test
