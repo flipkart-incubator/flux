@@ -12,6 +12,8 @@
  */
 package com.flipkart.flux.persistence.dao.iface;
 
+import com.flipkart.flux.persistence.dto.Field;
+
 /**
  * A generic interface providing persistence operations on specific Entity types
  * @author regu.b
@@ -59,5 +61,12 @@ public interface DAO <T> {
 	 */
 	@SuppressWarnings("rawtypes")
 	public Class getPersistedEntityType();
+	
+	/**
+	 * Updates the entity's underlying data store for the specified field/attribute with the specified data updates 
+	 * @param field the entity field/attribute identifier
+	 * @param updates the data containing updates
+	 */
+	public void updateData(Field field, Object updates);
 	
 }

@@ -19,6 +19,7 @@ import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.StateMachineStatus;
 import com.flipkart.flux.persistence.dao.iface.StateMachinesDAOV1;
 import com.flipkart.flux.persistence.dto.StateMachineUpdate;
+import com.flipkart.flux.persistence.dto.StateMachineUpdate.StateMachineUpdateField;
 import com.flipkart.flux.persistence.key.FSMId;
 
 /**
@@ -37,7 +38,7 @@ public class StateMachineEntityManager extends EntityManager<StateMachine> {
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)	
 	public void updateStatus(FSMId fsmId, StateMachineStatus status) {
-		((StateMachinesDAOV1)getDAO()).updateStateMachine(StateMachineUpdate.Field.status, 
+		((StateMachinesDAOV1)getDAO()).updateData(StateMachineUpdateField.status, 
 				new StateMachineUpdate.StatusUpdate(fsmId, status));		
 	}
     
@@ -50,7 +51,7 @@ public class StateMachineEntityManager extends EntityManager<StateMachine> {
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)	
     public void updateExecutionVersion(FSMId fsmId, Long smExecutionVersion) {
-    	((StateMachinesDAOV1)getDAO()).updateStateMachine(StateMachineUpdate.Field.executionVersion, 
+    	((StateMachinesDAOV1)getDAO()).updateData(StateMachineUpdateField.executionVersion, 
     			new StateMachineUpdate.ExecutionVersionUpdate(fsmId, smExecutionVersion));
     }
 }

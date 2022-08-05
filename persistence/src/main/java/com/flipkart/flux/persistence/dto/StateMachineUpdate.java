@@ -12,6 +12,7 @@
  */
 package com.flipkart.flux.persistence.dto;
 
+import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.domain.StateMachineStatus;
 import com.flipkart.flux.persistence.key.FSMId;
 
@@ -21,12 +22,12 @@ import com.flipkart.flux.persistence.key.FSMId;
  * @author regu.b
  *
  */
-public class StateMachineUpdate {
+public class StateMachineUpdate implements DataUpdate {
 
 	/**
 	 * The recognized/valid fields for performing the update 
 	 */
-	public static enum Field {
+	public static enum StateMachineUpdateField implements Field {
 		status, executionVersion
 	}
 	
@@ -49,5 +50,12 @@ public class StateMachineUpdate {
 			this.version = version;
 		}		
 	}
+	
+	@SuppressWarnings("rawtypes")
+	@Override
+	public Class getPersistedEntityType() {
+		return StateMachine.class;
+	}
+	
 	
 }

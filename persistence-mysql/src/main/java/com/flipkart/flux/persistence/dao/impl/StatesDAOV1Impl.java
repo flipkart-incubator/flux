@@ -31,8 +31,8 @@ import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.criteria.DependentEventCriteria;
 import com.flipkart.flux.persistence.criteria.FSMStatusCriteria;
 import com.flipkart.flux.persistence.dao.iface.StatesDAOV1;
+import com.flipkart.flux.persistence.dto.Field;
 import com.flipkart.flux.persistence.dto.StateUpdate;
-import com.flipkart.flux.persistence.dto.StateUpdate.Field;
 import com.flipkart.flux.persistence.key.EntityId;
 import com.flipkart.flux.persistence.key.FSMIdEntityId;
 import com.flipkart.flux.persistence.key.FSMIdStateIds;
@@ -89,8 +89,9 @@ public class StatesDAOV1Impl extends AbstractDAO<State> implements StatesDAOV1{
 	}
 	
 	@Override
-	public void updateState(Field field, Object updates) {
-		switch(field) {
+	public void updateData(Field field, Object updates) {
+		StateUpdate.StateUpdateField stateUpdateField = (StateUpdate.StateUpdateField)field;
+		switch(stateUpdateField) {
 		case status:
 			if (updates instanceof StateUpdate.StatusUpdate) {
 				this.updateStatus((StateUpdate.StatusUpdate)updates);

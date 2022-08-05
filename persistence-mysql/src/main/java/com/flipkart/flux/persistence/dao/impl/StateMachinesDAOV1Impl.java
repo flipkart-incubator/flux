@@ -27,9 +27,10 @@ import com.flipkart.flux.domain.StateMachine;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.criteria.FSMNameCriteria;
 import com.flipkart.flux.persistence.dao.iface.StateMachinesDAOV1;
+import com.flipkart.flux.persistence.dto.Field;
 import com.flipkart.flux.persistence.dto.StateMachineUpdate;
-import com.flipkart.flux.persistence.dto.StateMachineUpdate.Field;
 import com.flipkart.flux.persistence.dto.StateMachineUpdate.StatusUpdate;
+import com.flipkart.flux.persistence.dto.StateUpdate.StateUpdateField;
 import com.flipkart.flux.persistence.key.FSMId;
 import com.google.inject.name.Named;
 
@@ -78,8 +79,9 @@ public class StateMachinesDAOV1Impl extends AbstractDAO<StateMachine> implements
 	}
 
 	@Override
-	public void updateStateMachine(Field field, Object updates) {
-		switch(field) {
+	public void updateData(Field field, Object updates) {
+		StateUpdateField stateupdateField = (StateUpdateField)field;
+		switch(stateupdateField) {
 		case status:
 			if (updates instanceof StateMachineUpdate.StatusUpdate) {
 				this.updateStatus((StateMachineUpdate.StatusUpdate)updates);
@@ -110,7 +112,7 @@ public class StateMachinesDAOV1Impl extends AbstractDAO<StateMachine> implements
     	cq.select(root).where(restrictions);     	    	
     	return currentSession().createQuery(cq).setLockMode(LockModeType.PESSIMISTIC_WRITE).getSingleResult().getExecutionVersion();
 	}
-		
+	
 	private StateMachine[] findByFSMName(FSMNameCriteria nameCriteria) {
     	CriteriaBuilder cb = currentSession().getCriteriaBuilder();
     	CriteriaQuery<StateMachine> cq = cb.createQuery(StateMachine.class);

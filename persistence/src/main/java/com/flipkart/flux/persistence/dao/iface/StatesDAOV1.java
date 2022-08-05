@@ -13,7 +13,6 @@
 package com.flipkart.flux.persistence.dao.iface;
 
 import com.flipkart.flux.domain.State;
-import com.flipkart.flux.persistence.dto.StateUpdate;
 import com.flipkart.flux.persistence.key.FSMIdEntityId;
 
 /**
@@ -21,13 +20,6 @@ import com.flipkart.flux.persistence.key.FSMIdEntityId;
  * @author regu.b
  *
  */public interface StatesDAOV1 extends DAO <State> {
-
-	/**
-	 * Updates the @State entity's underlying data store for the specified field/attribute with the specified data updates 
-	 * @param field the entity field/attribute identifier @see @StateUpdate.Field
-	 * @param updates the data containing updates
-	 */
-	public void updateState(StateUpdate.Field field, Object updates);
 	
 	/**
 	 * Gets the replayable retries of the @State identified by the specified @FSMIdEntityId identifier while locking it for subsequent update

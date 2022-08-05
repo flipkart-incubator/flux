@@ -21,6 +21,7 @@ import javax.persistence.criteria.Root;
 import com.flipkart.flux.domain.AuditRecord;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.dao.iface.AuditDAOV1;
+import com.flipkart.flux.persistence.dto.Field;
 import com.flipkart.flux.persistence.key.EntityId;
 import com.flipkart.flux.persistence.key.FSMId;
 import com.google.inject.name.Named;
@@ -67,6 +68,11 @@ public class AuditDAOV1Impl extends AbstractDAO<AuditRecord> implements AuditDAO
 		throw new PersistenceException("Find AuditRecordS is not supported for key : " + key);		
 	}
 
+	@Override
+	public void updateData(Field field, Object updates) {
+		// TODO Auto-generated method stub
+	}
+	
 	private AuditRecord[] findAuditRecordsForFSMId(FSMId key) {
     	CriteriaBuilder cb = currentSession().getCriteriaBuilder();
     	CriteriaQuery<AuditRecord> cq = cb.createQuery(AuditRecord.class);

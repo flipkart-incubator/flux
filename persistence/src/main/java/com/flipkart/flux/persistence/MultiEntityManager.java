@@ -112,9 +112,9 @@ public abstract class MultiEntityManager {
     private Object[] updateEntities(Object[] entities) {
     	List<Object> persistedEntities = new LinkedList<Object>();
     	for (Object entity : entities) {
-    		persistedEntities.add(
-    				daos.stream().filter(dao -> entity.getClass().isAssignableFrom(dao.getPersistedEntityType())) 
-    					.findFirst().get().create(entity));
+    		daos.stream().filter(dao -> entity.getClass().isAssignableFrom(dao.getPersistedEntityType())) 
+    			.findFirst().get().update(entity);
+    		persistedEntities.add(entity);
     	}
     	return (Object[])persistedEntities.toArray(new Object[0]);    	
     }

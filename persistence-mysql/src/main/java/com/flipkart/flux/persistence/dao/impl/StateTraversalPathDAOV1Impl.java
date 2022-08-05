@@ -22,6 +22,7 @@ import javax.persistence.criteria.Root;
 import com.flipkart.flux.domain.StateTraversalPath;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.dao.iface.StateTraversalPathDAOV1;
+import com.flipkart.flux.persistence.dto.Field;
 import com.flipkart.flux.persistence.key.FSMId;
 import com.flipkart.flux.persistence.key.FSMIdEntityId;
 import com.google.inject.name.Named;
@@ -67,6 +68,11 @@ public class StateTraversalPathDAOV1Impl extends AbstractDAO<StateTraversalPath>
 			return this.findStateTraversalPathsByFSMId((FSMId)key);
 		} 
 		throw new PersistenceException("Find StateTraversalPathS is not supported for key : " + key);	
+	}
+	
+	@Override
+	public void updateData(Field field, Object updates) {
+		// TODO Auto-generated method stub
 	}
 	
 	private StateTraversalPath findByCompositeId(FSMIdEntityId fsmIdEntityId) {

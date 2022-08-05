@@ -45,13 +45,13 @@ public class StateEntityManager extends EntityManager<State> {
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)	
 	public void updateStatus(FSMId fsmId, Long[] stateIds, Status status) {
-		((StatesDAOV1)getDAO()).updateState(StateUpdate.Field.status, new StateUpdate.StatusUpdate(fsmId, stateIds, status));
+		((StatesDAOV1)getDAO()).updateData(StateUpdate.StateUpdateField.status, new StateUpdate.StatusUpdate(fsmId, stateIds, status));
 	}
 	
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
 	public void updateRollbackStatus(FSMId fsmId, Long stateId, Status rollbackStatus) {
-    	((StatesDAOV1)getDAO()).updateState(StateUpdate.Field.rollbackStatus, 
+    	((StatesDAOV1)getDAO()).updateData(StateUpdate.StateUpdateField.rollbackStatus, 
 				new StateUpdate.RollbackStatusUpdate(new FSMIdEntityId(fsmId, new EntityId(stateId)), 
 						rollbackStatus));
 	}
@@ -59,21 +59,21 @@ public class StateEntityManager extends EntityManager<State> {
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
 	public void incrementRetryCount(FSMId fsmId, Long stateId) {
-    	((StatesDAOV1)getDAO()).updateState(StateUpdate.Field.attemptedNoOfRetries,new StateUpdate.NoOfRetriesIncrement(
+    	((StatesDAOV1)getDAO()).updateData(StateUpdate.StateUpdateField.attemptedNoOfRetries,new StateUpdate.NoOfRetriesIncrement(
 				new FSMIdEntityId(fsmId, new EntityId(stateId))));
 	}
 	
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
 	public void updateExecutionVersion(FSMId fsmId, Long stateId, Long executionVersion) {
-    	((StatesDAOV1)getDAO()).updateState(StateUpdate.Field.executionVersion, new StateUpdate.ExecutionVersionUpdate(
+    	((StatesDAOV1)getDAO()).updateData(StateUpdate.StateUpdateField.executionVersion, new StateUpdate.ExecutionVersionUpdate(
 				new FSMIdEntityId(fsmId, new EntityId(stateId)), executionVersion));
 	}
 	
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
 	public void updateReplayableRetries(FSMId fsmId, Long stateId, Short replayableRetries) {		
-    	((StatesDAOV1)getDAO()).updateState(StateUpdate.Field.attemptedNumOfReplayableRetries, new StateUpdate.ReplayableRetriesUpdate(
+    	((StatesDAOV1)getDAO()).updateData(StateUpdate.StateUpdateField.attemptedNumOfReplayableRetries, new StateUpdate.ReplayableRetriesUpdate(
 				new FSMIdEntityId(fsmId, new EntityId(stateId)), replayableRetries));
 	}
         

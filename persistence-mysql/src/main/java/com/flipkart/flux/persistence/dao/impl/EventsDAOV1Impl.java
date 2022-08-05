@@ -25,6 +25,7 @@ import com.flipkart.flux.domain.Event;
 import com.flipkart.flux.persistence.SessionFactoryContext;
 import com.flipkart.flux.persistence.criteria.EventStatusCriteria;
 import com.flipkart.flux.persistence.dao.iface.EventsDAOV1;
+import com.flipkart.flux.persistence.dto.Field;
 import com.flipkart.flux.persistence.key.EntityId;
 import com.google.inject.name.Named;
 
@@ -70,6 +71,11 @@ public class EventsDAOV1Impl extends AbstractDAO<Event> implements EventsDAOV1 {
 		} 
 		throw new PersistenceException("Find EventS is not supported for key : " + key);	
 	}
+
+	@Override
+	public void updateData(Field field, Object updates) {
+		// TODO Auto-generated method stub
+	}
 	
 	private Event[] findEventsByStatusCriteria(EventStatusCriteria statusCritera) {
     	CriteriaBuilder cb = currentSession().getCriteriaBuilder();
@@ -83,5 +89,5 @@ public class EventsDAOV1Impl extends AbstractDAO<Event> implements EventsDAOV1 {
     	cq.select(root).where(predicateList.toArray(new Predicate[0]));    	
     	return currentSession().createQuery(cq).getResultList().toArray(new Event[0]);
 	}
-	
+
 }

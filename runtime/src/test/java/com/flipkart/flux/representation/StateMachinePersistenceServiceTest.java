@@ -214,19 +214,12 @@ public class StateMachinePersistenceServiceTest {
         Set<StateDefinition> stateDefinitions = new HashSet<>();
         Set<EventData> eventData = new HashSet<>();
         eventData.add(new EventData("e0", "java.lang.String", "dummy_data", "client"));
-        Event e0_domain = new Event("e0", "java.lang.String", Event.EventStatus.pending,
-                null, null, null, 0L);
-        when(eventPersistenceService.convertEventDefinitionToEvent(new EventDefinition(
-                "e0", "java.lang.String"))).thenReturn(e0_domain);
 
         List<EventDefinition> t1_dependencies = new ArrayList<>();
         t1_dependencies.add(new EventDefinition("e0", "java.lang.String"));
         EventDefinition t1_OutputEvent = new EventDefinition("e1", "java.lang.String");
         eventData.add(new EventData("e1", "java.lang.String", null,
                 "managed_runtime"));
-        Event e1_domain = new Event("e1", "java.lang.String", Event.EventStatus.pending,
-                null, null, null, 0L);
-        when(eventPersistenceService.convertEventDefinitionToEvent(t1_OutputEvent)).thenReturn(e1_domain);
         StateDefinition t1 = new StateDefinition(1L, "t1", "desc",
                 null, "task1", null, 3L, 1000L, t1_dependencies,
                 t1_OutputEvent, Boolean.TRUE);
@@ -237,9 +230,6 @@ public class StateMachinePersistenceServiceTest {
         EventDefinition t2_OutputEvent = new EventDefinition("e2", "java.lang.String");
         eventData.add(new EventData("e2", "java.lang.String", null,
                 "managed_runtime"));
-        Event e2_domain = new Event("e2", "java.lang.String", Event.EventStatus.pending,
-                null, null, null, 0L);
-        when(eventPersistenceService.convertEventDefinitionToEvent(t2_OutputEvent)).thenReturn(e2_domain);
         StateDefinition t2 = new StateDefinition(1L, "t2", "desc",
                 null, "task2", null, 3L, 1000L, t2_dependencies,
                 t2_OutputEvent);
@@ -251,9 +241,6 @@ public class StateMachinePersistenceServiceTest {
         EventDefinition t3_OutputEvent = new EventDefinition("e3", "java.lang.String");
         eventData.add(new EventData("e3", "java.lang.String", null,
                 "managed_runtime"));
-        Event e3_domain = new Event("e3", "java.lang.String", Event.EventStatus.pending,
-                null, null, null, 0L);
-        when(eventPersistenceService.convertEventDefinitionToEvent(t3_OutputEvent)).thenReturn(e3_domain);
         StateDefinition t3 = new StateDefinition(1L, "t3", "desc",
                 null, "task3", null, 3L, 1000L, t3_dependencies,
                 t3_OutputEvent);
@@ -265,9 +252,6 @@ public class StateMachinePersistenceServiceTest {
         EventDefinition t4_OutputEvent = new EventDefinition("e4", "java.lang.String");
         eventData.add(new EventData("e4", "java.lang.String", null,
                 "managed_runtime"));
-        Event e4_domain = new Event("e4", "java.lang.String", Event.EventStatus.pending,
-                null, null, null, 0L);
-        when(eventPersistenceService.convertEventDefinitionToEvent(t4_OutputEvent)).thenReturn(e4_domain);
         StateDefinition t4 = new StateDefinition(1L, "t4", "desc",
                 null, "task4", null, 3L, 1000L, t4_dependencies,
                 t4_OutputEvent, Boolean.TRUE);
@@ -278,9 +262,6 @@ public class StateMachinePersistenceServiceTest {
         EventDefinition t5_OutputEvent = new EventDefinition("e5", "java.lang.String");
         eventData.add(new EventData("e5", "java.lang.String", null,
                 "managed_runtime"));
-        Event e5_domain = new Event("e5", "java.lang.String", Event.EventStatus.pending,
-                null, null, null, 0L);
-        when(eventPersistenceService.convertEventDefinitionToEvent(t5_OutputEvent)).thenReturn(e5_domain);
         StateDefinition t5 = new StateDefinition(1L, "t5", "desc",
                 null, "task5", null, 3L, 1000L, t5_dependencies,
                 t5_OutputEvent);
@@ -293,9 +274,6 @@ public class StateMachinePersistenceServiceTest {
         EventDefinition t6_OutputEvent = new EventDefinition("e6", "java.lang.String");
         eventData.add(new EventData("e6", "java.lang.String", null,
                 "managed_runtime"));
-        Event e6_domain = new Event("e6", "java.lang.String", Event.EventStatus.pending,
-                null, null, null, 0L);
-        when(eventPersistenceService.convertEventDefinitionToEvent(t6_OutputEvent)).thenReturn(e6_domain);
         StateDefinition t6 = new StateDefinition(1L, "t6", "desc",
                 null, "task6", null, 3L, 1000L, t6_dependencies,
                 t6_OutputEvent);
@@ -306,9 +284,6 @@ public class StateMachinePersistenceServiceTest {
         EventDefinition t7_OutputEvent = new EventDefinition("e7", "java.lang.String");
         eventData.add(new EventData("e7", "java.lang.String", null,
                 "managed_runtime"));
-        Event e7_domain = new Event("e7", "java.lang.String", Event.EventStatus.pending,
-                null, null, null, 0L);
-        when(eventPersistenceService.convertEventDefinitionToEvent(t7_OutputEvent)).thenReturn(e7_domain);
         StateDefinition t7 = new StateDefinition(1L, "t7", "desc",
                 null, "task7", null, 3L, 1000L, t7_dependencies,
                 t7_OutputEvent);
@@ -319,9 +294,6 @@ public class StateMachinePersistenceServiceTest {
         EventDefinition t8_OutputEvent = new EventDefinition("e8", "java.lang.String");
         eventData.add(new EventData("e8", "java.lang.String", null,
                 "managed_runtime"));
-        Event e8_domain = new Event("e8", "java.lang.String", Event.EventStatus.pending,
-                null, null, null, 0L);
-        when(eventPersistenceService.convertEventDefinitionToEvent(t8_OutputEvent)).thenReturn(e8_domain);
         StateDefinition t8 = new StateDefinition(1L, "t8", "desc",
                 null, "task8", null, 3L, 1000L, t8_dependencies,
                 t8_OutputEvent, Boolean.TRUE);

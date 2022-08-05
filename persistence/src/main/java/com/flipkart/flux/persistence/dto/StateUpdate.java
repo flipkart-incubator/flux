@@ -12,22 +12,23 @@
  */
 package com.flipkart.flux.persistence.dto;
 
+import com.flipkart.flux.domain.State;
 import com.flipkart.flux.domain.Status;
 import com.flipkart.flux.persistence.key.FSMId;
 import com.flipkart.flux.persistence.key.FSMIdEntityId;
 
 /**
- * Data container for performing updates on the @State entity in underlying data store.
+ * Data container for performing updates on the State entity in underlying data store.
  * Also defines valid fields/attributes for the update
  * @author regu.b
  *
  */
-public class StateUpdate {
+public class StateUpdate implements DataUpdate {
 
 	/**
 	 * The recognized/valid fields for performing the update 
 	 */
-	public static enum Field {
+	public static enum StateUpdateField implements Field{
 		status, rollbackStatus, attemptedNoOfRetries, attemptedNumOfReplayableRetries,executionVersion
 	}
 	
@@ -79,6 +80,12 @@ public class StateUpdate {
 			this.fsmIdEntityId = fsmIdEntityId;
 			this.version = version;
 		}		
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public Class getPersistedEntityType() {
+		return State.class;
 	}
 	
 }

@@ -13,7 +13,6 @@
 package com.flipkart.flux.persistence.dao.iface;
 
 import com.flipkart.flux.domain.StateMachine;
-import com.flipkart.flux.persistence.dto.StateMachineUpdate;
 import com.flipkart.flux.persistence.key.FSMId;
 
 /**
@@ -22,13 +21,6 @@ import com.flipkart.flux.persistence.key.FSMId;
  *
  */
 public interface StateMachinesDAOV1 extends DAO <StateMachine>{
-	
-	/**
-	 * Updates the @StateMachine entity's underlying data store for the specified field/attribute with the specified data updates 
-	 * @param field the entity field/attribute identifier @see @StateMachineUpdate.Field
-	 * @param updates the data containing updates
-	 */
-	public void updateStateMachine(StateMachineUpdate.Field field, Object updates);
 	
 	/**
 	 * Gets the execution version of the @StateMachine identified by the specified @FSMId identifier while locking it for subsequent update
