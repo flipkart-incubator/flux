@@ -95,3 +95,4 @@ connector:
   connection.timeout: 10000
   socket.timeout: 10000
 
+enableAuditRecord: True

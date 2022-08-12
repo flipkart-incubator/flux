@@ -14,6 +14,7 @@
 package com.flipkart.flux.dao;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNull;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
@@ -110,5 +111,24 @@ public class AuditDAOTest {
 
         AuditRecord auditRecord1 = auditDAO.findById(stateMachine.getId(), recordId);
         assertThat(auditRecord1.getErrors()).isEqualTo(errorMsg);
+    }
+    
+    @Test
+    public void enableAuditRecordNegativeTest() {
+      StateMachine stateMachine = dbClearWithTestSMRule.getStateMachine();
+      State state = null;
+      for (Object ob : stateMachine.getStates()) {
+        state = (State) ob;
+        break;
+      }
+      AuditRecord auditRecord = new AuditRecord(stateMachine.getId(),
+          (state != null) ? state.getId() : null,
+          0L, Status.completed, null, null, 0L,
+          null);
+      auditDAO.enableAuditRecord(false);
+
+      AuditRecord auditRecord1 = auditDAO.create(stateMachine.getId(), auditRecord);
+      assertNull(auditRecord1);
+      auditDAO.enableAuditRecord(true);
     }
 }
