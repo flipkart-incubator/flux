@@ -85,6 +85,7 @@ public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
         return auditRecord;
     }
     
+    @Override
     public void enableAuditRecord(boolean value) {
   	  this.enableAuditRecord=value;
     }

@@ -24,4 +24,9 @@ public interface AuditDAOV1 extends DAO <AuditRecord> {
 	/** The max length for error message in audit data store*/
 	public static final int ERROR_MSG_LENGTH_IN_AUDIT = 995;
 	
+    /**
+     * Enable persisting  audit record to database.
+     */
+    void enableAuditRecord(boolean value);	
+	
 }

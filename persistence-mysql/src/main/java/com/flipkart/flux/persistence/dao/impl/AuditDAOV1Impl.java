@@ -75,6 +75,11 @@ public class AuditDAOV1Impl extends AbstractDAO<AuditRecord> implements AuditDAO
 		throw new PersistenceException("Find AuditRecordS is not supported for key : " + key);		
 	}
 
+    @Override
+    public void enableAuditRecord(boolean value) {
+  	  this.enableAuditRecord=value;
+    }
+	
 	@Override
 	public void updateData(Field field, Object updates) {
 		// TODO Auto-generated method stub
