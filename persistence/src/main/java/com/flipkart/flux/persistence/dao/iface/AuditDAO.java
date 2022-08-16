@@ -46,4 +46,9 @@ public interface AuditDAO {
      * Creates Audit record using the parameter session and returns the saved object
      */
     AuditRecord create_NonTransactional(AuditRecord auditRecord, Session session);
+    
+    /**
+     * Enable persisting  audit record to database.
+     */
+    void enableAuditRecord(boolean value);
 }

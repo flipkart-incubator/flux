@@ -33,13 +33,20 @@ import com.google.inject.name.Named;
  */
 public class AuditDAOV1Impl extends AbstractDAO<AuditRecord> implements AuditDAOV1{
 
+	private boolean enableAuditRecord;
+
     @Inject
-    public AuditDAOV1Impl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
+    public AuditDAOV1Impl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext, @Named("enableAuditRecord") boolean enableAuditRecord) {
         super(sessionFactoryContext);
+        this.enableAuditRecord = enableAuditRecord;
     }
 	
 	@Override
 	public AuditRecord create(AuditRecord auditRecord) {
+    	if(!enableAuditRecord) {
+    		return null;
+    	}
+    	
         if (auditRecord.getErrors() != null && auditRecord.getErrors().toCharArray().length > 999){
             // As in db we are storing the column as varchar(1000)
             auditRecord.setErrors(auditRecord.getErrors().substring(0, ERROR_MSG_LENGTH_IN_AUDIT));

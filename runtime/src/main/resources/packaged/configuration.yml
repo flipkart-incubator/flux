@@ -109,3 +109,5 @@ connector:
 deploymentType: directory
 deploymentUnitsPath: "/tmp/workflows/"
 
+enableAuditRecord: True
+

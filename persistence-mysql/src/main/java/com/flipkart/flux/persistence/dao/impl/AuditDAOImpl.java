@@ -31,9 +31,12 @@ import java.util.List;
  */
 public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
 	
+	private boolean enableAuditRecord;
+	
     @Inject
-    public AuditDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext) {
+    public AuditDAOImpl(@Named("fluxSessionFactoriesContext") SessionFactoryContext sessionFactoryContext, @Named("enableAuditRecord") boolean enableAuditRecord) {
         super(sessionFactoryContext);
+        this.enableAuditRecord = enableAuditRecord;
     }
 
     @SuppressWarnings("unchecked")
@@ -50,6 +53,10 @@ public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
     @Transactional
     @SelectDataSource(type = DataSourceType.READ_WRITE, storage = Storage.SHARDED)
     public AuditRecord create(String stateMachineId, AuditRecord auditRecord) {
+    	if(!enableAuditRecord) {
+    		return null;
+    	}
+    	
         if (auditRecord.getErrors() != null && auditRecord.getErrors().toCharArray().length > 999){
             // As in db we are storing the column as varchar(1000)
             auditRecord.setErrors(auditRecord.getErrors().substring(0, ERROR_MSG_LENGTH_IN_AUDIT));
@@ -66,11 +73,19 @@ public class AuditDAOImpl extends AbstractDAO<AuditRecord> implements AuditDAO {
 
     @Override
     public AuditRecord create_NonTransactional(AuditRecord auditRecord, Session session) {
+    	if(!enableAuditRecord) {
+    		return null;
+    	}
+    	
         if (auditRecord.getErrors() != null && auditRecord.getErrors().toCharArray().length > 999){
             // As in db we are storing the column as varchar(1000)
             auditRecord.setErrors(auditRecord.getErrors().substring(0, ERROR_MSG_LENGTH_IN_AUDIT));
         }
         session.save(auditRecord);
         return auditRecord;
+    }
+    
+    public void enableAuditRecord(boolean value) {
+  	  this.enableAuditRecord=value;
     }
 }
