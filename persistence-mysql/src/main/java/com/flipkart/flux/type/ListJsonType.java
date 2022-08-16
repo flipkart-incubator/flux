@@ -127,7 +127,7 @@ public class ListJsonType<T> implements UserType, Serializable {
         return original;
     }
 
-    protected Object deSerialize(String value) throws IOException {
+    private Object deSerialize(String value) throws IOException {
         Object obj;
         if(listType == null) {
             obj = MAPPER.readValue(value, new TypeReference<List<Object>>() {
@@ -139,7 +139,7 @@ public class ListJsonType<T> implements UserType, Serializable {
         return obj;
     }
 
-    protected String serialize(Object value) throws JsonProcessingException {
+    private String serialize(Object value) throws JsonProcessingException {
         if(value == null)
             return null;
 

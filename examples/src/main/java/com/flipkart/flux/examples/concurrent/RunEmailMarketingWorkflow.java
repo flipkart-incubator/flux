@@ -39,7 +39,7 @@ public class RunEmailMarketingWorkflow {
         /* Lets invoke our workflow */
         System.out.println("[Main] Starting workflow execution");
         for(int i = 0 ; i < 1 ; i++)
-        emailMarketingWorkflow.sendEmails(new Email("someBody", "someone@flipkart.com"), new Email("someMore", "someoneElse@fk.com"));
+        emailMarketingWorkflow.sendEmails(new Email("some email body message", "someone@flipkart.com"), new Email("someMore", "someoneElse@fk.com"));
         System.out.println("[Main] See flux dashboard at http://localhost:9999/admin/dashboard");
         /* Observe the logs and see how different emails are sent from different threads! Its magic! */
     }

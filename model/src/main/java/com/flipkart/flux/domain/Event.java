@@ -13,9 +13,16 @@
 
 package com.flipkart.flux.domain;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.Table;
 
 /**
  * <code>Event</code> is the result of a Task execution.
@@ -60,6 +67,8 @@ public class Event implements Serializable {
     /**
      * Data associated with this Event, stored as serialised json
      */
+    // Uncommenting the below Blob type definition will result in storing event data as GZip compressed blob. Not good for small event data sizes i.e. say less than 500 chars
+    //@Type(type = "com.flipkart.flux.type.BlobType", parameters = {@Parameter(name = "objectType", value = "java.lang.String")})    
     private String eventData;
 
     /**

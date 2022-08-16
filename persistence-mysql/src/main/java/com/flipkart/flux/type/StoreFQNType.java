@@ -114,7 +114,7 @@ public class StoreFQNType implements UserType, Serializable {
      * @throws InstantiationException
      */
     @SuppressWarnings("rawtypes")
-	public Object constructObject(String value) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+	private Object constructObject(String value) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
         Class c = Class.forName(value);
         return c.newInstance();
     }
@@ -125,7 +125,7 @@ public class StoreFQNType implements UserType, Serializable {
      * @param value of type Object
      * @return class FQN of an object
      */
-    public String getClassFQN(Object value) {
+    private String getClassFQN(Object value) {
         if (value != null) {
             return value.getClass().getName();
         } else {

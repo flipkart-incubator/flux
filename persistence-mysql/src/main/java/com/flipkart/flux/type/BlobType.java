@@ -19,13 +19,20 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Properties;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.usertype.DynamicParameterizedType;
 import org.hibernate.usertype.UserType;
 
 /**
@@ -33,9 +40,14 @@ import org.hibernate.usertype.UserType;
  *
  * @author shyam.akirala
  */
-public class BlobType implements UserType, Serializable {
+public class BlobType implements UserType, DynamicParameterizedType, Serializable {
 	
 	private static final long serialVersionUID = 1L;
+	
+	private static final Logger logger = LogManager.getLogger(BlobType.class);
+	
+	/** The type of the Object being serialized into a blob*/
+	private String objectType;
 	
     @Override
     public int[] sqlTypes() {
@@ -64,7 +76,7 @@ public class BlobType implements UserType, Serializable {
     @Override
     public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor sessionImplementer) throws HibernateException, SQLException {
         try {
-            st.setBytes(index, serialize(value));
+        	st.setBytes(index, serialize(value));
         } catch (IOException e) {
             throw new SQLException("Cannot serialize object to byte array. Exception " + e.getMessage());
         }
@@ -73,11 +85,9 @@ public class BlobType implements UserType, Serializable {
     @Override
     public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor sessionImplementer, Object owner) throws HibernateException, SQLException {
         byte[] value = rs.getBytes(names[0]);
-
         if (value == null) {
             return null;
         }
-
         try {
             return deSerialize(value);
         } catch (IOException | ClassNotFoundException e) {
@@ -123,6 +133,12 @@ public class BlobType implements UserType, Serializable {
         return original;
     }
 
+	@Override
+	public void setParameterValues(Properties props) {
+		System.out.println("Props are : " + props);
+		this.objectType = props.getProperty("objectType");
+	}
+    
     /**
      * converts fetched byte array to Object
      *
@@ -131,7 +147,28 @@ public class BlobType implements UserType, Serializable {
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    public Object deSerialize(byte[] value) throws IOException, ClassNotFoundException {
+    private Object deSerialize(byte[] value) throws IOException, ClassNotFoundException {
+    	if (value == null) {
+    		return null;
+    	}
+    	if (String.class.getName().equals(this.objectType)) {
+        	try {
+        		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        		ByteArrayInputStream bis = new ByteArrayInputStream(value);
+        		GZIPInputStream in = new GZIPInputStream(bis);
+        	    byte[] buffer = new byte[value.length];
+        	    int len = 0;
+        	    while ((len = in.read(buffer)) >= 0) {
+        	      bos.write(buffer, 0, len);
+        	    }
+        	    in.close();
+        	    bos.close();
+        	    return new String(bos.toByteArray(), StandardCharsets.UTF_8);        		
+        	} catch (IOException ioe) {
+        		logger.error("Error decompressing event data. Returning deserialized object instead. Error message : " + ioe.getMessage(), ioe);
+        		// will return serialized form of the object outside this if section.
+        	}    		
+    	}
         ByteArrayInputStream baip = new ByteArrayInputStream(value);
         ObjectInputStream ois = new ObjectInputStream(baip);
         return ois.readObject();
@@ -144,11 +181,31 @@ public class BlobType implements UserType, Serializable {
      * @return byte array
      * @throws IOException
      */
-    public byte[] serialize(Object value) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(baos);
+    private byte[] serialize(Object value) throws IOException {
+    	if (value == null) {
+    		return null;
+    	}
+    	if (String.class.getName().equals(this.objectType)) {
+        	try {
+	    		String stringValue = (String)value;
+	    		ByteArrayOutputStream bos = new ByteArrayOutputStream(20);
+	    		GZIPOutputStream gzipOS = new GZIPOutputStream(bos);
+	    		gzipOS.write(stringValue.getBytes(StandardCharsets.UTF_8));
+	    		gzipOS.close();
+	    		bos.close();
+	    		return bos.toByteArray();
+        	} catch (IOException ioe) {
+        		logger.error("Error compressing event data. Returning serialized object instead. Error message : " + ioe.getMessage(), ioe);
+        		// will return serialized form of the object outside this if section.
+        	}
+    	} 
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
         oos.writeObject(value);
-        return baos.toByteArray();
+        oos.close();
+        bos.close();
+        return bos.toByteArray();
     }
+
 
 }
